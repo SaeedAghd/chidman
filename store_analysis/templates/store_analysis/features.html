@@ -1,0 +1,134 @@
+{% extends 'store_analysis/base.html' %}
+
+{% block title %}ویژگی‌ها - چیدمانو{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="text-center py-5">
+        <h1 class="display-4 mb-4">ویژگی‌های چیدمانو</h1>
+        <p class="lead text-muted">با استفاده از هوش مصنوعی، چیدمان فروشگاه خود را بهینه کنید و فروش خود را افزایش دهید.</p>
+    </div>
+
+    <!-- Main Features -->
+    <div class="row g-4 py-5">
+        <!-- Feature 1 -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white rounded-circle me-3">
+                            <i class="fas fa-robot fa-2x"></i>
+                        </div>
+                        <h3 class="card-title h4 mb-0">هوش مصنوعی پیشرفته</h3>
+                    </div>
+                    <p class="card-text">چیدمانو از الگوریتم‌های پیشرفته هوش مصنوعی برای تحلیل چیدمان فروشگاه شما استفاده می‌کند. این سیستم قادر است:</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>تحلیل هوشمند مسیر مشتری</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>بهینه‌سازی چیدمان محصولات</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>پیشنهادات شخصی‌سازی شده</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="feature-icon bg-success bg-gradient text-white rounded-circle me-3">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <h3 class="card-title h4 mb-0">تحلیل جامع</h3>
+                    </div>
+                    <p class="card-text">سیستم تحلیل جامع چیدمانو تمامی جنبه‌های چیدمان فروشگاه شما را بررسی می‌کند:</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>تحلیل نورپردازی و رنگ‌ها</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>بررسی ارتفاع و فاصله قفسه‌ها</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>تحلیل جریان مشتری</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="feature-icon bg-info bg-gradient text-white rounded-circle me-3">
+                            <i class="fas fa-lightbulb fa-2x"></i>
+                        </div>
+                        <h3 class="card-title h4 mb-0">پیشنهادات هوشمند</h3>
+                    </div>
+                    <p class="card-text">چیدمانو با ارائه پیشنهادات هوشمند به شما کمک می‌کند:</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>بهبود چیدمان محصولات</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>افزایش زمان حضور مشتری</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>بهینه‌سازی فضای فروشگاه</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="feature-icon bg-warning bg-gradient text-white rounded-circle me-3">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <h3 class="card-title h4 mb-0">تحلیل سریع</h3>
+                    </div>
+                    <p class="card-text">با چیدمانو، نتایج تحلیل را در کمترین زمان ممکن دریافت کنید:</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>تحلیل اولیه در کمتر از ۵ دقیقه</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>تحلیل تکمیلی در ۳۰ دقیقه</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>پیشنهادات عملی و کاربردی</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="text-center py-5">
+        <h2 class="h3 mb-4">آماده بهینه‌سازی چیدمان فروشگاه خود هستید؟</h2>
+        <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket me-2"></i>
+            شروع تحلیل رایگان
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feature-icon {
+        width: 4rem;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+    }
+    
+    .feature-icon {
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover .feature-icon {
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %} 

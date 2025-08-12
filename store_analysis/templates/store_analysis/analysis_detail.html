@@ -1,0 +1,134 @@
+{% extends 'store_analysis/base.html' %}
+
+{% block title %}جزئیات تحلیل - چیدمانو{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center py-5">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">جزئیات تحلیل</h1>
+                <p class="lead text-muted">نتایج تحلیل و پیشنهادات برای بهینه‌سازی چیدمان فروشگاه</p>
+            </div>
+
+            <!-- Analysis Info -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="h5 mb-3">اطلاعات فروشگاه</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-store text-primary me-2"></i>
+                                    <strong>نام فروشگاه:</strong> {{ analysis.store_name }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-tag text-primary me-2"></i>
+                                    <strong>نوع فروشگاه:</strong> {{ analysis.store_type }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-ruler-combined text-primary me-2"></i>
+                                    <strong>متراژ:</strong> {{ analysis.store_size }} متر مربع
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h3 class="h5 mb-3">وضعیت تحلیل</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-clock text-primary me-2"></i>
+                                    <strong>تاریخ درخواست:</strong> {{ analysis.created_at|date:"Y/m/d H:i" }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    <strong>وضعیت:</strong>
+                                    {% if analysis.status == 'completed' %}
+                                        <span class="badge bg-success">تکمیل شده</span>
+                                    {% elif analysis.status == 'processing' %}
+                                        <span class="badge bg-warning">در حال پردازش</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">در انتظار</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initial Analysis -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="h5 mb-0">تحلیل اولیه</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="h6 mb-3">خلاصه تحلیل</h4>
+                            <p>{{ analysis.initial_analysis.summary }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="h6 mb-3">پیشنهادات</h4>
+                            <ul class="list-group list-group-flush">
+                                {% for suggestion in analysis.initial_analysis.suggestions %}
+                                    <li class="list-group-item">
+                                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                                        {{ suggestion }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            {% if analysis.status == 'completed' %}
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="h5 mb-0">تحلیل تکمیلی</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="h6 mb-3">تحلیل دقیق</h4>
+                                <p>{{ analysis.detailed_analysis.analysis }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="h6 mb-3">پیشنهادات تکمیلی</h4>
+                                <ul class="list-group list-group-flush">
+                                    {% for suggestion in analysis.detailed_analysis.suggestions %}
+                                        <li class="list-group-item">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            {{ suggestion }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow mb-4">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">در حال بارگذاری...</span>
+                        </div>
+                        <h3 class="h5 mb-3">تحلیل تکمیلی در حال انجام است</h3>
+                        <p class="text-muted mb-0">نتایج تحلیل تکمیلی به زودی آماده خواهد شد و از طریق ایمیل و واتساپ ارسال می‌شود.</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="text-center">
+                <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>
+                    درخواست تحلیل جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

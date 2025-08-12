@@ -1,0 +1,242 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">تحلیل فروشگاه</h2>
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <!-- اطلاعات پایه -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>اطلاعات پایه فروشگاه</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.store_name.id_for_label }}" class="form-label">نام فروشگاه</label>
+                        {{ form.store_name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.store_location.id_for_label }}" class="form-label">موقعیت فروشگاه</label>
+                        {{ form.store_location }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.store_type.id_for_label }}" class="form-label">نوع فروشگاه</label>
+                        {{ form.store_type }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.store_size.id_for_label }}" class="form-label">متراژ فروشگاه</label>
+                        {{ form.store_size }}
+                        <small class="form-text text-muted">مثال: 20x10 (طول x عرض به متر)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- مناطق بلااستفاده -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>مناطق بلااستفاده یا کم‌ترافیک</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">نوع منطقه بلااستفاده</label>
+                        {{ form.unused_area_type }}
+                        <small class="form-text text-muted">یکی از گزینه‌های لیست را انتخاب کنید.</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.unused_area_size.id_for_label }}" class="form-label">متراژ منطقه بلااستفاده</label>
+                        {{ form.unused_area_size }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.unused_area_reason.id_for_label }}" class="form-label">دلیل بلااستفاده بودن</label>
+                        {{ form.unused_area_reason }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.unused_areas.id_for_label }}" class="form-label">توضیحات تکمیلی</label>
+                        {{ form.unused_areas }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- دوربین نظارتی -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>دوربین نظارتی</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            {{ form.has_surveillance }}
+                            <label class="form-check-label" for="{{ form.has_surveillance.id_for_label }}">
+                                دوربین نظارتی
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.camera_count.id_for_label }}" class="form-label">تعداد دوربین‌ها</label>
+                        {{ form.camera_count }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.camera_locations.id_for_label }}" class="form-label">موقعیت دوربین‌ها</label>
+                        {{ form.camera_locations }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.camera_coverage.id_for_label }}" class="form-label">مناطق تحت پوشش</label>
+                        {{ form.camera_coverage }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ویدیوی مسیر مشتری -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>ویدیوی مسیر مشتری</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.video_duration.id_for_label }}" class="form-label">مدت زمان ویدیو</label>
+                        {{ form.video_duration }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.video_date.id_for_label }}" class="form-label">تاریخ ضبط</label>
+                        {{ form.video_date }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.video_time.id_for_label }}" class="form-label">ساعت ضبط</label>
+                        {{ form.video_time }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.customer_video_file.id_for_label }}" class="form-label">فایل ویدیو</label>
+                        {{ form.customer_video_file }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- مسیر حرکت مشتری -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>مسیر حرکت مشتری</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">نقاط کلیدی مسیر</label>
+                        {{ form.customer_path_type }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">جهت حرکت مشتریان</label>
+                        {{ form.customer_path_direction }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.customer_path_notes.id_for_label }}" class="form-label">توضیحات تکمیلی</label>
+                        {{ form.customer_path_notes }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.customer_movement_paths.id_for_label }}" class="form-label">مسیر معمول حرکت مشتریان</label>
+                        {{ form.customer_movement_paths }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <button type="submit" class="btn btn-primary">ذخیره اطلاعات</button>
+        </div>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+    // اعتبارسنجی فرم و اعتبارسنجی اختصاصی متراژ فروشگاه و unused_area_type
+    (function () {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                var valid = true;
+
+                // اعتبارسنجی متراژ فروشگاه (store_size)
+                var storeSizeInput = document.getElementById('{{ form.store_size.id_for_label }}');
+                if (storeSizeInput) {
+                    var sizePattern = /^\d+\s*[xX×]\s*\d+$/;
+                    if (!sizePattern.test(storeSizeInput.value.trim())) {
+                        valid = false;
+                        storeSizeInput.classList.add('is-invalid');
+                        if (!document.getElementById('store-size-error')) {
+                            var err = document.createElement('div');
+                            err.id = 'store-size-error';
+                            err.className = 'invalid-feedback';
+                            err.innerText = 'فرمت صحیح: طول x عرض (مثال: 20x10)';
+                            storeSizeInput.parentNode.appendChild(err);
+                        }
+                    } else {
+                        storeSizeInput.classList.remove('is-invalid');
+                        var err = document.getElementById('store-size-error');
+                        if (err) err.remove();
+                    }
+                }
+
+                // اعتبارسنجی unused_area_type (انتخاب گزینه معتبر)
+                var unusedAreaType = document.getElementById('{{ form.unused_area_type.id_for_label }}');
+                if (unusedAreaType && unusedAreaType.value === "") {
+                    valid = false;
+                    unusedAreaType.classList.add('is-invalid');
+                    if (!document.getElementById('unused-area-type-error')) {
+                        var err2 = document.createElement('div');
+                        err2.id = 'unused-area-type-error';
+                        err2.className = 'invalid-feedback';
+                        err2.innerText = 'لطفاً یک گزینه معتبر انتخاب کنید.';
+                        unusedAreaType.parentNode.appendChild(err2);
+                    }
+                } else if (unusedAreaType) {
+                    unusedAreaType.classList.remove('is-invalid');
+                    var err2 = document.getElementById('unused-area-type-error');
+                    if (err2) err2.remove();
+                }
+
+                if (!form.checkValidity() || !valid) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    // نمایش/مخفی کردن فیلدهای دوربین بر اساس وضعیت چک‌باکس
+    document.getElementById('{{ form.has_surveillance.id_for_label }}').addEventListener('change', function() {
+        var cameraFields = document.querySelectorAll('.camera-field');
+        cameraFields.forEach(function(field) {
+            field.style.display = this.checked ? 'block' : 'none';
+        }, this);
+    });
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,99 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">{{ store_analysis.store_name }}</h2>
+        </div>
+    </div>
+
+    <!-- اطلاعات پایه -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>اطلاعات پایه فروشگاه</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>موقعیت:</strong> {{ store_analysis.store_location }}</p>
+                    <p><strong>نوع فروشگاه:</strong> {{ store_analysis.get_store_type_display }}</p>
+                    <p><strong>متراژ:</strong> {{ store_analysis.store_size }} متر مربع</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>ابعاد:</strong> {{ store_analysis.store_dimensions }}</p>
+                    <p><strong>تعداد ورودی‌ها:</strong> {{ store_analysis.entrances }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- رفتار مشتری و مسیر حرکتی -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>رفتار مشتری و مسیر حرکتی</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>دوربین نظارتی:</strong> {% if store_analysis.has_surveillance %}دارد{% else %}ندارد{% endif %}</p>
+                    <p><strong>ساعات اوج:</strong> {{ store_analysis.peak_hours }}</p>
+                </div>
+                <div class="col-md-6">
+                    {% if store_analysis.customer_video_file %}
+                    <p><strong>ویدیوی مسیر مشتری:</strong> 
+                        <a href="{{ store_analysis.customer_video_file.url }}" target="_blank">مشاهده ویدیو</a>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>مسیر معمول حرکت مشتریان</h5>
+                    <p>{{ store_analysis.customer_movement_paths|linebreaks }}</p>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>مناطق بلااستفاده یا کم‌ترافیک</h5>
+                    <p>{{ store_analysis.unused_areas|linebreaks }}</p>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>مناطق پرتردد</h5>
+                    <p>{{ store_analysis.high_traffic_areas|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فایل‌ها و مستندات -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>فایل‌ها و مستندات</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% if store_analysis.store_plan %}
+                <div class="col-md-6 mb-3">
+                    <h5>پلان فروشگاه</h5>
+                    <a href="{{ store_analysis.store_plan.url }}" target="_blank" class="btn btn-primary">مشاهده پلان</a>
+                </div>
+                {% endif %}
+                {% if store_analysis.store_photos %}
+                <div class="col-md-6 mb-3">
+                    <h5>عکس‌های فروشگاه</h5>
+                    <a href="{{ store_analysis.store_photos.url }}" target="_blank" class="btn btn-primary">مشاهده عکس‌ها</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mb-4">
+        <a href="{% url 'store_analysis:payment' %}" class="btn btn-primary">پرداخت</a>
+    </div>
+</div>
+{% endblock %} 

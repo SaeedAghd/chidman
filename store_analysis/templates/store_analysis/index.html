@@ -1,0 +1,642 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}صفحه اصلی - تحلیل فروشگاه{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2056a7;      /* آبی تیره‌تر برای حس تخصصی و اعتماد */
+        --secondary-color: #00c9a7;    /* سبز روشن برای حس رشد و انرژی */
+        --cta-color: #00b894;          /* سبز برای دکمه‌های اقدام */
+        --danger-color: #e74c3c;       /* قرمز ملایم برای هشدار */
+        --success-color: #27ae60;      /* سبز روشن برای موفقیت */
+        --background-color: #f7f8fa;   /* پس‌زمینه خنثی و مدرن */
+        --card-bg: #ffffff;
+        --text-color: #222;
+        --muted-color: #6c757d;
+    }
+
+    body {
+        font-family: 'Vazirmatn', 'IRANSans', Tahoma, Arial, sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        letter-spacing: 0.01em;
+    }
+
+    .hero-section h1 {
+        font-size: 2.7rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+        border-bottom: 2px solid var(--secondary-color);
+        display: inline-block;
+        padding-bottom: 0.5rem;
+    }
+
+    .hero-section p {
+        font-size: 1.3rem;
+        opacity: 0.92;
+        margin-bottom: 2rem;
+        line-height: 1.7;
+    }
+
+    .btn-lg {
+        font-size: 1.15rem;
+        padding: 0.9rem 2.2rem;
+        border-radius: 0.8rem;
+        font-weight: 600;
+        background: var(--cta-color);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        border: none;
+        transition: box-shadow 0.2s, background 0.2s;
+    }
+    .btn-lg:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        background: var(--secondary-color);
+        color: #fff;
+    }
+
+    .slider-container {
+        width: 100%;
+        overflow-x: hidden;
+        position: relative;
+        height: 400px;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        background: #f3f4f6 !important;
+        margin-bottom: 3rem;
+    }
+
+    .slider {
+        display: flex;
+        flex-direction: row !important;
+        height: 100%;
+        min-width: 0;
+        background: transparent !important;
+        transition: transform 0.5s cubic-bezier(.77,0,.18,1);
+        will-change: transform;
+    }
+
+    @media (max-width: 768px) {
+        .slider {
+            width: 100% !important; /* mobile: show one slide at a time, no overflow */
+        }
+    }
+
+    .slide {
+        flex: 0 0 100%;
+        min-width: 100%;
+        min-width: 0;
+        height: 100%;
+        position: relative;
+        box-sizing: border-box;
+        display: block !important;
+    }
+    .slide:nth-child(1) { background: #ffeaea !important; border: 2px solid #e74c3c !important; }
+    .slide:nth-child(2) { background: #eaffea !important; border: 2px solid #27ae60 !important; }
+    .slide:nth-child(3) { background: #eaf4ff !important; border: 2px solid #2056a7 !important; }
+
+    .slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 1rem;
+        display: block;
+        filter: brightness(0.95) contrast(1.05);
+        transition: filter 0.3s;
+    }
+    .slide img:hover {
+        filter: brightness(1) contrast(1.1);
+    }
+
+    .slide-content {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        background: linear-gradient(to top, rgba(32,86,167,0.7), transparent 80%);
+        color: white;
+        padding: 2rem 1.5rem 1.2rem 1.5rem;
+        border-radius: 0 0 1rem 1rem;
+        z-index: 2;
+        text-align: right;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .slide-content h3 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.01em;
+        color: var(--secondary-color);
+    }
+
+    .slide-content p {
+        font-size: 1.1rem;
+        opacity: 0.93;
+        line-height: 1.6;
+    }
+
+    .slider-dot.active {
+        background: var(--primary-color);
+        border-color: var(--secondary-color);
+        transform: scale(1.25);
+    }
+
+    /* پس‌زمینه بخش ویژگی‌ها و مراحل با گرادیان ملایم و رنگ خنثی */
+    .features-section,
+    .how-it-works {
+        padding: 4rem 0;
+        background: linear-gradient(135deg, #f7f8fa 70%, #e3f6f3 100%);
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(32,86,167,0.07);
+        margin-bottom: 3rem;
+    }
+
+    /* کارت‌ها با سایه و پس‌زمینه سفید و مرز رنگ برند */
+    .feature-card,
+    .step-card {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(32,86,167,0.08);
+        border-left: 5px solid var(--secondary-color);
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    /* حالت هاور کارت‌ها */
+    .feature-card:hover,
+    .step-card:hover {
+        box-shadow: 0 8px 24px rgba(32,86,167,0.13);
+        transform: translateY(-6px) scale(1.03);
+    }
+
+    .features-section {
+        padding: 4rem 0;
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        margin-bottom: 3rem;
+    }
+
+    .features-section .row {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: nowrap;
+        align-items: stretch;
+    }
+
+    .feature-card {
+        text-align: center;
+        padding: 2rem 1.2rem;
+        min-width: 260px;
+        max-width: 340px;
+        height: 100%;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 80%, #e9ecef 100%);
+        box-shadow: 0 4px 16px rgba(32,86,167,0.08);
+        transition: box-shadow 0.2s, transform 0.2s;
+        margin: 0 auto;
+        border-left: 5px solid var(--secondary-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .feature-card:hover {
+        box-shadow: 0 8px 24px rgba(32,86,167,0.13);
+        transform: translateY(-6px) scale(1.03);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1.2rem;
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.7rem;
+        color: var(--primary-color);
+        word-break: keep-all;
+    }
+
+    .feature-description {
+        color: var(--muted-color);
+        font-size: 1.1rem;
+        line-height: 1.7;
+        word-break: break-word;
+    }
+
+    .how-it-works {
+        padding: 4rem 0;
+        background-color: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(32,86,167,0.09);
+        margin-bottom: 3rem;
+    }
+
+    .how-it-works .row {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: nowrap;
+        align-items: stretch;
+    }
+
+    .step-card {
+        background: linear-gradient(135deg, #f8f9fa 80%, #e9ecef 100%);
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(32,86,167,0.08);
+        padding: 2rem 1.2rem 1.5rem 1.2rem;
+        min-width: 260px;
+        max-width: 340px;
+        height: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        border-left: 5px solid var(--secondary-color);
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .step-card:hover {
+        box-shadow: 0 8px 24px rgba(32,86,167,0.13);
+        transform: translateY(-6px) scale(1.03);
+    }
+
+    .step-number {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        border: 3px solid var(--secondary-color);
+    }
+
+    .step-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.7rem;
+        color: var(--primary-color);
+        word-break: keep-all;
+        text-align: center;
+    }
+
+    .step-description {
+        color: var(--muted-color);
+        font-size: 1.1rem;
+        line-height: 1.7;
+        word-break: break-word;
+        text-align: center;
+    }
+
+    .alert-success {
+        background: var(--success-color);
+        color: #fff;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .alert-danger {
+        background: var(--danger-color);
+        color: #fff;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    footer {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 2rem 0 1rem 0;
+        text-align: center;
+        border-radius: 1rem 1rem 0 0;
+        margin-top: 3rem;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    }
+    .footer-links a {
+        color: #fff;
+        margin: 0 0.7rem;
+        text-decoration: underline;
+        opacity: 0.85;
+        transition: opacity 0.2s;
+    }
+    .footer-links a:hover {
+        opacity: 1;
+        color: var(--secondary-color);
+    }
+    .footer-social a {
+        color: #fff;
+        margin: 0 0.5rem;
+        font-size: 1.3rem;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+    .footer-social a:hover {
+        opacity: 1;
+        color: var(--secondary-color);
+    }
+
+    @media (max-width: 992px) {
+        .features-section .row,
+        .how-it-works .row {
+            flex-wrap: wrap !important;
+            gap: 1.5rem;
+        }
+        .feature-card,
+        .step-card {
+            min-width: 90vw;
+            max-width: 98vw;
+            margin: 0 auto 1.5rem auto;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section { padding: 2rem 0; }
+        .hero-section h1 { font-size: 1.5rem; }
+        .slider-container { height: 220px; }
+        .slide-content { padding: 1rem; }
+        .slider-arrow { width: 36px; height: 36px; font-size: 1rem; }
+        .features-section { padding: 2rem 0; }
+        .how-it-works { padding: 2rem 0; }
+        .feature-card,
+        .step-card {
+            min-width: 98vw;
+            max-width: 98vw;
+            padding: 1.2rem 0.7rem 1rem 0.7rem;
+        }
+        .feature-title,
+        .step-title {
+            font-size: 1.1rem;
+        }
+        .feature-description,
+        .step-description {
+            font-size: 0.95rem;
+        }
+        .step-number {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+            margin-bottom: 0.7rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section text-center">
+        <h1>بهینه‌سازی چیدمان فروشگاه با هوش مصنوعی</h1>
+        <p class="mb-4">با استفاده از هوش مصنوعی، چیدمان فروشگاه خود را بهینه کنید و فروش را افزایش دهید</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-plus me-2"></i>شروع تحلیل جدید
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>ورود و شروع تحلیل
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- اسلایدر فروشگاه‌های مطرح (تصاویر از static/images/slider) -->
+    <div class="slider-container">
+        <div class="slider">
+            <div class="slide">
+                <img src="{% static 'images/slider/slide1.jpg' %}" alt="اسلاید ۱">
+                <div class="slide-content">
+                    <h3>فروشگاه اپل</h3>
+                    <p>طراحی مینیمال و کاربرمحور با تمرکز بر تجربه خرید</p>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="{% static 'images/slider/slide2.jpg' %}" alt="اسلاید ۲">
+                <div class="slide-content">
+                    <h3>فروشگاه نایکی</h3>
+                    <p>چیدمان پویا و جذاب با تمرکز بر محصولات ورزشی</p>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="{% static 'images/slider/slide3.jpg' %}" alt="اسلاید ۳">
+                <div class="slide-content">
+                    <h3>فروشگاه زارا</h3>
+                    <p>طراحی مدرن و کارآمد با تمرکز بر تجربه خرید پوشاک</p>
+                </div>
+            </div>
+        </div>
+        <div class="slider-nav">
+            <div class="slider-dot active"></div>
+            <div class="slider-dot"></div>
+            <div class="slider-dot"></div>
+        </div>
+        <div class="slider-arrow slider-prev">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="slider-arrow slider-next">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-section">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h3 class="feature-title">تحلیل چیدمان</h3>
+                    <p class="feature-description">بهینه‌سازی چیدمان فروشگاه با استفاده از هوش مصنوعی</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">تحلیل ترافیک</h3>
+                    <p class="feature-description">بررسی الگوهای حرکتی مشتریان در فروشگاه</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="feature-title">تحلیل رفتار</h3>
+                    <p class="feature-description">درک بهتر رفتار مشتریان و بهبود تجربه خرید</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- آموزش چیدمان فروشگاه -->
+    <div class="features-section" style="background: #f8fafc;">
+        <h2 class="text-center mb-4" style="font-weight:700; color:#2056a7;">آموزش چیدمان فروشگاه</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card" style="min-height:260px;">
+                    <h4 class="feature-title">اصول چیدمان ویترین</h4>
+                    <p class="feature-description">با تکنیک‌های حرفه‌ای ویترین، مشتریان بیشتری جذب کنید و فروش خود را افزایش دهید.</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm mt-2">مطالعه مقاله</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card" style="min-height:260px;">
+                    <h4 class="feature-title">روانشناسی رنگ در فروشگاه</h4>
+                    <p class="feature-description">انتخاب رنگ مناسب در چیدمان فروشگاه تأثیر مستقیم بر رفتار خرید مشتریان دارد.</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm mt-2">مطالعه مقاله</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card" style="min-height:260px;">
+                    <h4 class="feature-title">مسیر حرکت مشتری</h4>
+                    <p class="feature-description">چگونه با طراحی مسیر حرکت، مشتری را به سمت محصولات پرفروش هدایت کنیم؟</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm mt-2">مطالعه مقاله</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="how-it-works">
+        <h2 class="text-center mb-5">چگونه کار می‌کند؟</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="step-card">
+                    <div class="step-number">۱</div>
+                    <h3 class="step-title">آپلود نقشه</h3>
+                    <p class="step-description">نقشه فروشگاه خود را آپلود کنید</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-card">
+                    <div class="step-number">۲</div>
+                    <h3 class="step-title">تحلیل اولیه</h3>
+                    <p class="step-description">سیستم چیدمان فعلی را تحلیل می‌کند</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-card">
+                    <div class="step-number">۳</div>
+                    <h3 class="step-title">پیشنهادات</h3>
+                    <p class="step-description">پیشنهادات بهینه‌سازی دریافت کنید</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-card">
+                    <div class="step-number">۴</div>
+                    <h3 class="step-title">پیاده‌سازی</h3>
+                    <p class="step-description">تغییرات را اعمال و نتایج را مشاهده کنید</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- فوتر حرفه‌ای -->
+<footer>
+    <div class="footer-links">
+        <a href="{% url 'store_analysis:index' %}">خانه</a>
+        <a href="{% url 'store_analysis:features' %}">امکانات</a>
+        <a href="{% url 'store_analysis:store_analysis' %}">تحلیل فروشگاه</a>
+        <a href="#">تماس با ما</a>
+    </div>
+    <div class="footer-social">
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-telegram"></i></a>
+        <a href="#"><i class="fab fa-linkedin"></i></a>
+    </div>
+    <div>
+        © 2025 تحلیل هوشمند فروشگاه | طراحی و توسعه توسط تیم شما
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentIndex = 0;
+    const slider = document.querySelector('.slider');
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.slider-dot');
+    const prevBtn = document.querySelector('.slider-prev');
+    const nextBtn = document.querySelector('.slider-next');
+    let slideInterval;
+    const totalSlides = slides.length;
+
+    function updateSlider() {
+        slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentIndex);
+        });
+    }
+
+    function nextSlide() {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        updateSlider();
+    }
+
+    function prevSlide() {
+        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+        updateSlider();
+    }
+
+    function startAutoSlide() {
+        slideInterval = setInterval(nextSlide, 5000);
+    }
+
+    function stopAutoSlide() {
+        clearInterval(slideInterval);
+    }
+
+    nextBtn.addEventListener('click', () => {
+        nextSlide();
+        stopAutoSlide();
+        startAutoSlide();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        prevSlide();
+        stopAutoSlide();
+        startAutoSlide();
+    });
+
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentIndex = index;
+            updateSlider();
+            stopAutoSlide();
+            startAutoSlide();
+        });
+    });
+
+    // Initial update
+    updateSlider();
+    startAutoSlide();
+});
+</script>
+{% endblock %}

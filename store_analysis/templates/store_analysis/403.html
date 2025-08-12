@@ -1,0 +1,25 @@
+{% extends 'store_analysis/base.html' %}
+
+{% block title %}دسترسی غیرمجاز - چیدمانو{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-1 text-muted mb-4">۴۰۳</h1>
+            <h2 class="h3 mb-4">دسترسی غیرمجاز</h2>
+            <p class="lead text-muted mb-5">متأسفانه شما دسترسی لازم برای مشاهده این صفحه را ندارید.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'store_analysis:index' %}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>
+                    بازگشت به خانه
+                </a>
+                <a href="{% url 'store_analysis:analyze' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-rocket me-2"></i>
+                    شروع تحلیل جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,25 @@
+{% extends 'store_analysis/base.html' %}
+
+{% block title %}تعداد درخواست بیش از حد - چیدمانو{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-1 text-muted mb-4">۴۲۹</h1>
+            <h2 class="h3 mb-4">تعداد درخواست بیش از حد</h2>
+            <p class="lead text-muted mb-5">متأسفانه تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً چند دقیقه صبر کنید و دوباره تلاش کنید.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'store_analysis:index' %}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>
+                    بازگشت به خانه
+                </a>
+                <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-rocket me-2"></i>
+                    شروع تحلیل جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

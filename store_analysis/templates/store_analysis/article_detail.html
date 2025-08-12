@@ -1,0 +1,50 @@
+{% extends 'store_analysis/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card mb-4">
+                {% if article.image %}
+                <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h1 class="card-title mb-3">{{ article.title }}</h1>
+                    <div class="mb-2 text-muted small">
+                        <span>منتشر شده: {{ article.created_at|date:'Y/m/d' }}</span>
+                        <span class="ms-3">بازدید: {{ article.views }}</span>
+                        {% if article.category %}
+                        <span class="ms-3">دسته‌بندی: <span class="badge bg-secondary">{{ article.category.title }}</span></span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <span class="badge bg-info text-dark">نویسنده/مترجم: {{ article.author }}</span>
+                        {% if article.tags %}
+                        <span class="ms-2">برچسب‌ها: {{ article.tags }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-4">
+                        <strong>خلاصه:</strong>
+                        <p class="mt-2">{{ article.summary }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <strong>متن کامل مقاله:</strong>
+                        <div class="mt-2" style="line-height:2;">
+                            {{ article.content|linebreaksbr }}
+                        </div>
+                    </div>
+                    {% if article.source_url %}
+                    <div class="mt-4">
+                        <a href="{{ article.source_url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                            مشاهده منبع اصلی مقاله
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="{% url 'store_analysis:education_library' %}" class="btn btn-primary">بازگشت به کتابخانه آموزش</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'store_analysis/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">کتابخانه آموزش چیدمان فروشگاه</h2>
+    <div class="row mb-4">
+        <div class="col-12">
+            <form method="get" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="جستجو در مقالات...">
+                <button class="btn btn-primary" type="submit">جستجو</button>
+            </form>
+        </div>
+    </div>
+    {% if featured %}
+    <div class="mb-5">
+        <h4>مقالات ویژه</h4>
+        <div class="row">
+            {% for article in featured %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    {% if article.image %}
+                    <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ article.title }}</h5>
+                        <p class="card-text small">{{ article.summary|truncatewords:25 }}</p>
+                        <a href="{% url 'store_analysis:article_detail' article.slug %}" class="btn btn-outline-primary btn-sm">مطالعه مقاله</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4>دسته‌بندی‌ها</h4>
+            <div>
+                {% for cat in categories %}
+                    <span class="badge bg-secondary me-2">{{ cat.title }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h4>جدیدترین مقالات</h4>
+            <div class="row">
+                {% for article in articles %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        {% if article.image %}
+                        <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ article.title }}</h5>
+                            <p class="card-text small">{{ article.summary|truncatewords:20 }}</p>
+                            <a href="{% url 'store_analysis:article_detail' article.slug %}" class="btn btn-outline-primary btn-sm">مطالعه مقاله</a>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <span>منتشر شده: {{ article.created_at|date:'Y/m/d' }}</span>
+                            <span class="ms-2">بازدید: {{ article.views }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">هنوز مقاله‌ای ثبت نشده است.</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
