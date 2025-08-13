@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView, UpdateView, DeleteView, C
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse_lazy
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponseRedirect
 from .models import StoreAnalysis, StoreAnalysisResult, DetailedAnalysis, Payment, Article, ArticleCategory
 from .forms import StoreAnalysisForm, PaymentForm  # فرم‌های خودت را بساز یا اصلاح کن
 from django.db.models import Q
@@ -13,65 +13,74 @@ from django.db.models import Q
 
 @method_decorator(login_required, name='dispatch')
 class StoreAnalysisListView(ListView):
+    """نمایش لیست تحلیل‌های فروشگاه کاربر"""
     model = StoreAnalysis
     template_name = 'store_analysis/analysis_list.html'
     context_object_name = 'analyses'
     paginate_by = 10
 
     def get_queryset(self):
-        # فقط تحلیل‌های کاربر فعلی
+        """فقط تحلیل‌های کاربر فعلی"""
         return StoreAnalysis.objects.filter(user=self.request.user).order_by('-created_at')
 
 
 @method_decorator(login_required, name='dispatch')
 class StoreAnalysisDetailView(DetailView):
+    """نمایش جزئیات تحلیل فروشگاه"""
     model = StoreAnalysis
     template_name = 'store_analysis/analysis_detail.html'
     context_object_name = 'analysis'
 
     def get_queryset(self):
+        """فقط تحلیل‌های کاربر فعلی"""
         return StoreAnalysis.objects.filter(user=self.request.user)
 
 
 @method_decorator(login_required, name='dispatch')
 class StoreAnalysisCreateView(CreateView):
+    """ایجاد تحلیل جدید فروشگاه"""
     model = StoreAnalysis
     form_class = StoreAnalysisForm
     template_name = 'store_analysis/analysis_form.html'
 
     def form_valid(self, form):
+        """تنظیم کاربر برای تحلیل جدید"""
         form.instance.user = self.request.user
         return super().form_valid(form)
 
 
 @method_decorator(login_required, name='dispatch')
 class StoreAnalysisUpdateView(UpdateView):
+    """ویرایش تحلیل فروشگاه"""
     model = StoreAnalysis
     form_class = StoreAnalysisForm
     template_name = 'store_analysis/analysis_form.html'
 
     def get_queryset(self):
+        """فقط تحلیل‌های کاربر فعلی"""
         return StoreAnalysis.objects.filter(user=self.request.user)
 
 
 @method_decorator(login_required, name='dispatch')
 class StoreAnalysisDeleteView(DeleteView):
+    """حذف تحلیل فروشگاه"""
     model = StoreAnalysis
     template_name = 'store_analysis/analysis_confirm_delete.html'
     success_url = reverse_lazy('store_analysis:analysis_list')
 
     def get_queryset(self):
+        """فقط تحلیل‌های کاربر فعلی"""
         return StoreAnalysis.objects.filter(user=self.request.user)
 
 
 @login_required
-def analysis_results(request, pk):
+def analysis_result(request, pk):
     analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
     try:
         result = analysis.analysis_result
     except StoreAnalysisResult.DoesNotExist:
         result = None
-    return render(request, 'store_analysis/analysis_results.html', {
+    return render(request, 'store_analysis/analysis_result.html', {
         'analysis': analysis,
         'result': result,
     })
@@ -171,3 +180,58 @@ class ArticlesByCategoryView(ListView):
 def index(request):
     # می‌توانید داده‌ها را برای داشبورد یا صفحه اول آماده کنید
     return render(request, 'store_analysis/index.html')
+
+def education_library(request):
+    # می‌توانید بعداً این بخش را کامل‌تر کنید
+    return render(request, 'store_analysis/education_library.html')
+
+def features(request):
+    return render(request, 'store_analysis/features.html')
+
+def article_detail(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    return render(request, 'store_analysis/article_detail.html', {'article': article})
+
+from .forms import StoreAnalysisForm
+
+def store_analysis_form(request):
+    if request.method == 'POST':
+        form = StoreAnalysisForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('store_analysis:index')
+    else:
+        form = StoreAnalysisForm()
+    return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
+
+def submit_analysis(request):
+    if request.method == 'POST':
+        form = StoreAnalysisForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('store_analysis:analysis_list')
+        else:
+            return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
+    return redirect('store_analysis:store_analysis')
+
+@login_required
+def analysis_results(request, pk):
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    results = StoreAnalysisResult.objects.filter(store_analysis=analysis)
+    return render(request, 'store_analysis/analysis_results.html', {
+        'analysis': analysis,
+        'results': results,
+    })
+
+@login_required
+def analysis_create(request):
+    if request.method == 'POST':
+        form = StoreAnalysisForm(request.POST, request.FILES)
+        if form.is_valid():
+            analysis = form.save(commit=False)
+            analysis.user = request.user
+            analysis.save()
+            return redirect('store_analysis:analysis_list')
+    else:
+        form = StoreAnalysisForm()
+    return render(request, 'store_analysis/store_analysis_form.html', {'form': form})

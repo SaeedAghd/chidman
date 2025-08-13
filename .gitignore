@@ -27,6 +27,9 @@ db.sqlite3
 db.sqlite3-journal
 media/
 static/
+staticfiles/
+temp/
+logs/
 
 # Environment
 .env
@@ -42,4 +45,13 @@ venv.bak/
 .vscode/
 *.swp
 *.swo
-.DS_Store 
+.DS_Store
+
+# Node.js
+node_modules/
+package-lock.json
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini 

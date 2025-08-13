@@ -1,10 +1,12 @@
 {
-  "name": "new-folder",
+  "name": "chidmano",
   "version": "1.0.0",
-  "description": "",
+  "description": "سیستم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tailwindcss -i ./static/css/main.css -o ./static/css/output.css --watch",
+    "dev": "tailwindcss -i ./static/css/main.css -o ./static/css/output.css --watch"
   },
   "keywords": [],
   "author": "",

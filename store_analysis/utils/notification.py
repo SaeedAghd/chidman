@@ -32,14 +32,22 @@ def send_whatsapp_notification(phone, message):
         if not phone.startswith('98'):
             phone = '98' + phone
         
+        # Check if WhatsApp settings are configured
+        whatsapp_url = getattr(settings, 'WHATSAPP_API_URL', None)
+        whatsapp_token = getattr(settings, 'WHATSAPP_API_TOKEN', None)
+        
+        if not whatsapp_url or not whatsapp_token:
+            logger.warning("WhatsApp API not configured")
+            return False
+        
         response = requests.post(
-            settings.WHATSAPP_API_URL,
+            whatsapp_url,
             json={
                 'phone': phone,
                 'message': message
             },
             headers={
-                'Authorization': f'Bearer {settings.WHATSAPP_API_TOKEN}',
+                'Authorization': f'Bearer {whatsapp_token}',
                 'Content-Type': 'application/json'
             }
         )

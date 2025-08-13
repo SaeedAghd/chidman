@@ -109,6 +109,7 @@ class StoreAnalysis(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_('تاریخ به‌روزرسانی'))
     def __str__(self):
         return f"{self.store_name} - {self.city}"
+    
     class Meta:
         verbose_name = _('تحلیل فروشگاه')
         verbose_name_plural = _('تحلیل‌های فروشگاه')
@@ -130,6 +131,7 @@ class StoreAnalysisResult(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"تحلیل {self.store_analysis.store_name} - امتیاز: {self.overall_score}"
+    
     class Meta:
         verbose_name = 'نتیجه تحلیل'
         verbose_name_plural = 'نتایج تحلیل'
@@ -144,6 +146,7 @@ class DetailedAnalysis(models.Model):
     class Meta:
         verbose_name = 'تحلیل تکمیلی'
         verbose_name_plural = 'تحلیل‌های تکمیلی'
+    
     def __str__(self):
         return f"تحلیل تکمیلی {self.store_analysis}"
 
@@ -170,6 +173,7 @@ class Cache(models.Model):
         ]
     def __str__(self):
         return f"{self.cache_type}: {self.key}"
+    
     def is_expired(self):
         return timezone.now() > self.expires_at
     @classmethod
@@ -220,6 +224,7 @@ class Payment(models.Model):
     transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
     def __str__(self):
         return f"پرداخت {self.user.username} - {self.amount} تومان"
+    
     class Meta:
         verbose_name = 'پرداخت'
         verbose_name_plural = 'پرداخت‌ها'
@@ -233,6 +238,7 @@ class ArticleCategory(models.Model):
     class Meta:
         verbose_name = 'دسته‌بندی مقاله'
         verbose_name_plural = 'دسته‌بندی‌های مقاله'
+    
     def __str__(self):
         return self.title
 
@@ -256,6 +262,22 @@ class Article(models.Model):
         ordering = ['-created_at']
     def __str__(self):
         return self.title
+    
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('store_analysis:article_detail', args=[self.slug])
+
+class StoreAnalysisDetail(models.Model):
+    store_analysis = models.ForeignKey('StoreAnalysis', on_delete=models.CASCADE, related_name='details', verbose_name='تحلیل فروشگاه')
+    description = models.TextField(verbose_name='توضیحات')
+    recommendations = models.TextField(verbose_name='توصیه‌ها', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+
+    class Meta:
+        verbose_name = 'جزئیات تحلیل فروشگاه'
+        verbose_name_plural = 'جزئیات تحلیل‌های فروشگاه'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"جزئیات {self.store_analysis.store_name}"

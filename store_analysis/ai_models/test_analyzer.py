@@ -3,6 +3,7 @@ import os
 from django.conf import settings
 
 def test_analysis():
+    """تست تحلیل چیدمان فروشگاه"""
     # ایجاد نمونه LayoutAnalyzer
     analyzer = LayoutAnalyzer()
     
@@ -23,41 +24,27 @@ def test_analysis():
             return
         
         # بررسی وجود کلیدها
-        if 'detections' in analysis_result:
+        if 'identified_objects' in analysis_result:
             print("\nاشیاء تشخیص داده شده:")
-            for det in analysis_result['detections']:
-                print(f"- {det['class']} (اطمینان: {det['confidence']:.2f})")
+            for obj in analysis_result['identified_objects']:
+                print(f"- {obj}")
         else:
-            print("کلید 'detections' در خروجی وجود ندارد.")
+            print("کلید 'identified_objects' در خروجی وجود ندارد.")
         
-        if 'summary' in analysis_result and 'flow_score' in analysis_result['summary']:
-            print("\nتحلیل جریان ترافیک:")
-            print(f"- امتیاز جریان: {analysis_result['summary']['flow_score']}")
+        if 'layout_score' in analysis_result:
+            print(f"\nامتیاز چیدمان: {analysis_result['layout_score']}")
         else:
-            print("کلید 'summary' یا 'flow_score' وجود ندارد.")
+            print("کلید 'layout_score' وجود ندارد.")
         
-        if 'traffic_flow' in analysis_result and 'blind_spots' in analysis_result['traffic_flow']:
-            print(f"- تعداد نقاط کور: {len(analysis_result['traffic_flow']['blind_spots'])}")
+        if 'empty_spaces' in analysis_result:
+            print(f"\nفضاهای خالی: {len(analysis_result['empty_spaces'])}")
         else:
-            print("کلید 'traffic_flow' یا 'blind_spots' وجود ندارد.")
-        
-        if 'shelf_analysis' in analysis_result:
-            print("\nتحلیل چیدمان قفسه‌ها:")
-            print(f"- تعداد قفسه‌ها: {analysis_result['shelf_analysis'].get('total_shelves', 'نامشخص')}")
-            print(f"- فاصله متوسط: {analysis_result['shelf_analysis'].get('average_distance', 0):.2f}")
-        else:
-            print("کلید 'shelf_analysis' وجود ندارد.")
-        
-        if 'empty_space' in analysis_result:
-            print("\nتحلیل فضای خالی:")
-            print(f"- درصد استفاده از فضا: {analysis_result['empty_space'].get('utilization_percentage', 0):.2f}%")
-        else:
-            print("کلید 'empty_space' وجود ندارد.")
+            print("کلید 'empty_spaces' وجود ندارد.")
         
         if 'suggestions' in analysis_result:
             print("\nپیشنهادات بهبود:")
             for suggestion in analysis_result['suggestions']:
-                print(f"- {suggestion['suggestion']} (اولویت: {suggestion['priority']})")
+                print(f"- {suggestion}")
         else:
             print("کلید 'suggestions' وجود ندارد.")
         

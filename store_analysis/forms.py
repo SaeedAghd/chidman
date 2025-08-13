@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 import os
 from .models import StoreAnalysis, StoreAnalysisDetail, Payment
 from django.core.validators import FileExtensionValidator
@@ -461,7 +462,7 @@ class StoreAnalysisForm(forms.ModelForm):
 class StoreAnalysisDetailForm(forms.ModelForm):
     class Meta:
         model = StoreAnalysisDetail
-        fields = ['description', 'recommendations']
+        fields = ['store_analysis', 'description', 'recommendations']
         widgets = {
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'recommendations': forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
@@ -478,4 +479,4 @@ class PaymentForm(forms.ModelForm):
                 ('online', 'پرداخت آنلاین'),
                 ('wallet', 'کیف پول')
             ])
-        } 
+        }

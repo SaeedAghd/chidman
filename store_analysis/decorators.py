@@ -3,6 +3,7 @@ import functools
 from django.http import JsonResponse
 from django.conf import settings
 from .services.security_service import SecurityService
+from .exceptions import SecurityError
 
 logger = logging.getLogger(__name__)
 

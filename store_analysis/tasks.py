@@ -14,6 +14,69 @@ import time
 
 logger = logging.getLogger(__name__)
 
+# @shared_task
+def analyze_store_task(analysis_id):
+    """تسک تحلیل فروشگاه با Celery"""
+    try:
+        analysis = StoreAnalysis.objects.get(id=analysis_id)
+        analysis.status = 'processing'
+        analysis.save()
+        
+        # تحلیل با استفاده از سرویس‌ها
+        from .services.store_analysis_service import StoreAnalysisService
+        service = StoreAnalysisService()
+        result = service.analyze_store(analysis)
+        
+        logger.info(f"Analysis completed for {analysis_id}")
+        return True
+        
+    except StoreAnalysis.DoesNotExist:
+        logger.error(f"Analysis {analysis_id} not found")
+        return False
+    except Exception as e:
+        logger.error(f"Analysis failed for {analysis_id}: {e}")
+        try:
+            analysis = StoreAnalysis.objects.get(id=analysis_id)
+            analysis.status = 'failed'
+            analysis.error_message = str(e)
+            analysis.save()
+        except Exception as save_error:
+            logger.error(f"Failed to save error status: {save_error}")
+        return False
+
+# @shared_task
+def generate_report_task(analysis_id):
+    """تسک تولید گزارش با Celery"""
+    try:
+        analysis = StoreAnalysis.objects.get(id=analysis_id)
+        
+        # تولید گزارش PDF
+        report_path = generate_pdf_report(analysis)
+        
+        if report_path:
+            logger.info(f"Report generated for {analysis_id}")
+            return report_path
+        else:
+            logger.error(f"Failed to generate report for {analysis_id}")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Report generation failed for {analysis_id}: {e}")
+        return None
+
+# @shared_task
+def cleanup_temp_files_task():
+    """تسک پاکسازی فایل‌های موقت"""
+    try:
+        from .services.file_optimizer import FileOptimizer
+        optimizer = FileOptimizer()
+        optimizer.cleanup_temp_files()
+        logger.info("Temp files cleanup completed")
+        return True
+    except Exception as e:
+        logger.error(f"Temp files cleanup failed: {e}")
+        return False
+
 class TaskProcessor:
     @staticmethod
     def process_task(task):
@@ -99,7 +162,7 @@ class TaskProcessor:
             return response.status_code == 200
             
         except Exception as e:
-            print(f"Error in send_whatsapp_message: {str(e)}")
+            logger.error(f"Error sending WhatsApp message: {e}")
             return False
 
 # @shared_task

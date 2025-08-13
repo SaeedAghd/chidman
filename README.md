@@ -11,29 +11,54 @@
 
 ## نصب و راه‌اندازی
 
-1. نصب وابستگی‌ها:
+1. نصب وابستگی‌های Python:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. تنظیم متغیرهای محیطی:
+2. نصب وابستگی‌های Node.js:
 ```bash
-cp .env.example .env
+npm install
 ```
 
-3. اجرای مایگریشن‌ها:
+3. تنظیم متغیرهای محیطی:
+```bash
+# فایل .env را ایجاد کنید و متغیرهای زیر را تنظیم کنید:
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+DATABASE_URL=sqlite:///db.sqlite3
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+OPENAI_API_KEY=your-openai-api-key
+```
+
+4. اجرای مایگریشن‌ها:
 ```bash
 python manage.py migrate
 ```
 
-4. ایجاد کاربر ادمین:
+5. ایجاد کاربر ادمین:
 ```bash
 python manage.py createsuperuser
 ```
 
-5. اجرای سرور:
+6. اجرای سرور:
 ```bash
 python manage.py runserver
+```
+
+7. اجرای Celery (در ترمینال جداگانه):
+```bash
+celery -A chidmano worker --loglevel=info
+```
+
+8. اجرای Redis (در ترمینال جداگانه):
+```bash
+redis-server
 ```
 
 ## استفاده

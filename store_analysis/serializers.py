@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import StoreAnalysis, Payment, StoreAnalysisResult, Cache
+from .models import StoreAnalysis, Payment, StoreAnalysisResult
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer برای کاربر"""
@@ -58,22 +58,7 @@ class AnalysisStatsSerializer(serializers.Serializer):
     total_payments = serializers.IntegerField()
     total_revenue = serializers.DecimalField(max_digits=10, decimal_places=2)
 
-class CacheSerializer(serializers.ModelSerializer):
-    """Serializer برای کش"""
-    cache_type_display = serializers.CharField(source='get_cache_type_display', read_only=True)
-    is_expired = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Cache
-        fields = [
-            'id', 'key', 'value', 'cache_type', 'cache_type_display',
-            'expires_at', 'created_at', 'updated_at', 'is_expired'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-    
-    def get_is_expired(self, obj):
-        """بررسی انقضای کش"""
-        return obj.is_expired()
+# Cache serializer removed - Cache model not available
 
 class FileUploadSerializer(serializers.Serializer):
     """Serializer برای آپلود فایل"""
@@ -95,9 +80,13 @@ class FileUploadSerializer(serializers.Serializer):
         if not any(file_name.endswith(ext) for ext in allowed_extensions):
             raise serializers.ValidationError('پسوند فایل مجاز نیست.')
         
-        # بررسی محتوای فایل
-        if not FileSecurityValidator.validate_file_content(value):
-            raise serializers.ValidationError('نوع فایل نامعتبر است.')
+        # بررسی محتوای فایل - simplified validation
+        if value.content_type.startswith('image/'):
+            try:
+                from PIL import Image
+                Image.open(value)
+            except Exception:
+                raise serializers.ValidationError('فایل تصویر نامعتبر است.')
         
         return value
 

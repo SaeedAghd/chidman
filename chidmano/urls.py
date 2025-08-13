@@ -21,5 +21,7 @@ urlpatterns = [
     ), name='password_change_done'),
     path('accounts/password_reset/', lambda request: HttpResponse('بازیابی رمز عبور فعال نیست.'), name='password_reset'),
     path('store-analysis/features/', views.features_view, name='features'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('health/', views.health_check, name='health_check'),
     path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

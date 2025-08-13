@@ -4,6 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.deprecation import MiddlewareMixin
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 

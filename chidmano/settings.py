@@ -16,10 +16,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-secret-key-here')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -153,7 +153,7 @@ MODEL_PATH = os.path.join(BASE_DIR, os.getenv('MODEL_PATH', 'models'))
 MODEL_VERSION = os.getenv('MODEL_VERSION', '1.0.0')
 
 # OpenAI settings
-OPENAI_API_KEY = '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'
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 
 # Authentication settings
 LOGIN_URL = 'login'
@@ -300,8 +300,8 @@ SECURITY_SETTINGS = {
 }
 
 # Custom exception handlers
-HANDLER404 = 'store_analysis.handlers.security_exception_handler'
-HANDLER500 = 'store_analysis.handlers.security_exception_handler'
+# HANDLER404 = 'store_analysis.handlers.security_exception_handler'
+# HANDLER500 = 'store_analysis.handlers.security_exception_handler'
 
 # Django REST Framework settings
 REST_FRAMEWORK = {

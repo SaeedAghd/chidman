@@ -24,15 +24,30 @@ class StoreAnalysisService:
         لطفاً تحلیل دقیقی از چیدمان فروشگاه ارائه دهید و امتیازی بین 0 تا 100 به آن بدهید.
         """
         
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "شما یک متخصص تحلیل چیدمان فروشگاه هستید."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.choices[0].message.content
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=openai.api_key)
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل چیدمان فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except ImportError:
+            # Fallback for older openai versions
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل چیدمان فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"OpenAI API error in analyze_layout: {str(e)}")
+            return "خطا در تحلیل چیدمان"
 
     def analyze_traffic(self, store_analysis):
         prompt = f"""
@@ -46,15 +61,30 @@ class StoreAnalysisService:
         لطفاً تحلیل دقیقی از ترافیک فروشگاه ارائه دهید و امتیازی بین 0 تا 100 به آن بدهید.
         """
         
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "شما یک متخصص تحلیل ترافیک فروشگاه هستید."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.choices[0].message.content
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=openai.api_key)
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل ترافیک فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except ImportError:
+            # Fallback for older openai versions
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل ترافیک فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"OpenAI API error in analyze_traffic: {str(e)}")
+            return "خطا در تحلیل ترافیک"
 
     def analyze_design(self, store_analysis):
         prompt = f"""
@@ -67,36 +97,66 @@ class StoreAnalysisService:
         لطفاً تحلیل دقیقی از طراحی فروشگاه ارائه دهید و امتیازی بین 0 تا 100 به آن بدهید.
         """
         
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "شما یک متخصص طراحی فروشگاه هستید."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.choices[0].message.content
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=openai.api_key)
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص طراحی فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except ImportError:
+            # Fallback for older openai versions
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص طراحی فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"OpenAI API error in analyze_design: {str(e)}")
+            return "خطا در تحلیل طراحی"
 
     def analyze_sales(self, store_analysis):
         prompt = f"""
         تحلیل فروش فروشگاه {store_analysis.store_name}:
         - دسته‌بندی محصولات: {store_analysis.product_categories}
         - محصولات پرفروش: {store_analysis.top_products}
-        - حجم فروش روزانه: {store_analysis.daily_sales}
+        - حجم فروش روزانه: {store_analysis.sales_volume}
         - نرم‌افزار صندوق: {store_analysis.pos_system}
         
         لطفاً تحلیل دقیقی از عملکرد فروش فروشگاه ارائه دهید و امتیازی بین 0 تا 100 به آن بدهید.
         """
         
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "شما یک متخصص تحلیل فروش هستید."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.choices[0].message.content
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=openai.api_key)
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل فروش هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except ImportError:
+            # Fallback for older openai versions
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل فروش هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"OpenAI API error in analyze_sales: {str(e)}")
+            return "خطا در تحلیل فروش"
 
     def generate_overall_analysis(self, store_analysis, layout_analysis, traffic_analysis, design_analysis, sales_analysis):
         prompt = f"""
@@ -117,27 +177,49 @@ class StoreAnalysisService:
         لطفاً یک تحلیل کلی از وضعیت فروشگاه ارائه دهید و امتیازی بین 0 تا 100 به آن بدهید.
         """
         
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "شما یک متخصص تحلیل فروشگاه هستید."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.choices[0].message.content
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=openai.api_key)
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except ImportError:
+            # Fallback for older openai versions
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "شما یک متخصص تحلیل فروشگاه هستید."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"OpenAI API error in generate_overall_analysis: {str(e)}")
+            return "خطا در تحلیل کلی"
 
     def extract_score(self, analysis_text):
-        # استخراج امتیاز از متن تحلیل
+        """استخراج امتیاز از متن تحلیل"""
         try:
-            score_text = analysis_text.split('امتیاز:')[1].split()[0]
-            return float(score_text)
-        except:
-            return 0.0
+            import re
+            # جستجوی الگوی امتیاز در متن
+            score_match = re.search(r'امتیاز[:\s]*(\d+)', analysis_text)
+            if score_match:
+                return float(score_match.group(1))
+            else:
+                return 5.0  # امتیاز پیش‌فرض
+        except Exception as e:
+            logger.error(f"Error extracting score: {str(e)}")
+            return 5.0
 
     def analyze_store(self, store_analysis):
-        # تحلیل بخش‌های مختلف
+        """تحلیل کامل فروشگاه"""
         try:
+            # تحلیل بخش‌های مختلف
             layout_analysis = self.analyze_layout(store_analysis)
             traffic_analysis = self.analyze_traffic(store_analysis)
             design_analysis = self.analyze_design(store_analysis)

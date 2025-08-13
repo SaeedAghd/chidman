@@ -9,7 +9,7 @@ from django.utils import timezone
 from datetime import timedelta
 import logging
 
-from ..models import StoreAnalysis, Payment, Cache
+from ..models import StoreAnalysis, Payment
 from ..serializers import (
     StoreAnalysisSerializer, 
     StoreAnalysisDetailSerializer,
@@ -97,9 +97,10 @@ class StoreAnalysisViewSet(viewsets.ModelViewSet):
             data['user'] = request.user.id
             
             # پاکسازی ورودی
+            security_service = SecurityService()
             for key, value in data.items():
                 if isinstance(value, str):
-                    data[key] = SecurityService.sanitize_input(value)
+                    data[key] = security_service._sanitize_html(value)
             
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():

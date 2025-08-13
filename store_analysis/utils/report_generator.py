@@ -60,17 +60,16 @@ def generate_pdf_report(analysis):
             ["نام فروشگاه:", analysis.store_name],
             ["نوع فروشگاه:", analysis.get_store_type_display()],
             ["مساحت:", f"{analysis.store_size} متر مربع"],
-            ["ورودی اصلی:", analysis.get_main_entrance_display()],
-            ["محل صندوق:", analysis.get_checkout_location_display()],
-            ["مناطق ویژه:", analysis.special_areas or "-"],
-            ["نورپردازی اصلی:", analysis.get_main_lighting_display()],
-            ["شدت نور:", f"{analysis.lighting_intensity} لومن"],
-            ["دمای رنگ:", f"{analysis.color_temperature} کلوین"],
-            ["تردد مشتری:", analysis.get_customer_traffic_display()],
-            ["زمان حضور مشتری:", f"{analysis.avg_customer_time} دقیقه"],
-            ["نوع مشتریان:", analysis.customer_type or "-"],
-            ["دسته‌بندی محصولات:", analysis.product_categories or "-"],
-            ["چیدمان محصولات:", analysis.product_placement or "-"]
+            ["شهر:", analysis.city or "-"],
+            ["منطقه:", analysis.area or "-"],
+            ["محل صندوق:", analysis.checkout_location or "-"],
+            ["تعداد قفسه:", str(analysis.shelf_count or 0)],
+            ["مناطق بلااستفاده:", analysis.unused_areas or "-"],
+            ["دوربین نظارتی:", "دارد" if analysis.has_surveillance else "ندارد"],
+            ["تعداد دوربین:", str(analysis.camera_count or 0)],
+            ["مسیر حرکت مشتریان:", analysis.get_customer_movement_paths_display()],
+            ["سبک طراحی:", analysis.design_style or "-"],
+            ["رنگ‌های اصلی:", analysis.brand_colors or "-"]
         ]
         store_table = Table(store_info, colWidths=[2*inch, 4*inch])
         store_table.setStyle(TableStyle([
