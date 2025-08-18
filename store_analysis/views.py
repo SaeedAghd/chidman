@@ -5,8 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.contrib import messages
 from .models import StoreAnalysis, StoreAnalysisResult, DetailedAnalysis, Payment, Article, ArticleCategory
-from .forms import StoreAnalysisForm, PaymentForm  # فرم‌های خودت را بساز یا اصلاح کن
+from .forms import StoreAnalysisForm, PaymentForm, AIStoreAnalysisForm
 from django.db.models import Q
 
 # --- فروشگاه ---
@@ -183,7 +184,7 @@ def index(request):
 
 def education_library(request):
     # می‌توانید بعداً این بخش را کامل‌تر کنید
-    return render(request, 'store_analysis/education_library.html')
+    return render(request, 'store_analysis/education.html')
 
 def features(request):
     return render(request, 'store_analysis/features.html')
@@ -192,23 +193,82 @@ def article_detail(request, slug):
     article = get_object_or_404(Article, slug=slug)
     return render(request, 'store_analysis/article_detail.html', {'article': article})
 
-from .forms import StoreAnalysisForm
+from .forms import StoreAnalysisForm, AIStoreAnalysisForm
 
 def store_analysis_form(request):
     if request.method == 'POST':
-        form = StoreAnalysisForm(request.POST, request.FILES)
+        # Check if it's a quick form submission
+        if 'store_name' in request.POST and 'store_size' in request.POST:
+            # Quick free form submission
+            store_name = request.POST.get('store_name')
+            store_size = request.POST.get('store_size')
+            store_type = request.POST.get('store_type')
+            email = request.POST.get('email')
+            
+            if store_name and store_size and store_type and email:
+                # Create a new analysis record
+                analysis = StoreAnalysis.objects.create(
+                    user=request.user if request.user.is_authenticated else None,
+                    status='pending',
+                    results='',
+                    error_message='',
+                    priority='medium',
+                    estimated_duration=15
+                )
+                
+                # Store quick form data
+                quick_data = {
+                    'store_name': store_name,
+                    'store_size': store_size,
+                    'store_type': store_type,
+                    'email': email,
+                    'analysis_type': 'quick_free'
+                }
+                request.session['quick_analysis_data'] = quick_data
+                request.session['analysis_id'] = analysis.id
+                
+                # Show success message
+                messages.success(request, 'درخواست تحلیل رایگان شما با موفقیت ثبت شد!')
+                return redirect('store_analysis:analysis_results', pk=analysis.id)
+            else:
+                messages.error(request, 'لطفاً تمام فیلدهای الزامی را پر کنید.')
+                return redirect('store_analysis:index')
+        
+        # Full AI form submission
+        form = AIStoreAnalysisForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('store_analysis:index')
+            # Process the form data
+            form_data = form.cleaned_data
+            
+            # Create a new analysis record
+            analysis = StoreAnalysis.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                status='pending',
+                results='',
+                error_message='',
+                priority='medium',
+                estimated_duration=30
+            )
+            
+            # Store form data in session for processing
+            request.session['analysis_data'] = form_data
+            request.session['analysis_id'] = analysis.id
+            
+            return redirect('store_analysis:analysis_results', pk=analysis.id)
+        else:
+            return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
     else:
-        form = StoreAnalysisForm()
+        form = AIStoreAnalysisForm()
     return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
 
 def submit_analysis(request):
     if request.method == 'POST':
         form = StoreAnalysisForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            analysis = form.save(commit=False)
+            if request.user.is_authenticated:
+                analysis.user = request.user
+            analysis.save()
             return redirect('store_analysis:analysis_list')
         else:
             return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
@@ -235,3 +295,101 @@ def analysis_create(request):
     else:
         form = StoreAnalysisForm()
     return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
+
+@login_required
+def analysis_progress(request, pk):
+    """نمایش صفحه پیشرفت Real-time تحلیل"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    # بررسی وضعیت تحلیل
+    from .services.real_time_analyzer import RealTimeAnalyzer
+    analyzer = RealTimeAnalyzer()
+    status = analyzer.get_analysis_status(pk)
+    
+    context = {
+        'analysis': analysis,
+        'status': status,
+    }
+    
+    return render(request, 'store_analysis/analysis_progress.html', context)
+
+@login_required
+def start_analysis(request, pk):
+    """شروع تحلیل Real-time"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        try:
+            # تبدیل داده‌های تحلیل به فرمت مناسب
+            store_data = {
+                'store_name': analysis.store_name,
+                'store_type': analysis.store_type,
+                'store_size': analysis.store_size,
+                'store_dimensions': analysis.store_dimensions,
+                'entrances': analysis.entrances,
+                'shelf_count': analysis.shelf_count,
+                'shelf_dimensions': analysis.shelf_dimensions,
+                'shelf_contents': analysis.shelf_contents,
+                'checkout_location': analysis.checkout_location,
+                'unused_area_type': analysis.unused_area_type,
+                'unused_area_size': analysis.unused_area_size,
+                'unused_area_reason': analysis.unused_area_reason,
+                'unused_areas': analysis.unused_areas,
+                'customer_traffic': analysis.customer_traffic,
+                'peak_hours': analysis.peak_hours,
+                'customer_movement_paths': analysis.customer_movement_paths,
+                'high_traffic_areas': analysis.high_traffic_areas,
+                'customer_path_notes': analysis.customer_path_notes,
+                'design_style': analysis.design_style,
+                'brand_colors': analysis.brand_colors,
+                'decorative_elements': analysis.decorative_elements,
+                'main_lighting': analysis.main_lighting,
+                'has_surveillance': analysis.has_surveillance,
+                'camera_count': analysis.camera_count,
+                'camera_locations': analysis.camera_locations,
+                'camera_coverage': analysis.camera_coverage,
+                'has_customer_video': analysis.has_customer_video,
+                'video_duration': analysis.video_duration,
+                'video_date': analysis.video_date,
+                'video_time': analysis.video_time,
+                'sales_volume': analysis.sales_volume,
+                'top_products': analysis.top_products,
+            }
+            
+            # شروع تحلیل در background
+            from .tasks import start_real_time_analysis
+            start_real_time_analysis.delay(pk, store_data, request.user.id)
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تحلیل شروع شد',
+                'redirect_url': reverse('store_analysis:analysis_progress', kwargs={'pk': pk})
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'خطا در شروع تحلیل: {str(e)}'
+            })
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'درخواست نامعتبر'
+    })
+
+@login_required
+def get_analysis_status(request, pk):
+    """دریافت وضعیت تحلیل"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    from .services.real_time_analyzer import RealTimeAnalyzer
+    analyzer = RealTimeAnalyzer()
+    status = analyzer.get_analysis_status(pk)
+    results = analyzer.get_analysis_results(pk)
+    
+    return JsonResponse({
+        'status': status,
+        'results': results
+    })
+
+

@@ -67,7 +67,7 @@
         color: #fff;
     }
 
-    /* NEW CLEAN SLIDER */
+    /* Simple Slider Styles */
     .slider-container {
         width: 100%;
         height: 400px;
@@ -75,9 +75,8 @@
         overflow: hidden;
         border-radius: 1rem;
         box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        background: #f3f4f6;
         margin-bottom: 3rem;
-        background: #f0f0f0;
-        border: 2px solid #333;
     }
 
     .slider {
@@ -85,41 +84,39 @@
         width: 300%;
         height: 100%;
         transition: transform 0.5s ease;
-        position: relative;
     }
 
     .slide {
+        flex: 0 0 33.333%;
         width: 33.333%;
         height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        text-align: center;
-        padding: 2rem;
-        flex-shrink: 0;
-        min-width: 33.333%;
-        box-sizing: border-box;
         position: relative;
     }
 
-    .slide:nth-child(1) { 
-        background-color: #ff0000 !important; 
-        border: 3px solid #ffffff !important; 
+    .slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
-    .slide:nth-child(2) { 
-        background-color: #00ff00 !important; 
-        border: 3px solid #ffffff !important; 
-    }
-    .slide:nth-child(3) { 
-        background-color: #0000ff !important; 
-        border: 3px solid #ffffff !important; 
+
+    .slide-content {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        background: linear-gradient(to top, rgba(32,86,167,0.8), transparent 70%);
+        color: white;
+        padding: 2rem 1.5rem 1.2rem 1.5rem;
+        z-index: 2;
+        text-align: right;
     }
 
     .slide-content h3 {
         font-size: 1.7rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
+        color: #ffffff;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
@@ -128,12 +125,6 @@
         opacity: 0.95;
         line-height: 1.6;
         text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    }
-
-    .slide-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.8;
     }
 
     /* Navigation Dots */
@@ -192,8 +183,13 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
-    .slider-prev { left: 20px; }
-    .slider-next { right: 20px; }
+    .slider-prev {
+        left: 20px;
+    }
+
+    .slider-next {
+        right: 20px;
+    }
 
     .slider-arrow i {
         font-size: 1.2rem;
@@ -202,13 +198,34 @@
 
     /* Mobile Responsive */
     @media (max-width: 768px) {
-        .slider-container { height: 250px; }
-        .slide-content h3 { font-size: 1.3rem; }
-        .slide-content p { font-size: 0.95rem; }
-        .slide-icon { font-size: 3rem; }
-        .slider-arrow { width: 40px; height: 40px; }
-        .slider-prev { left: 10px; }
-        .slider-next { right: 10px; }
+        .slider-container {
+            height: 250px;
+        }
+        
+        .slide-content {
+            padding: 1rem;
+        }
+        
+        .slide-content h3 {
+            font-size: 1.3rem;
+        }
+        
+        .slide-content p {
+            font-size: 0.95rem;
+        }
+        
+        .slider-arrow {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .slider-prev {
+            left: 10px;
+        }
+        
+        .slider-next {
+            right: 10px;
+        }
     }
 
     /* Features Section */
@@ -272,6 +289,7 @@
         word-break: break-word;
     }
 
+    /* How It Works Section */
     .how-it-works {
         padding: 4rem 0;
         background-color: #fff;
@@ -343,6 +361,7 @@
         text-align: center;
     }
 
+    /* Footer */
     footer {
         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         color: white;
@@ -375,6 +394,7 @@
         color: var(--secondary-color);
     }
 
+    /* Responsive */
     @media (max-width: 992px) {
         .features-section .row,
         .how-it-works .row {
@@ -435,32 +455,26 @@
         {% endif %}
     </div>
 
-    <!-- NEW CLEAN SLIDER -->
+    <!-- Simple Slider -->
     <div class="slider-container">
         <div class="slider" id="slider">
-            <div class="slide" style="background-color: red !important;">
+            <div class="slide">
+                <img src="{% static 'images/slider/slide1.jpg' %}" alt="فروشگاه اپل">
                 <div class="slide-content">
-                    <div class="slide-icon">
-                        <i class="fas fa-apple-alt"></i>
-                    </div>
                     <h3>فروشگاه اپل</h3>
                     <p>طراحی مینیمال و کاربرمحور با تمرکز بر تجربه خرید</p>
                 </div>
             </div>
-            <div class="slide" style="background-color: green !important;">
+            <div class="slide">
+                <img src="{% static 'images/slider/slide2.jpg' %}" alt="فروشگاه نایکی">
                 <div class="slide-content">
-                    <div class="slide-icon">
-                        <i class="fas fa-running"></i>
-                    </div>
                     <h3>فروشگاه نایکی</h3>
                     <p>چیدمان پویا و جذاب با تمرکز بر محصولات ورزشی</p>
                 </div>
             </div>
-            <div class="slide" style="background-color: blue !important;">
+            <div class="slide">
+                <img src="{% static 'images/slider/slide3.jpg' %}" alt="فروشگاه زارا">
                 <div class="slide-content">
-                    <div class="slide-icon">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
                     <h3>فروشگاه زارا</h3>
                     <p>طراحی مدرن و کارآمد با تمرکز بر تجربه خرید پوشاک</p>
                 </div>
@@ -516,34 +530,6 @@
         </div>
     </div>
 
-    <!-- آموزش چیدمان فروشگاه -->
-    <div class="features-section" style="background: #f8fafc;">
-        <h2 class="text-center mb-4" style="font-weight:700; color:#2056a7;">آموزش چیدمان فروشگاه</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card feature-card" style="min-height:260px;">
-                    <h4 class="feature-title">اصول چیدمان ویترین</h4>
-                    <p class="feature-description">با تکنیک‌های حرفه‌ای ویترین، مشتریان بیشتری جذب کنید و فروش خود را افزایش دهید.</p>
-                    <a href="#" class="btn btn-outline-primary btn-sm mt-2">مطالعه مقاله</a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card feature-card" style="min-height:260px;">
-                    <h4 class="feature-title">روانشناسی رنگ در فروشگاه</h4>
-                    <p class="feature-description">انتخاب رنگ مناسب در چیدمان فروشگاه تأثیر مستقیم بر رفتار خرید مشتریان دارد.</p>
-                    <a href="#" class="btn btn-outline-primary btn-sm mt-2">مطالعه مقاله</a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card feature-card" style="min-height:260px;">
-                    <h4 class="feature-title">مسیر حرکت مشتری</h4>
-                    <p class="feature-description">چگونه با طراحی مسیر حرکت، مشتری را به سمت محصولات پرفروش هدایت کنیم؟</p>
-                    <a href="#" class="btn btn-outline-primary btn-sm mt-2">مطالعه مقاله</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- How It Works Section -->
     <div class="how-it-works">
         <h2 class="text-center mb-5">چگونه کار می‌کند؟</h2>
@@ -580,7 +566,7 @@
     </div>
 </div>
 
-<!-- فوتر حرفه‌ای -->
+<!-- Footer -->
 <footer>
     <div class="footer-links">
         <a href="{% url 'store_analysis:index' %}">خانه</a>
@@ -601,77 +587,46 @@
 
 {% block extra_js %}
 <script>
-// NEW CLEAN SLIDER JavaScript
+// Simple Slider JavaScript
 let currentSlide = 0;
-let autoSlideInterval;
+const slider = document.getElementById('slider');
+const dots = document.querySelectorAll('.slider-dot');
+const totalSlides = 3;
 
-function initSlider() {
-    const slider = document.getElementById('slider');
-    const dots = document.querySelectorAll('.slider-dot');
-    const totalSlides = 3;
-
-    if (!slider) {
-        console.error('Slider element not found!');
-        return;
-    }
-
-    function updateSlider() {
-        const translateX = -(currentSlide * 33.333);
-        slider.style.transform = `translateX(${translateX}%)`;
-        
-        // Update dots
-        dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === currentSlide);
-        });
-        
-        console.log(`Slide changed to: ${currentSlide + 1}, translateX: ${translateX}%`);
-    }
-
-    window.nextSlide = function() {
-        currentSlide = (currentSlide + 1) % totalSlides;
-        updateSlider();
-        restartAutoSlide();
-    };
-
-    window.prevSlide = function() {
-        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-        updateSlider();
-        restartAutoSlide();
-    };
-
-    window.goToSlide = function(index) {
-        if (index >= 0 && index < totalSlides) {
-            currentSlide = index;
-            updateSlider();
-            restartAutoSlide();
-        }
-    };
-
-    function startAutoSlide() {
-        if (autoSlideInterval) {
-            clearInterval(autoSlideInterval);
-        }
-        autoSlideInterval = setInterval(window.nextSlide, 5000);
-    }
-
-    function restartAutoSlide() {
-        startAutoSlide();
-    }
-
-    // Initialize
-    updateSlider();
-    startAutoSlide();
-
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') window.prevSlide();
-        if (e.key === 'ArrowRight') window.nextSlide();
+function updateSlider() {
+    const translateX = -(currentSlide * 33.333);
+    slider.style.transform = `translateX(${translateX}%)`;
+    
+    // Update dots
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
     });
-
-    console.log('NEW CLEAN SLIDER initialized successfully!');
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initSlider);
+function nextSlide() {
+    currentSlide = (currentSlide + 1) % totalSlides;
+    updateSlider();
+}
+
+function prevSlide() {
+    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+    updateSlider();
+}
+
+function goToSlide(index) {
+    currentSlide = index;
+    updateSlider();
+}
+
+// Auto slide
+setInterval(nextSlide, 5000);
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') prevSlide();
+    if (e.key === 'ArrowRight') nextSlide();
+});
+
+console.log('Simple slider loaded successfully!');
 </script>
 {% endblock %}

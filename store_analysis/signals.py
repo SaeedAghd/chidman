@@ -2,8 +2,11 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.files.storage import default_storage
 import os
+import logging
 
 from .models import StoreAnalysis
+
+logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=StoreAnalysis)
 def handle_store_analysis_save(sender, instance, created, **kwargs):

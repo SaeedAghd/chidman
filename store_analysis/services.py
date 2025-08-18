@@ -1,15 +1,33 @@
+import logging
 import openai
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from .models import StoreAnalysis, StoreAnalysisResult
-import logging
+from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
 class StoreAnalysisService:
     def __init__(self):
-        openai.api_key = settings.OPENAI_API_KEY
+        # بررسی وجود API key
+        if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+            openai.api_key = settings.OPENAI_API_KEY
+        else:
+            logger.warning("OpenAI API key not found, using fallback analysis")
+            self.use_openai = False
+            return
+        
+        self.use_openai = True
+        try:
+            # تست اتصال به OpenAI
+            from openai import OpenAI
+            client = OpenAI(api_key=openai.api_key)
+            # تست ساده
+            logger.info("OpenAI API connection successful")
+        except Exception as e:
+            logger.error(f"OpenAI API connection failed: {str(e)}")
+            self.use_openai = False
 
     def analyze_layout(self, store_analysis):
         prompt = f"""
@@ -202,17 +220,29 @@ class StoreAnalysisService:
             logger.error(f"OpenAI API error in generate_overall_analysis: {str(e)}")
             return "خطا در تحلیل کلی"
 
-    def extract_score(self, analysis_text):
+    def extract_score(self, analysis_text: str) -> float:
         """استخراج امتیاز از متن تحلیل"""
         try:
-            import re
-            # جستجوی الگوی امتیاز در متن
-            score_match = re.search(r'امتیاز[:\s]*(\d+)', analysis_text)
-            if score_match:
-                return float(score_match.group(1))
-            else:
-                return 5.0  # امتیاز پیش‌فرض
-        except Exception as e:
+            if not analysis_text:
+                return 5.0
+            
+            # الگوهای مختلف برای استخراج امتیاز
+            patterns = [
+                r'امتیاز[:\s]*(\d+(?:\.\d+)?)',
+                r'نمره[:\s]*(\d+(?:\.\d+)?)',
+                r'(\d+(?:\.\d+)?)\s*از\s*100',
+                r'(\d+(?:\.\d+)?)\s*امتیاز',
+            ]
+            
+            for pattern in patterns:
+                score_match = re.search(pattern, analysis_text)
+                if score_match:
+                    score = float(score_match.group(1))
+                    # محدود کردن امتیاز بین 0 تا 100
+                    return max(0.0, min(100.0, score))
+            
+            return 5.0  # امتیاز پیش‌فرض
+        except (ValueError, TypeError) as e:
             logger.error(f"Error extracting score: {str(e)}")
             return 5.0
 

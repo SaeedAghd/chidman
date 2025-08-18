@@ -1,97 +1,131 @@
 import re
 import logging
+import hashlib
+import mimetypes
+from typing import Optional, List
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from ..exceptions import SecurityError
 
 logger = logging.getLogger(__name__)
 
 class SecurityService:
-    """سرویس امنیتی برای اعتبارسنجی و پاکسازی ورودی‌ها"""
+    """سرویس امنیتی برای پاکسازی و اعتبارسنجی داده‌ها"""
     
-    def __init__(self):
-        self.security_settings = getattr(settings, 'SECURITY_SETTINGS', {})
-        self.input_validation = self.security_settings.get('input_validation', {})
-        self.suspicious_patterns = self.input_validation.get('suspicious_patterns', [])
-        self.max_length = self.input_validation.get('max_length', 1000)
-    
-    def validate_input(self, data):
-        """اعتبارسنجی ورودی‌ها"""
-        if not self.input_validation.get('enabled', True):
-            return data
-        
-        validated_data = {}
-        
-        for key, value in data.items():
-            if isinstance(value, str):
-                # بررسی طول
-                if len(value) > self.max_length:
-                    raise ValidationError(f'طول فیلد {key} بیش از حد مجاز است.')
-                
-                # بررسی الگوهای مشکوک
-                if self._contains_suspicious_pattern(value):
-                    logger.warning(f"Suspicious pattern detected in field {key}")
-                    raise ValidationError(f'محتوی مشکوک در فیلد {key} یافت شد.')
-                
-                # پاکسازی HTML
-                value = self._sanitize_html(value)
+    @staticmethod
+    def sanitize_input(text: str) -> str:
+        """پاکسازی ورودی از کدهای مخرب"""
+        if not text:
+            return text
             
-            validated_data[key] = value
+        # حذف تگ‌های HTML
+        text = re.sub(r'<[^>]*>', '', text)
         
-        return validated_data
-    
-    def _contains_suspicious_pattern(self, text):
-        """بررسی وجود الگوهای مشکوک"""
-        for pattern in self.suspicious_patterns:
-            if re.search(pattern, text, re.IGNORECASE):
-                return True
-        return False
-    
-    def _sanitize_html(self, text):
-        """پاکسازی HTML"""
-        # حذف تگ‌های خطرناک
-        dangerous_tags = ['script', 'iframe', 'object', 'embed', 'form']
-        for tag in dangerous_tags:
-            text = re.sub(f'<{tag}[^>]*>.*?</{tag}>', '', text, flags=re.IGNORECASE | re.DOTALL)
-            text = re.sub(f'<{tag}[^>]*>', '', text, flags=re.IGNORECASE)
-        
-        # حذف event handlers
+        # حذف اسکریپت‌های مخرب
+        text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'vbscript:', '', text, flags=re.IGNORECASE)
         text = re.sub(r'on\w+\s*=', '', text, flags=re.IGNORECASE)
         
-        return text
+        # حذف کاراکترهای خطرناک
+        text = text.replace('\\', '\\\\')
+        text = text.replace('"', '\\"')
+        text = text.replace("'", "\\'")
+        
+        return text.strip()
     
-    def validate_file_upload(self, file):
-        """اعتبارسنجی آپلود فایل"""
-        file_settings = self.security_settings.get('file_upload', {})
+    @staticmethod
+    def validate_file_upload(file, allowed_extensions: List[str], max_size: int) -> bool:
+        """اعتبارسنجی فایل آپلود شده"""
+        try:
+            # بررسی اندازه فایل
+            if file.size > max_size:
+                raise SecurityError(f"حجم فایل نباید بیشتر از {max_size} بایت باشد")
+            
+            # بررسی پسوند فایل
+            file_name = file.name.lower()
+            if not any(file_name.endswith(ext) for ext in allowed_extensions):
+                raise SecurityError(f"پسوند فایل مجاز نیست. پسوندهای مجاز: {', '.join(allowed_extensions)}")
+            
+            # بررسی نوع MIME
+            mime_type, _ = mimetypes.guess_type(file_name)
+            if mime_type and mime_type.startswith('text/'):
+                # بررسی محتوای فایل‌های متنی
+                content = file.read(1024).decode('utf-8', errors='ignore')
+                if '<script' in content.lower():
+                    raise SecurityError("فایل حاوی کد مخرب است")
+                file.seek(0)  # بازگشت به ابتدای فایل
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"File validation error: {str(e)}")
+            raise SecurityError(f"خطا در اعتبارسنجی فایل: {str(e)}")
+    
+    @staticmethod
+    def generate_secure_filename(filename: str) -> str:
+        """تولید نام فایل امن"""
+        import uuid
+        import os
         
-        # بررسی اندازه فایل
-        max_size = file_settings.get('max_size', 10 * 1024 * 1024)  # 10MB
-        if file.size > max_size:
-            raise ValidationError('حجم فایل بیش از حد مجاز است.')
+        # حذف کاراکترهای خطرناک
+        safe_name = re.sub(r'[^\w\-_.]', '_', filename)
         
-        # بررسی پسوند فایل
-        allowed_extensions = file_settings.get('allowed_extensions', [])
-        if allowed_extensions:
-            import os
-            file_ext = os.path.splitext(file.name)[1].lower()
-            if file_ext not in allowed_extensions:
-                raise ValidationError('نوع فایل مجاز نیست.')
+        # اضافه کردن UUID برای امنیت بیشتر
+        name, ext = os.path.splitext(safe_name)
+        return f"{name}_{uuid.uuid4().hex[:8]}{ext}"
+    
+    @staticmethod
+    def validate_password_strength(password: str) -> bool:
+        """اعتبارسنجی قدرت رمز عبور"""
+        if len(password) < 8:
+            return False
+        
+        # بررسی وجود حروف بزرگ و کوچک
+        if not re.search(r'[A-Z]', password):
+            return False
+        if not re.search(r'[a-z]', password):
+            return False
+        
+        # بررسی وجود اعداد
+        if not re.search(r'\d', password):
+            return False
+        
+        # بررسی وجود کاراکترهای خاص
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+            return False
         
         return True
+
+class FileSecurityValidator:
+    """اعتبارسنج امنیتی فایل‌ها"""
     
-    def log_security_event(self, event_type, details):
-        """ثبت رویدادهای امنیتی"""
-        logger.warning(f"Security event: {event_type} - {details}")
+    ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+    ALLOWED_DOCUMENT_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt']
+    ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.wmv']
     
-    def check_session_security(self, request):
-        """بررسی امنیت نشست"""
-        session_settings = self.security_settings.get('session_security', {})
-        
-        # بررسی تعداد نشست‌های فعال
-        max_sessions = session_settings.get('max_sessions_per_user', 5)
-        if request.user.is_authenticated:
-            active_sessions = request.session.get('active_sessions', 0)
-            if active_sessions > max_sessions:
-                self.log_security_event('session_limit_exceeded', f"User: {request.user.id}")
-                return False
-        
-        return True 
+    @classmethod
+    def validate_image(cls, file) -> bool:
+        """اعتبارسنجی فایل تصویر"""
+        return SecurityService.validate_file_upload(
+            file, 
+            cls.ALLOWED_IMAGE_EXTENSIONS, 
+            5 * 1024 * 1024  # 5MB
+        )
+    
+    @classmethod
+    def validate_document(cls, file) -> bool:
+        """اعتبارسنجی فایل مستند"""
+        return SecurityService.validate_file_upload(
+            file, 
+            cls.ALLOWED_DOCUMENT_EXTENSIONS, 
+            10 * 1024 * 1024  # 10MB
+        )
+    
+    @classmethod
+    def validate_video(cls, file) -> bool:
+        """اعتبارسنجی فایل ویدیو"""
+        return SecurityService.validate_file_upload(
+            file, 
+            cls.ALLOWED_VIDEO_EXTENSIONS, 
+            50 * 1024 * 1024  # 50MB
+        ) 

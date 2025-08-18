@@ -15,6 +15,8 @@
     <!-- Font Awesome (jsdelivr, سازگار با CSP) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     
+
+    
     <style>
         :root {
             --primary-color: #0d6efd;
@@ -143,9 +145,59 @@
             }
             
             .nav-link {
-                padding: 0.5rem;
+                padding: 0.75rem 1rem; /* افزایش touch target */
                 margin: 0.25rem 0;
+                min-height: 44px; /* حداقل اندازه برای touch */
+                display: flex;
+                align-items: center;
             }
+
+            /* بهبود دکمه‌ها در موبایل */
+            .btn {
+                min-height: 44px;
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            /* بهبود فرم‌ها در موبایل */
+            .form-control {
+                font-size: 16px; /* جلوگیری از zoom در iOS */
+                padding: 0.875rem 1rem;
+            }
+
+            /* بهبود کارت‌ها در موبایل */
+            .card {
+                margin-bottom: 1rem;
+                border-radius: 0.75rem;
+            }
+
+            /* بهبود modal در موبایل */
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+        }
+
+        /* بهبود touch targets برای تمام عناصر تعاملی */
+        @media (max-width: 1024px) {
+            button, 
+            .btn, 
+            .nav-link, 
+            .form-check-label,
+            .dropdown-item {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* بهبود spacing در موبایل */
+            .container {
+                padding: 0 1rem;
+            }
+
+            /* بهبود typography در موبایل */
+            h1 { font-size: 1.75rem; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.25rem; }
         }
     </style>
     
@@ -227,6 +279,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- jQuery (jsdelivr, سازگار با CSP) -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    
+
+    
+
     
     {% block extra_js %}{% endblock %}
 </body>

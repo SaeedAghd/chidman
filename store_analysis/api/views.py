@@ -100,15 +100,18 @@ class StoreAnalysisViewSet(viewsets.ModelViewSet):
             security_service = SecurityService()
             for key, value in data.items():
                 if isinstance(value, str):
-                    data[key] = security_service._sanitize_html(value)
+                    data[key] = security_service.sanitize_input(value)
             
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 analysis = serializer.save(user=request.user)
                 
                 # ثبت در کش
-                from ..utils.cache_manager import CacheManager
-                CacheManager.invalidate_user_cache(request.user.id)
+                try:
+                    from ..utils.cache_manager import CacheManager
+                    CacheManager.invalidate_user_cache(request.user.id)
+                except Exception as cache_error:
+                    logger.warning(f"Cache invalidation failed: {cache_error}")
                 
                 return Response(
                     serializer.data, 

@@ -1,0 +1,524 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}تحلیل در حال انجام - {{ analysis.store_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-progress-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 0;
+    }
+
+    .progress-card {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .progress-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .progress-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .progress-body {
+        padding: 3rem;
+    }
+
+    .progress-bar-container {
+        background: #f8f9fa;
+        border-radius: 1rem;
+        height: 2rem;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        height: 100%;
+        border-radius: 1rem;
+        transition: width 0.5s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .analysis-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .analysis-step {
+        background: #f8f9fa;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .analysis-step.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        transform: translate3d(0, -5px, 0);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.1);
+        will-change: transform;
+    }
+
+    .analysis-step.completed {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #f8f9fa 0%, #d4edda 100%);
+        will-change: transform;
+    }
+
+    .step-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+        font-size: 1.5rem;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .analysis-step.active .step-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        animation: pulse 2s infinite;
+        will-change: transform;
+    }
+
+    .analysis-step.completed .step-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    @keyframes pulse {
+        0% { transform: scale3d(1, 1, 1); }
+        50% { transform: scale3d(1.1, 1.1, 1.1); }
+        100% { transform: scale3d(1, 1, 1); }
+    }
+
+    .real-time-updates {
+        background: #f8f9fa;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .update-item {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border-right: 4px solid #667eea;
+        animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn-action {
+        padding: 0.75rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-cancel {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-refresh {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .btn-view-results {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analysis-progress-container">
+    <div class="container">
+        <div class="progress-card">
+            <div class="progress-header">
+                <h1>تحلیل در حال انجام</h1>
+                <p>{{ analysis.store_name }} - {{ analysis.store_type }}</p>
+            </div>
+
+            <div class="progress-body">
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                        <span class="progress-status" id="progressStatus">در حال شروع...</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Real-time Updates -->
+                <div class="real-time-updates">
+                    <div class="updates-header">
+                        <div class="updates-icon">
+                            <i class="fas fa-broadcast-tower"></i>
+                        </div>
+                        <h3 class="updates-title">به‌روزرسانی‌های لحظه‌ای</h3>
+                    </div>
+                    <div id="updatesContainer">
+                        <div class="update-item">
+                            <div class="update-time">{{ analysis.created_at|date:"H:i" }}</div>
+                            <div class="update-message">تحلیل شروع شد</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Steps -->
+                <div class="analysis-steps" id="analysisSteps">
+                    <!-- Layout Analysis -->
+                    <div class="analysis-step" id="step-layout">
+                        <div class="step-header">
+                            <div class="step-icon">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            <h4 class="step-title">تحلیل چیدمان</h4>
+                        </div>
+                        <div class="step-description">بررسی و تحلیل چیدمان فروشگاه</div>
+                    </div>
+
+                    <!-- Traffic Analysis -->
+                    <div class="analysis-step" id="step-traffic">
+                        <div class="step-header">
+                            <div class="step-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4 class="step-title">تحلیل ترافیک</h4>
+                        </div>
+                        <div class="step-description">بررسی الگوهای ترافیک مشتری</div>
+                    </div>
+
+                    <!-- Design Analysis -->
+                    <div class="analysis-step" id="step-design">
+                        <div class="step-header">
+                            <div class="step-icon">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <h4 class="step-title">تحلیل طراحی</h4>
+                        </div>
+                        <div class="step-description">بررسی طراحی و دکوراسیون</div>
+                    </div>
+
+                    <!-- Sales Analysis -->
+                    <div class="analysis-step" id="step-sales">
+                        <div class="step-header">
+                            <div class="step-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4 class="step-title">تحلیل فروش</h4>
+                        </div>
+                        <div class="step-description">بهینه‌سازی فروش و درآمد</div>
+                    </div>
+
+                    <!-- Customer Behavior -->
+                    <div class="analysis-step" id="step-behavior">
+                        <div class="step-header">
+                            <div class="step-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h4 class="step-title">رفتار مشتری</h4>
+                        </div>
+                        <div class="step-description">تحلیل رفتار و روانشناسی مشتری</div>
+                    </div>
+
+                    <!-- Optimization Plan -->
+                    <div class="analysis-step" id="step-optimization">
+                        <div class="step-header">
+                            <div class="step-icon">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <h4 class="step-title">برنامه بهینه‌سازی</h4>
+                        </div>
+                        <div class="step-description">تولید برنامه جامع بهینه‌سازی</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-action btn-cancel" onclick="cancelAnalysis()">
+                        <i class="fas fa-times"></i>
+                        لغو تحلیل
+                    </button>
+                    <button class="btn-action btn-refresh" onclick="refreshStatus()">
+                        <i class="fas fa-sync-alt"></i>
+                        به‌روزرسانی
+                    </button>
+                    <button class="btn-action btn-view-results" id="viewResultsBtn" style="display: none;" onclick="viewResults()">
+                        <i class="fas fa-chart-bar"></i>
+                        مشاهده نتایج
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// WebSocket Connection
+let socket = null;
+let analysisId = parseInt('{{ analysis.id }}');
+let isCompleted = false;
+
+// Initialize WebSocket
+function initializeWebSocket() {
+    const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsUrl = `${wsScheme}://${window.location.host}/ws/analysis/${analysisId}/`;
+    
+    socket = new WebSocket(wsUrl);
+    
+    socket.onopen = function(e) {
+        console.log('WebSocket connected');
+        addUpdate('اتصال برقرار شد', 'success');
+    };
+    
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        handleWebSocketMessage(data);
+    };
+    
+    socket.onclose = function(e) {
+        console.log('WebSocket disconnected');
+        addUpdate('اتصال قطع شد', 'warning');
+        
+        // Try to reconnect after 5 seconds
+        setTimeout(initializeWebSocket, 5000);
+    };
+    
+    socket.onerror = function(e) {
+        console.error('WebSocket error:', e);
+        addUpdate('خطا در اتصال', 'error');
+    };
+}
+
+// Handle WebSocket messages
+function handleWebSocketMessage(data) {
+    switch(data.type) {
+        case 'status_update':
+            updateProgress(data.data);
+            break;
+        case 'result_update':
+            updateAnalysisStep(data.data);
+            break;
+        case 'completion_notification':
+            showCompletion();
+            break;
+        case 'current_status':
+            updateProgress(data.data);
+            break;
+        case 'current_results':
+            updateAllResults(data.data);
+            break;
+    }
+}
+
+// Update progress bar and status
+function updateProgress(data) {
+    const progressBar = document.getElementById('progressBar');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const progressStatus = document.getElementById('progressStatus');
+    
+    progressBar.style.width = `${data.progress}%`;
+    progressPercentage.textContent = `${data.progress}%`;
+    progressStatus.textContent = data.message;
+    
+    addUpdate(data.message, 'info');
+    
+    // Check if analysis is completed
+    if (data.progress >= 100) {
+        isCompleted = true;
+        document.getElementById('viewResultsBtn').style.display = 'inline-flex';
+    }
+}
+
+// Update analysis step
+function updateAnalysisStep(data) {
+    const stepElement = document.getElementById(`step-${data.type}`);
+    
+    // Update step status
+    stepElement.classList.remove('active');
+    stepElement.classList.add('completed');
+    
+    addUpdate(`${getStepTitle(data.type)} تکمیل شد`, 'success');
+}
+
+// Update all results
+function updateAllResults(results) {
+    Object.keys(results).forEach(type => {
+        if (results[type] && results[type].score !== undefined) {
+            updateAnalysisStep({
+                type: type,
+                score: results[type].score,
+                recommendations: results[type].recommendations || []
+            });
+        }
+    });
+}
+
+// Add update to the updates container
+function addUpdate(message, type = 'info') {
+    const container = document.getElementById('updatesContainer');
+    const updateItem = document.createElement('div');
+    updateItem.className = 'update-item';
+    
+    const time = new Date().toLocaleTimeString('fa-IR');
+    const typeIcon = {
+        'info': 'fas fa-info-circle',
+        'success': 'fas fa-check-circle',
+        'warning': 'fas fa-exclamation-triangle',
+        'error': 'fas fa-times-circle'
+    };
+    
+    updateItem.innerHTML = `
+        <div class="update-time">${time}</div>
+        <div class="update-message">
+            <i class="${typeIcon[type] || typeIcon.info}"></i>
+            ${message}
+        </div>
+    `;
+    
+    container.insertBefore(updateItem, container.firstChild);
+    
+    // Keep only last 10 updates
+    if (container.children.length > 10) {
+        container.removeChild(container.lastChild);
+    }
+}
+
+// Get step title
+function getStepTitle(type) {
+    const titles = {
+        'layout': 'تحلیل چیدمان',
+        'traffic': 'تحلیل ترافیک',
+        'design': 'تحلیل طراحی',
+        'sales': 'تحلیل فروش',
+        'customer_behavior': 'تحلیل رفتار مشتری',
+        'optimization': 'برنامه بهینه‌سازی'
+    };
+    return titles[type] || type;
+}
+
+// Show completion notification
+function showCompletion() {
+    // Show completion message
+    addUpdate('تحلیل تکمیل شد!', 'success');
+    
+    // Show view results button
+    document.getElementById('viewResultsBtn').style.display = 'inline-flex';
+    
+    // Set completed flag
+    isCompleted = true;
+}
+
+// Cancel analysis
+function cancelAnalysis() {
+    if (confirm('آیا مطمئن هستید که می‌خواهید تحلیل را لغو کنید؟')) {
+        if (socket) {
+            socket.send(JSON.stringify({
+                type: 'cancel_analysis'
+            }));
+        }
+        window.location.href = '{% url "store_analysis:analysis_list" %}';
+    }
+}
+
+// Refresh status
+function refreshStatus() {
+    if (socket) {
+        socket.send(JSON.stringify({
+            type: 'get_status'
+        }));
+    }
+}
+
+// View results
+function viewResults() {
+    window.location.href = `{% url 'store_analysis:analysis_result' analysis.id %}`;
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeWebSocket();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(refreshStatus, 30000);
+    
+    // Check if analysis is already completed
+    if (isCompleted) {
+        document.getElementById('viewResultsBtn').style.display = 'inline-flex';
+    }
+});
+
+// Handle page unload
+window.addEventListener('beforeunload', function() {
+    if (socket) {
+        socket.close();
+    }
+});
+</script>
+{% endblock %}

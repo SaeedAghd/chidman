@@ -188,3 +188,12 @@ class QueryOptimizer:
         if hasattr(connection, 'queries'):
             connection.queries = []
             logger.info("Query log cleared") 
+
+    def log_slow_queries(self):
+        """ثبت کوئری‌های کند"""
+        if hasattr(settings, 'DEBUG') and settings.DEBUG:
+            for query in self.slow_queries:
+                logger.warning(f"Slow query detected: {query}")
+        
+        # پاک کردن لیست کوئری‌های کند
+        self.slow_queries.clear() 

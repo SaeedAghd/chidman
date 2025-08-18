@@ -1,28 +1,60 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator, RegexValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.core.exceptions import ValidationError
+import re
+import os
+
+# --- Custom Validators ---
+def validate_store_name(value):
+    """اعتبارسنجی نام فروشگاه"""
+    if len(value.strip()) < 3:
+        raise ValidationError('نام فروشگاه باید حداقل 3 کاراکتر باشد')
+    if not re.match(r'^[\u0600-\u06FF\w\s\-\.]+$', value):
+        raise ValidationError('نام فروشگاه فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و خط تیره باشد')
+
+def validate_file_size(value):
+    """اعتبارسنجی اندازه فایل (حداکثر 10MB)"""
+    filesize = value.size
+    if filesize > 10 * 1024 * 1024:  # 10MB
+        raise ValidationError('حجم فایل نمی‌تواند بیشتر از 10 مگابایت باشد')
+
+def validate_image_dimensions(value):
+    """اعتبارسنجی ابعاد تصویر"""
+    from PIL import Image
+    img = Image.open(value)
+    width, height = img.size
+    if width > 4000 or height > 4000:
+        raise ValidationError('ابعاد تصویر نمی‌تواند بیشتر از 4000x4000 پیکسل باشد')
 
 # --- Choices Constants ---
 STORE_TYPE_CHOICES = [
     ('supermarket', 'سوپرمارکت'),
+    ('hypermarket', 'هایپرمارکت'),
     ('clothing', 'فروشگاه پوشاک'),
     ('appliance', 'لوازم خانگی'),
     ('bookstore', 'کتاب‌فروشی'),
     ('pharmacy', 'داروخانه'),
+    ('electronics', 'الکترونیک'),
+    ('jewelry', 'جواهرات'),
+    ('sports', 'ورزشی'),
+    ('beauty', 'آرایشی و بهداشتی'),
     ('other', 'سایر'),
 ]
 
 DESIGN_STYLES = [
     ('traditional', 'سنتی'),
     ('modern', 'مدرن'),
-    ('minimal', 'خلوت'),
-    ('busy', 'شلوغ'),
-    ('simple', 'ساده'),
-    ('bright', 'پرنور'),
-    ('dim', 'کم‌نور'),
+    ('minimal', 'مینیمال'),
+    ('luxury', 'لوکس'),
+    ('industrial', 'صنعتی'),
+    ('scandinavian', 'اسکاندیناوی'),
+    ('vintage', 'کلاسیک'),
+    ('contemporary', 'معاصر'),
+    ('other', 'سایر'),
 ]
 
 UNUSED_AREA_TYPES = [
@@ -30,13 +62,17 @@ UNUSED_AREA_TYPES = [
     ('low_traffic', 'کم‌ترافیک'),
     ('storage', 'انبار'),
     ('staff', 'فضای کارکنان'),
+    ('maintenance', 'نگهداری'),
+    ('delivery', 'تحویل'),
     ('other', 'سایر')
 ]
 
 CUSTOMER_PATH_DIRECTIONS = [
     ('clockwise', 'ساعتگرد'),
     ('counterclockwise', 'پادساعتگرد'),
-    ('mixed', 'مختلط')
+    ('mixed', 'مختلط'),
+    ('random', 'تصادفی'),
+    ('direct', 'مستقیم'),
 ]
 
 PRODUCT_CATEGORY_CHOICES = [
@@ -50,70 +86,571 @@ PRODUCT_CATEGORY_CHOICES = [
     ('beauty', 'آرایشی و بهداشتی'),
     ('books', 'کتاب'),
     ('pharmacy', 'دارویی'),
+    ('sports', 'ورزشی'),
+    ('jewelry', 'جواهرات'),
     ('other', 'سایر'),
 ]
 
-# مدل اصلی تحلیل فروشگاه (کد کامل قبلی شما)
-class StoreAnalysis(models.Model):
+# --- Abstract Base Models ---
+class TimestampedModel(models.Model):
+    """مدل پایه با timestamp"""
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('تاریخ ایجاد'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('تاریخ به‌روزرسانی'))
+
+    class Meta:
+        abstract = True
+
+class UserOwnedModel(models.Model):
+    """مدل پایه متعلق به کاربر"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('کاربر'))
+
+    class Meta:
+        abstract = True
+
+# --- مدل پایه برای اطلاعات فروشگاه ---
+class StoreBasicInfo(UserOwnedModel, TimestampedModel):
+    """اطلاعات پایه فروشگاه"""
+    store_name = models.CharField(
+        max_length=200, 
+        verbose_name='نام فروشگاه',
+        validators=[validate_store_name],
+        help_text='نام کامل فروشگاه (حداقل 3 کاراکتر)'
+    )
+    store_location = models.CharField(
+        max_length=500, 
+        verbose_name='آدرس کامل فروشگاه',
+        help_text='آدرس دقیق فروشگاه'
+    )
+    city = models.CharField(
+        max_length=100, 
+        verbose_name='شهر',
+        help_text='شهر محل فروشگاه'
+    )
+    area = models.CharField(
+        max_length=100, 
+        verbose_name='منطقه',
+        help_text='منطقه یا محله فروشگاه'
+    )
+    store_type = models.CharField(
+        max_length=50, 
+        choices=STORE_TYPE_CHOICES, 
+        verbose_name='نوع فروشگاه'
+    )
+    store_size = models.PositiveIntegerField(
+        verbose_name='متراژ فروشگاه (متر مربع)',
+        validators=[MinValueValidator(10), MaxValueValidator(100000)],
+        help_text='متراژ کل فروشگاه (10 تا 100,000 متر مربع)'
+    )
+    store_dimensions = models.CharField(
+        max_length=200, 
+        verbose_name='ابعاد فروشگاه',
+        help_text='ابعاد تقریبی (مثال: 20×30 متر)'
+    )
+    phone = models.CharField(
+        max_length=20, 
+        verbose_name='شماره تماس',
+        validators=[RegexValidator(r'^[\d\-\+\(\)\s]+$', 'شماره تماس نامعتبر است')],
+        blank=True
+    )
+    email = models.EmailField(
+        verbose_name='ایمیل',
+        blank=True,
+        help_text='ایمیل برای ارسال گزارش‌ها'
+    )
+    establishment_year = models.PositiveIntegerField(
+        verbose_name='سال تاسیس',
+        validators=[MinValueValidator(1300), MaxValueValidator(1450)],
+        blank=True,
+        null=True,
+        help_text='سال تاسیس فروشگاه (1300 تا 1450)'
+    )
+
+    def __str__(self):
+        return f"{self.store_name} - {self.city}"
+
+    def clean(self):
+        """اعتبارسنجی سفارشی"""
+        super().clean()
+        if self.store_size and self.store_dimensions:
+            # بررسی تناسب متراژ و ابعاد
+            try:
+                dimensions = re.findall(r'\d+', self.store_dimensions)
+                if len(dimensions) >= 2:
+                    calculated_size = int(dimensions[0]) * int(dimensions[1])
+                    if abs(calculated_size - self.store_size) > calculated_size * 0.2:
+                        raise ValidationError('متراژ و ابعاد فروشگاه همخوانی ندارند')
+            except (ValueError, IndexError):
+                pass
+
+    class Meta:
+        verbose_name = 'اطلاعات پایه فروشگاه'
+        verbose_name_plural = 'اطلاعات پایه فروشگاه‌ها'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'store_type']),
+            models.Index(fields=['city', 'area']),
+            models.Index(fields=['created_at']),
+        ]
+
+# --- مدل چیدمان فروشگاه ---
+class StoreLayout(TimestampedModel):
+    """اطلاعات چیدمان فروشگاه"""
+    store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='layout')
+    entrances = models.PositiveIntegerField(
+        verbose_name='تعداد ورودی‌ها',
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        help_text='تعداد ورودی‌های فروشگاه (1 تا 10)'
+    )
+    shelf_count = models.PositiveIntegerField(
+        verbose_name='تعداد قفسه اصلی',
+        validators=[MinValueValidator(1), MaxValueValidator(1000)],
+        help_text='تعداد قفسه‌های اصلی فروشگاه'
+    )
+    shelf_dimensions = models.TextField(
+        verbose_name='ابعاد تقریبی هر قفسه',
+        help_text='ابعاد و مشخصات قفسه‌ها'
+    )
+    shelf_contents = models.TextField(
+        verbose_name='نوع محصولات هر قفسه',
+        help_text='توضیح محصولات موجود در هر قفسه'
+    )
+    checkout_location = models.TextField(
+        verbose_name='محل صندوق‌های پرداخت',
+        help_text='موقعیت و تعداد صندوق‌های پرداخت'
+    )
+    unused_area_type = models.CharField(
+        max_length=20, 
+        choices=UNUSED_AREA_TYPES, 
+        default='empty', 
+        verbose_name='نوع منطقه بلااستفاده'
+    )
+    unused_area_size = models.PositiveIntegerField(
+        default=0, 
+        verbose_name='متراژ منطقه بلااستفاده',
+        validators=[MaxValueValidator(100000)],
+        help_text='متراژ مناطق بلااستفاده یا کم‌ترافیک'
+    )
+    unused_area_reason = models.TextField(
+        default='', 
+        verbose_name='دلیل بلااستفاده بودن',
+        help_text='توضیح دلیل بلااستفاده بودن مناطق'
+    )
+    unused_areas = models.TextField(
+        verbose_name='توضیحات تکمیلی مناطق بلااستفاده',
+        help_text='توضیح دقیق مناطق بلااستفاده'
+    )
+    layout_restrictions = models.TextField(
+        verbose_name='محدودیت‌های چیدمان',
+        help_text='محدودیت‌های موجود در چیدمان فروشگاه',
+        blank=True
+    )
+    store_plan = models.FileField(
+        upload_to='store_plans/',
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png', 'pdf', 'dwg']),
+            validate_file_size
+        ],
+        verbose_name='نقشه فروشگاه',
+        help_text='فایل نقشه یا طرح فروشگاه (حداکثر 10MB)',
+        blank=True
+    )
+    store_photos = models.ImageField(
+        upload_to='store_photos/',
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png']),
+            validate_file_size,
+            validate_image_dimensions
+        ],
+        verbose_name='عکس‌های فروشگاه',
+        help_text='عکس‌های فروشگاه (حداکثر 10MB، 4000x4000 پیکسل)',
+        blank=True
+    )
+
+    def clean(self):
+        """اعتبارسنجی سفارشی"""
+        super().clean()
+        if self.unused_area_size and self.store_info:
+            if self.unused_area_size > self.store_info.store_size:
+                raise ValidationError('منطقه بلااستفاده نمی‌تواند بزرگتر از کل فروشگاه باشد')
+
+    class Meta:
+        verbose_name = 'چیدمان فروشگاه'
+        verbose_name_plural = 'چیدمان‌های فروشگاه'
+        indexes = [
+            models.Index(fields=['unused_area_type']),
+        ]
+
+# --- مدل ترافیک و رفتار مشتری ---
+class StoreTraffic(TimestampedModel):
+    """اطلاعات ترافیک و رفتار مشتری"""
+    store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='traffic')
+    customer_traffic = models.CharField(
+        max_length=20, 
+        choices=[
+            ('low', 'کم (کمتر از 50 نفر در روز)'),
+            ('medium', 'متوسط (50-200 نفر در روز)'),
+            ('high', 'زیاد (200-500 نفر در روز)'),
+            ('very_high', 'خیلی زیاد (بیش از 500 نفر در روز)'),
+        ],
+        verbose_name='ترافیک مشتری'
+    )
+    peak_hours = models.CharField(
+        max_length=200, 
+        verbose_name='ساعات پیک فروش',
+        help_text='ساعات شلوغی فروشگاه (مثال: 18-22)'
+    )
+    customer_movement_paths = models.CharField(
+        max_length=20, 
+        choices=CUSTOMER_PATH_DIRECTIONS, 
+        default='mixed', 
+        verbose_name='مسیر معمول حرکت مشتریان'
+    )
+    high_traffic_areas = models.TextField(
+        verbose_name='مناطق پرتردد',
+        help_text='مناطقی که بیشترین ترافیک را دارند'
+    )
+    customer_path_notes = models.TextField(
+        verbose_name='توضیحات تکمیلی',
+        help_text='توضیحات بیشتر درباره رفتار مشتریان',
+        blank=True
+    )
+    has_customer_video = models.BooleanField(
+        default=False, 
+        verbose_name='آیا ویدیوی مسیر مشتری دارید؟'
+    )
+    video_duration = models.PositiveIntegerField(
+        null=True, 
+        blank=True, 
+        verbose_name='مدت زمان ویدیو (ثانیه)',
+        validators=[MaxValueValidator(3600)],
+        help_text='مدت زمان ویدیوی مسیر مشتری (حداکثر 1 ساعت)'
+    )
+    video_date = models.DateField(
+        null=True, 
+        blank=True, 
+        verbose_name='تاریخ ضبط ویدیو'
+    )
+    video_time = models.TimeField(
+        null=True, 
+        blank=True, 
+        verbose_name='ساعت ضبط ویدیو'
+    )
+    customer_video_file = models.FileField(
+        upload_to='customer_videos/',
+        validators=[
+            FileExtensionValidator(['mp4', 'avi', 'mov', 'mkv']),
+            validate_file_size
+        ],
+        verbose_name='ویدیوی مسیر مشتری',
+        help_text='فایل ویدیوی مسیر مشتری (حداکثر 10MB)',
+        blank=True
+    )
+
+    def clean(self):
+        """اعتبارسنجی سفارشی"""
+        super().clean()
+        if self.has_customer_video and not self.customer_video_file:
+            raise ValidationError('در صورت داشتن ویدیو، فایل ویدیو الزامی است')
+
+    class Meta:
+        verbose_name = 'ترافیک فروشگاه'
+        verbose_name_plural = 'ترافیک‌های فروشگاه'
+        indexes = [
+            models.Index(fields=['customer_traffic']),
+            models.Index(fields=['customer_movement_paths']),
+        ]
+
+# --- مدل طراحی و دکوراسیون ---
+class StoreDesign(TimestampedModel):
+    """اطلاعات طراحی و دکوراسیون"""
+    store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='design')
+    design_style = models.CharField(
+        max_length=50, 
+        choices=DESIGN_STYLES, 
+        verbose_name='سبک طراحی'
+    )
+    brand_colors = models.CharField(
+        max_length=200, 
+        verbose_name='رنگ‌های اصلی',
+        help_text='رنگ‌های اصلی برند و دکوراسیون'
+    )
+    decorative_elements = models.TextField(
+        verbose_name='عناصر دکوراتیو',
+        help_text='عناصر تزئینی و دکوراتیو فروشگاه',
+        blank=True
+    )
+    main_lighting = models.CharField(
+        max_length=20, 
+        choices=[
+            ('natural', 'طبیعی (نور خورشید)'),
+            ('artificial', 'مصنوعی (لامپ)'),
+            ('mixed', 'ترکیبی (طبیعی + مصنوعی)'),
+        ],
+        verbose_name='نورپردازی اصلی'
+    )
+    lighting_intensity = models.CharField(
+        max_length=20,
+        choices=[
+            ('low', 'کم'),
+            ('medium', 'متوسط'),
+            ('high', 'زیاد'),
+        ],
+        verbose_name='شدت نورپردازی',
+        default='medium'
+    )
+    color_temperature = models.CharField(
+        max_length=20,
+        choices=[
+            ('warm', 'گرم (زرد)'),
+            ('neutral', 'خنثی (سفید)'),
+            ('cool', 'سرد (آبی)'),
+        ],
+        verbose_name='دمای رنگ نور',
+        default='neutral'
+    )
+
+    class Meta:
+        verbose_name = 'طراحی فروشگاه'
+        verbose_name_plural = 'طراحی‌های فروشگاه'
+        indexes = [
+            models.Index(fields=['design_style']),
+            models.Index(fields=['main_lighting']),
+        ]
+
+# --- مدل نظارت و امنیت ---
+class StoreSurveillance(TimestampedModel):
+    """اطلاعات نظارت و امنیت"""
+    store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='surveillance')
+    has_surveillance = models.BooleanField(
+        default=False, 
+        verbose_name='دوربین نظارتی'
+    )
+    camera_count = models.PositiveIntegerField(
+        null=True, 
+        blank=True, 
+        verbose_name='تعداد دوربین‌ها',
+        validators=[MaxValueValidator(100)],
+        help_text='تعداد دوربین‌های نظارتی (حداکثر 100)'
+    )
+    camera_locations = models.TextField(
+        null=True, 
+        blank=True, 
+        verbose_name='موقعیت دوربین‌ها',
+        help_text='توضیح موقعیت نصب دوربین‌ها'
+    )
+    camera_coverage = models.TextField(
+        null=True, 
+        blank=True, 
+        verbose_name='مناطق تحت پوشش',
+        help_text='مناطقی که تحت پوشش دوربین‌ها هستند'
+    )
+    recording_quality = models.CharField(
+        max_length=20,
+        choices=[
+            ('low', 'کم (480p)'),
+            ('medium', 'متوسط (720p)'),
+            ('high', 'زیاد (1080p)'),
+            ('ultra', 'خیلی زیاد (4K)'),
+        ],
+        verbose_name='کیفیت ضبط',
+        default='medium'
+    )
+    storage_duration = models.PositiveIntegerField(
+        verbose_name='مدت نگهداری فیلم (روز)',
+        default=30,
+        validators=[MinValueValidator(1), MaxValueValidator(365)],
+        help_text='مدت نگهداری فیلم‌های دوربین (1 تا 365 روز)'
+    )
+
+    def clean(self):
+        """اعتبارسنجی سفارشی"""
+        super().clean()
+        if self.has_surveillance and not self.camera_count:
+            raise ValidationError('در صورت داشتن دوربین، تعداد دوربین‌ها الزامی است')
+
+    class Meta:
+        verbose_name = 'نظارت فروشگاه'
+        verbose_name_plural = 'نظارت‌های فروشگاه'
+        indexes = [
+            models.Index(fields=['has_surveillance']),
+        ]
+
+# --- مدل محصولات و فروش ---
+class StoreProducts(TimestampedModel):
+    """اطلاعات محصولات و فروش"""
+    store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='products')
+    product_categories = models.JSONField(
+        verbose_name='دسته‌بندی محصولات',
+        help_text='دسته‌بندی محصولات فروشگاه',
+        blank=True
+    )
+    top_products = models.TextField(
+        verbose_name='پرفروش‌ترین محصولات',
+        help_text='لیست محصولات پرفروش',
+        blank=True
+    )
+    sales_volume = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2, 
+        default=0, 
+        verbose_name='حجم فروش روزانه (تومان)',
+        help_text='متوسط فروش روزانه فروشگاه'
+    )
+    pos_system = models.CharField(
+        max_length=100, 
+        verbose_name='نرم‌افزار صندوق',
+        help_text='نام نرم‌افزار صندوق فروش',
+        blank=True
+    )
+    sales_file = models.FileField(
+        upload_to='sales_files/',
+        validators=[
+            FileExtensionValidator(['xlsx', 'xls', 'csv', 'pdf']),
+            validate_file_size
+        ],
+        verbose_name='فایل فروش',
+        help_text='فایل گزارش فروش (حداکثر 10MB)',
+        blank=True
+    )
+    product_catalog = models.FileField(
+        upload_to='product_catalogs/',
+        validators=[
+            FileExtensionValidator(['pdf', 'doc', 'docx']),
+            validate_file_size
+        ],
+        verbose_name='کاتالوگ محصولات',
+        help_text='فایل کاتالوگ محصولات (حداکثر 10MB)',
+        blank=True
+    )
+    inventory_system = models.CharField(
+        max_length=100,
+        verbose_name='سیستم موجودی',
+        help_text='نرم‌افزار مدیریت موجودی',
+        blank=True
+    )
+    supplier_count = models.PositiveIntegerField(
+        verbose_name='تعداد تامین‌کنندگان',
+        default=0,
+        validators=[MaxValueValidator(1000)],
+        help_text='تعداد تامین‌کنندگان محصولات'
+    )
+
+    class Meta:
+        verbose_name = 'محصولات فروشگاه'
+        verbose_name_plural = 'محصولات فروشگاه‌ها'
+        indexes = [
+            models.Index(fields=['sales_volume']),
+        ]
+
+# --- مدل اصلی تحلیل فروشگاه (ساده شده) ---
+class StoreAnalysis(UserOwnedModel, TimestampedModel):
+    """مدل اصلی تحلیل فروشگاه - ساده شده"""
     STATUS_CHOICES = [
         ('pending', _('در انتظار')),
         ('processing', _('در حال پردازش')),
         ('completed', _('تکمیل شده')),
         ('failed', _('ناموفق')),
+        ('cancelled', _('لغو شده')),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('کاربر'))
-    store_name = models.CharField(max_length=200, verbose_name='نام فروشگاه')
-    store_location = models.CharField(max_length=200, verbose_name='موقعیت فروشگاه', null=True, blank=True)
-    city = models.CharField(max_length=100, verbose_name='شهر', null=True, blank=True)
-    area = models.CharField(max_length=100, verbose_name='منطقه', null=True, blank=True)
-    store_type = models.CharField(max_length=50, choices=STORE_TYPE_CHOICES, verbose_name='نوع فروشگاه')
-    store_size = models.PositiveIntegerField(verbose_name='متراژ فروشگاه (متر مربع)', null=True, blank=True)
-    store_dimensions = models.CharField(max_length=200, verbose_name='ابعاد فروشگاه', null=True, blank=True)
-    entrances = models.PositiveIntegerField(verbose_name='تعداد ورودی‌ها', null=True, blank=True)
-    shelf_count = models.PositiveIntegerField(verbose_name='تعداد قفسه اصلی', null=True, blank=True)
-    shelf_dimensions = models.TextField(verbose_name='ابعاد تقریبی هر قفسه', null=True, blank=True)
-    shelf_contents = models.TextField(verbose_name='نوع محصولات هر قفسه', null=True, blank=True)
-    checkout_location = models.TextField(verbose_name='محل صندوق‌های پرداخت', null=True, blank=True)
-    unused_area_type = models.CharField(max_length=20, choices=UNUSED_AREA_TYPES, default='empty', verbose_name='نوع منطقه بلااستفاده', null=True, blank=True)
-    unused_area_size = models.PositiveIntegerField(default=0, verbose_name='متراژ منطقه بلااستفاده')
-    unused_area_reason = models.TextField(default='', verbose_name='دلیل بلااستفاده بودن')
-    unused_areas = models.TextField(verbose_name='توضیحات تکمیلی مناطق بلااستفاده', null=True, blank=True)
-    product_categories = models.JSONField(verbose_name='دسته‌بندی محصولات', null=True, blank=True)
-    top_products = models.TextField(verbose_name='پرفروش‌ترین محصولات', null=True, blank=True)
-    sales_volume = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='حجم فروش روزانه', null=True, blank=True)
-    pos_system = models.CharField(max_length=100, verbose_name='نرم‌افزار صندوق', blank=True)
-    sales_file = models.FileField(upload_to='sales_files/', verbose_name='فایل فروش', null=True, blank=True)
-    has_surveillance = models.BooleanField(default=False, verbose_name='دوربین نظارتی')
-    camera_count = models.PositiveIntegerField(null=True, blank=True, verbose_name='تعداد دوربین‌ها')
-    camera_locations = models.TextField(null=True, blank=True, verbose_name='موقعیت دوربین‌ها')
-    camera_coverage = models.TextField(null=True, blank=True, verbose_name='مناطق تحت پوشش')
-    video_duration = models.PositiveIntegerField(null=True, blank=True, verbose_name='مدت زمان ویدیو')
-    video_date = models.DateField(null=True, blank=True, verbose_name='تاریخ ضبط ویدیو')
-    video_time = models.TimeField(null=True, blank=True, verbose_name='ساع�� ضبط ویدیو')
-    customer_video_file = models.FileField(upload_to='customer_videos/', verbose_name='ویدیوی مسیر مشتری', null=True, blank=True)
-    customer_path_notes = models.TextField(verbose_name='توضیحات تکمیلی', null=True, blank=True)
-    customer_movement_paths = models.CharField(max_length=20, choices=[('clockwise', 'ساعتگرد'), ('counterclockwise', 'پادساعتگرد'), ('mixed', 'مختلط'), ('random', 'تصادفی')], default='mixed', verbose_name='مسیر معمول حرکت مشتریان')
-    high_traffic_areas = models.TextField(verbose_name='مناطق پرتردد', null=True, blank=True)
-    peak_hours = models.CharField(max_length=100, verbose_name='ساعات پیک فروش', null=True, blank=True)
-    design_style = models.CharField(max_length=50, choices=DESIGN_STYLES, verbose_name='سبک طراحی', null=True, blank=True)
-    brand_colors = models.CharField(max_length=200, verbose_name='رنگ‌های اصلی', null=True, blank=True)
-    decorative_elements = models.TextField(verbose_name='عناصر دکوراتیو', blank=True)
-    layout_restrictions = models.TextField(verbose_name='محدودیت‌های چیدمان', blank=True)
-    store_plan = models.FileField(upload_to='store_plans/', validators=[FileExtensionValidator(['jpg', 'pdf', 'dwg'])], verbose_name='نقشه فروشگاه', null=True, blank=True)
-    store_photos = models.FileField(upload_to='store_photos/', validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])], verbose_name='عکس‌های فروشگاه', null=True, blank=True)
-    product_catalog = models.FileField(upload_to='product_catalogs/', validators=[FileExtensionValidator(['pdf', 'doc', 'docx'])], verbose_name='کاتالوگ محصولات', null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name=_('وضعیت'))
-    results = models.JSONField(null=True, blank=True, verbose_name=_('نتایج'))
-    error_message = models.TextField(blank=True, null=True, verbose_name=_('پیام خطا'))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('تاریخ ایجاد'))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('تاریخ به‌روزرسانی'))
-    def __str__(self):
-        return f"{self.store_name} - {self.city}"
     
+    store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='analysis', null=True, blank=True)
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='pending', 
+        verbose_name=_('وضعیت')
+    )
+    results = models.JSONField(
+        null=True, 
+        blank=True, 
+        verbose_name=_('نتایج'),
+        help_text='نتایج تحلیل به صورت JSON'
+    )
+    error_message = models.TextField(
+        blank=True, 
+        null=True, 
+        verbose_name=_('پیام خطا'),
+        help_text='پیام خطا در صورت عدم موفقیت'
+    )
+    priority = models.CharField(
+        max_length=20,
+        choices=[
+            ('low', 'کم'),
+            ('medium', 'متوسط'),
+            ('high', 'زیاد'),
+            ('urgent', 'فوری'),
+        ],
+        default='medium',
+        verbose_name='اولویت تحلیل'
+    )
+    estimated_duration = models.PositiveIntegerField(
+        verbose_name='مدت زمان تخمینی (دقیقه)',
+        default=30,
+        help_text='مدت زمان تخمینی برای تکمیل تحلیل'
+    )
+    actual_duration = models.PositiveIntegerField(
+        verbose_name='مدت زمان واقعی (دقیقه)',
+        null=True,
+        blank=True,
+        help_text='مدت زمان واقعی صرف شده برای تحلیل'
+    )
+
+    def __str__(self):
+        return f"تحلیل {self.store_info.store_name} - {self.get_status_display()}"
+    
+    def get_absolute_url(self):
+        return reverse('store_analysis:analysis_detail', args=[self.pk])
+    
+    @property
+    def is_completed(self):
+        return self.status == 'completed'
+    
+    @property
+    def is_processing(self):
+        return self.status == 'processing'
+    
+    @property
+    def is_failed(self):
+        return self.status == 'failed'
+    
+    def get_analysis_duration(self):
+        """محاسبه مدت زمان تحلیل"""
+        if self.status == 'completed' and hasattr(self, 'analysis_result'):
+            return (self.analysis_result.created_at - self.created_at).total_seconds()
+        return None
+    
+    def get_progress(self):
+        """درصد پیشرفت تحلیل"""
+        if self.status == 'completed':
+            return 100
+        elif self.status == 'processing':
+            return 50
+        elif self.status == 'failed':
+            return 0
+        elif self.status == 'cancelled':
+            return 0
+        return 25
+    
+    def clean(self):
+        """اعتبارسنجی سفارشی"""
+        super().clean()
+        if self.actual_duration and self.estimated_duration:
+            if self.actual_duration > self.estimated_duration * 3:
+                raise ValidationError('مدت زمان واقعی نمی‌تواند بیش از 3 برابر مدت تخمینی باشد')
+
     class Meta:
         verbose_name = _('تحلیل فروشگاه')
         verbose_name_plural = _('تحلیل‌های فروشگاه')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['status', 'priority']),
+            models.Index(fields=['created_at']),
+        ]
+        permissions = [
+            ("can_cancel_analysis", "Can cancel analysis"),
+            ("can_prioritize_analysis", "Can prioritize analysis"),
+        ]
 
 class StoreAnalysisResult(models.Model):
     store_analysis = models.OneToOneField(StoreAnalysis, on_delete=models.CASCADE, related_name='analysis_result')
@@ -130,7 +667,7 @@ class StoreAnalysisResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
-        return f"تحلیل {self.store_analysis.store_name} - امتیاز: {self.overall_score}"
+        return f"تحلیل {self.store_analysis.store_info.store_name} - امتیاز: {self.overall_score}"
     
     class Meta:
         verbose_name = 'نتیجه تحلیل'
@@ -280,4 +817,4 @@ class StoreAnalysisDetail(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"جزئیات {self.store_analysis.store_name}"
+        return f"جزئیات {self.store_analysis.store_info.store_name}"

@@ -1,5 +1,6 @@
 from django.urls import path, include
 from . import views
+from . import consumers
 
 app_name = 'store_analysis'
 
@@ -13,6 +14,7 @@ urlpatterns = [
     # مسیرهای آنالیز فروشگاه
     path('store-analysis/', views.store_analysis_form, name='store_analysis'),
     path('store-analysis/submit/', views.submit_analysis, name='submit_analysis'),
+
     path('analyses/', views.StoreAnalysisListView.as_view(), name='analysis_list'),
     path('analyses/<int:pk>/', views.StoreAnalysisDetailView.as_view(), name='analysis_detail'),
     path('analyses/<int:pk>/edit/', views.StoreAnalysisUpdateView.as_view(), name='analysis_update'),
@@ -25,6 +27,15 @@ urlpatterns = [
     path('analysis/<int:pk>/result/', views.analysis_result, name='analysis_result'),
     path('analysis/create/', views.analysis_create, name='analysis_create'),
     path('analysis/<int:pk>/results/', views.analysis_results, name='analysis_results'),
+
+    # مسیرهای Real-time Analysis
+    path('analysis/<int:pk>/progress/', views.analysis_progress, name='analysis_progress'),
+    path('analysis/<int:pk>/start/', views.start_analysis, name='start_analysis'),
+    path('analysis/<int:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
+
+    # مسیرهای WebSocket
+    path('ws/analysis/<int:analysis_id>/', consumers.AnalysisConsumer.as_asgi()),
+    path('ws/notifications/', consumers.NotificationConsumer.as_asgi()),
 
     # داشبورد ادمین
     path('admin-dashboard/', include('store_analysis.admin_dashboard_urls')),

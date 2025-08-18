@@ -1,21 +1,40 @@
+# Django Core
 Django>=4.2.0,<5.0
-celery==5.3.6
-redis>=6.2.0
-Pillow>=10.0.0
-python-dotenv>=1.0.0
-opencv-python>=4.8.0
-numpy>=1.24.0
-scikit-learn>=1.3.0
-tensorflow>=2.13.0,<3.0
-django-redis>=5.4.0
-psutil>=5.9.6
-django-debug-toolbar>=4.2.0
-django-extensions>=3.2.3
-whitenoise>=6.6.0
-gunicorn>=21.2.0
-requests>=2.31.0
-openai>=1.0.0
 djangorestframework>=3.14.0
 django-filter>=23.0
 django-cors-headers>=4.0.0
+django-debug-toolbar>=4.2.0
+django-extensions>=3.2.3
+django-redis>=5.4.0
+
+# Task Queue
+celery==5.3.4
+redis==5.0.1
+
+# Image Processing
+Pillow==10.1.0
+opencv-python==4.8.1.78
+
+# AI/ML
+numpy==1.24.3
+scikit-learn>=1.3.0
+tensorflow>=2.13.0,<3.0
+openai==1.3.7
+
+# Utilities
+python-dotenv>=1.0.0
+psutil>=5.9.6
+whitenoise>=6.6.0
+gunicorn>=21.2.0
+requests>=2.31.0
 reportlab>=4.0.0
+
+# Development
+pytest>=7.0.0
+pytest-django>=4.5.0
+black>=23.0.0
+flake8>=6.0.0
+
+# Django Channels for WebSocket support
+channels==4.0.0
+channels-redis==4.1.0

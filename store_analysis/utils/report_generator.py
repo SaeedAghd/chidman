@@ -1,124 +1,193 @@
-from reportlab.lib import colors
+import logging
+import os
+from typing import Optional
+from django.conf import settings
+from django.template.loader import render_to_string
 from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from django.conf import settings
-import os
-from datetime import datetime
-import logging
+from reportlab.lib import colors
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from ..models import StoreAnalysis
 
 logger = logging.getLogger(__name__)
 
-def generate_pdf_report(analysis):
-    """تولید گزارش PDF از نتایج تحلیل"""
-    try:
-        # ایجاد مسیر فایل
-        report_dir = os.path.join(settings.MEDIA_ROOT, 'analysis_reports')
-        os.makedirs(report_dir, exist_ok=True)
+class ReportGenerator:
+    """تولیدکننده گزارش PDF"""
+    
+    def __init__(self):
+        self.styles = getSampleStyleSheet()
+        self._setup_fonts()
+    
+    def _setup_fonts(self):
+        """تنظیم فونت‌های فارسی"""
+        try:
+            # تلاش برای بارگذاری فونت فارسی
+            font_path = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'Vazir.ttf')
+            if os.path.exists(font_path):
+                pdfmetrics.registerFont(TTFont('Vazir', font_path))
+                self.farsi_style = ParagraphStyle(
+                    'Farsi',
+                    parent=self.styles['Normal'],
+                    fontName='Vazir',
+                    fontSize=12,
+                    alignment=1,  # وسط
+                )
+            else:
+                self.farsi_style = self.styles['Normal']
+        except Exception as e:
+            logger.warning(f"Could not load Persian font: {e}")
+            self.farsi_style = self.styles['Normal']
+    
+    def generate_analysis_report(self, analysis: StoreAnalysis) -> Optional[str]:
+        """تولید گزارش تحلیل فروشگاه"""
+        try:
+            # ایجاد نام فایل
+            filename = f"analysis_report_{analysis.id}_{analysis.store_name.replace(' ', '_')}.pdf"
+            filepath = os.path.join(settings.MEDIA_ROOT, 'reports', filename)
+            
+            # ایجاد دایرکتوری اگر وجود ندارد
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            
+            # ایجاد سند PDF
+            doc = SimpleDocTemplate(filepath, pagesize=A4)
+            story = []
+            
+            # عنوان گزارش
+            title = Paragraph(f"گزارش تحلیل فروشگاه {analysis.store_name}", self.styles['Title'])
+            story.append(title)
+            story.append(Spacer(1, 20))
+            
+            # اطلاعات کلی
+            story.extend(self._generate_basic_info(analysis))
+            story.append(Spacer(1, 20))
+            
+            # نتایج تحلیل
+            if hasattr(analysis, 'analysis_result') and analysis.analysis_result:
+                story.extend(self._generate_analysis_results(analysis.analysis_result))
+                story.append(Spacer(1, 20))
+            
+            # توصیه‌ها
+            story.extend(self._generate_recommendations(analysis))
+            
+            # ساخت PDF
+            doc.build(story)
+            
+            logger.info(f"Report generated successfully: {filepath}")
+            return filepath
+            
+        except Exception as e:
+            logger.error(f"Error generating report: {e}")
+            return None
+    
+    def _generate_basic_info(self, analysis: StoreAnalysis) -> list:
+        """تولید بخش اطلاعات کلی"""
+        elements = []
         
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"analysis_report_{analysis.id}_{timestamp}.pdf"
-        filepath = os.path.join(report_dir, filename)
+        # عنوان بخش
+        section_title = Paragraph("اطلاعات کلی فروشگاه", self.styles['Heading2'])
+        elements.append(section_title)
+        elements.append(Spacer(1, 10))
         
-        # ایجاد سند PDF
-        doc = SimpleDocTemplate(
-            filepath,
-            pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=72
-        )
-        
-        # استایل‌ها
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=24,
-            spaceAfter=30
-        )
-        heading_style = ParagraphStyle(
-            'CustomHeading',
-            parent=styles['Heading2'],
-            fontSize=18,
-            spaceAfter=20
-        )
-        normal_style = styles['Normal']
-        
-        # محتوای گزارش
-        story = []
-        
-        # عنوان
-        story.append(Paragraph(f"گزارش تحلیل فروشگاه {analysis.store_name}", title_style))
-        story.append(Spacer(1, 12))
-        
-        # اطلاعات فروشگاه
-        story.append(Paragraph("اطلاعات فروشگاه", heading_style))
-        store_info = [
-            ["نام فروشگاه:", analysis.store_name],
-            ["نوع فروشگاه:", analysis.get_store_type_display()],
-            ["مساحت:", f"{analysis.store_size} متر مربع"],
-            ["شهر:", analysis.city or "-"],
-            ["منطقه:", analysis.area or "-"],
-            ["محل صندوق:", analysis.checkout_location or "-"],
-            ["تعداد قفسه:", str(analysis.shelf_count or 0)],
-            ["مناطق بلااستفاده:", analysis.unused_areas or "-"],
-            ["دوربین نظارتی:", "دارد" if analysis.has_surveillance else "ندارد"],
-            ["تعداد دوربین:", str(analysis.camera_count or 0)],
-            ["مسیر حرکت مشتریان:", analysis.get_customer_movement_paths_display()],
-            ["سبک طراحی:", analysis.design_style or "-"],
-            ["رنگ‌های اصلی:", analysis.brand_colors or "-"]
+        # جدول اطلاعات
+        data = [
+            ['نام فروشگاه', analysis.store_name],
+            ['نوع فروشگاه', analysis.get_store_type_display()],
+            ['شهر', analysis.city or 'نامشخص'],
+            ['منطقه', analysis.area or 'نامشخص'],
+            ['متراژ', f"{analysis.store_size} متر مربع" if analysis.store_size else 'نامشخص'],
+            ['تاریخ تحلیل', analysis.created_at.strftime('%Y/%m/%d')],
         ]
-        store_table = Table(store_info, colWidths=[2*inch, 4*inch])
-        store_table.setStyle(TableStyle([
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
-            ('PADDING', (0, 0), (-1, -1), 6),
+        
+        table = Table(data, colWidths=[2*inch, 4*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
-        story.append(store_table)
-        story.append(Spacer(1, 20))
         
-        # تحلیل اولیه
-        if analysis.initial_analysis:
-            story.append(Paragraph("تحلیل اولیه", heading_style))
-            initial = analysis.initial_analysis
+        elements.append(table)
+        return elements
+    
+    def _generate_analysis_results(self, result) -> list:
+        """تولید بخش نتایج تحلیل"""
+        elements = []
+        
+        # عنوان بخش
+        section_title = Paragraph("نتایج تحلیل", self.styles['Heading2'])
+        elements.append(section_title)
+        elements.append(Spacer(1, 10))
+        
+        # جدول امتیازات
+        data = [
+            ['بخش تحلیل', 'امتیاز'],
+            ['امتیاز کلی', f"{result.overall_score}/100"],
+            ['امتیاز چیدمان', f"{result.layout_score}/100"],
+            ['امتیاز ترافیک', f"{result.traffic_score}/100"],
+            ['امتیاز طراحی', f"{result.design_score}/100"],
+            ['امتیاز فروش', f"{result.sales_score}/100"],
+        ]
+        
+        table = Table(data, colWidths=[3*inch, 3*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 15))
+        
+        # تحلیل کلی
+        if result.overall_analysis:
+            overall_title = Paragraph("تحلیل کلی", self.styles['Heading3'])
+            elements.append(overall_title)
+            elements.append(Spacer(1, 5))
             
-            if 'summary' in initial:
-                story.append(Paragraph("خلاصه:", normal_style))
-                for key, value in initial['summary'].items():
-                    story.append(Paragraph(f"• {key}: {value}", normal_style))
-                story.append(Spacer(1, 12))
-            
-            if 'suggestions' in initial:
-                story.append(Paragraph("پیشنهادات:", normal_style))
-                for suggestion in initial['suggestions']:
-                    story.append(Paragraph(f"• {suggestion}", normal_style))
-                story.append(Spacer(1, 12))
+            overall_text = Paragraph(result.overall_analysis, self.farsi_style)
+            elements.append(overall_text)
+            elements.append(Spacer(1, 10))
         
-        # تحلیل تکمیلی
-        if analysis.detailed_analysis:
-            story.append(Paragraph("تحلیل تکمیلی", heading_style))
-            detailed = analysis.detailed_analysis
-            
-            if 'summary' in detailed:
-                story.append(Paragraph("خلاصه:", normal_style))
-                for key, value in detailed['summary'].items():
-                    story.append(Paragraph(f"• {key}: {value}", normal_style))
-                story.append(Spacer(1, 12))
-            
-            if 'suggestions' in detailed:
-                story.append(Paragraph("پیشنهادات:", normal_style))
-                for suggestion in detailed['suggestions']:
-                    story.append(Paragraph(f"• {suggestion}", normal_style))
-                story.append(Spacer(1, 12))
+        return elements
+    
+    def _generate_recommendations(self, analysis: StoreAnalysis) -> list:
+        """تولید بخش توصیه‌ها"""
+        elements = []
         
-        # ساخت PDF
-        doc.build(story)
+        # عنوان بخش
+        section_title = Paragraph("توصیه‌های بهبود", self.styles['Heading2'])
+        elements.append(section_title)
+        elements.append(Spacer(1, 10))
         
-        return os.path.join('analysis_reports', filename)
+        # توصیه‌های کلی
+        recommendations = [
+            "بهبود چیدمان قفسه‌ها برای افزایش دسترسی مشتریان",
+            "بهینه‌سازی مسیر حرکت مشتریان",
+            "بهبود نورپردازی و طراحی بصری",
+            "تحلیل و بهبود استراتژی فروش",
+            "استفاده از تکنولوژی‌های نوین برای ردیابی رفتار مشتریان"
+        ]
         
-    except Exception as e:
-        logger.error(f"Error generating PDF report: {str(e)}")
-        return None 
+        for i, rec in enumerate(recommendations, 1):
+            rec_text = Paragraph(f"{i}. {rec}", self.farsi_style)
+            elements.append(rec_text)
+            elements.append(Spacer(1, 5))
+        
+        return elements
+
+def generate_pdf_report(analysis: StoreAnalysis) -> Optional[str]:
+    """تابع قدیمی برای سازگاری"""
+    generator = ReportGenerator()
+    return generator.generate_analysis_report(analysis) 
