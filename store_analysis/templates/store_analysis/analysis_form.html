@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}
+        ویرایش تحلیل - {{ object.store_name|default:"تحلیل فروشگاه" }}
+    {% else %}
+        ایجاد تحلیل جدید
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.form-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.form-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.form-body {
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.alert {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.alert-danger {
+    background-color: #fed7d7;
+    border: 1px solid #feb2b2;
+    color: #c53030;
+}
+
+.alert-success {
+    background-color: #c6f6d5;
+    border: 1px solid #9ae6b4;
+    color: #2f855a;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 2rem;
+}
+
+.required-field::after {
+    content: " *";
+    color: #e53e3e;
+}
+
+.help-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-row .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>
+                    <i class="fas fa-edit me-2"></i>
+                    {% if object %}
+                        ویرایش تحلیل: {{ object.store_name|default:"تحلیل فروشگاه" }}
+                    {% else %}
+                        ایجاد تحلیل جدید
+                    {% endif %}
+                </h2>
+                <p class="mb-0">
+                    {% if object %}
+                        اطلاعات تحلیل را ویرایش کنید
+                    {% else %}
+                        اطلاعات تحلیل جدید را وارد کنید
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="form-body">
+                <!-- نمایش پیام‌های خطا -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+                
+                <!-- نمایش پیام‌های موفقیت -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- اطلاعات اساسی -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">
+                                    <i class="fas fa-store me-2"></i>وضعیت تحلیل
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger">{{ form.status.errors }}</div>
+                                {% endif %}
+                                {% if form.status.help_text %}
+                                    <div class="help-text">{{ form.status.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">
+                                    <i class="fas fa-flag me-2"></i>اولویت
+                                </label>
+                                {{ form.priority }}
+                                {% if form.priority.errors %}
+                                    <div class="text-danger">{{ form.priority.errors }}</div>
+                                {% endif %}
+                                {% if form.priority.help_text %}
+                                    <div class="help-text">{{ form.priority.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-clock me-2"></i>زمان تخمینی (دقیقه)
+                                </label>
+                                {{ form.estimated_duration }}
+                                {% if form.estimated_duration.errors %}
+                                    <div class="text-danger">{{ form.estimated_duration.errors }}</div>
+                                {% endif %}
+                                {% if form.estimated_duration.help_text %}
+                                    <div class="help-text">{{ form.estimated_duration.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-chart-line me-2"></i>نتایج
+                                </label>
+                                {{ form.results }}
+                                {% if form.results.errors %}
+                                    <div class="text-danger">{{ form.results.errors }}</div>
+                                {% endif %}
+                                {% if form.results.help_text %}
+                                    <div class="help-text">{{ form.results.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- پیام خطا -->
+                    {% if form.error_message %}
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-exclamation-triangle me-2"></i>پیام خطا
+                        </label>
+                        {{ form.error_message }}
+                        {% if form.error_message.errors %}
+                            <div class="text-danger">{{ form.error_message.errors }}</div>
+                        {% endif %}
+                        {% if form.error_message.help_text %}
+                            <div class="help-text">{{ form.error_message.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- اطلاعات اضافی (در صورت وجود) -->
+                    {% if object %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>اطلاعات تحلیل</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>نام فروشگاه:</strong> {{ object.store_name|default:"نامشخص" }}<br>
+                                        <strong>نوع تحلیل:</strong> {{ object.get_analysis_type_display|default:"نامشخص" }}<br>
+                                        <strong>اندازه فروشگاه:</strong> {{ object.store_size|default:"نامشخص" }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>تاریخ ایجاد:</strong> {{ object.created_at|date:"Y/m/d H:i" }}<br>
+                                        <strong>آخرین به‌روزرسانی:</strong> {{ object.updated_at|date:"Y/m/d H:i" }}<br>
+                                        <strong>پیشرفت:</strong> {{ object.get_progress }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- دکمه‌های عملیات -->
+                    <div class="form-actions">
+                        <a href="{% url 'store_analysis:analysis_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>بازگشت
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% if object %}
+                                ذخیره تغییرات
+                            {% else %}
+                                ایجاد تحلیل
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        if (alert.classList.contains('alert-success') || alert.classList.contains('alert-info')) {
+            setTimeout(function() {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    alert.remove();
+                }, 500);
+            }, 5000);
+        }
+    });
+    
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            const requiredFields = form.querySelectorAll('[required]');
+            
+            requiredFields.forEach(function(field) {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#e53e3e';
+                } else {
+                    field.style.borderColor = '#e2e8f0';
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('لطفاً تمام فیلدهای الزامی را پر کنید.');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

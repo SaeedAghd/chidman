@@ -1,82 +1,214 @@
-# چیدمانو
+# چیدمان - تحلیل هوشمند فروشگاه
 
-سیستم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه
+## 🚀 پروژه تحلیل هوشمند فروشگاه با Django
 
-## ویژگی‌ها
+این پروژه یک سیستم تحلیل هوشمند فروشگاه است که با Django و Python ساخته شده است.
 
-- تحلیل هوشمند چیدمان فروشگاه
-- پیشنهادات بهینه‌سازی
-- گزارش‌گیری
-- پنل مدیریت
+## ✨ ویژگی‌های کلیدی
 
-## نصب و راه‌اندازی
+- 🔐 سیستم احراز هویت کامل
+- 📊 داشبورد مدیریتی
+- 🤖 ربات هوش مصنوعی
+- 📄 گزارش‌های حرفه‌ای
+- 📱 رابط کاربری ریسپانسیو
+- 🌐 پشتیبانی از زبان فارسی
 
-1. نصب وابستگی‌های Python:
+## 🛠️ تکنولوژی‌های استفاده شده
+
+- **Backend:** Django 5.2.1
+- **Frontend:** Bootstrap 5, HTML5, CSS3, JavaScript
+- **Database:** SQLite (Development), PostgreSQL (Production)
+- **AI:** OpenAI API
+- **Deployment:** Railway, Heroku, Render
+
+## 📋 پیش‌نیازها
+
+- Python 3.11+
+- pip
+- Git
+
+## 🚀 نصب و راه‌اندازی
+
+### 1. کلون کردن پروژه
+```bash
+git clone <repository-url>
+cd chideman
+```
+
+### 2. ایجاد محیط مجازی
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# یا
+.venv\Scripts\activate  # Windows
+```
+
+### 3. نصب وابستگی‌ها
 ```bash
 pip install -r requirements.txt
 ```
 
-2. نصب وابستگی‌های Node.js:
+### 4. تنظیم متغیرهای محیطی
 ```bash
-npm install
+cp .env.example .env
+# فایل .env را ویرایش کنید
 ```
 
-3. تنظیم متغیرهای محیطی:
+### 5. اجرای مایگریشن‌ها
 ```bash
-# فایل .env را ایجاد کنید و متغیرهای زیر را تنظیم کنید:
+python manage.py migrate
+```
+
+### 6. ایجاد سوپر یوزر
+```bash
+python manage.py createsuperuser
+```
+
+### 7. اجرای سرور
+```bash
+python manage.py runserver
+```
+
+## 🌐 دیپلوی
+
+### Railway (پیشنهاد اول)
+
+1. **آماده‌سازی پروژه:**
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
+
+2. **اتصال به Railway:**
+   - به https://railway.app بروید
+   - با GitHub وارد شوید
+   - پروژه را انتخاب کنید
+   - Railway خودکار دیپلوی می‌کند
+
+3. **تنظیم متغیرهای محیطی:**
+   - `SECRET_KEY`: کلید امنیتی Django
+   - `DEBUG`: False
+   - `DATABASE_URL`: آدرس دیتابیس PostgreSQL
+   - `ALLOWED_HOSTS`: دامنه‌های مجاز
+
+### Render (پیشنهاد دوم)
+
+1. **اتصال به Render:**
+   - به https://render.com بروید
+   - با GitHub وارد شوید
+   - New Web Service را انتخاب کنید
+   - پروژه را انتخاب کنید
+
+2. **تنظیمات:**
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `gunicorn chidmano.wsgi:application`
+   - **Environment:** Python 3.11
+
+### Heroku (پیشنهاد سوم)
+
+1. **نصب Heroku CLI:**
+   ```bash
+   # Windows
+   winget install --id=Heroku.HerokuCLI
+   ```
+
+2. **دیپلوی:**
+   ```bash
+   heroku login
+   heroku create your-app-name
+   git push heroku main
+   ```
+
+## 🔧 تنظیمات محیطی
+
+### متغیرهای محیطی ضروری:
+
+```env
+# Django Settings
 SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-DATABASE_URL=sqlite:///db.sqlite3
+DEBUG=False
+ALLOWED_HOSTS=your-domain.com,www.your-domain.com
+
+# Database
+DATABASE_URL=postgresql://username:password@host:port/database_name
+
+# Email Settings
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USE_TLS=True
 EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
+
+# OpenAI API
 OPENAI_API_KEY=your-openai-api-key
 ```
 
-4. اجرای مایگریشن‌ها:
-```bash
-python manage.py migrate
+## 📁 ساختار پروژه
+
+```
+chidman/
+├── chidmano/                 # تنظیمات اصلی Django
+│   ├── settings.py          # تنظیمات پروژه
+│   ├── urls.py              # URL های اصلی
+│   └── wsgi.py              # WSGI configuration
+├── store_analysis/          # اپلیکیشن اصلی
+│   ├── models.py            # مدل‌های دیتابیس
+│   ├── views.py             # ویوها
+│   ├── forms.py             # فرم‌ها
+│   └── templates/           # قالب‌های HTML
+├── static/                  # فایل‌های استاتیک
+├── media/                   # فایل‌های آپلود شده
+├── requirements.txt         # وابستگی‌های Python
+├── Procfile                 # تنظیمات Heroku/Railway
+├── runtime.txt              # نسخه Python
+└── README.md               # این فایل
 ```
 
-5. ایجاد کاربر ادمین:
+## 🔐 امنیت
+
+- ✅ HTTPS اجباری در تولید
+- ✅ CSRF Protection
+- ✅ XSS Protection
+- ✅ SQL Injection Protection
+- ✅ Rate Limiting
+- ✅ Secure Headers
+
+## 📊 تست
+
+برای اجرای تست‌های کامل:
+
 ```bash
-python manage.py createsuperuser
+python final_complete_test.py
 ```
 
-6. اجرای سرور:
-```bash
-python manage.py runserver
-```
+## 🤝 مشارکت
 
-7. اجرای Celery (در ترمینال جداگانه):
-```bash
-celery -A chidmano worker --loglevel=info
-```
+1. Fork کنید
+2. Branch جدید بسازید (`git checkout -b feature/amazing-feature`)
+3. Commit کنید (`git commit -m 'Add amazing feature'`)
+4. Push کنید (`git push origin feature/amazing-feature`)
+5. Pull Request بسازید
 
-8. اجرای Redis (در ترمینال جداگانه):
-```bash
-redis-server
-```
+## 📄 لایسنس
 
-## استفاده
+این پروژه تحت لایسنس MIT منتشر شده است.
 
-1. وارد پنل مدیریت شوید
-2. یک تحلیل جدید ایجاد کنید
-3. اطلاعات فروشگاه را وارد کنید
-4. منتظر نتیجه تحلیل بمانید
+## 📞 پشتیبانی
 
-## توسعه
+برای سوالات و مشکلات:
+- 📧 Email: support@chidman.com
+- 💬 Telegram: @chidman_support
+- 🌐 Website: https://chidman.com
 
-برای توسعه پروژه:
+## 🎯 ویژگی‌های آینده
 
-1. از محیط مجازی استفاده کنید
-2. از فرمت‌دهنده کد استفاده کنید
-3. تست‌ها را اجرا کنید
-4. مستندات را به‌روز کنید
+- [ ] پشتیبانی از چندین زبان
+- [ ] API کامل REST
+- [ ] سیستم پرداخت
+- [ ] گزارش‌های پیشرفته
+- [ ] موبایل اپ
 
-## مجوز
+---
 
-این پروژه تحت مجوز MIT منتشر شده است. 
+**ساخته شده با ❤️ در ایران** 

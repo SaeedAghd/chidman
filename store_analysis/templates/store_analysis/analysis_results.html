@@ -1,0 +1,1196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}نتایج تحلیل - {{ analysis.store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-primary text-white py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                نتایج تحلیل فروشگاه
+                            </h3>
+                            <p class="mb-0 mt-2">{{ analysis.store_name }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge bg-light text-dark fs-6">
+                                {{ analysis.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- پیش‌تحلیل -->
+            {% if analysis.has_preliminary %}
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        پیش‌تحلیل اولیه
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="preliminary-analysis">
+                                {{ analysis.preliminary_analysis|linebreaks }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-clock text-primary fa-2x mb-2"></i>
+                                    <h6>زمان تحلیل کامل</h6>
+                                    <p class="text-muted">24-48 ساعت آینده</p>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-primary" style="width: 25%"></div>
+                                    </div>
+                                    <small class="text-muted">25% تکمیل شده</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- جزئیات تحلیل -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-info text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        جزئیات تحلیل
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>نام فروشگاه:</strong></td>
+                                    <td>{{ analysis.store_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>نوع تحلیل:</strong></td>
+                                    <td>{{ analysis.get_analysis_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>وضعیت:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if analysis.status == 'completed' %}success{% elif analysis.status == 'processing' %}warning{% else %}secondary{% endif %}">
+                                            {{ analysis.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>اولویت:</strong></td>
+                                    <td>{{ analysis.get_priority_display }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>تاریخ ایجاد:</strong></td>
+                                    <td>{{ analysis.created_at|date:"Y/m/d H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>زمان تخمینی:</strong></td>
+                                    <td>{{ analysis.estimated_duration }} دقیقه</td>
+                                </tr>
+                                {% if analysis.actual_duration %}
+                                <tr>
+                                    <td><strong>زمان واقعی:</strong></td>
+                                    <td>{{ analysis.actual_duration }} دقیقه</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>پیشرفت:</strong></td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-primary" style="width: {{ analysis.get_progress|default:0 }}%">
+                                                {{ analysis.get_progress|default:0 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- گزارش رسمی مدیریتی -->
+            {% if show_management_report %}
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header ai-results-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>
+                        گزارش رسمی مدیریتی
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- مقدمه -->
+                    <div class="management-report-section mb-4">
+                        <h4 class="text-primary mb-3">
+                            <i class="fas fa-user-tie me-2"></i>
+                            مقدمه
+                        </h4>
+                        <div class="bg-light p-4 rounded">
+                            <p class="mb-0">
+                                جناب {{ analysis.analysis_data.manager_name|default:"آقای مدیر محترم" }}،<br><br>
+                                با سلام و احترام،<br><br>
+                                این گزارش حاصل تحلیل جامع و تخصصی فروشگاه <strong>"{{ analysis.store_name }}"</strong> است که توسط سیستم هوشمند تحلیل فروشگاهی و با استفاده از آخرین تکنیک‌های علم بازاریابی و چیدمان فروشگاهی تهیه شده است. هدف از این تحلیل، شناسایی نقاط قوت، ضعف، فرصت‌ها و تهدیدها و ارائه راهکارهای عملی برای بهبود عملکرد و افزایش سودآوری فروشگاه شما می‌باشد.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- نتایج کلیدی -->
+                    <div class="management-report-section mb-4">
+                        <h4 class="text-success mb-3">
+                            <i class="fas fa-chart-line me-2"></i>
+                            نتایج کلیدی
+                        </h4>
+                        
+                        <!-- وضعیت فعلی -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-store me-2"></i>وضعیت فعلی فروشگاه</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0">
+                                            فروشگاه شما در حال حاضر با <strong>{{ analysis.analysis_data.customer_traffic|default:"نامشخص" }} مشتری روزانه</strong> و <strong>نرخ تبدیل {{ analysis.analysis_data.conversion_rate|default:"نامشخص" }} درصد</strong>، در فضایی به مساحت <strong>{{ analysis.analysis_data.store_size|default:"نامشخص" }} متر مربع</strong> فعالیت می‌کند.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-trending-up me-2"></i>پیش‌بینی بهبود عملکرد</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0">
+                                            با اجرای برنامه‌های بهینه‌سازی پیشنهادی، انتظار می‌رود بهبود قابل توجهی در عملکرد فروشگاه حاصل شود.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- امتیازات کلی -->
+                        <div class="score-grid mb-4">
+                            <div class="text-center">
+                                <div class="score-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 1.5rem; font-weight: bold;">
+                                    {{ scores.overall_score }}
+                                </div>
+                                <p class="mt-2 mb-0"><strong>امتیاز کلی</strong></p>
+                            </div>
+                            <div class="text-center">
+                                <div class="score-circle bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 1.5rem; font-weight: bold;">
+                                    {{ scores.layout_score }}
+                                </div>
+                                <p class="mt-2 mb-0"><strong>امتیاز چیدمان</strong></p>
+                            </div>
+                            <div class="text-center">
+                                <div class="score-circle bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 1.5rem; font-weight: bold;">
+                                    {{ scores.traffic_score }}
+                                </div>
+                                <p class="mt-2 mb-0"><strong>امتیاز ترافیک</strong></p>
+                            </div>
+                            <div class="text-center">
+                                <div class="score-circle bg-warning text-dark rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 1.5rem; font-weight: bold;">
+                                    {{ scores.design_score }}
+                                </div>
+                                <p class="mt-2 mb-0"><strong>امتیاز طراحی</strong></p>
+                            </div>
+                            <div class="text-center">
+                                <div class="score-circle bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 1.5rem; font-weight: bold;">
+                                    {{ scores.sales_score }}
+                                </div>
+                                <p class="mt-2 mb-0"><strong>امتیاز فروش</strong></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تحلیل SWOT -->
+                    <div class="management-report-section mb-4">
+                        <h4 class="text-warning mb-3">
+                            <i class="fas fa-balance-scale me-2"></i>
+                            تحلیل جامع وضعیت فروشگاه (SWOT)
+                        </h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-success text-white">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-check-circle me-2"></i>نقاط قوت</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if analysis.results.detailed_analysis.strengths %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for strength in analysis.results.detailed_analysis.strengths %}
+                                                    <li><i class="fas fa-check me-2"></i>{{ strength }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="mb-0">{{ result.layout_analysis|linebreaks }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-danger text-white">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-times-circle me-2"></i>نقاط ضعف</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if analysis.results.detailed_analysis.weaknesses %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for weakness in analysis.results.detailed_analysis.weaknesses %}
+                                                    <li><i class="fas fa-times me-2"></i>{{ weakness }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="mb-0">{{ result.traffic_analysis|linebreaks }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-info text-white">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>فرصت‌ها</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if analysis.results.detailed_analysis.opportunities %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for opportunity in analysis.results.detailed_analysis.opportunities %}
+                                                    <li><i class="fas fa-lightbulb me-2"></i>{{ opportunity }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="mb-0">{{ result.design_analysis|linebreaks }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-warning text-dark">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>تهدیدها</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if analysis.results.detailed_analysis.threats %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for threat in analysis.results.detailed_analysis.threats %}
+                                                    <li><i class="fas fa-exclamation-triangle me-2"></i>{{ threat }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="mb-0">{{ result.sales_analysis|linebreaks }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- پیشنهادات عملی -->
+                    <div class="management-report-section mb-4">
+                        <h4 class="text-info mb-3">
+                            <i class="fas fa-tasks me-2"></i>
+                            پیشنهادات عملی
+                        </h4>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-0 bg-warning text-dark">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>اقدامات فوری (1-2 ماه)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if analysis.results.recommendations.immediate %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for rec in analysis.results.recommendations.immediate %}
+                                                    <li><i class="fas fa-bolt me-2"></i>{{ rec }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="mb-0">این موارد را می‌توان در کوتاه‌ترین زمان و با کمترین هزینه پیاده‌سازی کرد.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-0 bg-info text-white">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>اقدامات کوتاه‌مدت (3-6 ماه)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if analysis.results.recommendations.short_term %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for rec in analysis.results.recommendations.short_term %}
+                                                    <li><i class="fas fa-calendar-alt me-2"></i>{{ rec }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="mb-0">این برنامه‌ها نیاز به برنامه‌ریزی و سرمایه‌گذاری متوسط دارند.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-0 bg-primary text-white">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-rocket me-2"></i>اقدامات بلندمدت (6-12 ماه)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if analysis.results.recommendations.long_term %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for rec in analysis.results.recommendations.long_term %}
+                                                    <li><i class="fas fa-rocket me-2"></i>{{ rec }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="mb-0">این برنامه‌ها نیاز به سرمایه‌گذاری قابل توجه و برنامه‌ریزی دقیق دارند.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- راهنمایی‌های عملی چیدمان -->
+                    {% if analysis.results.practical_guide %}
+                    <div class="management-report-section mb-4">
+                        <h4 class="text-success mb-3">
+                            <i class="fas fa-tools me-2"></i>
+                            راهنمایی‌های عملی چیدمان فروشگاه
+                        </h4>
+                        
+                        <div class="row">
+                            <!-- راهنمای ویترین -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-store me-2"></i>راهنمای طراحی ویترین</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% with window=analysis.results.practical_guide.window_display %}
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <strong>ارتفاع:</strong><br>
+                                                    <span class="text-primary">{{ window.height }}</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>نورپردازی:</strong><br>
+                                                    <span class="text-info">{{ window.lighting }}</span>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <strong>قانون رنگی:</strong> {{ window.color_rule }}<br>
+                                            <strong>تعداد محصولات:</strong> {{ window.product_count }}<br>
+                                            <strong>تناوب تغییر:</strong> {{ window.rotation_frequency }}
+                                            <hr>
+                                            <strong>نکات مهم:</strong>
+                                            <ul class="list-unstyled mb-0">
+                                                {% for tip in window.tips %}
+                                                    <li><i class="fas fa-check text-success me-2"></i>{{ tip }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- راهنمای قفسه‌ها -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-shelf me-2"></i>راهنمای چیدمان قفسه‌ها</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% with shelf=analysis.results.practical_guide.shelf_layout %}
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <strong>عرض راهرو:</strong><br>
+                                                    <span class="text-primary">{{ shelf.aisle_width }}</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>فاصله محصولات:</strong><br>
+                                                    <span class="text-info">{{ shelf.spacing }}</span>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <strong>ارتفاع قفسه‌ها:</strong><br>
+                                            <small>
+                                                <strong>پایین:</strong> {{ shelf.shelf_heights.bottom }}<br>
+                                                <strong>وسط:</strong> {{ shelf.shelf_heights.middle }}<br>
+                                                <strong>بالا:</strong> {{ shelf.shelf_heights.top }}
+                                            </small>
+                                            <hr>
+                                            <strong>نکات مهم:</strong>
+                                            <ul class="list-unstyled mb-0">
+                                                {% for tip in shelf.tips %}
+                                                    <li><i class="fas fa-check text-success me-2"></i>{{ tip }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- راهنمای مسیرها -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-route me-2"></i>راهنمای طراحی مسیر</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% with path=analysis.results.practical_guide.path_design %}
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <strong>مسیر اصلی:</strong><br>
+                                                    <span class="text-primary">{{ path.main_path.width }}</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>مسیر فرعی:</strong><br>
+                                                    <span class="text-info">{{ path.secondary_paths.width }}</span>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <strong>نقاط توقف:</strong> {{ path.stopping_points.size }}<br>
+                                            <strong>هدف:</strong> {{ path.stopping_points.purpose }}
+                                            <hr>
+                                            <strong>نکات مهم:</strong>
+                                            <ul class="list-unstyled mb-0">
+                                                {% for tip in path.tips %}
+                                                    <li><i class="fas fa-check text-success me-2"></i>{{ tip }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- راهنمای نورپردازی -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>راهنمای نورپردازی</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% with light=analysis.results.practical_guide.lighting %}
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <strong>نور عمومی:</strong><br>
+                                                    <span class="text-primary">{{ light.general_lighting.intensity }}</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>دمای رنگ:</strong><br>
+                                                    <span class="text-info">{{ light.general_lighting.color_temperature }}</span>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <strong>نور تأکیدی:</strong> {{ light.accent_lighting.intensity }}<br>
+                                            <strong>هدف:</strong> {{ light.accent_lighting.purpose }}
+                                            <hr>
+                                            <strong>نکات مهم:</strong>
+                                            <ul class="list-unstyled mb-0">
+                                                {% for tip in light.tips %}
+                                                    <li><i class="fas fa-check text-success me-2"></i>{{ tip }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- راهنمای رنگ‌بندی -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-danger text-white">
+                                        <h6 class="mb-0"><i class="fas fa-palette me-2"></i>راهنمای ترکیب رنگی</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% with color=analysis.results.practical_guide.color_scheme %}
+                                            <strong>طرح رنگی:</strong> {{ color.scheme }}<br>
+                                            <strong>رنگ‌های اصلی:</strong> {{ color.primary_colors|join:", " }}<br>
+                                            <strong>قانون:</strong> {{ color.rule }}
+                                            <hr>
+                                            <strong>نحوه استفاده:</strong>
+                                            <ul class="list-unstyled mb-0">
+                                                <li><i class="fas fa-circle text-primary me-2"></i>{{ color.usage.60 }}</li>
+                                                <li><i class="fas fa-circle text-info me-2"></i>{{ color.usage.30 }}</li>
+                                                <li><i class="fas fa-circle text-warning me-2"></i>{{ color.usage.10 }}</li>
+                                            </ul>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- راهنمای قرارگیری محصولات -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-box me-2"></i>راهنمای قرارگیری محصولات</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% with product=analysis.results.practical_guide.product_placement %}
+                                            <strong>مناطق پرترافیک:</strong>
+                                            <ul class="list-unstyled mb-2">
+                                                {% for area in product.high_traffic_areas %}
+                                                    <li><i class="fas fa-map-marker-alt text-danger me-2"></i>{{ area }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                            <hr>
+                                            <strong>ترتیب محصولات:</strong><br>
+                                            <small>
+                                                <strong>سطح چشم:</strong> {{ product.product_arrangement.eye_level }}<br>
+                                                <strong>قفسه بالا:</strong> {{ product.product_arrangement.top_shelf }}<br>
+                                                <strong>قفسه پایین:</strong> {{ product.product_arrangement.bottom_shelf }}
+                                            </small>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- جمع‌بندی -->
+                    <div class="management-report-section">
+                        <h4 class="text-primary mb-3">
+                            <i class="fas fa-clipboard-check me-2"></i>
+                            جمع‌بندی و توصیه نهایی
+                        </h4>
+                        
+                        <div class="card border-0 bg-primary text-white">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-star me-2"></i>تحلیل کلی و توصیه‌ها</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if analysis.results.executive_summary %}
+                                    <p class="mb-0">{{ analysis.results.executive_summary|linebreaks }}</p>
+                                {% else %}
+                                    <p class="mb-0">{{ result.overall_analysis|linebreaks }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- پیام برای کاربرانی که هنوز دسترسی به گزارش مدیریتی ندارند -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        گزارش مدیریتی در حال آماده‌سازی
+                    </h5>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="row">
+                        <div class="col-md-8 mx-auto">
+                            <i class="fas fa-cogs text-warning fa-3x mb-3"></i>
+                            <h4 class="text-warning mb-3">گزارش مدیریتی در حال آماده‌سازی است</h4>
+                            <p class="text-muted mb-4">
+                                تحلیل‌های پیشرفته هوش مصنوعی در حال انجام است. گزارش مدیریتی کامل و حرفه‌ای شما در 24-48 ساعت آینده آماده خواهد شد.
+                            </p>
+                            <div class="progress mb-3" style="height: 25px;">
+                                <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width: 60%">
+                                    60% تکمیل شده
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                ادمین‌ها می‌توانند گزارش کامل را مشاهده کنند
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ربات هوش مصنوعی -->
+            {% if show_management_report %}
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-gradient-primary text-white py-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>
+                        ربات هوش مصنوعی مشاور فروشگاه
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="ai-chat-container">
+                                <div class="ai-message">
+                                    <div class="ai-avatar">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <div class="ai-content">
+                                        <h6>ربات مشاور چیدمان</h6>
+                                        <p>سلام {{ analysis.analysis_data.manager_name|default:"مدیر محترم" }}! من ربات هوش مصنوعی مشاور فروشگاه شما هستم. می‌توانم به سوالات شما در مورد تحلیل فروشگاه <strong>"{{ analysis.store_name }}"</strong> پاسخ دهم و راهنمایی‌های تخصصی ارائه کنم.</p>
+                                        <div class="ai-suggestions">
+                                            <strong>سوالات پیشنهادی:</strong>
+                                            <ul class="list-unstyled mt-2">
+                                                <li><i class="fas fa-lightbulb text-warning me-2"></i>چگونه می‌توانم نرخ تبدیل فروشگاه را بهبود دهم؟</li>
+                                                <li><i class="fas fa-lightbulb text-warning me-2"></i>بهترین راه‌های بهینه‌سازی چیدمان قفسه‌ها چیست؟</li>
+                                                <li><i class="fas fa-lightbulb text-warning me-2"></i>نورپردازی مناسب برای فروشگاه من چگونه باید باشد؟</li>
+                                                <li><i class="fas fa-lightbulb text-warning me-2"></i>راه‌های افزایش ترافیک مشتریان چیست؟</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="ai-chat-actions">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-comments text-primary fa-3x mb-3"></i>
+                                        <h6 class="text-primary mb-3">شروع گفتگو با ربات</h6>
+                                        <p class="text-muted mb-3">سوالات خود را در مورد تحلیل فروشگاه بپرسید و راهنمایی‌های تخصصی دریافت کنید.</p>
+                                        <button class="btn btn-primary btn-lg w-100" onclick="startAIChat()">
+                                            <i class="fas fa-play me-2"></i>
+                                            شروع گفتگو
+                                        </button>
+                                        <div class="mt-3">
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                ربات بر اساس تحلیل فروشگاه شما پاسخ می‌دهد
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- پیام خطا (اگر موجود باشد) -->
+            {% if analysis.error_message %}
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        پیام خطا
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-danger">
+                        {{ analysis.error_message }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- دکمه‌های عملیات -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4 text-center">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'store_analysis:analysis_list' %}" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-list me-2"></i>
+                                لیست تحلیل‌ها
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                تحلیل جدید
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            {% if show_management_report %}
+                            <div class="dropdown">
+                                <button class="btn btn-warning btn-lg w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-certificate me-2"></i>
+                                    دانلود سرتیفیکت حرفه‌ای
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}?type=pdf">
+                                        <i class="fas fa-file-text text-primary me-2"></i>
+                                        گزارش متنی حرفه‌ای
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}?type=html">
+                                        <i class="fas fa-file-code text-success me-2"></i>
+                                        سرتیفیکت HTML با هولوگرام
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}?type=image">
+                                        <i class="fas fa-image text-primary me-2"></i>
+                                        دانلود تصویر PNG
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}?type=text">
+                                        <i class="fas fa-file-text text-info me-2"></i>
+                                        دانلود فایل متنی
+                                    </a></li>
+                                </ul>
+                            </div>
+                            {% else %}
+                            <button class="btn btn-secondary btn-lg w-100" disabled>
+                                <i class="fas fa-clock me-2"></i>
+                                در انتظار تکمیل تحلیل
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            {% if analysis.has_preliminary or analysis.status == 'completed' %}
+                            <a href="{% url 'store_analysis:advanced_ml_analysis' pk=analysis.pk %}" class="btn btn-info btn-lg w-100">
+                                <i class="fas fa-brain me-2"></i>
+                                تحلیل پیشرفته ML
+                            </a>
+                            {% else %}
+                            <button class="btn btn-secondary btn-lg w-100" disabled>
+                                <i class="fas fa-brain me-2"></i>
+                                تحلیل پیشرفته
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'store_analysis:index' %}" class="btn btn-outline-secondary btn-lg w-100">
+                                <i class="fas fa-home me-2"></i>
+                                صفحه اصلی
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast برای نمایش پیام‌ها -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast show" role="alert">
+                <div class="toast-header">
+                    <strong class="me-auto">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle text-success"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle text-danger"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle text-info"></i>
+                        {% endif %}
+                        {{ message.tags|title }}
+                    </strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.preliminary-analysis {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #2c3e50;
+}
+
+.analysis-results {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.score-circle {
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.score-circle:hover {
+    transform: scale(1.05);
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.analysis-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.ai-results-header {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.analysis-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.analysis-card .card-header {
+    border: none;
+    padding: 15px 20px;
+}
+
+.analysis-card .card-body {
+    padding: 20px;
+    line-height: 1.7;
+}
+
+.management-report-section {
+    margin-bottom: 30px;
+}
+
+.management-report-section h4 {
+    border-bottom: 3px solid;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.management-report-section h4.text-primary {
+    border-color: #007bff;
+}
+
+.management-report-section h4.text-success {
+    border-color: #28a745;
+}
+
+.management-report-section h4.text-warning {
+    border-color: #ffc107;
+}
+
+.management-report-section h4.text-info {
+    border-color: #17a2b8;
+}
+
+.management-report-section .bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef;
+}
+
+.management-report-section .card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.management-report-section .card-header {
+    border: none;
+    font-weight: 600;
+}
+
+ .management-report-section .card-body {
+     line-height: 1.8;
+     font-size: 1rem;
+ }
+
+ /* ربات هوش مصنوعی */
+ .ai-chat-container {
+     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+     border-radius: 15px;
+     padding: 20px;
+     color: white;
+ }
+
+ .ai-message {
+     display: flex;
+     align-items: flex-start;
+     gap: 15px;
+ }
+
+ .ai-avatar {
+     width: 50px;
+     height: 50px;
+     background: rgba(255, 255, 255, 0.2);
+     border-radius: 50%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-size: 24px;
+     flex-shrink: 0;
+ }
+
+ .ai-content h6 {
+     margin-bottom: 10px;
+     font-weight: bold;
+ }
+
+ .ai-suggestions {
+     margin-top: 20px;
+     padding: 15px;
+     background: rgba(255, 255, 255, 0.1);
+     border-radius: 10px;
+ }
+
+ .ai-suggestions ul li {
+     margin-bottom: 8px;
+     font-size: 0.9rem;
+ }
+
+ .bg-gradient-primary {
+     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+ }
+
+ /* انیمیشن‌های ربات */
+ .ai-chat-container {
+     animation: slideInUp 0.5s ease-out;
+ }
+
+ @keyframes slideInUp {
+     from {
+         opacity: 0;
+         transform: translateY(30px);
+     }
+     to {
+         opacity: 1;
+         transform: translateY(0);
+     }
+ }
+
+ .ai-avatar {
+     animation: pulse 2s infinite;
+ }
+
+ @keyframes pulse {
+     0% {
+         transform: scale(1);
+     }
+     50% {
+         transform: scale(1.05);
+     }
+     100% {
+         transform: scale(1);
+     }
+ }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-hide toasts after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var toasts = document.querySelectorAll('.toast');
+        toasts.forEach(function(toast) {
+            var bsToast = new bootstrap.Toast(toast);
+            bsToast.hide();
+        });
+    }, 5000);
+});
+
+// ربات هوش مصنوعی
+function startAIChat() {
+    console.log('startAIChat function called');
+    
+    // اطلاعات تحلیل برای ربات
+    var analysisData = {
+        store_name: '{{ analysis.store_name|escapejs }}',
+        manager_name: '{{ analysis.analysis_data.manager_name|default:"مدیر محترم"|escapejs }}',
+        store_type: '{{ analysis.get_store_type_display|escapejs }}',
+        store_size: '{{ analysis.store_size|escapejs }}',
+        conversion_rate: '{{ analysis.analysis_data.conversion_rate|default:"نامشخص"|escapejs }}',
+        customer_traffic: '{{ analysis.analysis_data.customer_traffic|default:"نامشخص"|escapejs }}',
+        analysis_id: {{ analysis.id }}
+    };
+    
+    console.log('Analysis data prepared:', analysisData);
+    
+    // بررسی وجود مودال
+    var modalElement = document.getElementById('aiChatModal');
+    console.log('Modal element found:', modalElement);
+    
+    if (!modalElement) {
+        console.error('Modal element not found!');
+        alert('خطا: المان مودال یافت نشد');
+        return;
+    }
+    
+    // بررسی وجود Bootstrap
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap not loaded!');
+        alert('خطا: Bootstrap بارگذاری نشده است');
+        return;
+    }
+    
+    // نمایش مودال چت
+    try {
+        var chatModal = new bootstrap.Modal(modalElement);
+        console.log('Bootstrap Modal created:', chatModal);
+        chatModal.show();
+        console.log('Modal show() called');
+    } catch (error) {
+        console.error('Error creating/showing modal:', error);
+        alert('خطا در نمایش مودال: ' + error.message);
+    }
+    
+    // ارسال اطلاعات تحلیل به ربات
+    console.log('اطلاعات تحلیل برای ربات: ' + JSON.stringify(analysisData));
+    
+    // پیام خوشامدگویی
+    setTimeout(function() {
+        addBotMessage('سلام ' + analysisData.manager_name + '! من ربات مشاور چیدمان فروشگاه شما هستم. می‌توانم به سوالات شما در مورد فروشگاه "' + analysisData.store_name + '" پاسخ دهم. چه سوالی دارید؟');
+    }, 1000);
+}
+
+function addBotMessage(message) {
+    var chatMessages = document.getElementById('chatMessages');
+    var messageDiv = document.createElement('div');
+    messageDiv.className = 'bot-message mb-3';
+    messageDiv.innerHTML = 
+        '<div class="d-flex align-items-start">' +
+            '<div class="bot-avatar me-3">' +
+                '<i class="fas fa-robot"></i>' +
+            '</div>' +
+            '<div class="bot-content">' +
+                '<div class="bg-primary text-white p-3 rounded">' +
+                    message +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendUserMessage() {
+    var messageInput = document.getElementById('userMessage');
+    var message = messageInput.value.trim();
+    
+    if (message) {
+        // نمایش پیام کاربر
+        var chatMessages = document.getElementById('chatMessages');
+        var messageDiv = document.createElement('div');
+        messageDiv.className = 'user-message mb-3';
+        messageDiv.innerHTML = 
+            '<div class="d-flex align-items-start justify-content-end">' +
+                '<div class="user-content">' +
+                    '<div class="bg-light p-3 rounded">' +
+                        message +
+                    '</div>' +
+                '</div>' +
+                '<div class="user-avatar ms-3">' +
+                    '<i class="fas fa-user"></i>' +
+                '</div>' +
+            '</div>';
+        chatMessages.appendChild(messageDiv);
+        
+        // پاک کردن ورودی
+        messageInput.value = '';
+        
+        // شبیه‌سازی پاسخ ربات
+        setTimeout(function() {
+            var botResponse = generateBotResponse(message);
+            addBotMessage(botResponse);
+        }, 1500);
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+function generateBotResponse(userMessage) {
+    // پاسخ‌های هوشمند بر اساس سوال کاربر
+    var responses = {
+        'نرخ تبدیل': 'برای بهبود نرخ تبدیل فروشگاه شما، پیشنهاد می‌کنم:\n1. بهینه‌سازی چیدمان قفسه‌ها\n2. بهبود نورپردازی\n3. نصب تابلوهای راهنما\n4. آموزش کارکنان فروش',
+        'قفسه': 'بهترین راه‌های بهینه‌سازی چیدمان قفسه‌ها:\n1. محصولات پرفروش در سطح چشم (1.5 متر)\n2. فاصله مناسب بین محصولات\n3. استفاده از تابلوهای راهنما\n4. اجتناب از بن‌بست',
+        'نور': 'نورپردازی مناسب برای فروشگاه شما:\n1. شدت نور: 300-500 لوکس\n2. دمای رنگ: 4000K (خنثی)\n3. نورپردازی یکنواخت\n4. استفاده از نور طبیعی',
+        'ترافیک': 'راه‌های افزایش ترافیک مشتریان:\n1. بهبود ویترین فروشگاه\n2. تبلیغات محلی\n3. برنامه‌های وفاداری\n4. همکاری با کسب‌وکارهای مجاور',
+        'فروش': 'برای افزایش فروش:\n1. بهینه‌سازی قیمت‌گذاری\n2. بهبود تجربه مشتری\n3. آموزش کارکنان\n4. استفاده از تکنیک‌های فروش'
+    };
+    
+    // جستجوی کلیدواژه در پیام کاربر
+    for (var keyword in responses) {
+        if (userMessage.indexOf(keyword) !== -1) {
+            return responses[keyword];
+        }
+    }
+    
+    // پاسخ پیش‌فرض
+    return 'سوال خوبی پرسیدید! برای پاسخ دقیق‌تر، لطفاً سوال خود را واضح‌تر مطرح کنید. می‌توانم در مورد نرخ تبدیل، چیدمان قفسه‌ها، نورپردازی، ترافیک مشتریان و افزایش فروش راهنمایی کنم.';
+ }
+ 
+ // مودال چت ربات هوش مصنوعی
+ document.addEventListener('DOMContentLoaded', function() {
+     // اضافه کردن مودال به صفحه
+     var modalHTML = `
+         <div class="modal fade" id="aiChatModal" tabindex="-1" aria-labelledby="aiChatModalLabel" aria-hidden="true">
+             <div class="modal-dialog modal-lg">
+                 <div class="modal-content">
+                     <div class="modal-header bg-primary text-white">
+                         <h5 class="modal-title" id="aiChatModalLabel">
+                             <i class="fas fa-robot me-2"></i>
+                             ربات مشاور چیدمان فروشگاه
+                         </h5>
+                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                     </div>
+                     <div class="modal-body">
+                         <div class="chat-container">
+                             <div id="chatMessages" class="chat-messages" style="height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                                 <!-- پیام‌های چت اینجا نمایش داده می‌شوند -->
+                             </div>
+                             <div class="chat-input">
+                                 <div class="input-group">
+                                     <input type="text" id="userMessage" class="form-control" placeholder="سوال خود را بنویسید..." onkeypress="if(event.keyCode==13) sendUserMessage()">
+                                     <button class="btn btn-primary" type="button" onclick="sendUserMessage()">
+                                         <i class="fas fa-paper-plane"></i>
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                     <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     `;
+     
+     // اضافه کردن مودال به body
+     document.body.insertAdjacentHTML('beforeend', modalHTML);
+     console.log('Modal HTML added to page');
+ });
+ </script>
+ {% endblock %}

@@ -1,0 +1,860 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیل تفصیلی هوشمند - فروشگاه مدرن تهران</title>
+    
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    
+    <!-- Vazirmatn Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Font Awesome (jsdelivr, سازگار با CSP) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    
+
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #198754;
+            --accent-color: #fd7e14;
+            --text-color: #212529;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.8;
+        }
+        
+        .navbar {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin: 0 0.25rem;
+        }
+        
+        .nav-link:hover {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white !important;
+        }
+        
+        .footer {
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+        
+        .footer a {
+            color: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .modal-content {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 1rem;
+        }
+        
+        .modal-header {
+            background-color: var(--light-bg);
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 1rem 1rem 0 0;
+        }
+        
+        .modal-footer {
+            background-color: var(--light-bg);
+            border-top: 1px solid #dee2e6;
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
+            
+            .nav-link {
+                padding: 0.75rem 1rem; /* افزایش touch target */
+                margin: 0.25rem 0;
+                min-height: 44px; /* حداقل اندازه برای touch */
+                display: flex;
+                align-items: center;
+            }
+
+            /* بهبود دکمه‌ها در موبایل */
+            .btn {
+                min-height: 44px;
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            /* بهبود فرم‌ها در موبایل */
+            .form-control {
+                font-size: 16px; /* جلوگیری از zoom در iOS */
+                padding: 0.875rem 1rem;
+            }
+
+            /* بهبود کارت‌ها در موبایل */
+            .card {
+                margin-bottom: 1rem;
+                border-radius: 0.75rem;
+            }
+
+            /* بهبود modal در موبایل */
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+        }
+
+        /* بهبود touch targets برای تمام عناصر تعاملی */
+        @media (max-width: 1024px) {
+            button, 
+            .btn, 
+            .nav-link, 
+            .form-check-label,
+            .dropdown-item {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* بهبود spacing در موبایل */
+            .container {
+                padding: 0 1rem;
+            }
+
+            /* بهبود typography در موبایل */
+            h1 { font-size: 1.75rem; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.25rem; }
+        }
+    </style>
+    
+    
+<style>
+    .ai-analysis-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .ai-analysis-card {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin: 0 auto;
+        max-width: 1400px;
+    }
+
+    .ai-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .ai-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .ai-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .ai-content {
+        padding: 3rem;
+    }
+
+    .analysis-section {
+        margin-bottom: 3rem;
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 1rem;
+        border-left: 5px solid #667eea;
+    }
+
+    .analysis-section h2 {
+        color: #667eea;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 0.5rem;
+    }
+
+    .swot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .swot-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .swot-item h3 {
+        color: #667eea;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+
+    .swot-item ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .swot-item li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+        position: relative;
+        padding-right: 1.5rem;
+    }
+
+    .swot-item li:before {
+        content: '•';
+        color: #667eea;
+        font-weight: bold;
+        position: absolute;
+        right: 0;
+    }
+
+    .strengths {
+        border-left: 4px solid #28a745;
+    }
+
+    .weaknesses {
+        border-left: 4px solid #dc3545;
+    }
+
+    .opportunities {
+        border-left: 4px solid #ffc107;
+    }
+
+    .threats {
+        border-left: 4px solid #6c757d;
+    }
+
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .recommendation-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        border-top: 4px solid #667eea;
+    }
+
+    .recommendation-card h3 {
+        color: #667eea;
+        margin-bottom: 1rem;
+        font-size: 1.4rem;
+    }
+
+    .timeline {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .timeline-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.8rem;
+        border-left: 4px solid #667eea;
+    }
+
+    .timeline-phase {
+        background: #667eea;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: bold;
+        margin-left: 1rem;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .financial-projections {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .financial-projections h3 {
+        margin-bottom: 1.5rem;
+        font-size: 1.6rem;
+    }
+
+    .projection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .projection-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 0.8rem;
+    }
+
+    .projection-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .implementation-guide {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+
+    .phase-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #667eea;
+    }
+
+    .phase-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .phase-title {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .phase-meta {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .meta-badge {
+        background: #667eea;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .task-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .task-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+        position: relative;
+        padding-right: 1.5rem;
+    }
+
+    .task-list li:before {
+        content: '✓';
+        color: #28a745;
+        font-weight: bold;
+        position: absolute;
+        right: 0;
+    }
+
+    .ai-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.9rem;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .ai-content {
+            padding: 1.5rem;
+        }
+        
+        .swot-grid,
+        .recommendations-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .timeline-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .timeline-phase {
+            margin: 0.5rem 0;
+        }
+    }
+</style>
+
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-store me-2"></i>چیدمانو
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link " href="/">
+                            <i class="fas fa-home me-1"></i>خانه
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="/features/">
+                            <i class="fas fa-star me-1"></i>ویژگی‌ها
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="/education/">
+                            <i class="fas fa-book-open me-1"></i>آموزش چیدمان
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="/store-analysis/">
+                            <i class="fas fa-chart-line me-1"></i>درخواست تحلیل
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    
+                        <a href="/store-analysis/" class="btn btn-light me-2">
+                            <i class="fas fa-plus me-1"></i>تحلیل جدید
+                        </a>
+                        <a href="/accounts/logout/" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt me-1"></i>خروج
+                        </a>
+                    
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="py-4">
+        
+<div class="ai-analysis-container">
+    <div class="ai-analysis-card">
+        <div class="ai-header">
+            <div class="ai-badge">🤖 تحلیل هوشمند</div>
+            <h1>تحلیل تفصیلی هوشمند</h1>
+            <p>فروشگاه مدرن تهران - تولید شده با هوش مصنوعی</p>
+        </div>
+
+        <div class="ai-content">
+            <!-- خلاصه اجرایی -->
+            <div class="analysis-section">
+                <h2>📋 خلاصه اجرایی</h2>
+                <div class="executive-summary">
+                    <p>فروشگاه با 42.5% نرخ تبدیل و 250 مشتری روزانه، پتانسیل بهبود -5.0% در فروش را دارد.</p>
+                </div>
+            </div>
+
+            <!-- تحلیل SWOT -->
+            <div class="analysis-section">
+                <h2>🎯 تحلیل SWOT</h2>
+                <div class="swot-grid">
+                    <div class="swot-item strengths">
+                        <h3>✅ نقاط قوت</h3>
+                        <ul>
+                            
+                                <li>تعداد مناسب ورودی‌ها برای جریان مشتری</li>
+                            
+                                <li>ظرفیت صندوق‌های مناسب</li>
+                            
+                                <li>نرخ تبدیل قابل قبول</li>
+                            
+                                <li>تعداد مشتریان روزانه مناسب</li>
+                            
+                        </ul>
+                    </div>
+                    
+                    <div class="swot-item weaknesses">
+                        <h3>❌ نقاط ضعف</h3>
+                        <ul>
+                            
+                        </ul>
+                    </div>
+                    
+                    <div class="swot-item opportunities">
+                        <h3>🚀 فرصت‌ها</h3>
+                        <ul>
+                            
+                                <li>بهبود نرخ تبدیل با بهینه‌سازی چیدمان</li>
+                            
+                                <li>افزایش زمان حضور مشتری با طراحی بهتر</li>
+                            
+                                <li>بهینه‌سازی جریان مشتری</li>
+                            
+                                <li>پیاده‌سازی سیستم مدیریت صف هوشمند</li>
+                            
+                        </ul>
+                    </div>
+                    
+                    <div class="swot-item threats">
+                        <h3>⚠️ تهدیدها</h3>
+                        <ul>
+                            
+                                <li>رقابت با فروشگاه‌های مجاور</li>
+                            
+                                <li>تغییرات در رفتار خرید مشتریان</li>
+                            
+                                <li>افزایش هزینه‌های عملیاتی</li>
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- پیشنهادات -->
+            <div class="analysis-section">
+                <h2>💡 پیشنهادات عملی</h2>
+                <div class="recommendations-grid">
+                    <div class="recommendation-card">
+                        <h3>⚡ اقدامات فوری</h3>
+                        <ul class="task-list">
+                            
+                                <li>بهینه‌سازی چیدمان قفسه‌ها</li>
+                            
+                                <li>نصب تابلوهای راهنما</li>
+                            
+                                <li>بهبود نورپردازی</li>
+                            
+                        </ul>
+                    </div>
+                    
+                    <div class="recommendation-card">
+                        <h3>📅 اقدامات کوتاه مدت</h3>
+                        <ul class="task-list">
+                            
+                                <li>افزایش تعداد صندوق‌ها</li>
+                            
+                                <li>پیاده‌سازی سیستم مدیریت صف</li>
+                            
+                                <li>بهبود استراتژی قیمت‌گذاری</li>
+                            
+                        </ul>
+                    </div>
+                    
+                    <div class="recommendation-card">
+                        <h3>🎯 اقدامات بلند مدت</h3>
+                        <ul class="task-list">
+                            
+                                <li>بازسازی کامل فروشگاه</li>
+                            
+                                <li>پیاده‌سازی سیستم هوشمند</li>
+                            
+                                <li>گسترش فضای فروشگاه</li>
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- پیش‌بینی مالی -->
+            <div class="analysis-section">
+                <h2>📈 پیش‌بینی مالی</h2>
+                <div class="financial-projections">
+                    <h3>نتایج مورد انتظار</h3>
+                    <div class="projection-grid">
+                        <div class="projection-item">
+                            <div class="projection-value">-5.0%</div>
+                            <div>افزایش فروش</div>
+                        </div>
+                        <div class="projection-item">
+                            <div class="projection-value">15%</div>
+                            <div>کاهش هزینه</div>
+                        </div>
+                        <div class="projection-item">
+                            <div class="projection-value">6-12 ماه</div>
+                            <div>بازگشت سرمایه</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- راهنمای پیاده‌سازی -->
+            <div class="implementation-guide">
+                <h2>📋 راهنمای پیاده‌سازی</h2>
+                <p>این راهنما شامل مراحل عملی برای پیاده‌سازی پیشنهادات تحلیل است.</p>
+                
+                
+                <div class="phase-card">
+                    <div class="phase-header">
+                        <div class="phase-title">فاز اول: بهینه‌سازی سریع</div>
+                        <div class="phase-meta">
+                            <span class="meta-badge">1-2 ماه</span>
+                            <span class="meta-badge">کم</span>
+                            <span class="meta-badge">بالا</span>
+                        </div>
+                    </div>
+                    
+                    <h4>وظایف:</h4>
+                    <ul class="task-list">
+                        
+                            <li>بازطراحی چیدمان قفسه‌ها</li>
+                        
+                            <li>بهبود نورپردازی</li>
+                        
+                            <li>نصب تابلوهای راهنما</li>
+                        
+                            <li>بهینه‌سازی مسیرهای مشتری</li>
+                        
+                    </ul>
+                    
+                    <h4>نتایج مورد انتظار:</h4>
+                    <ul class="task-list">
+                        
+                            <li>افزایش 5-10% نرخ تبدیل</li>
+                        
+                            <li>کاهش زمان انتظار</li>
+                        
+                            <li>بهبود تجربه مشتری</li>
+                        
+                    </ul>
+                </div>
+                
+                <div class="phase-card">
+                    <div class="phase-header">
+                        <div class="phase-title">فاز دوم: بهبود سیستم‌ها</div>
+                        <div class="phase-meta">
+                            <span class="meta-badge">3-6 ماه</span>
+                            <span class="meta-badge">متوسط</span>
+                            <span class="meta-badge">متوسط</span>
+                        </div>
+                    </div>
+                    
+                    <h4>وظایف:</h4>
+                    <ul class="task-list">
+                        
+                            <li>افزایش تعداد صندوق‌ها</li>
+                        
+                            <li>پیاده‌سازی سیستم مدیریت صف</li>
+                        
+                            <li>بهبود استراتژی قیمت‌گذاری</li>
+                        
+                            <li>بهینه‌سازی موجودی</li>
+                        
+                    </ul>
+                    
+                    <h4>نتایج مورد انتظار:</h4>
+                    <ul class="task-list">
+                        
+                            <li>افزایش 15-20% فروش</li>
+                        
+                            <li>کاهش 20% هزینه‌های عملیاتی</li>
+                        
+                            <li>بهبود رضایت کارکنان</li>
+                        
+                    </ul>
+                </div>
+                
+                <div class="phase-card">
+                    <div class="phase-header">
+                        <div class="phase-title">فاز سوم: تحول دیجیتال</div>
+                        <div class="phase-meta">
+                            <span class="meta-badge">6-12 ماه</span>
+                            <span class="meta-badge">بالا</span>
+                            <span class="meta-badge">کم</span>
+                        </div>
+                    </div>
+                    
+                    <h4>وظایف:</h4>
+                    <ul class="task-list">
+                        
+                            <li>پیاده‌سازی سیستم هوشمند</li>
+                        
+                            <li>بازسازی کامل فروشگاه</li>
+                        
+                            <li>گسترش فضای فروشگاه</li>
+                        
+                            <li>پیاده‌سازی تجارت الکترونیک</li>
+                        
+                    </ul>
+                    
+                    <h4>نتایج مورد انتظار:</h4>
+                    <ul class="task-list">
+                        
+                            <li>افزایش 25-30% فروش</li>
+                        
+                            <li>کاهش 30% هزینه‌ها</li>
+                        
+                            <li>رقابت‌پذیری بالا</li>
+                        
+                    </ul>
+                </div>
+                
+            </div>
+
+            <!-- جدول زمانی -->
+            <div class="analysis-section">
+                <h2>⏰ جدول زمانی پیاده‌سازی</h2>
+                <div class="timeline">
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-phase">Phase_1</div>
+                        <div class="timeline-desc">بهینه‌سازی چیدمان و نورپردازی</div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-phase">Phase_2</div>
+                        <div class="timeline-desc">افزایش صندوق‌ها و سیستم مدیریت صف</div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-phase">Phase_3</div>
+                        <div class="timeline-desc">بازسازی کامل و پیاده‌سازی سیستم هوشمند</div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- دکمه‌های عملی -->
+            <div class="text-center mt-4">
+                <a href="/analysis/8/results/" class="btn btn-secondary btn-lg">
+                    ← بازگشت به نتایج
+                </a>
+                <a href="/analyses/8/download/" class="btn btn-primary btn-lg">
+                    📄 دانلود گزارش
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; ۱۴۰۳ چیدمانو. تمامی حقوق محفوظ است.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="#" class="me-3 fs-5"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="me-3 fs-5"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="me-3 fs-5"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery (jsdelivr, سازگار با CSP) -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    
+
+    
+
+    
+    
+</body>
+</html> 

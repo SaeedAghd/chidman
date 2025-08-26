@@ -1,0 +1,580 @@
+{% extends 'store_analysis/base.html' %}
+
+{% block title %}پنل حرفه‌ای - تحلیل فروشگاه{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --info-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+        --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.15);
+        --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .professional-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .dashboard-header {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-light);
+    }
+
+    .dashboard-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .dashboard-header p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .stat-card.primary::before { background: var(--primary-gradient); }
+    .stat-card.success::before { background: var(--success-gradient); }
+    .stat-card.warning::before { background: var(--warning-gradient); }
+    .stat-card.info::before { background: var(--info-gradient); }
+
+    .stat-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 2rem;
+        color: white;
+        background: var(--primary-gradient);
+        box-shadow: var(--shadow-light);
+    }
+
+    .stat-card.success .stat-icon { background: var(--success-gradient); }
+    .stat-card.warning .stat-icon { background: var(--warning-gradient); }
+    .stat-card.info .stat-icon { background: var(--info-gradient); }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+
+    .progress-ring svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .progress-ring circle {
+        fill: none;
+        stroke-width: 8;
+        stroke-linecap: round;
+    }
+
+    .progress-ring .bg {
+        stroke: rgba(255, 255, 255, 0.2);
+    }
+
+    .progress-ring .progress {
+        stroke: url(#gradient);
+        stroke-dasharray: 283;
+        stroke-dashoffset: 283;
+        transition: stroke-dashoffset 1s ease;
+    }
+
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .main-content {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-light);
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sidebar-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-light);
+    }
+
+    .section-title {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        font-size: 1.2rem;
+        opacity: 0.8;
+    }
+
+    .recent-analysis {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .recent-analysis:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateX(5px);
+    }
+
+    .analysis-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .analysis-meta {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .analysis-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-completed {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .status-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-processing {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+        border: 1px solid rgba(33, 150, 243, 0.3);
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .action-btn {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-medium);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn i {
+        font-size: 2rem;
+        opacity: 0.9;
+    }
+
+    .action-btn span {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .chart-container {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-light);
+        margin-bottom: 2rem;
+    }
+
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .insight-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-light);
+        transition: all 0.3s ease;
+    }
+
+    .insight-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .insight-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .insight-content {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="professional-dashboard">
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>
+                <i class="fas fa-chart-line me-3"></i>
+                پنل حرفه‌ای
+            </h1>
+            <p>مدیریت و تحلیل هوشمند فروشگاه‌ها</p>
+        </div>
+
+        <!-- Statistics Grid -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="stat-number">{{ total_analyses|default:"0" }}</div>
+                <div class="stat-label">کل تحلیل‌ها</div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">{{ completed_analyses|default:"0" }}</div>
+                <div class="stat-label">تحلیل‌های تکمیل شده</div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">{{ processing_analyses|default:"0" }}</div>
+                <div class="stat-label">در حال پردازش</div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="progress-ring">
+                    <svg>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="bg" cx="60" cy="60" r="45"></circle>
+                        <circle class="progress" cx="60" cy="60" r="45" 
+                                style="stroke-dashoffset: 0"></circle>
+                    </svg>
+                    <div class="progress-text">{{ overall_score|default:"75" }}%</div>
+                </div>
+                <div class="stat-label">میانگین امتیاز</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <div class="main-content">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    تحلیل‌های اخیر
+                </h3>
+                
+                {% if recent_analyses %}
+                    {% for analysis in recent_analyses %}
+                    <div class="recent-analysis">
+                        <div class="analysis-title">{{ analysis.store_name }}</div>
+                        <div class="analysis-meta">
+                            <i class="fas fa-calendar me-2"></i>
+                            {{ analysis.created_at|date:"Y/m/d H:i" }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-user me-2"></i>
+                            {{ analysis.user.get_full_name|default:analysis.user.username }}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="analysis-status status-{{ analysis.status }}">
+                                {% if analysis.status == 'completed' %}
+                                    تکمیل شده
+                                {% elif analysis.status == 'processing' %}
+                                    در حال پردازش
+                                {% else %}
+                                    در انتظار
+                                {% endif %}
+                            </span>
+                            <a href="{% url 'store_analysis:analysis_results' analysis.pk %}" 
+                               class="btn btn-sm btn-outline-light">
+                                <i class="fas fa-eye me-1"></i>
+                                مشاهده
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-white-50 mb-3"></i>
+                        <p class="text-white-50">هنوز تحلیلی انجام نشده است</p>
+                        <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-light">
+                            <i class="fas fa-plus me-2"></i>
+                            شروع تحلیل جدید
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-card">
+                    <h4 class="section-title">
+                        <i class="fas fa-lightbulb"></i>
+                        نکات مهم
+                    </h4>
+                    <div class="insights-grid">
+                        <div class="insight-card">
+                            <div class="insight-title">
+                                <i class="fas fa-chart-pie text-warning"></i>
+                                تحلیل ترافیک
+                            </div>
+                            <div class="insight-content">
+                                بررسی الگوهای حرکتی مشتریان و بهینه‌سازی مسیرهای خرید
+                            </div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-title">
+                                <i class="fas fa-palette text-info"></i>
+                                طراحی چیدمان
+                            </div>
+                            <div class="insight-content">
+                                استفاده از اصول روانشناسی رنگ و طراحی برای جذب بیشتر مشتریان
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h4 class="section-title">
+                        <i class="fas fa-tools"></i>
+                        ابزارهای سریع
+                    </h4>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-light">
+                            <i class="fas fa-plus me-2"></i>
+                            تحلیل جدید
+                        </a>
+                        <a href="{% url 'store_analysis:analysis_list' %}" class="btn btn-outline-light">
+                            <i class="fas fa-list me-2"></i>
+                            مشاهده همه تحلیل‌ها
+                        </a>
+                        <a href="{% url 'store_analysis:store_comparison' %}" class="btn btn-outline-light">
+                            <i class="fas fa-balance-scale me-2"></i>
+                            مقایسه فروشگاه‌ها
+                        </a>
+                        <a href="{% url 'store_analysis:ai_consultant' %}" class="btn btn-outline-light">
+                            <i class="fas fa-robot me-2"></i>
+                            مشاور AI
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="{% url 'store_analysis:store_analysis' %}" class="action-btn">
+                <i class="fas fa-plus"></i>
+                <span>تحلیل جدید</span>
+            </a>
+            <a href="{% url 'store_analysis:analysis_list' %}" class="action-btn">
+                <i class="fas fa-list"></i>
+                <span>لیست تحلیل‌ها</span>
+            </a>
+            <a href="{% url 'store_analysis:store_comparison' %}" class="action-btn">
+                <i class="fas fa-balance-scale"></i>
+                <span>مقایسه فروشگاه‌ها</span>
+            </a>
+            <a href="{% url 'store_analysis:ai_consultant' %}" class="action-btn">
+                <i class="fas fa-robot"></i>
+                <span>مشاور AI</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress rings
+    const progressRings = document.querySelectorAll('.progress-ring .progress');
+    progressRings.forEach(ring => {
+        const circumference = 2 * Math.PI * 45;
+        const progress = parseInt(ring.parentElement.nextElementSibling.textContent);
+        const offset = circumference - (progress / 100) * circumference;
+        ring.style.strokeDashoffset = offset;
+    });
+
+    // Add hover effects
+    const cards = document.querySelectorAll('.stat-card, .insight-card, .action-btn');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}

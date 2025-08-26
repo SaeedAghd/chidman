@@ -602,7 +602,7 @@
                     <div class="progress-fill" id="progressFill" style="width: 16.67%;"></div>
                 </div>
                 <div class="progress-text">
-                    <span id="progressText">مرحله 1 از 6</span>
+                    <span id="progressText">مرحله 1 از 7</span>
                     <span id="progressPercent">16.7%</span>
                 </div>
             </div>
@@ -632,6 +632,10 @@
             </div>
             <div class="step" data-step="6">
                 <div class="step-number">6</div>
+                <div class="step-title">فایل‌ها و تصاویر<br><small>Media Upload</small></div>
+            </div>
+            <div class="step" data-step="7">
+                <div class="step-number">7</div>
                 <div class="step-title">گزارش نهایی<br><small>AI Report</small></div>
             </div>
         </div>
@@ -1186,8 +1190,173 @@
                 </div>
             </div>
 
-            <!-- Page 6: Final Report (AI Report Generation) -->
+            <!-- Page 6: Files and Media Upload -->
             <div class="form-page" id="page-6">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="section-title">فایل‌ها و تصاویر</h3>
+                    <p class="section-subtitle">برای تحلیل دقیق‌تر، تصاویر و فایل‌های مرتبط را آپلود کنید</p>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-info-circle me-2"></i>راهنمای آپلود فایل</h4>
+                    <p>تصاویر و فایل‌هایی که آپلود می‌کنید به تحلیل دقیق‌تر و پیشنهادات بهتر کمک می‌کند. تمامی فایل‌ها اختیاری هستند.</p>
+                </div>
+
+                <!-- تصاویر فروشگاه -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-store"></i>تصویر کلی فروشگاه
+                            </label>
+                            {{ form.store_photos }}
+                            <small class="form-text text-muted">{{ form.store_photos.help_text }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-map"></i>نقشه یا طرح فروشگاه
+                            </label>
+                            {{ form.store_plan }}
+                            <small class="form-text text-muted">{{ form.store_plan.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تصاویر قفسه‌ها و چیدمان -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-boxes"></i>تصاویر قفسه‌ها
+                            </label>
+                            {{ form.shelf_photos }}
+                            <small class="form-text text-muted">{{ form.shelf_photos.help_text }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-door-open"></i>تصاویر ورودی و ویترین
+                            </label>
+                            {{ form.entrance_photos }}
+                            <small class="form-text text-muted">{{ form.entrance_photos.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تصاویر صندوق -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-cash-register"></i>تصاویر صندوق‌ها
+                            </label>
+                            {{ form.checkout_photos }}
+                            <small class="form-text text-muted">{{ form.checkout_photos.help_text }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-video"></i>ویدیوی مسیر مشتریان
+                            </label>
+                            {{ form.customer_video }}
+                            <small class="form-text text-muted">{{ form.customer_video.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ویدیوی دوربین نظارتی -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-eye"></i>نمونه فیلم دوربین نظارتی
+                            </label>
+                            {{ form.surveillance_footage }}
+                            <small class="form-text text-muted">{{ form.surveillance_footage.help_text }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar"></i>تاریخ ضبط ویدیو
+                            </label>
+                            {{ form.video_date }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- اطلاعات ویدیو -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-clock"></i>ساعت ضبط ویدیو
+                            </label>
+                            {{ form.video_time }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-stopwatch"></i>مدت زمان ویدیو (ثانیه)
+                            </label>
+                            {{ form.video_duration }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- فایل‌های مالی و محصولات -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-chart-line"></i>فایل گزارش فروش
+                            </label>
+                            {{ form.sales_file }}
+                            <small class="form-text text-muted">{{ form.sales_file.help_text }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-book"></i>کاتالوگ محصولات
+                            </label>
+                            {{ form.product_catalog }}
+                            <small class="form-text text-muted">{{ form.product_catalog.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- اطلاعات نرم‌افزاری -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-desktop"></i>نرم‌افزار صندوق
+                            </label>
+                            {{ form.pos_system }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-warehouse"></i>نرم‌افزار مدیریت موجودی
+                            </label>
+                            {{ form.inventory_system }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 7: Final Report (AI Report Generation) -->
+            <div class="form-page" id="page-7">
                 <div class="section-header">
                     <div class="section-icon">
                         <i class="fas fa-file-alt"></i>
@@ -1334,7 +1503,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let currentStep = 1;
-    const totalSteps = 6;
+            const totalSteps = 7;
     
     // Elements
     const pages = document.querySelectorAll('.form-page');
@@ -1537,6 +1706,27 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         if (validateCurrentStep()) {
+            // Check file sizes before submission
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            let hasLargeFiles = false;
+            
+            fileInputs.forEach(input => {
+                if (input.files[0]) {
+                    const fileSize = input.files[0].size / 1024 / 1024; // MB
+                    const isVideo = input.accept && input.accept.includes('video');
+                    const maxSize = isVideo ? 50 : 10;
+                    
+                    if (fileSize > maxSize) {
+                        hasLargeFiles = true;
+                        alert(`فایل ${input.files[0].name} بزرگتر از ${maxSize} مگابایت است.`);
+                    }
+                }
+            });
+            
+            if (hasLargeFiles) {
+                return false;
+            }
+            
             // Show loading modal
             const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
             loadingModal.show();
@@ -1544,6 +1734,27 @@ document.addEventListener('DOMContentLoaded', function() {
             // Submit form
             form.submit();
         }
+    }
+    
+    // File upload preview
+    function setupFilePreview() {
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+                    const fileInfo = document.createElement('small');
+                    fileInfo.className = 'text-info d-block mt-1 file-info';
+                    fileInfo.innerHTML = `<i class="fas fa-file me-1"></i>${file.name} (${fileSize} MB)`;
+                    
+                    // Remove existing file info
+                    const existingInfo = input.parentNode.querySelector('.file-info');
+                    if (existingInfo) existingInfo.remove();
+                    
+                    input.parentNode.appendChild(fileInfo);
+                }
+            });
+        });
     }
     
     // Scroll to top
@@ -1556,6 +1767,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize form
     initForm();
+    setupFilePreview();
     
     // Add smooth animations
     document.querySelectorAll('.form-check-input').forEach(input => {

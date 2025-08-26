@@ -1,0 +1,583 @@
+{% extends 'store_analysis/base.html' %}
+
+{% block title %}مقایسه فروشگاه‌ها{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --info-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+        --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .comparison-page {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .page-header {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-light);
+        text-align: center;
+    }
+
+    .page-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .page-header p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .comparison-container {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-light);
+        margin-bottom: 2rem;
+    }
+
+    .store-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .store-select {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-light);
+    }
+
+    .store-select h5 {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-select {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .form-select:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: white;
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    }
+
+    .form-select option {
+        background: #2c3e50;
+        color: white;
+    }
+
+    .compare-btn {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 15px;
+        padding: 1rem 2rem;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 0 auto;
+    }
+
+    .compare-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-medium);
+        color: white;
+    }
+
+    .results-container {
+        display: none;
+        margin-top: 2rem;
+    }
+
+    .results-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .results-header h3 {
+        color: white;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .store-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-light);
+        transition: all 0.3s ease;
+    }
+
+    .store-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .store-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .store-name {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .store-meta {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+    }
+
+    .metric-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .metric-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .progress-container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        height: 12px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 1s ease;
+        position: relative;
+    }
+
+    .progress-bar.overall { background: var(--primary-gradient); }
+    .progress-bar.layout { background: var(--success-gradient); }
+    .progress-bar.traffic { background: var(--warning-gradient); }
+
+    .progress-value {
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: right;
+    }
+
+    .analysis-section {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-light);
+        margin-top: 2rem;
+    }
+
+    .analysis-title {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .analysis-content {
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+
+    .winner-badge {
+        display: inline-block;
+        background: var(--success-gradient);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .strength-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .strength-list li {
+        color: rgba(255, 255, 255, 0.9);
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .strength-list li:last-child {
+        border-bottom: none;
+    }
+
+    .strength-list li i {
+        color: #4caf50;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .store-selector {
+            grid-template-columns: 1fr;
+        }
+        
+        .comparison-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .store-name {
+            font-size: 1.3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comparison-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-balance-scale me-3"></i>
+                مقایسه فروشگاه‌ها
+            </h1>
+            <p>مقایسه هوشمند عملکرد و چیدمان فروشگاه‌ها</p>
+        </div>
+
+        <!-- Comparison Container -->
+        <div class="comparison-container">
+            <!-- Store Selectors -->
+            <div class="store-selector">
+                <div class="store-select">
+                    <h5>
+                        <i class="fas fa-store text-primary"></i>
+                        فروشگاه اول
+                    </h5>
+                    <select class="form-select" id="store1">
+                        <option value="">انتخاب فروشگاه...</option>
+                        {% for analysis in user_analyses %}
+                        <option value="{{ analysis.id }}">{{ analysis.store_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="store-select">
+                    <h5>
+                        <i class="fas fa-store text-success"></i>
+                        فروشگاه دوم
+                    </h5>
+                    <select class="form-select" id="store2">
+                        <option value="">انتخاب فروشگاه...</option>
+                        {% for analysis in user_analyses %}
+                        <option value="{{ analysis.id }}">{{ analysis.store_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Compare Button -->
+            <div class="text-center">
+                <button class="compare-btn" onclick="compareStores()">
+                    <i class="fas fa-chart-bar"></i>
+                    مقایسه فروشگاه‌ها
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="comparison-results" class="results-container">
+                <div class="results-header">
+                    <h3>نتایج مقایسه</h3>
+                </div>
+
+                <div class="comparison-grid">
+                    <!-- Store 1 -->
+                    <div class="store-card">
+                        <div class="store-header">
+                            <div class="store-name" id="store1-name">فروشگاه اول</div>
+                            <div class="store-meta">تحلیل جامع</div>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <i class="fas fa-chart-line"></i>
+                                امتیاز کلی
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar overall" id="store1-overall" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-value" id="store1-overall-value">0%</div>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <i class="fas fa-palette"></i>
+                                امتیاز چیدمان
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar layout" id="store1-layout" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-value" id="store1-layout-value">0%</div>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <i class="fas fa-users"></i>
+                                امتیاز ترافیک
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar traffic" id="store1-traffic" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-value" id="store1-traffic-value">0%</div>
+                        </div>
+                    </div>
+
+                    <!-- Store 2 -->
+                    <div class="store-card">
+                        <div class="store-header">
+                            <div class="store-name" id="store2-name">فروشگاه دوم</div>
+                            <div class="store-meta">تحلیل جامع</div>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <i class="fas fa-chart-line"></i>
+                                امتیاز کلی
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar overall" id="store2-overall" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-value" id="store2-overall-value">0%</div>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <i class="fas fa-palette"></i>
+                                امتیاز چیدمان
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar layout" id="store2-layout" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-value" id="store2-layout-value">0%</div>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <i class="fas fa-users"></i>
+                                امتیاز ترافیک
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar traffic" id="store2-traffic" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-value" id="store2-traffic-value">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis -->
+                <div class="analysis-section">
+                    <h4 class="analysis-title">
+                        <i class="fas fa-lightbulb"></i>
+                        تحلیل مقایسه‌ای
+                    </h4>
+                    <div id="comparison-analysis" class="analysis-content">
+                        <!-- نتایج تحلیل اینجا نمایش داده می‌شود -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function compareStores() {
+    const store1 = document.getElementById('store1').value;
+    const store2 = document.getElementById('store2').value;
+    
+    if (!store1 || !store2) {
+        alert('لطفاً هر دو فروشگاه را انتخاب کنید');
+        return;
+    }
+    
+    if (store1 === store2) {
+        alert('لطفاً دو فروشگاه مختلف انتخاب کنید');
+        return;
+    }
+    
+    // نمایش نتایج
+    document.getElementById('comparison-results').style.display = 'block';
+    
+    // شبیه‌سازی نتایج
+    const store1Data = {
+        name: document.getElementById('store1').options[document.getElementById('store1').selectedIndex].text,
+        overall: 85,
+        layout: 90,
+        traffic: 80
+    };
+    
+    const store2Data = {
+        name: document.getElementById('store2').options[document.getElementById('store2').selectedIndex].text,
+        overall: 75,
+        layout: 70,
+        traffic: 85
+    };
+    
+    // نمایش نتایج
+    document.getElementById('store1-name').textContent = store1Data.name;
+    document.getElementById('store2-name').textContent = store2Data.name;
+    
+    // Animate progress bars
+    animateProgress('store1-overall', store1Data.overall);
+    animateProgress('store1-layout', store1Data.layout);
+    animateProgress('store1-traffic', store1Data.traffic);
+    
+    animateProgress('store2-overall', store2Data.overall);
+    animateProgress('store2-layout', store2Data.layout);
+    animateProgress('store2-traffic', store2Data.traffic);
+    
+    // تحلیل مقایسه‌ای
+    let analysis = '';
+    
+    if (store1Data.overall > store2Data.overall) {
+        analysis += `<div class="winner-badge">🏆 ${store1Data.name} برنده است</div>`;
+    } else if (store2Data.overall > store1Data.overall) {
+        analysis += `<div class="winner-badge">🏆 ${store2Data.name} برنده است</div>`;
+    } else {
+        analysis += `<div class="winner-badge">🤝 هر دو فروشگاه عملکرد مشابهی دارند</div>`;
+    }
+    
+    analysis += '<h5 style="color: white; margin: 1.5rem 0 1rem 0;">نقاط قوت و ضعف:</h5>';
+    analysis += '<ul class="strength-list">';
+    
+    if (store1Data.layout > store2Data.layout) {
+        analysis += `<li><i class="fas fa-check-circle"></i>${store1Data.name} چیدمان بهتری دارد</li>`;
+    }
+    if (store2Data.traffic > store1Data.traffic) {
+        analysis += `<li><i class="fas fa-check-circle"></i>${store2Data.name} ترافیک بهتری دارد</li>`;
+    }
+    if (store1Data.overall > store2Data.overall) {
+        analysis += `<li><i class="fas fa-check-circle"></i>${store1Data.name} عملکرد کلی بهتری دارد</li>`;
+    }
+    
+    analysis += '</ul>';
+    
+    analysis += '<h5 style="color: white; margin: 1.5rem 0 1rem 0;">توصیه‌های بهبود:</h5>';
+    analysis += '<ul class="strength-list">';
+    analysis += '<li><i class="fas fa-lightbulb"></i>استفاده از رنگ‌های گرم برای جذب بیشتر مشتریان</li>';
+    analysis += '<li><i class="fas fa-lightbulb"></i>بهینه‌سازی مسیر حرکت مشتریان</li>';
+    analysis += '<li><i class="fas fa-lightbulb"></i>استفاده از نورپردازی مناسب</li>';
+    analysis += '</ul>';
+    
+    document.getElementById('comparison-analysis').innerHTML = analysis;
+}
+
+function animateProgress(elementId, value) {
+    const element = document.getElementById(elementId);
+    const valueElement = document.getElementById(elementId + '-value');
+    
+    let currentValue = 0;
+    const targetValue = value;
+    const duration = 1000; // 1 second
+    const increment = targetValue / (duration / 16); // 60fps
+    
+    const animation = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(animation);
+        }
+        
+        element.style.width = currentValue + '%';
+        valueElement.textContent = Math.round(currentValue) + '%';
+    }, 16);
+}
+
+// Add hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.store-card, .store-select');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}

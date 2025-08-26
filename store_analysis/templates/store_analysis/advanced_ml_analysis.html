@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تحلیل پیشرفته ML - {{ analysis.store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-brain me-2"></i>
+                        تحلیل پیشرفته هوشمند - {{ analysis.store_name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="ml-predictions-tab" data-bs-toggle="tab" data-bs-target="#ml-predictions" type="button" role="tab">
+                                <i class="fas fa-chart-line me-2"></i>پیش‌بینی‌های ML
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="patterns-tab" data-bs-toggle="tab" data-bs-target="#patterns" type="button" role="tab">
+                                <i class="fas fa-chart-bar me-2"></i>تحلیل الگوها
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button" role="tab">
+                                <i class="fas fa-lightbulb me-2"></i>پیشنهادات هوشمند
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="regular-analysis-tab" data-bs-toggle="tab" data-bs-target="#regular-analysis" type="button" role="tab">
+                                <i class="fas fa-file-alt me-2"></i>تحلیل معمولی
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content mt-4" id="analysisTabsContent">
+                        <!-- ML Predictions Tab -->
+                        <div class="tab-pane fade show active" id="ml-predictions" role="tabpanel">
+                            {% if ml_analysis.ml_predictions %}
+                                <div class="row">
+                                    <!-- Sales Prediction -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card h-100 border-primary">
+                                            <div class="card-header bg-primary text-white">
+                                                <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>پیش‌بینی فروش</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                {% with sales=ml_analysis.ml_predictions.sales_prediction %}
+                                                    <div class="row text-center">
+                                                        <div class="col-6">
+                                            <div class="display-6 text-primary">{{ sales.current_daily_sales|floatformat:0 }}</div>
+                                            <small class="text-muted">فروش روزانه فعلی (تومان)</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="display-6 text-success">{{ sales.potential_daily_sales|floatformat:0 }}</div>
+                                            <small class="text-muted">فروش روزانه بالقوه (تومان)</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" style="width: {{ sales.improvement_potential }}%">
+                                                {{ sales.improvement_potential|floatformat:1 }}% بهبود
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">پتانسیل بهبود فروش</small>
+                                    </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Conversion Optimization -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card h-100 border-info">
+                                            <div class="card-header bg-info text-white">
+                                                <h5 class="mb-0"><i class="fas fa-percentage me-2"></i>بهینه‌سازی نرخ تبدیل</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                {% with conv=ml_analysis.ml_predictions.conversion_optimization %}
+                                                    <div class="row text-center">
+                                                        <div class="col-4">
+                                            <div class="h4 text-muted">{{ conv.current_conversion_rate|floatformat:1 }}%</div>
+                                            <small class="text-muted">فعلی</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="h4 text-info">{{ conv.predicted_improvement|floatformat:1 }}%</div>
+                                            <small class="text-muted">بهبود</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="h4 text-success">{{ conv.new_conversion_rate|floatformat:1 }}%</div>
+                                            <small class="text-muted">جدید</small>
+                                        </div>
+                                    </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Customer Behavior -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card h-100 border-warning">
+                                            <div class="card-header bg-warning text-dark">
+                                                <h5 class="mb-0"><i class="fas fa-users me-2"></i>رفتار مشتری</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                {% with behavior=ml_analysis.ml_predictions.customer_behavior %}
+                                                    <div class="text-center mb-3">
+                                                        <div class="display-6 text-warning">{{ behavior.engagement_score|floatformat:0 }}</div>
+                                                        <small class="text-muted">امتیاز تعامل</small>
+                                                    </div>
+                                                    <div class="alert alert-info">
+                                                        <strong>{{ behavior.description }}</strong>
+                                                    </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ROI Prediction -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card h-100 border-success">
+                                            <div class="card-header bg-success text-white">
+                                                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>پیش‌بینی ROI</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                {% with roi=ml_analysis.ml_predictions.roi_prediction %}
+                                                    <div class="text-center">
+                                                        <div class="display-6 text-success">{{ roi.roi_percentage|floatformat:1 }}%</div>
+                                                        <small class="text-muted">بازگشت سرمایه</small>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <div class="row text-center">
+                                                            <div class="col-6">
+                                                                <div class="h6 text-muted">{{ roi.payback_period }} ماه</div>
+                                                                <small>دوره بازگشت</small>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <div class="h6 text-muted">{{ roi.estimated_cost|floatformat:0 }}</div>
+                                                                <small>هزینه تخمینی (تومان)</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    تحلیل ML در دسترس نیست. لطفاً کتابخانه‌های ML را نصب کنید.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Patterns Tab -->
+                        <div class="tab-pane fade" id="patterns" role="tabpanel">
+                            {% if ml_analysis.pattern_analysis %}
+                                <div class="row">
+                                    <!-- Traffic Patterns -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-header bg-primary text-white">
+                                                <h5 class="mb-0"><i class="fas fa-traffic-light me-2"></i>الگوهای ترافیک</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                {% with traffic=ml_analysis.pattern_analysis.traffic_patterns %}
+                                                    <h6>دوره پیک: <span class="badge bg-primary">{{ traffic.peak_period }}</span></h6>
+                                                    <div class="row text-center mt-3">
+                                                        <div class="col-4">
+                                                            <div class="h5 text-primary">{{ traffic.distribution.morning }}%</div>
+                                                            <small>صبح</small>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="h5 text-warning">{{ traffic.distribution.noon }}%</div>
+                                                            <small>ظهر</small>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="h5 text-info">{{ traffic.distribution.evening }}%</div>
+                                                            <small>شب</small>
+                                                        </div>
+                                                    </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sales Patterns -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-header bg-success text-white">
+                                                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>الگوهای فروش</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                {% with sales=ml_analysis.pattern_analysis.sales_patterns %}
+                                                    <div class="text-center">
+                                                        <div class="display-6 text-success">{{ sales.efficiency_score|floatformat:0 }}</div>
+                                                        <small class="text-muted">امتیاز کارایی</small>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <span class="badge bg-{% if sales.performance_level == 'high' %}success{% elif sales.performance_level == 'medium' %}warning{% else %}danger{% endif %}">
+                                                            {{ sales.performance_level }}
+                                                        </span>
+                                                        <small class="text-muted ms-2">سطح عملکرد</small>
+                                                    </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Recommendations Tab -->
+                        <div class="tab-pane fade" id="recommendations" role="tabpanel">
+                            {% if ml_analysis.ml_recommendations %}
+                                <div class="row">
+                                    <!-- Immediate Recommendations -->
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card border-danger">
+                                            <div class="card-header bg-danger text-white">
+                                                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>اقدامات فوری</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="list-unstyled">
+                                                    {% for rec in ml_analysis.ml_recommendations.immediate %}
+                                                        <li class="mb-2">
+                                                            <i class="fas fa-arrow-right text-danger me-2"></i>{{ rec }}
+                                                        </li>
+                                                    {% empty %}
+                                                        <li class="text-muted">اقدام فوری خاصی نیاز نیست</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Short Term Recommendations -->
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card border-warning">
+                                            <div class="card-header bg-warning text-dark">
+                                                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>کوتاه مدت</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="list-unstyled">
+                                                    {% for rec in ml_analysis.ml_recommendations.short_term %}
+                                                        <li class="mb-2">
+                                                            <i class="fas fa-arrow-right text-warning me-2"></i>{{ rec }}
+                                                        </li>
+                                                    {% empty %}
+                                                        <li class="text-muted">پیشنهاد کوتاه مدتی وجود ندارد</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Long Term Recommendations -->
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card border-info">
+                                            <div class="card-header bg-info text-white">
+                                                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>بلند مدت</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="list-unstyled">
+                                                    {% for rec in ml_analysis.ml_recommendations.long_term %}
+                                                        <li class="mb-2">
+                                                            <i class="fas fa-arrow-right text-info me-2"></i>{{ rec }}
+                                                        </li>
+                                                    {% empty %}
+                                                        <li class="text-muted">پیشنهاد بلند مدتی وجود ندارد</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Regular Analysis Tab -->
+                        <div class="tab-pane fade" id="regular-analysis" role="tabpanel">
+                            {% if regular_analysis %}
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>تحلیل معمولی</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>خلاصه اجرایی:</h6>
+                                                <p class="text-muted">{{ regular_analysis.executive_summary }}</p>
+                                                
+                                                <h6>نقاط قوت:</h6>
+                                                <ul>
+                                                    {% for strength in regular_analysis.detailed_analysis.strengths %}
+                                                        <li>{{ strength }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>نقاط ضعف:</h6>
+                                                <ul>
+                                                    {% for weakness in regular_analysis.detailed_analysis.weaknesses %}
+                                                        <li>{{ weakness }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                                
+                                                <h6>فرصت‌ها:</h6>
+                                                <ul>
+                                                    {% for opportunity in regular_analysis.detailed_analysis.opportunities %}
+                                                        <li>{{ opportunity }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'store_analysis:analysis_results' analysis.pk %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>بازگشت به نتایج
+            </a>
+            <a href="{% url 'store_analysis:download_analysis' analysis.pk %}" class="btn btn-primary me-2">
+                <i class="fas fa-download me-2"></i>دانلود گزارش
+            </a>
+            <a href="{% url 'store_analysis:analysis_list' %}" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>لیست تحلیل‌ها
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Confidence Scores Modal -->
+{% if ml_analysis.confidence_scores %}
+<div class="modal fade" id="confidenceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">امتیازات اطمینان تحلیل</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="h4 text-primary">{{ ml_analysis.confidence_scores.data_completeness|floatformat:0 }}%</div>
+                        <small>کامل بودن داده‌ها</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-success">{{ ml_analysis.confidence_scores.data_consistency|floatformat:0 }}%</div>
+                        <small>سازگاری داده‌ها</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-info">{{ ml_analysis.confidence_scores.overall_confidence|floatformat:0 }}%</div>
+                        <small>اطمینان کلی</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Show confidence modal on page load
+    {% if ml_analysis.confidence_scores %}
+    setTimeout(function() {
+        var confidenceModal = new bootstrap.Modal(document.getElementById('confidenceModal'));
+        confidenceModal.show();
+    }, 2000);
+    {% endif %}
+});
+</script>
+{% endblock %}

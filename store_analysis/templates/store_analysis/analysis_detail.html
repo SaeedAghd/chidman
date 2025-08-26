@@ -1,134 +1,546 @@
-{% extends 'store_analysis/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
-{% block title %}جزئیات تحلیل - چیدمانو{% endblock %}
+{% block title %}جزئیات تحلیل - {{ analysis.store_name|default:"تحلیل فروشگاه" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.detail-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.detail-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.detail-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.detail-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.detail-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 0;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    position: relative;
+    z-index: 2;
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+.status-completed {
+    background: rgba(255, 255, 255, 0.2);
+    color: #c6f6d5;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.status-processing {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fef5e7;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.status-pending {
+    background: rgba(255, 255, 255, 0.2);
+    color: #bee3f8;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.detail-body {
+    padding: 2rem;
+}
+
+.info-section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: #667eea;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    color: #2d3748;
+    font-size: 1rem;
+}
+
+.progress-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.progress-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.progress-bar {
+    height: 15px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 10px;
+    transition: width 0.8s ease;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-text {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.preliminary-analysis {
+    background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #9ae6b4;
+}
+
+.preliminary-analysis h3 {
+    color: #2f855a;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.preliminary-analysis h3 i {
+    margin-right: 0.5rem;
+}
+
+.preliminary-content {
+    color: #1a365d;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+    color: white;
+}
+
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(246, 173, 85, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(229, 62, 62, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(56, 161, 105, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.analysis-data {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.analysis-data pre {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="detail-container">
 <div class="container">
-    <div class="row justify-content-center py-5">
-        <div class="col-lg-10">
-            <!-- Header -->
-            <div class="text-center mb-5">
-                <h1 class="display-4 mb-3">جزئیات تحلیل</h1>
-                <p class="lead text-muted">نتایج تحلیل و پیشنهادات برای بهینه‌سازی چیدمان فروشگاه</p>
+        <!-- Header Card -->
+        <div class="detail-card">
+            <div class="detail-header">
+                <h1>
+                    <i class="fas fa-chart-line me-2"></i>
+                    {{ analysis.store_name|default:"تحلیل فروشگاه" }}
+                </h1>
+                <p>{{ analysis.get_analysis_type_display }} - ایجاد شده در {{ analysis.created_at|date:"Y/m/d H:i" }}</p>
+                <span class="status-badge status-{{ analysis.status }}">
+                    {{ analysis.get_status_display }}
+                </span>
+            </div>
             </div>
 
-            <!-- Analysis Info -->
-            <div class="card shadow mb-4">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h3 class="h5 mb-3">اطلاعات فروشگاه</h3>
-                            <ul class="list-unstyled">
-                                <li class="mb-2">
-                                    <i class="fas fa-store text-primary me-2"></i>
-                                    <strong>نام فروشگاه:</strong> {{ analysis.store_name }}
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-tag text-primary me-2"></i>
-                                    <strong>نوع فروشگاه:</strong> {{ analysis.store_type }}
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-ruler-combined text-primary me-2"></i>
-                                    <strong>متراژ:</strong> {{ analysis.store_size }} متر مربع
-                                </li>
-                            </ul>
+        <!-- Progress Card -->
+        <div class="detail-card">
+            <div class="detail-body">
+                <div class="progress-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-tasks"></i>
+                        پیشرفت تحلیل
+                    </h3>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ analysis.get_progress }}%;"></div>
                         </div>
-                        <div class="col-md-6">
-                            <h3 class="h5 mb-3">وضعیت تحلیل</h3>
-                            <ul class="list-unstyled">
-                                <li class="mb-2">
-                                    <i class="fas fa-clock text-primary me-2"></i>
-                                    <strong>تاریخ درخواست:</strong> {{ analysis.created_at|date:"Y/m/d H:i" }}
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-check-circle text-primary me-2"></i>
-                                    <strong>وضعیت:</strong>
-                                    {% if analysis.status == 'completed' %}
-                                        <span class="badge bg-success">تکمیل شده</span>
-                                    {% elif analysis.status == 'processing' %}
-                                        <span class="badge bg-warning">در حال پردازش</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">در انتظار</span>
-                                    {% endif %}
-                                </li>
-                            </ul>
+                        <div class="progress-text">{{ analysis.get_progress }}% تکمیل شده</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Initial Analysis -->
-            <div class="card shadow mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="h5 mb-0">تحلیل اولیه</h3>
+        <!-- Preliminary Analysis -->
+        {% if analysis.has_preliminary %}
+        <div class="detail-card">
+            <div class="detail-body">
+                <div class="preliminary-analysis">
+                    <h3>
+                        <i class="fas fa-lightbulb"></i>
+                        پیش‌تحلیل اولیه
+                    </h3>
+                    <div class="preliminary-content">{{ analysis.preliminary_analysis }}</div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="h6 mb-3">خلاصه تحلیل</h4>
-                            <p>{{ analysis.initial_analysis.summary }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Main Info Card -->
+        <div class="detail-card">
+            <div class="detail-body">
+                <!-- اطلاعات کلی -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        اطلاعات کلی
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">نام فروشگاه</div>
+                            <div class="info-value">{{ analysis.store_name|default:"نامشخص" }}</div>
                         </div>
-                        <div class="col-md-6">
-                            <h4 class="h6 mb-3">پیشنهادات</h4>
-                            <ul class="list-group list-group-flush">
-                                {% for suggestion in analysis.initial_analysis.suggestions %}
-                                    <li class="list-group-item">
-                                        <i class="fas fa-lightbulb text-warning me-2"></i>
-                                        {{ suggestion }}
-                                    </li>
-                                {% endfor %}
-                            </ul>
+                        <div class="info-item">
+                            <div class="info-label">نوع تحلیل</div>
+                            <div class="info-value">{{ analysis.get_analysis_type_display|default:"نامشخص" }}</div>
                         </div>
+                        <div class="info-item">
+                            <div class="info-label">نوع فروشگاه</div>
+                            <div class="info-value">{{ analysis.get_store_type_display|default:"نامشخص" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">اندازه فروشگاه</div>
+                            <div class="info-value">{{ analysis.store_size|default:"نامشخص" }}</div>
+                </div>
+                        <div class="info-item">
+                            <div class="info-label">اولویت</div>
+                            <div class="info-value">{{ analysis.get_priority_display }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">زمان تخمینی</div>
+                            <div class="info-value">{{ analysis.estimated_duration }} دقیقه</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Detailed Analysis -->
-            {% if analysis.status == 'completed' %}
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h3 class="h5 mb-0">تحلیل تکمیلی</h3>
+                <!-- تاریخ‌ها -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        تاریخ‌ها
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">تاریخ ایجاد</div>
+                            <div class="info-value">{{ analysis.created_at|date:"Y/m/d H:i" }}</div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4 class="h6 mb-3">تحلیل دقیق</h4>
-                                <p>{{ analysis.detailed_analysis.analysis }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h4 class="h6 mb-3">پیشنهادات تکمیلی</h4>
-                                <ul class="list-group list-group-flush">
-                                    {% for suggestion in analysis.detailed_analysis.suggestions %}
-                                        <li class="list-group-item">
-                                            <i class="fas fa-check-circle text-success me-2"></i>
-                                            {{ suggestion }}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
+                        <div class="info-item">
+                            <div class="info-label">آخرین به‌روزرسانی</div>
+                            <div class="info-value">{{ analysis.updated_at|date:"Y/m/d H:i" }}</div>
                             </div>
                         </div>
                     </div>
+                
+                <!-- نتایج -->
+                {% if analysis.results %}
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-bar"></i>
+                        نتایج
+                    </h3>
+                    <div class="analysis-data">
+                        <pre>{{ analysis.results }}</pre>
                 </div>
-            {% else %}
-                <div class="card shadow mb-4">
-                    <div class="card-body text-center py-5">
-                        <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="visually-hidden">در حال بارگذاری...</span>
                         </div>
-                        <h3 class="h5 mb-3">تحلیل تکمیلی در حال انجام است</h3>
-                        <p class="text-muted mb-0">نتایج تحلیل تکمیلی به زودی آماده خواهد شد و از طریق ایمیل و واتساپ ارسال می‌شود.</p>
+                {% endif %}
+                
+                <!-- خطا -->
+                {% if analysis.error_message %}
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        پیام خطا
+                    </h3>
+                    <div class="alert alert-danger">
+                        {{ analysis.error_message }}
                     </div>
                 </div>
             {% endif %}
 
-            <!-- Actions -->
-            <div class="text-center">
-                <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-plus me-2"></i>
-                    درخواست تحلیل جدید
+                <!-- داده‌های تحلیل -->
+                {% if analysis.get_analysis_data %}
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-database"></i>
+                        داده‌های تحلیل
+                    </h3>
+                    <div class="analysis-data">
+                        <pre>{{ analysis.get_analysis_data|pprint }}</pre>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="detail-card">
+            <div class="detail-body">
+                <div class="action-buttons">
+                    <a href="{% url 'store_analysis:analysis_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>بازگشت به لیست
+                    </a>
+                    
+                    <a href="{% url 'store_analysis:analysis_update' pk=analysis.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i>ویرایش
+                    </a>
+                    
+                    {% if analysis.has_preliminary %}
+                    <a href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}" class="btn btn-warning">
+                        <i class="fas fa-download"></i>دانلود گزارش
+                    </a>
+                    {% endif %}
+                    
+                    {% if analysis.status == 'pending' %}
+                    <a href="{% url 'store_analysis:start_analysis' pk=analysis.pk %}" class="btn btn-success">
+                        <i class="fas fa-play"></i>شروع تحلیل
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'store_analysis:analysis_delete' pk=analysis.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i>حذف
                 </a>
             </div>
         </div>
     </div>
 </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh for processing analyses
+    {% if analysis.status == 'processing' %}
+    setInterval(function() {
+        fetch(`{% url 'store_analysis:get_analysis_status' pk=analysis.pk %}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'processing') {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }, 5000); // Check every 5 seconds
+    {% endif %}
+    
+    // Smooth scroll to sections
+    const sectionTitles = document.querySelectorAll('.section-title');
+    sectionTitles.forEach(title => {
+        title.style.cursor = 'pointer';
+        title.addEventListener('click', function() {
+            this.parentElement.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+});
+</script>
 {% endblock %} 

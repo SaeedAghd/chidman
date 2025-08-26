@@ -535,9 +535,12 @@ class StoreAnalysisResultAdmin(admin.ModelAdmin):
 
     def get_result_summary(self, obj):
         """خلاصه نتایج"""
-        if obj.results:
-            return str(obj.results)[:100] + '...' if len(str(obj.results)) > 100 else str(obj.results)
-        return 'بدون نتیجه'
+        try:
+            if hasattr(obj, 'overall_score') and obj.overall_score:
+                return f"امتیاز کلی: {obj.overall_score}"
+            return 'بدون نتیجه'
+        except:
+            return 'بدون نتیجه'
     get_result_summary.short_description = 'خلاصه نتایج'
 
 @admin.register(DetailedAnalysis)

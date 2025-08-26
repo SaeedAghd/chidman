@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: chidman-django
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn chidmano.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+    healthCheckPath: /
+    autoDeploy: true

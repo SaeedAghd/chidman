@@ -37,29 +37,16 @@ def handle_store_analysis_delete(sender, instance, **kwargs):
     """
     Handle post-delete signal for StoreAnalysis model.
     """
-    # Delete associated files
-    if instance.store_photos:
-        try:
-            default_storage.delete(instance.store_photos.path)
-        except Exception as e:
-            logger.error(f"Failed to delete store photos: {e}")
+    # Delete associated files if they exist
+    file_fields = ['store_photos', 'customer_video_file', 'store_plan', 'product_catalog']
     
-    if instance.customer_video_file:
-        try:
-            default_storage.delete(instance.customer_video_file.path)
-        except Exception as e:
-            logger.error(f"Failed to delete customer video: {e}")
-    
-    if instance.store_plan:
-        try:
-            default_storage.delete(instance.store_plan.path)
-        except Exception as e:
-            logger.error(f"Failed to delete store plan: {e}")
-    
-    if instance.product_catalog:
-        try:
-            default_storage.delete(instance.product_catalog.path)
-        except Exception as e:
-            logger.error(f"Failed to delete product catalog: {e}")
+    for field_name in file_fields:
+        if hasattr(instance, field_name):
+            field_value = getattr(instance, field_name, None)
+            if field_value:
+                try:
+                    default_storage.delete(field_value.path)
+                except Exception as e:
+                    logger.error(f"Failed to delete {field_name}: {e}")
     
     logger.info(f"Store analysis deleted: {instance.store_name}") 

@@ -1,0 +1,371 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}بینش‌های تحلیلی - {{ analysis.store_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .insight-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .progress-ring {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 15px;
+    }
+    
+    .finding-card {
+        background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .recommendation-card {
+        background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .forecast-card {
+        background: linear-gradient(45deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="insight-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="mb-2">
+                            <i class="fas fa-chart-line me-3"></i>
+                            بینش‌های تحلیلی پیشرفته
+                        </h1>
+                        <p class="mb-0 opacity-75">
+                            تحلیل عمیق فروشگاه: {{ analysis.store_name }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'store_analysis:professional_dashboard' %}" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            بازگشت به پنل
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- معیارهای عملکرد -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h4 class="mb-4">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    معیارهای عملکرد
+                </h4>
+                <div class="row">
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <div class="metric-card">
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#007bff" stroke-width="8" 
+                                            stroke-dasharray="251" stroke-dashoffset="0"
+                                            transform="rotate(-90 50 50)"/>
+                                </svg>
+                            </div>
+                            <h4 class="mb-1">{{ insights.performance_metrics.overall_score }}</h4>
+                            <p class="text-muted mb-0">امتیاز کلی</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <div class="metric-card">
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#28a745" stroke-width="8" 
+                                            stroke-dasharray="251" stroke-dashoffset="0"
+                                            transform="rotate(-90 50 50)"/>
+                                </svg>
+                            </div>
+                            <h4 class="mb-1">{{ insights.performance_metrics.layout_efficiency }}</h4>
+                            <p class="text-muted mb-0">کارایی چیدمان</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <div class="metric-card">
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#ffc107" stroke-width="8" 
+                                            stroke-dasharray="251" stroke-dashoffset="0"
+                                            transform="rotate(-90 50 50)"/>
+                                </svg>
+                            </div>
+                            <h4 class="mb-1">{{ insights.performance_metrics.customer_flow }}</h4>
+                            <p class="text-muted mb-0">جریان مشتریان</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <div class="metric-card">
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#dc3545" stroke-width="8" 
+                                            stroke-dasharray="251" stroke-dashoffset="0"
+                                            transform="rotate(-90 50 50)"/>
+                                </svg>
+                            </div>
+                            <h4 class="mb-1">{{ insights.performance_metrics.visual_appeal }}</h4>
+                            <p class="text-muted mb-0">جذابیت بصری</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <div class="metric-card">
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                                    <circle cx="50" cy="50" r="40" fill="none" stroke="#6f42c1" stroke-width="8" 
+                                            stroke-dasharray="251" stroke-dashoffset="0"
+                                            transform="rotate(-90 50 50)"/>
+                                </svg>
+                            </div>
+                            <h4 class="mb-1">{{ insights.performance_metrics.sales_potential }}</h4>
+                            <p class="text-muted mb-0">پتانسیل فروش</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- یافته‌های کلیدی -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h4 class="mb-4">
+                    <i class="fas fa-search me-2"></i>
+                    یافته‌های کلیدی
+                </h4>
+                {% for finding in insights.key_findings %}
+                <div class="finding-card">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    {{ finding }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- پیشنهادات بهبود -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h4 class="mb-4">
+                    <i class="fas fa-tools me-2"></i>
+                    پیشنهادات بهبود
+                </h4>
+                {% for recommendation in insights.recommendations %}
+                <div class="recommendation-card">
+                    <i class="fas fa-star me-2"></i>
+                    {{ recommendation }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- پیش‌بینی و ROI -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="forecast-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-crystal-ball me-2"></i>
+                    پیش‌بینی و بازگشت سرمایه
+                </h4>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h3 class="mb-1">{{ insights.forecast.expected_improvement }}</h3>
+                            <p class="mb-0 opacity-75">بهبود مورد انتظار</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h3 class="mb-1">{{ insights.forecast.time_to_implement }}</h3>
+                            <p class="mb-0 opacity-75">زمان اجرا</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h3 class="mb-1">{{ insights.forecast.estimated_cost }}</h3>
+                            <p class="mb-0 opacity-75">هزینه تخمینی</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h3 class="mb-1">{{ insights.forecast.roi_prediction }}</h3>
+                            <p class="mb-0 opacity-75">بازگشت سرمایه</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نمودار عملکرد -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h4 class="mb-4">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    نمودار عملکرد
+                </h4>
+                <canvas id="performanceChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- دکمه‌های عملیات -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'store_analysis:analysis_results' pk=analysis.pk %}" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-eye me-2"></i>
+                            مشاهده نتایج کامل
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-download me-2"></i>
+                            دانلود گزارش
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'store_analysis:ai_consultant' %}" class="btn btn-info btn-lg w-100">
+                            <i class="fas fa-robot me-2"></i>
+                            مشاوره AI
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-warning btn-lg w-100">
+                            <i class="fas fa-plus me-2"></i>
+                            تحلیل جدید
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// نمودار عملکرد
+const ctx = document.getElementById('performanceChart').getContext('2d');
+
+// داده‌های عملکرد از Django template
+const performanceData = JSON.parse('{{ insights.performance_metrics|default:"{}"|escapejs }}');
+
+// مقادیر پیش‌فرض
+const defaultData = {
+    overall_score: 75,
+    layout_efficiency: 80,
+    customer_flow: 70,
+    visual_appeal: 85,
+    sales_potential: 90
+};
+
+// ترکیب داده‌های واقعی با مقادیر پیش‌فرض
+const chartData = {
+    overall_score: performanceData.overall_score || defaultData.overall_score,
+    layout_efficiency: performanceData.layout_efficiency || defaultData.layout_efficiency,
+    customer_flow: performanceData.customer_flow || defaultData.customer_flow,
+    visual_appeal: performanceData.visual_appeal || defaultData.visual_appeal,
+    sales_potential: performanceData.sales_potential || defaultData.sales_potential
+};
+
+const performanceChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: ['امتیاز کلی', 'کارایی چیدمان', 'جریان مشتریان', 'جذابیت بصری', 'پتانسیل فروش'],
+        datasets: [{
+            label: 'عملکرد فعلی',
+            data: [
+                chartData.overall_score,
+                chartData.layout_efficiency,
+                chartData.customer_flow,
+                chartData.visual_appeal,
+                chartData.sales_potential
+            ],
+            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+            borderColor: 'rgba(102, 126, 234, 1)',
+            borderWidth: 2,
+            pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(102, 126, 234, 1)'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            r: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    stepSize: 20
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

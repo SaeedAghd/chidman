@@ -547,18 +547,56 @@ class StoreAnalysis(UserOwnedModel, TimestampedModel):
     """مدل اصلی تحلیل فروشگاه - ساده شده"""
     STATUS_CHOICES = [
         ('pending', _('در انتظار')),
+        ('preliminary_completed', _('پیش‌تحلیل تکمیل شده')),
         ('processing', _('در حال پردازش')),
         ('completed', _('تکمیل شده')),
         ('failed', _('ناموفق')),
         ('cancelled', _('لغو شده')),
     ]
     
+    ANALYSIS_TYPE_CHOICES = [
+        ('quick_free', _('تحلیل رایگان سریع')),
+        ('comprehensive', _('تحلیل جامع')),
+        ('ai_enhanced', _('تحلیل هوشمند')),
+    ]
+    
     store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='analysis', null=True, blank=True)
+    analysis_type = models.CharField(
+        max_length=20,
+        choices=ANALYSIS_TYPE_CHOICES,
+        default='quick_free',
+        verbose_name=_('نوع تحلیل')
+    )
+    store_name = models.CharField(
+        max_length=200,
+        verbose_name=_('نام فروشگاه'),
+        null=True,
+        blank=True
+    )
+    store_type = models.CharField(
+        max_length=50,
+        choices=STORE_TYPE_CHOICES,
+        verbose_name=_('نوع فروشگاه'),
+        null=True,
+        blank=True
+    )
+    store_size = models.CharField(
+        max_length=50,
+        verbose_name=_('اندازه فروشگاه'),
+        null=True,
+        blank=True
+    )
     status = models.CharField(
-        max_length=20, 
+        max_length=25, 
         choices=STATUS_CHOICES, 
         default='pending', 
         verbose_name=_('وضعیت')
+    )
+    preliminary_analysis = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_('پیش‌تحلیل'),
+        help_text='تحلیل اولیه که بلافاصله پس از پرداخت نمایش داده می‌شود'
     )
     results = models.JSONField(
         null=True, 
@@ -594,12 +632,30 @@ class StoreAnalysis(UserOwnedModel, TimestampedModel):
         blank=True,
         help_text='مدت زمان واقعی صرف شده برای تحلیل'
     )
+    analysis_data = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name=_('داده‌های تحلیل'),
+        help_text='داده‌های ارسالی از فرم'
+    )
 
     def __str__(self):
-        return f"تحلیل {self.store_info.store_name} - {self.get_status_display()}"
+        store_name = self.store_name or (self.store_info.store_name if self.store_info else 'نامشخص')
+        return f"تحلیل {store_name} - {self.get_status_display()}"
     
     def get_absolute_url(self):
         return reverse('store_analysis:analysis_detail', args=[self.pk])
+    
+    def get_analysis_data(self):
+        """دریافت داده‌های تحلیل"""
+        if self.analysis_data:
+            return self.analysis_data
+        return {}
+    
+    def set_analysis_data(self, data):
+        """تنظیم داده‌های تحلیل"""
+        self.analysis_data = data
+        self.save()
     
     @property
     def is_completed(self):
@@ -613,6 +669,23 @@ class StoreAnalysis(UserOwnedModel, TimestampedModel):
     def is_failed(self):
         return self.status == 'failed'
     
+    @property
+    def has_preliminary(self):
+        return bool(self.preliminary_analysis)
+    
+    @property
+    def has_results(self):
+        """بررسی وجود نتایج تحلیل"""
+        return bool(self.results) or hasattr(self, 'analysis_result')
+    
+    @property
+    def can_generate_report(self):
+        """بررسی امکان تولید گزارش"""
+        return (self.status == 'completed' or 
+                self.has_results or 
+                self.has_preliminary or
+                hasattr(self, 'analysis_result'))
+    
     def get_analysis_duration(self):
         """محاسبه مدت زمان تحلیل"""
         if self.status == 'completed' and hasattr(self, 'analysis_result'):
@@ -623,13 +696,15 @@ class StoreAnalysis(UserOwnedModel, TimestampedModel):
         """درصد پیشرفت تحلیل"""
         if self.status == 'completed':
             return 100
+        elif self.status == 'preliminary_completed':
+            return 25
         elif self.status == 'processing':
             return 50
         elif self.status == 'failed':
             return 0
         elif self.status == 'cancelled':
             return 0
-        return 25
+        return 10
     
     def clean(self):
         """اعتبارسنجی سفارشی"""
@@ -646,6 +721,7 @@ class StoreAnalysis(UserOwnedModel, TimestampedModel):
             models.Index(fields=['user', 'status']),
             models.Index(fields=['status', 'priority']),
             models.Index(fields=['created_at']),
+            models.Index(fields=['analysis_type']),
         ]
         permissions = [
             ("can_cancel_analysis", "Can cancel analysis"),
@@ -667,7 +743,11 @@ class StoreAnalysisResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
-        return f"تحلیل {self.store_analysis.store_info.store_name} - امتیاز: {self.overall_score}"
+        try:
+            store_name = self.store_analysis.store_info.store_name if self.store_analysis and self.store_analysis.store_info else "نامشخص"
+            return f"تحلیل {store_name} - امتیاز: {self.overall_score}"
+        except:
+            return f"تحلیل - امتیاز: {self.overall_score}"
     
     class Meta:
         verbose_name = 'نتیجه تحلیل'
