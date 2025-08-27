@@ -442,7 +442,7 @@ def download_analysis_report(request, pk):
     if request.user.is_staff or request.user.is_superuser:
         analysis = get_object_or_404(StoreAnalysis, pk=pk)
     else:
-    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+        analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
     
     # بررسی دسترسی به گزارش مدیریتی
     is_admin = request.user.is_staff or request.user.is_superuser
