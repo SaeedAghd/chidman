@@ -22,8 +22,8 @@ class StoreAnalysisForm(forms.ModelForm):
     store_type = forms.ChoiceField(
         choices=[
             ('retail', 'خرده فروشی'),
-            ('supermarket', 'سوپرمارکت'),
-            ('hypermarket', 'هایپرمارکت'),
+        ('supermarket', 'سوپرمارکت'),
+        ('hypermarket', 'هایپرمارکت'),
             ('convenience', 'فروشگاه راحتی'),
             ('specialty', 'فروشگاه تخصصی'),
         ],

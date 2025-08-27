@@ -442,7 +442,7 @@ def download_analysis_report(request, pk):
     if request.user.is_staff or request.user.is_superuser:
         analysis = get_object_or_404(StoreAnalysis, pk=pk)
     else:
-        analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
     
     # بررسی دسترسی به گزارش مدیریتی
     is_admin = request.user.is_staff or request.user.is_superuser
@@ -1528,7 +1528,7 @@ def submit_analysis(request):
                 if field in cleaned_data:
                     if cleaned_data[field]:
                         cleaned_data[field] = f"File uploaded: {cleaned_data[field].name}"
-                    else:
+        else:
                         cleaned_data[field] = None
             
             # تبدیل Decimal به float و date به string
