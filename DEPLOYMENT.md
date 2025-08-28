@@ -1,152 +1,178 @@
 # 🚀 راهنمای کامل دیپلوی روی Render
 
-## 📋 مراحل دیپلوی
+این راهنما شامل تمام مراحل لازم برای دیپلوی موفق پروژه چیدمان روی Render است.
 
-### 1. آماده‌سازی پروژه
-```bash
-# اطمینان از commit آخرین تغییرات
-git add .
-git commit -m "Ready for deployment"
-git push origin main
-```
+## 📋 پیش‌نیازها
 
-### 2. اتصال به Render
+### 1. حساب Render
+- ثبت‌نام در [Render.com](https://render.com)
+- اتصال حساب گیت‌هاب
 
-#### الف) ایجاد سرویس جدید:
-1. به https://render.com بروید
-2. با GitHub وارد شوید
-3. "New Web Service" را کلیک کنید
-4. Repository `chidman` را انتخاب کنید
+### 2. کلیدهای API
+- **OpenAI API Key**: برای قابلیت‌های AI
+- **Email API** (اختیاری): برای ارسال ایمیل
 
-#### ب) تنظیمات سرویس:
-- **Name**: `chidman-store-analysis-v2`
+## 🔧 مراحل دیپلوی
+
+### مرحله 1: آماده‌سازی Repository
+
+1. **اطمینان از وجود فایل‌های ضروری**:
+   ```
+   ✅ render.yaml
+   ✅ build.sh
+   ✅ requirements.txt
+   ✅ runtime.txt
+   ✅ Procfile
+   ✅ chidmano/wsgi.py
+   ✅ manage.py
+   ```
+
+2. **Push کردن کد به گیت‌هاب**:
+   ```bash
+   git add .
+   git commit -m "آماده‌سازی برای دیپلوی روی Render"
+   git push origin main
+   ```
+
+### مرحله 2: ایجاد سرویس در Render
+
+1. **ورود به Render Dashboard**
+2. **انتخاب "New Web Service"**
+3. **اتصال به گیت‌هاب Repository**
+4. **انتخاب Repository پروژه**
+
+### مرحله 3: تنظیمات سرویس
+
+#### تنظیمات اصلی:
+- **Name**: `chidman-store-analysis`
 - **Environment**: `Python`
-- **Region**: نزدیک‌ترین منطقه
+- **Region**: نزدیک‌ترین منطقه به کاربران
 - **Branch**: `main`
 - **Root Directory**: (خالی بگذارید)
 
-#### ج) Build & Deploy:
+#### تنظیمات Build:
 - **Build Command**: `chmod +x build.sh && ./build.sh`
-- **Start Command**: `gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+- **Start Command**: `gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
 
-### 3. متغیرهای محیطی
+### مرحله 4: تنظیم متغیرهای محیطی
 
-در بخش "Environment Variables" این موارد را اضافه کنید:
-
+#### متغیرهای ضروری:
 ```
-SECRET_KEY: (توسط Render تولید می‌شود)
-DEBUG: False
-ALLOWED_HOSTS: chidman-store-analysis-v2.onrender.com
-DJANGO_SETTINGS_MODULE: chidmano.settings
-PYTHONPATH: /opt/render/project/src
-OPENAI_API_KEY: کلید API شما
+SECRET_KEY=your-generated-secret-key
+DEBUG=False
+ALLOWED_HOSTS=chidman-store-analysis.onrender.com
+DATABASE_URL=postgresql://... (از Render Database)
+OPENAI_API_KEY=your-openai-api-key
 ```
 
-### 4. دیتابیس
+#### متغیرهای امنیتی:
+```
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_BROWSER_XSS_FILTER=True
+SECURE_CONTENT_TYPE_NOSNIFF=True
+X_FRAME_OPTIONS=DENY
+SECURE_HSTS_SECONDS=31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS=True
+SECURE_HSTS_PRELOAD=True
+```
 
-#### الف) ایجاد دیتابیس:
-1. در Render، "New PostgreSQL" را کلیک کنید
-2. نام: `chidman-db`
-3. Database: `chidman`
-4. User: `chidman_user`
+### مرحله 5: ایجاد دیتابیس
 
-#### ب) اتصال دیتابیس:
-1. در سرویس وب، "Environment" را کلیک کنید
-2. "Link Database" را کلیک کنید
-3. دیتابیس `chidman-db` را انتخاب کنید
-4. متغیر `DATABASE_URL` خودکار اضافه می‌شود
+1. **انتخاب "New PostgreSQL"**
+2. **تنظیمات دیتابیس**:
+   - Name: `chidman-db`
+   - Database: `chidman`
+   - User: `chidman_user`
+   - Plan: `Free`
 
-### 5. دیپلوی
+3. **اتصال دیتابیس به سرویس**:
+   - در سرویس، متغیر `DATABASE_URL` را به دیتابیس متصل کنید
 
-1. "Create Web Service" را کلیک کنید
-2. منتظر بمانید تا build و deploy کامل شود
-3. لاگ‌ها را بررسی کنید
+## 🔍 عیب‌یابی مشکلات رایج
 
-## 🔧 عیب‌یابی
+### مشکل 1: Build Failed
+**علت**: خطا در نصب dependencies
+**راه‌حل**:
+- بررسی `requirements.txt`
+- اطمینان از سازگاری نسخه‌ها
+- بررسی `runtime.txt`
 
-### مشکل: ModuleNotFoundError: No module named 'core'
+### مشکل 2: Database Connection Error
+**علت**: تنظیمات نادرست DATABASE_URL
+**راه‌حل**:
+- بررسی اتصال دیتابیس
+- اطمینان از صحت متغیر DATABASE_URL
 
-#### راه حل 1: بررسی فایل‌ها
+### مشکل 3: Static Files Not Found
+**علت**: عدم جمع‌آوری فایل‌های static
+**راه‌حل**:
+- بررسی `STATIC_ROOT` در settings
+- اطمینان از اجرای `collectstatic`
+
+### مشکل 4: WSGI Application Error
+**علت**: مسیر نادرست WSGI
+**راه‌حل**:
+- بررسی `chidmano/wsgi.py`
+- اطمینان از صحت `DJANGO_SETTINGS_MODULE`
+
+## 📊 مانیتورینگ و نگهداری
+
+### 1. لاگ‌ها
+- بررسی لاگ‌های Build
+- بررسی لاگ‌های Runtime
+- مانیتورینگ خطاها
+
+### 2. عملکرد
+- بررسی Response Time
+- مانیتورینگ Memory Usage
+- بررسی Database Performance
+
+### 3. امنیت
+- بررسی Security Headers
+- مانیتورینگ Failed Login Attempts
+- بررسی SSL Certificate
+
+## 🔄 به‌روزرسانی
+
+### 1. تغییرات کد
 ```bash
-# اطمینان از وجود فایل‌ها
-ls -la core/
-ls -la core/wsgi.py
-ls -la core/__init__.py
+git add .
+git commit -m "تغییرات جدید"
+git push origin main
 ```
 
-#### راه حل 2: تست محلی
-```bash
-# تست WSGI application
-python -c "from core.wsgi import application; print('OK')"
-```
+### 2. تغییرات متغیرهای محیطی
+- در Render Dashboard
+- تغییر متغیر مورد نظر
+- Redeploy سرویس
 
-#### راه حل 3: بررسی لاگ‌ها
-- در Render، "Logs" را بررسی کنید
-- خطاهای build را پیدا کنید
+### 3. تغییرات دیتابیس
+- اجرای مایگریشن‌های جدید
+- بررسی سازگاری داده‌ها
 
-### مشکل: Database connection failed
+## 📞 پشتیبانی
 
-#### راه حل:
-1. اطمینان از اتصال دیتابیس
-2. بررسی متغیر `DATABASE_URL`
-3. اجرای مایگریشن‌ها
-
-### مشکل: Static files not found
-
-#### راه حل:
-1. بررسی `STATIC_ROOT` در settings
-2. اطمینان از اجرای `collectstatic`
-3. بررسی `whitenoise` middleware
-
-## 📊 مانیتورینگ
-
-### Health Check:
-- URL: `https://your-app.onrender.com/`
-- باید Status 200 برگرداند
-
-### لاگ‌ها:
-- در Render dashboard، "Logs" را بررسی کنید
-- خطاها و warnings را پیدا کنید
-
-### عملکرد:
-- Response time را بررسی کنید
-- Memory usage را مانیتور کنید
-
-## 🔒 امنیت
-
-### SSL/HTTPS:
-- Render خودکار SSL ارائه می‌دهد
-- `SECURE_SSL_REDIRECT=True` در production
-
-### متغیرهای حساس:
-- `SECRET_KEY` را در production تغییر دهید
-- `OPENAI_API_KEY` را محافظت کنید
-
-## 📈 بهینه‌سازی
-
-### Performance:
-- `workers=2` برای free plan
-- `timeout=120` برای AI processing
-- `whitenoise` برای static files
-
-### Database:
-- Connection pooling
-- Index optimization
-- Query optimization
-
-## 🆘 پشتیبانی
-
-### مشکلات رایج:
-1. **Build failed**: بررسی requirements.txt
-2. **Import error**: بررسی PYTHONPATH
-3. **Database error**: بررسی DATABASE_URL
-4. **Static files**: بررسی whitenoise
-
-### منابع:
+### منابع مفید:
 - [Render Documentation](https://render.com/docs)
-- [Django Deployment](https://docs.djangoproject.com/en/5.0/howto/deployment/)
-- [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html)
+- [Django Deployment](https://docs.djangoproject.com/en/stable/howto/deployment/)
+- [Gunicorn Documentation](https://docs.gunicorn.org/)
 
----
+### تماس:
+- **Issues**: برای گزارش مشکلات
+- **Discussions**: برای سوالات
+- **Email**: برای پشتیبانی مستقیم
 
-**نکته مهم**: اگر هنوز مشکل `core.wsgi:application` دارید، احتمالاً Render از cache استفاده می‌کند. سرویس را delete کنید و دوباره ایجاد کنید.
+## ✅ چک‌لیست نهایی
+
+- [ ] Repository در گیت‌هاب آماده است
+- [ ] فایل‌های ضروری موجود هستند
+- [ ] متغیرهای محیطی تنظیم شده‌اند
+- [ ] دیتابیس ایجاد و متصل شده است
+- [ ] سرویس با موفقیت دیپلوی شده است
+- [ ] تست‌های عملکرد انجام شده‌اند
+- [ ] امنیت بررسی شده است
+- [ ] SSL Certificate فعال است
+
+**🎉 تبریک! پروژه شما با موفقیت روی Render دیپلوی شده است!**

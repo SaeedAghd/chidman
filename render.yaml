@@ -1,17 +1,17 @@
 services:
   - type: web
-    name: chidman-store-analysis-v2
+    name: chidman-store-analysis
     env: python
     plan: free
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --max-requests 1000 --max-requests-jitter 100
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
-        value: chidman-store-analysis-v2.onrender.com
+        value: chidman-store-analysis.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: chidman-db
@@ -20,6 +20,24 @@ services:
         value: chidmano.settings
       - key: PYTHONPATH
         value: /opt/render/project/src
+      - key: SECURE_SSL_REDIRECT
+        value: True
+      - key: SESSION_COOKIE_SECURE
+        value: True
+      - key: CSRF_COOKIE_SECURE
+        value: True
+      - key: SECURE_BROWSER_XSS_FILTER
+        value: True
+      - key: SECURE_CONTENT_TYPE_NOSNIFF
+        value: True
+      - key: X_FRAME_OPTIONS
+        value: DENY
+      - key: SECURE_HSTS_SECONDS
+        value: 31536000
+      - key: SECURE_HSTS_INCLUDE_SUBDOMAINS
+        value: True
+      - key: SECURE_HSTS_PRELOAD
+        value: True
     healthCheckPath: /
     autoDeploy: true
     buildFilter:
@@ -27,10 +45,10 @@ services:
         - requirements.txt
         - build.sh
         - manage.py
-        - wsgi.py
-        - core/**
         - chidmano/**
         - store_analysis/**
+        - static/**
+        - templates/**
 
 databases:
   - name: chidman-db
