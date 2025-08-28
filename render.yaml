@@ -1,17 +1,17 @@
 services:
   - type: web
-    name: chidman-store-analysis
+    name: chidman-store-analysis-v2
     env: python
     plan: free
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
-        value: chidman-store-analysis.onrender.com
+        value: chidman-store-analysis-v2.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: chidman-db
@@ -28,6 +28,7 @@ services:
         - build.sh
         - manage.py
         - wsgi.py
+        - core/**
         - chidmano/**
         - store_analysis/**
 

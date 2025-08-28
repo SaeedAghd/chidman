@@ -15,6 +15,7 @@ pip install -r requirements.txt
 echo "🔍 Verifying Django project structure..."
 python -c "import chidmano; print('✅ chidmano module found')"
 python -c "import store_analysis; print('✅ store_analysis module found')"
+python -c "import core; print('✅ core module found')"
 
 # Collect static files
 echo "📁 Collecting static files..."
@@ -36,14 +37,22 @@ else:
     print('Superuser already exists')
 "
 
-# Test WSGI application
-echo "🧪 Testing WSGI application..."
+# Test both WSGI applications
+echo "🧪 Testing WSGI applications..."
+echo "Testing core.wsgi:application..."
 python -c "
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
-from django.core.wsgi import get_wsgi_application
-app = get_wsgi_application()
-print('✅ WSGI application loaded successfully')
+from core.wsgi import application
+print('✅ core.wsgi:application loaded successfully')
+"
+
+echo "Testing wsgi:application..."
+python -c "
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
+from wsgi import application
+print('✅ wsgi:application loaded successfully')
 "
 
 echo "✅ Build completed successfully!"
