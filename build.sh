@@ -17,14 +17,14 @@ python -c "import chidmano; print('✅ chidmano module found')"
 python -c "import store_analysis; print('✅ store_analysis module found')"
 python -c "import core; print('✅ core module found')"
 
-# Test Django settings import
-echo "🧪 Testing Django settings..."
+# Test Django setup
+echo "🧪 Testing Django setup..."
 python -c "
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
 import django
 django.setup()
-print('✅ Django settings loaded successfully')
+print('✅ Django setup successful')
 "
 
 # Collect static files
