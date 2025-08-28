@@ -6,20 +6,29 @@ services:
     buildCommand: chmod +x build.sh && ./build.sh
     startCommand: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --max-requests 1000 --max-requests-jitter 100
     envVars:
+      # Django Core Settings
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
         value: chidman-store-analysis.onrender.com
-      - key: DATABASE_URL
-        fromDatabase:
-          name: chidman-db
-          property: connectionString
       - key: DJANGO_SETTINGS_MODULE
         value: chidmano.settings
       - key: PYTHONPATH
         value: /opt/render/project/src
+      
+      # Database Configuration
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chidman-db
+          property: connectionString
+      
+      # OpenAI API (شما باید این مقدار را تغییر دهید)
+      - key: OPENAI_API_KEY
+        value: your-openai-api-key-here
+      
+      # Security Settings
       - key: SECURE_SSL_REDIRECT
         value: True
       - key: SESSION_COOKIE_SECURE
@@ -37,6 +46,46 @@ services:
       - key: SECURE_HSTS_INCLUDE_SUBDOMAINS
         value: True
       - key: SECURE_HSTS_PRELOAD
+        value: True
+      
+      # CSRF Trusted Origins
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://chidman-store-analysis.onrender.com
+      
+      # Static and Media Files
+      - key: STATIC_URL
+        value: /static/
+      - key: STATIC_ROOT
+        value: staticfiles/
+      - key: MEDIA_URL
+        value: /media/
+      - key: MEDIA_ROOT
+        value: media/
+      
+      # Email Settings (اختیاری)
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: True
+      - key: EMAIL_HOST_USER
+        value: your-email@gmail.com
+      - key: EMAIL_HOST_PASSWORD
+        value: your-app-password
+      
+      # CORS Settings
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://chidman-store-analysis.onrender.com
+      
+      # Additional Django Settings
+      - key: LANGUAGE_CODE
+        value: fa-ir
+      - key: TIME_ZONE
+        value: Asia/Tehran
+      - key: USE_I18N
+        value: True
+      - key: USE_TZ
         value: True
     healthCheckPath: /
     autoDeploy: true
