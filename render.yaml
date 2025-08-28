@@ -3,8 +3,8 @@ services:
     name: chidman-store-analysis
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn chidmano.wsgi:application
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -12,5 +12,15 @@ services:
         value: False
       - key: ALLOWED_HOSTS
         value: chidman-store-analysis.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chidman-db
+          property: connectionString
     healthCheckPath: /
     autoDeploy: true
+
+databases:
+  - name: chidman-db
+    databaseName: chidman
+    user: chidman_user
+    plan: free

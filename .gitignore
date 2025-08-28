@@ -157,4 +157,9 @@ Thumbs.db
 
 # Temporary files
 *.tmp
-*.temp 
+*.temp
+
+# Backup files
+backup_*/
+*_backup/
+backup_complete_*/ 

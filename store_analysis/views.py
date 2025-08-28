@@ -1528,8 +1528,8 @@ def submit_analysis(request):
                 if field in cleaned_data:
                     if cleaned_data[field]:
                         cleaned_data[field] = f"File uploaded: {cleaned_data[field].name}"
-        else:
-                        cleaned_data[field] = None
+                else:
+                    cleaned_data[field] = None
             
             # تبدیل Decimal به float و date به string
             for key, value in cleaned_data.items():
