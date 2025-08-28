@@ -224,6 +224,49 @@
                         </div>
                     </div>
 
+                    <!-- خلاصه اجرایی -->
+                    {% if analysis.results.executive_summary %}
+                    <div class="management-report-section mb-4">
+                        <h4 class="text-primary mb-3">
+                            <i class="fas fa-chart-line me-2"></i>
+                            خلاصه اجرایی
+                        </h4>
+                        <div class="card border-0 bg-primary text-white">
+                            <div class="card-body">
+                                <p class="mb-0">{{ analysis.results.executive_summary }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- پیش‌بینی مالی -->
+                    {% if analysis.results.financial_forecast %}
+                    <div class="management-report-section mb-4">
+                        <h4 class="text-success mb-3">
+                            <i class="fas fa-dollar-sign me-2"></i>
+                            پیش‌بینی مالی
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h5>افزایش درآمد</h5>
+                                        <h3>{{ analysis.results.financial_forecast.revenue_increase }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h5>بازگشت سرمایه</h5>
+                                        <h3>{{ analysis.results.financial_forecast.roi }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- تحلیل SWOT -->
                     <div class="management-report-section mb-4">
                         <h4 class="text-warning mb-3">

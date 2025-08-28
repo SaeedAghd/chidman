@@ -214,9 +214,24 @@ class StoreAnalysisAI:
             safe_float(analysis_data.get('sales_improvement_target', 20)),
             safe_float(analysis_data.get('optimization_timeline', 6)),
             safe_float(analysis_data.get('historical_data_months', 12)),
-            len(analysis_data.get('product_categories', [])),
-            len(analysis_data.get('peak_days', [])),
         ])
+        
+        # اضافه کردن ویژگی‌های لیستی با بررسی نوع داده
+        product_categories = analysis_data.get('product_categories', [])
+        if isinstance(product_categories, list):
+            features.append(len(product_categories))
+        elif isinstance(product_categories, str):
+            features.append(1)  # اگر رشته باشد، یک دسته‌بندی در نظر می‌گیریم
+        else:
+            features.append(0)
+        
+        peak_days = analysis_data.get('peak_days', [])
+        if isinstance(peak_days, list):
+            features.append(len(peak_days))
+        elif isinstance(peak_days, str):
+            features.append(1)  # اگر رشته باشد، یک روز اوج در نظر می‌گیریم
+        else:
+            features.append(0)
         
         return np.array(features).reshape(1, -1)
     
@@ -225,9 +240,9 @@ class StoreAnalysisAI:
         try:
             # اینجا باید مدل آموزش دیده باشد
             # برای نمونه، از یک الگوریتم ساده استفاده می‌کنیم
-            store_size = features[0, 0]
-            conversion_rate = features[0, 4]
-            customer_traffic = features[0, 5]
+            store_size = float(features[0, 0])
+            conversion_rate = float(features[0, 4])
+            customer_traffic = float(features[0, 5])
             
             # محاسبه فروش پیش‌بینی شده
             predicted_sales = customer_traffic * (conversion_rate / 100) * 1000  # متوسط خرید 1000 تومان
@@ -249,13 +264,13 @@ class StoreAnalysisAI:
     def _predict_conversion_improvement(self, features: np.ndarray) -> Dict[str, Any]:
         """پیش‌بینی بهبود نرخ تبدیل"""
         try:
-            current_conversion = features[0, 4]
-            store_size = features[0, 0]
-            unused_area = features[0, 7]
+            current_conversion = float(features[0, 4])
+            store_size = float(features[0, 0])
+            unused_area = float(features[0, 7])
             
             # عوامل بهبود
             layout_improvement = min(15, (store_size - unused_area) / store_size * 20)
-            checkout_improvement = min(10, features[0, 2] * 2)  # بر اساس تعداد صندوق‌ها
+            checkout_improvement = min(10, float(features[0, 2]) * 2)  # بر اساس تعداد صندوق‌ها
             lighting_improvement = 5  # بهبود نورپردازی
             
             total_improvement = layout_improvement + checkout_improvement + lighting_improvement
@@ -279,9 +294,9 @@ class StoreAnalysisAI:
     def _analyze_customer_behavior(self, features: np.ndarray) -> Dict[str, Any]:
         """تحلیل رفتار مشتری"""
         try:
-            dwell_time = features[0, 6]
-            traffic = features[0, 5]
-            conversion = features[0, 4]
+            dwell_time = float(features[0, 6])
+            traffic = float(features[0, 5])
+            conversion = float(features[0, 4])
             
             # طبقه‌بندی رفتار
             if dwell_time > 60 and conversion > 40:
@@ -330,13 +345,13 @@ class StoreAnalysisAI:
     def _generate_practical_recommendations(self, features: np.ndarray) -> Dict[str, Any]:
         """تولید راهنمایی‌های عملی چیدمان"""
         try:
-            store_size = features[0, 0]
-            entrance_count = features[0, 1]
-            checkout_count = features[0, 2]
-            shelf_count = features[0, 3]
-            conversion_rate = features[0, 4]
-            customer_traffic = features[0, 5]
-            unused_area = features[0, 7]
+            store_size = float(features[0, 0])
+            entrance_count = float(features[0, 1])
+            checkout_count = float(features[0, 2])
+            shelf_count = float(features[0, 3])
+            conversion_rate = float(features[0, 4])
+            customer_traffic = float(features[0, 5])
+            unused_area = float(features[0, 7])
             
             practical_guide = {
                 "window_display": self._get_window_display_guide(store_size, conversion_rate),
@@ -501,10 +516,10 @@ class StoreAnalysisAI:
             priorities = []
             
             # محاسبه امتیاز برای هر بخش
-            layout_score = 100 - (features[0, 7] / features[0, 0] * 100)  # فضای بلااستفاده
-            checkout_score = features[0, 2] * 10  # تعداد صندوق‌ها
-            conversion_score = features[0, 4]  # نرخ تبدیل
-            traffic_score = features[0, 5] / 10  # ترافیک
+            layout_score = 100 - (float(features[0, 7]) / float(features[0, 0]) * 100)  # فضای بلااستفاده
+            checkout_score = float(features[0, 2]) * 10  # تعداد صندوق‌ها
+            conversion_score = float(features[0, 4])  # نرخ تبدیل
+            traffic_score = float(features[0, 5]) / 10  # ترافیک
             
             # اولویت‌بندی
             if layout_score < 70:
@@ -528,9 +543,9 @@ class StoreAnalysisAI:
     def _predict_roi(self, features: np.ndarray) -> Dict[str, Any]:
         """پیش‌بینی بازگشت سرمایه"""
         try:
-            current_sales = features[0, 9]  # فروش روزانه
-            improvement_target = features[0, 15]  # هدف بهبود
-            timeline = features[0, 16]  # بازه زمانی
+            current_sales = float(features[0, 9])  # فروش روزانه
+            improvement_target = float(features[0, 15])  # هدف بهبود
+            timeline = float(features[0, 16])  # بازه زمانی
             
             # محاسبه ROI
             additional_sales = current_sales * (improvement_target / 100) * 365  # فروش سالانه اضافی
@@ -566,9 +581,9 @@ class StoreAnalysisAI:
     
     def _analyze_traffic_patterns(self, features: np.ndarray) -> Dict[str, Any]:
         """تحلیل الگوهای ترافیک"""
-        morning = features[0, 11]
-        noon = features[0, 12]
-        evening = features[0, 13]
+        morning = float(features[0, 11])
+        noon = float(features[0, 12])
+        evening = float(features[0, 13])
         
         peak_period = "morning" if morning > max(noon, evening) else "noon" if noon > evening else "evening"
         
@@ -605,8 +620,8 @@ class StoreAnalysisAI:
     
     def _analyze_sales_patterns(self, features: np.ndarray) -> Dict[str, Any]:
         """تحلیل الگوهای فروش"""
-        conversion_rate = features[0, 4]
-        customer_traffic = features[0, 5]
+        conversion_rate = float(features[0, 4])
+        customer_traffic = float(features[0, 5])
         
         efficiency_score = (conversion_rate / 50) * (customer_traffic / 200) * 100
         
@@ -637,7 +652,7 @@ class StoreAnalysisAI:
             if predictions.get("conversion_optimization", {}).get("predicted_improvement", 0) > 10:
                 recommendations["immediate"].append("بهینه‌سازی فوری چیدمان برای بهبود نرخ تبدیل")
             
-            if features[0, 7] > features[0, 0] * 0.2:  # فضای بلااستفاده > 20%
+            if float(features[0, 7]) > float(features[0, 0]) * 0.2:  # فضای بلااستفاده > 20%
                 recommendations["immediate"].append("بازطراحی فوری فضای بلااستفاده")
             
             # پیشنهادات کوتاه مدت

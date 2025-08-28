@@ -337,6 +337,21 @@ def analysis_list(request):
     else:
         analyses = StoreAnalysis.objects.filter(user=request.user).order_by('-created_at')
     
+    # اضافه کردن اطلاعات اضافی برای نمایش
+    for analysis in analyses:
+        # محاسبه پیشرفت
+        if analysis.status == 'completed':
+            analysis.progress = 100
+        elif analysis.status == 'processing':
+            analysis.progress = 75
+        elif analysis.status == 'pending':
+            analysis.progress = 25
+        else:
+            analysis.progress = 0
+        
+        # بررسی وجود پیش‌تحلیل (به صورت متغیر موقت)
+        analysis.has_preliminary_temp = bool(analysis.results or analysis.preliminary_analysis)
+    
     paginator = Paginator(analyses, 10)
     page = request.GET.get('page')
     analyses = paginator.get_page(page)
@@ -344,6 +359,7 @@ def analysis_list(request):
     context = {
         'analyses': analyses,
         'is_admin': request.user.is_staff or request.user.is_superuser,
+        'total_analyses': len(analyses),
     }
     return render(request, 'store_analysis/analysis_list.html', context)
 
@@ -376,10 +392,11 @@ def analysis_results(request, pk):
         
         # محاسبه امتیازات جزئی بر اساس داده‌های تحلیل
         analysis_data = analysis.get_analysis_data()
-        conversion_rate = analysis_data.get('conversion_rate', 35)
-        customer_traffic = analysis_data.get('customer_traffic', 150)
-        store_size = analysis_data.get('store_size', 500)
-        unused_area_size = analysis_data.get('unused_area_size', 0)
+        # استفاده از مقادیر پیش‌فرض اگر داده‌ای موجود نباشد
+        conversion_rate = float(analysis_data.get('conversion_rate', 42.5))
+        customer_traffic = float(analysis_data.get('customer_traffic', 180))
+        store_size = float(analysis_data.get('store_size', 1200))
+        unused_area_size = float(analysis_data.get('unused_area_size', 150))
         
         # امتیاز چیدمان (بر اساس فضای بلااستفاده و نرخ تبدیل)
         layout_score = max(60, 100 - (unused_area_size / store_size * 100) if store_size > 0 else 80)

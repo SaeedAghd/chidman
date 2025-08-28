@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -16,8 +16,19 @@ services:
         fromDatabase:
           name: chidman-db
           property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: chidmano.settings
+      - key: PYTHONPATH
+        value: /opt/render/project/src
     healthCheckPath: /
     autoDeploy: true
+    buildFilter:
+      paths:
+        - requirements.txt
+        - build.sh
+        - manage.py
+        - chidmano/**
+        - store_analysis/**
 
 databases:
   - name: chidman-db
