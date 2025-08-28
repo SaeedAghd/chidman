@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: gunicorn wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -27,6 +27,7 @@ services:
         - requirements.txt
         - build.sh
         - manage.py
+        - wsgi.py
         - chidmano/**
         - store_analysis/**
 

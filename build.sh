@@ -11,6 +11,11 @@ export DJANGO_SETTINGS_MODULE=chidmano.settings
 echo "📦 Installing Python dependencies..."
 pip install -r requirements.txt
 
+# Verify Django project structure
+echo "🔍 Verifying Django project structure..."
+python -c "import chidmano; print('✅ chidmano module found')"
+python -c "import store_analysis; print('✅ store_analysis module found')"
+
 # Collect static files
 echo "📁 Collecting static files..."
 python manage.py collectstatic --noinput --clear
@@ -29,6 +34,16 @@ if not User.objects.filter(is_superuser=True).exists():
     print('Superuser created')
 else:
     print('Superuser already exists')
+"
+
+# Test WSGI application
+echo "🧪 Testing WSGI application..."
+python -c "
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
+from django.core.wsgi import get_wsgi_application
+app = get_wsgi_application()
+print('✅ WSGI application loaded successfully')
 "
 
 echo "✅ Build completed successfully!"
