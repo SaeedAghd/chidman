@@ -190,7 +190,7 @@ class StoreAnalysisAI:
             logger.error(f"Error in ML analysis: {e}")
             return {"error": f"ML analysis failed: {str(e)}"}
     
-    def _extract_ml_features(self, analysis_data: Dict[str, Any]) -> np.ndarray:
+    def _extract_ml_features(self, analysis_data: Dict[str, Any]):
         """استخراج ویژگی‌های ML از داده‌ها"""
         features = []
         
@@ -243,7 +243,7 @@ class StoreAnalysisAI:
         
         return np.array(features).reshape(1, -1)
     
-    def _predict_sales(self, features: np.ndarray) -> Dict[str, Any]:
+    def _predict_sales(self, features) -> Dict[str, Any]:
         """پیش‌بینی فروش با ML"""
         try:
             # اینجا باید مدل آموزش دیده باشد
@@ -269,7 +269,7 @@ class StoreAnalysisAI:
             logger.error(f"Error in sales prediction: {e}")
             return {"error": str(e)}
     
-    def _predict_conversion_improvement(self, features: np.ndarray) -> Dict[str, Any]:
+    def _predict_conversion_improvement(self, features) -> Dict[str, Any]:
         """پیش‌بینی بهبود نرخ تبدیل"""
         try:
             current_conversion = float(features[0, 4])
@@ -299,7 +299,7 @@ class StoreAnalysisAI:
             logger.error(f"Error in conversion prediction: {e}")
             return {"error": str(e)}
     
-    def _analyze_customer_behavior(self, features: np.ndarray) -> Dict[str, Any]:
+    def _analyze_customer_behavior(self, features) -> Dict[str, Any]:
         """تحلیل رفتار مشتری"""
         try:
             dwell_time = float(features[0, 6])
@@ -350,7 +350,7 @@ class StoreAnalysisAI:
         }
         return recommendations.get(behavior_type, [])
     
-    def _generate_practical_recommendations(self, features: np.ndarray) -> Dict[str, Any]:
+    def _generate_practical_recommendations(self, features) -> Dict[str, Any]:
         """تولید راهنمایی‌های عملی چیدمان"""
         try:
             store_size = float(features[0, 0])
@@ -518,7 +518,7 @@ class StoreAnalysisAI:
             }
         }
     
-    def _get_optimization_priority(self, features: np.ndarray) -> Dict[str, Any]:
+    def _get_optimization_priority(self, features) -> Dict[str, Any]:
         """اولویت‌بندی بهینه‌سازی"""
         try:
             priorities = []
@@ -548,7 +548,7 @@ class StoreAnalysisAI:
             logger.error(f"Error in optimization priority: {e}")
             return {"error": str(e)}
     
-    def _predict_roi(self, features: np.ndarray) -> Dict[str, Any]:
+    def _predict_roi(self, features) -> Dict[str, Any]:
         """پیش‌بینی بازگشت سرمایه"""
         try:
             current_sales = float(features[0, 9])  # فروش روزانه
@@ -573,7 +573,7 @@ class StoreAnalysisAI:
             logger.error(f"Error in ROI prediction: {e}")
             return {"error": str(e)}
     
-    def _analyze_patterns(self, features: np.ndarray) -> Dict[str, Any]:
+    def _analyze_patterns(self, features) -> Dict[str, Any]:
         """تحلیل الگوها"""
         try:
             patterns = {
@@ -587,7 +587,7 @@ class StoreAnalysisAI:
             logger.error(f"Error in pattern analysis: {e}")
             return {"error": str(e)}
     
-    def _analyze_traffic_patterns(self, features: np.ndarray) -> Dict[str, Any]:
+    def _analyze_traffic_patterns(self, features) -> Dict[str, Any]:
         """تحلیل الگوهای ترافیک"""
         morning = float(features[0, 11])
         noon = float(features[0, 12])
@@ -626,7 +626,7 @@ class StoreAnalysisAI:
         }
         return recommendations.get(peak_period, [])
     
-    def _analyze_sales_patterns(self, features: np.ndarray) -> Dict[str, Any]:
+    def _analyze_sales_patterns(self, features) -> Dict[str, Any]:
         """تحلیل الگوهای فروش"""
         conversion_rate = float(features[0, 4])
         customer_traffic = float(features[0, 5])
@@ -639,7 +639,7 @@ class StoreAnalysisAI:
             "optimization_potential": 100 - efficiency_score
         }
     
-    def _analyze_seasonal_patterns(self, features: np.ndarray) -> Dict[str, Any]:
+    def _analyze_seasonal_patterns(self, features) -> Dict[str, Any]:
         """تحلیل الگوهای فصلی"""
         # این بخش نیاز به داده‌های تاریخی دارد
         return {
@@ -647,7 +647,7 @@ class StoreAnalysisAI:
             "recommendation": "جمع‌آوری داده‌های فروش ماهانه برای تحلیل فصلی"
         }
     
-    def _generate_ml_recommendations(self, features: np.ndarray, predictions: Dict) -> Dict[str, Any]:
+    def _generate_ml_recommendations(self, features, predictions: Dict) -> Dict[str, Any]:
         """تولید پیشنهادات مبتنی بر ML"""
         try:
             recommendations = {
@@ -677,7 +677,7 @@ class StoreAnalysisAI:
             logger.error(f"Error generating ML recommendations: {e}")
             return {"error": str(e)}
     
-    def _calculate_confidence_scores(self, features: np.ndarray) -> Dict[str, float]:
+    def _calculate_confidence_scores(self, features) -> Dict[str, float]:
         """محاسبه امتیازات اطمینان"""
         try:
             # محاسبه اطمینان بر اساس کیفیت داده‌ها
