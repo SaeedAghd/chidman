@@ -36,21 +36,6 @@ python manage.py collectstatic --noinput --clear || echo "⚠️ Warning: Static
 echo "🗄️ Running database migrations..."
 python manage.py migrate --noinput || echo "⚠️ Warning: Migrations failed"
 
-# Create superuser if needed (optional)
-echo "👤 Checking for superuser..."
-python manage.py shell -c "
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(is_superuser=True).exists():
-    try:
-        User.objects.create_superuser('admin', 'admin@chidman.com', 'admin123')
-        print('✅ Superuser created')
-    except Exception as e:
-        print(f'⚠️ Warning: Could not create superuser: {e}')
-else:
-    print('✅ Superuser already exists')
-" || echo "⚠️ Warning: Superuser check failed"
-
 # Test WSGI application
 echo "🧪 Testing WSGI application..."
 python -c "
