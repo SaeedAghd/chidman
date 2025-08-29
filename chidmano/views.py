@@ -46,92 +46,56 @@ def dashboard_view(request):
     return render(request, 'store_analysis/dashboard.html')
 
 def simple_home(request):
-    """Simple home page for testing"""
+    """صفحه اصلی ساده برای تست"""
     return HttpResponse("""
     <html>
     <head>
-        <title>چیدمان - تحلیل هوشمند فروشگاه</title>
+        <title>چیدمان - تست</title>
         <meta charset="utf-8">
         <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-            h1 { color: #2c3e50; }
-            p { color: #7f8c8d; }
-            .success { color: #27ae60; }
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+            .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; }
+            .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; }
         </style>
     </head>
     <body>
-        <h1>🏪 چیدمان</h1>
-        <p class="success">✅ سیستم تحلیل هوشمند فروشگاه با موفقیت راه‌اندازی شد!</p>
-        <p>🎉 پروژه شما روی Render دیپلوی شده و آماده استفاده است.</p>
-        <p>📊 قابلیت‌های موجود:</p>
-        <ul style="text-align: left; display: inline-block;">
-            <li>تحلیل هوشمند فروشگاه با AI</li>
-            <li>تولید گزارش‌های مدیریتی</li>
-            <li>پیش‌بینی مالی و ROI</li>
-            <li>راهنمایی عملی برای بهبود</li>
-            <li>ربات مشاور هوش مصنوعی</li>
-        </ul>
-        <p><a href="/store-analysis/">شروع تحلیل فروشگاه</a></p>
+        <div class="container">
+            <h1>🏪 چیدمان</h1>
+            <p>✅ سیستم در حال کار است!</p>
+            <p>این صفحه نشان می‌دهد که Django و URL routing درست کار می‌کند.</p>
+            
+            <div style="margin-top: 30px;">
+                <a href="/store/" class="btn">🏪 سایت اصلی</a>
+                <a href="/health/" class="btn">💚 وضعیت سیستم</a>
+            </div>
+        </div>
     </body>
     </html>
     """)
 
 def store_analysis_home(request):
-    """Store analysis home page"""
+    """صفحه اصلی تحلیل فروشگاه"""
     return HttpResponse("""
     <html>
     <head>
         <title>تحلیل فروشگاه - چیدمان</title>
         <meta charset="utf-8">
         <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-            .container { max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
-            h1 { color: #fff; margin-bottom: 30px; }
-            .feature { background: rgba(255,255,255,0.2); margin: 20px 0; padding: 20px; border-radius: 10px; text-align: left; }
-            .feature h3 { color: #fff; margin-top: 0; }
-            .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; transition: all 0.3s; }
-            .btn:hover { background: #219a52; transform: translateY(-2px); }
-            .status { background: rgba(39, 174, 96, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+            .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; }
+            .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>🏪 تحلیل هوشمند فروشگاه</h1>
+            <h1>📊 تحلیل فروشگاه</h1>
+            <p>✅ صفحه تحلیل فروشگاه در دسترس است!</p>
+            <p>این صفحه برای تحلیل هوشمند فروشگاه شما طراحی شده است.</p>
             
-            <div class="status">
-                <h3>✅ سیستم آماده است!</h3>
-                <p>سیستم تحلیل هوشمند فروشگاه با موفقیت راه‌اندازی شده و آماده ارائه خدمات است.</p>
-            </div>
-            
-            <div class="feature">
-                <h3>🤖 تحلیل هوشمند با AI</h3>
-                <p>تحلیل دقیق فروشگاه با استفاده از هوش مصنوعی و یادگیری ماشین</p>
-            </div>
-            
-            <div class="feature">
-                <h3>📊 گزارش‌های مدیریتی</h3>
-                <p>تولید گزارش‌های جامع و کاربردی برای تصمیم‌گیری بهتر</p>
-            </div>
-            
-            <div class="feature">
-                <h3>💰 پیش‌بینی مالی و ROI</h3>
-                <p>محاسبه دقیق بازگشت سرمایه و پیش‌بینی درآمد</p>
-            </div>
-            
-            <div class="feature">
-                <h3>🎯 راهنمایی عملی</h3>
-                <p>ارائه راهنمایی‌های عملی و قابل اجرا برای بهبود فروشگاه</p>
-            </div>
-            
-            <div style="margin-top: 40px;">
+            <div style="margin-top: 30px;">
                 <a href="/" class="btn">🏠 صفحه اصلی</a>
+                <a href="/store/" class="btn">🏪 سایت اصلی</a>
                 <a href="/health/" class="btn">💚 وضعیت سیستم</a>
-                <a href="/admin/" class="btn">⚙️ پنل مدیریت</a>
-            </div>
-            
-            <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
-                <p>🎉 پروژه شما با موفقیت روی Render دیپلوی شده است!</p>
-                <p>برای شروع تحلیل فروشگاه، لطفاً با تیم توسعه تماس بگیرید.</p>
             </div>
         </div>
     </body>
@@ -172,9 +136,8 @@ def test_page(request):
 def safe_home(request):
     """Safe home page with error handling"""
     try:
-        # سعی می‌کنیم سایت اصلی را load کنیم
-        from store_analysis.views import index
-        return index(request)
+        # سعی می‌کنیم مستقیماً به سایت اصلی redirect کنیم
+        return redirect('store_analysis:index')
     except Exception as e:
         # اگر خطا داشت، صفحه fallback نمایش می‌دهیم
         import traceback
@@ -226,7 +189,7 @@ def safe_home(request):
                 
                 <div class="success">
                     <h3>🎯 راه‌حل</h3>
-                    <p>Namespace اضافه شده است. لطفاً صفحه را refresh کنید یا روی دکمه "سایت اصلی" کلیک کنید.</p>
+                    <p>Namespace در root level اضافه شده است. لطفاً صفحه را refresh کنید یا روی دکمه "سایت اصلی" کلیک کنید.</p>
                 </div>
                 
                 <div class="error-details">

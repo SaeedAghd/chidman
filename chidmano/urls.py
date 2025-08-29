@@ -19,8 +19,8 @@ urlpatterns = [
     # مسیر store-analysis برای رفع خطای 404
     path('store-analysis/', views.store_analysis_home, name='store_analysis_home'),
     
-    # مسیرهای اصلی با namespace
-    path('store/', include('store_analysis.urls', namespace='store_analysis')),  # مسیر اصلی - با namespace
+    # مسیرهای اصلی با namespace - در root level
+    path('', include('store_analysis.urls', namespace='store_analysis')),  # مسیر اصلی - با namespace در root
     
     path('admin/', admin.site.urls),
     path('accounts/signup/', views.signup_view, name='signup'),  # اضافه شده
