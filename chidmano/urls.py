@@ -8,19 +8,23 @@ from . import views
 from django.http import HttpResponse
 
 urlpatterns = [
-    path('i18n/', include('django.conf.urls.i18n')),  # اضافه شده برای تغییر زبان
+    # صفحه اصلی ساده
+    path('', views.simple_home, name='home'),
     
-    # صفحه تست برای اطمینان از کارکرد
+    # صفحه تست
     path('test/', views.test_page, name='test_page'),
     
-    # مسیر store-analysis برای رفع خطای 404
-    path('store-analysis/', views.store_analysis_home, name='store_analysis_home'),
+    # صفحه وضعیت سیستم
+    path('health/', views.health_check, name='health_check'),
     
-    # مسیرهای اصلی با namespace - در root level
-    path('', include('store_analysis.urls', namespace='store_analysis')),  # مسیر اصلی - با namespace در root
+    # مسیرهای اصلی store_analysis
+    path('store/', include('store_analysis.urls', namespace='store_analysis')),
     
+    # مسیرهای ادمین
     path('admin/', admin.site.urls),
-    path('accounts/signup/', views.signup_view, name='signup'),  # اضافه شده
+    
+    # مسیرهای احراز هویت
+    path('accounts/signup/', views.signup_view, name='signup'),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='store_analysis/login.html'), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(
@@ -31,6 +35,7 @@ urlpatterns = [
         template_name='store_analysis/password_change_done.html'
     ), name='password_change_done'),
     path('accounts/password_reset/', lambda request: HttpResponse('بازیابی رمز عبور فعال نیست.'), name='password_reset'),
-    path('store-analysis/features/', views.features_view, name='features'),
-    path('health/', views.health_check, name='health_check'),
+    
+    # مسیرهای اضافی
+    path('features/', views.features_view, name='features'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
