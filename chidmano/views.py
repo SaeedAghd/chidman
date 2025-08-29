@@ -206,6 +206,7 @@ def safe_home(request):
                 .btn {{ display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; }}
                 .error-details {{ background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; font-family: monospace; font-size: 12px; overflow-x: auto; }}
                 .status {{ background: rgba(39, 174, 96, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }}
+                .success {{ background: rgba(39, 174, 96, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }}
             </style>
         </head>
         <body>
@@ -223,15 +224,22 @@ def safe_home(request):
                     <p><strong>خطای فنی:</strong> {str(e)}</p>
                 </div>
                 
+                <div class="success">
+                    <h3>🎯 راه‌حل</h3>
+                    <p>Namespace اضافه شده است. لطفاً صفحه را refresh کنید یا روی دکمه "سایت اصلی" کلیک کنید.</p>
+                </div>
+                
                 <div class="error-details">
                     <h4>جزئیات خطا:</h4>
                     <pre>{error_details}</pre>
                 </div>
                 
                 <div style="margin-top: 40px;">
+                    <a href="/" class="btn">🔄 Refresh صفحه</a>
+                    <a href="/store/" class="btn">🏪 سایت اصلی</a>
                     <a href="/test/" class="btn">🧪 تست سیستم</a>
                     <a href="/health/" class="btn">💚 وضعیت سیستم</a>
-                    <a href="/store-analysis/" class="btn">🏪 تحلیل فروشگاه</a>
+                    <a href="/store-analysis/" class="btn">📊 تحلیل فروشگاه</a>
                     <a href="/admin/" class="btn">⚙️ پنل مدیریت</a>
                 </div>
                 
