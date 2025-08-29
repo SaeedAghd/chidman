@@ -17,6 +17,9 @@ urlpatterns = [
     # صفحه وضعیت سیستم
     path('health/', views.health_check, name='health_check'),
     
+    # مسیر مستقیم برای فرم تحلیل
+    path('analysis/', views.store_analysis_page, name='analysis'),
+    
     # مسیرهای اصلی store_analysis
     path('store/', include('store_analysis.urls', namespace='store_analysis')),
     

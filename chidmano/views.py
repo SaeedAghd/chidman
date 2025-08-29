@@ -57,6 +57,8 @@ def simple_home(request):
             .container { max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; }
             .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; transition: all 0.3s; }
             .btn:hover { background: #219a52; transform: translateY(-2px); }
+            .btn-primary { background: #007bff; }
+            .btn-primary:hover { background: #0056b3; }
             .hero { margin-bottom: 30px; }
             .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0; }
             .feature { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; }
@@ -86,8 +88,9 @@ def simple_home(request):
             </div>
             
             <div style="margin-top: 40px;">
-                <a href="/store/" class="btn">🏪 ورود به سایت اصلی</a>
-                <a href="/store/store-analysis/" class="btn">📊 شروع تحلیل</a>
+                <a href="/store/store-analysis/" class="btn btn-primary">📊 شروع تحلیل فروشگاه</a>
+                <a href="/store/store-analysis/submit/" class="btn">🤖 فرم هوشمند</a>
+                <a href="/analysis/" class="btn">🏪 صفحه تحلیل</a>
                 <a href="/test/" class="btn">🧪 تست سیستم</a>
                 <a href="/health/" class="btn">💚 وضعیت سیستم</a>
                 <a href="/admin/" class="btn">⚙️ پنل مدیریت</a>
@@ -95,7 +98,7 @@ def simple_home(request):
             
             <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
                 <p>🎉 پروژه شما با موفقیت روی Render دیپلوی شده است!</p>
-                <p>برای استفاده کامل از امکانات، روی "ورود به سایت اصلی" کلیک کنید.</p>
+                <p>برای استفاده کامل از امکانات، روی "شروع تحلیل فروشگاه" کلیک کنید.</p>
             </div>
         </div>
     </body>
@@ -260,6 +263,8 @@ def store_analysis_page(request):
             .feature h3 { color: #fff; margin-top: 0; }
             .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; transition: all 0.3s; }
             .btn:hover { background: #219a52; transform: translateY(-2px); }
+            .btn-primary { background: #007bff; }
+            .btn-primary:hover { background: #0056b3; }
             .status { background: rgba(39, 174, 96, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }
             .coming-soon { background: rgba(255, 193, 7, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }
         </style>
@@ -271,11 +276,6 @@ def store_analysis_page(request):
             <div class="status">
                 <h3>✅ سیستم آماده است!</h3>
                 <p>سیستم تحلیل هوشمند فروشگاه با موفقیت راه‌اندازی شده و آماده ارائه خدمات است.</p>
-            </div>
-            
-            <div class="coming-soon">
-                <h3>🚧 در حال توسعه</h3>
-                <p>قابلیت‌های پیشرفته تحلیل فروشگاه در حال توسعه هستند. به زودی در دسترس خواهند بود.</p>
             </div>
             
             <div class="feature">
@@ -299,6 +299,8 @@ def store_analysis_page(request):
             </div>
             
             <div style="margin-top: 40px;">
+                <a href="/store/store-analysis/" class="btn btn-primary">📊 شروع تحلیل فروشگاه</a>
+                <a href="/store/store-analysis/submit/" class="btn">🤖 فرم هوشمند</a>
                 <a href="/" class="btn">🏠 صفحه اصلی</a>
                 <a href="/test/" class="btn">🧪 تست سیستم</a>
                 <a href="/health/" class="btn">💚 وضعیت سیستم</a>
@@ -307,7 +309,7 @@ def store_analysis_page(request):
             
             <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
                 <p>🎉 پروژه شما با موفقیت روی Render دیپلوی شده است!</p>
-                <p>برای شروع تحلیل فروشگاه، لطفاً با تیم توسعه تماس بگیرید.</p>
+                <p>برای شروع تحلیل فروشگاه، روی "شروع تحلیل فروشگاه" کلیک کنید.</p>
             </div>
         </div>
     </body>
