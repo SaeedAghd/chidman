@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views
 from . import consumers
+from chidmano import views as main_views
 
 app_name = 'store_analysis'
 
@@ -9,7 +10,7 @@ urlpatterns = [
 
     
     # صفحات وب اصلی
-    path('', views.index, name='index'),
+    path('', main_views.safe_home, name='index'),  # استفاده از safe_home برای root
     path('education/', views.education_library, name='education_library'),
     path('education/article/<slug:slug>/', views.article_detail, name='article_detail'),
     path('features/', views.features, name='features'),

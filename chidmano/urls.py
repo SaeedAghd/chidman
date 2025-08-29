@@ -13,9 +13,6 @@ urlpatterns = [
     # صفحه تست برای اطمینان از کارکرد
     path('test/', views.test_page, name='test_page'),
     
-    # مسیر اصلی با error handling
-    path('', views.safe_home, name='safe_home'),
-    
     # مسیر store-analysis برای رفع خطای 404
     path('store-analysis/', views.store_analysis_home, name='store_analysis_home'),
     

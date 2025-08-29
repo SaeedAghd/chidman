@@ -137,7 +137,8 @@ def safe_home(request):
     """Safe home page with error handling"""
     try:
         # سعی می‌کنیم مستقیماً به سایت اصلی redirect کنیم
-        return redirect('store_analysis:index')
+        from store_analysis.views import index
+        return index(request)
     except Exception as e:
         # اگر خطا داشت، صفحه fallback نمایش می‌دهیم
         import traceback
