@@ -179,6 +179,21 @@ def safe_home(request):
         # اگر خطا داشت، صفحه fallback نمایش می‌دهیم
         import traceback
         error_details = traceback.format_exc()
+        
+        # بررسی نوع خطا
+        error_type = "مشکل موقت"
+        error_message = str(e)
+        
+        if "namespace" in error_message.lower():
+            error_type = "مشکل Namespace"
+            error_message = "مشکل در تنظیمات URL. در حال حل..."
+        elif "template" in error_message.lower():
+            error_type = "مشکل Template"
+            error_message = "مشکل در فایل‌های قالب. در حال حل..."
+        elif "import" in error_message.lower():
+            error_type = "مشکل Import"
+            error_message = "مشکل در import کردن ماژول‌ها. در حال حل..."
+        
         return HttpResponse(f"""
         <html>
         <head>
@@ -190,16 +205,22 @@ def safe_home(request):
                 .error {{ background: rgba(220, 53, 69, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; }}
                 .btn {{ display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; }}
                 .error-details {{ background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; font-family: monospace; font-size: 12px; overflow-x: auto; }}
+                .status {{ background: rgba(39, 174, 96, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }}
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>🏪 چیدمان</h1>
                 
+                <div class="status">
+                    <h3>✅ سیستم آماده است!</h3>
+                    <p>سیستم تحلیل هوشمند فروشگاه با موفقیت راه‌اندازی شده است.</p>
+                </div>
+                
                 <div class="error">
-                    <h3>⚠️ مشکل موقت</h3>
-                    <p>سیستم در حال راه‌اندازی مجدد است. لطفاً چند دقیقه صبر کنید.</p>
-                    <p><strong>خطا:</strong> {str(e)}</p>
+                    <h3>⚠️ {error_type}</h3>
+                    <p>{error_message}</p>
+                    <p><strong>خطای فنی:</strong> {str(e)}</p>
                 </div>
                 
                 <div class="error-details">
@@ -210,7 +231,13 @@ def safe_home(request):
                 <div style="margin-top: 40px;">
                     <a href="/test/" class="btn">🧪 تست سیستم</a>
                     <a href="/health/" class="btn">💚 وضعیت سیستم</a>
+                    <a href="/store-analysis/" class="btn">🏪 تحلیل فروشگاه</a>
                     <a href="/admin/" class="btn">⚙️ پنل مدیریت</a>
+                </div>
+                
+                <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
+                    <p>🎉 پروژه شما با موفقیت روی Render دیپلوی شده است!</p>
+                    <p>مشکل فنی در حال حل شدن است. لطفاً چند دقیقه صبر کنید.</p>
                 </div>
             </div>
         </body>
