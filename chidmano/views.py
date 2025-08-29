@@ -177,6 +177,8 @@ def safe_home(request):
         return index(request)
     except Exception as e:
         # اگر خطا داشت، صفحه fallback نمایش می‌دهیم
+        import traceback
+        error_details = traceback.format_exc()
         return HttpResponse(f"""
         <html>
         <head>
@@ -185,8 +187,9 @@ def safe_home(request):
             <style>
                 body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }}
                 .container {{ max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; }}
-                .error {{ background: rgba(220, 53, 69, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }}
+                .error {{ background: rgba(220, 53, 69, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; }}
                 .btn {{ display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; }}
+                .error-details {{ background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; font-family: monospace; font-size: 12px; overflow-x: auto; }}
             </style>
         </head>
         <body>
@@ -199,10 +202,15 @@ def safe_home(request):
                     <p><strong>خطا:</strong> {str(e)}</p>
                 </div>
                 
+                <div class="error-details">
+                    <h4>جزئیات خطا:</h4>
+                    <pre>{error_details}</pre>
+                </div>
+                
                 <div style="margin-top: 40px;">
                     <a href="/test/" class="btn">🧪 تست سیستم</a>
                     <a href="/health/" class="btn">💚 وضعیت سیستم</a>
-                    <a href="/store/" class="btn">🏪 سایت اصلی</a>
+                    <a href="/admin/" class="btn">⚙️ پنل مدیریت</a>
                 </div>
             </div>
         </body>

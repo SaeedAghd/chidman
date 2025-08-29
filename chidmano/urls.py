@@ -6,7 +6,6 @@ from django.contrib.auth import views as auth_views
 from django.conf.urls.i18n import i18n_patterns
 from . import views
 from django.http import HttpResponse
-from store_analysis.admin_dashboard import admin_dashboard
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),  # اضافه شده برای تغییر زبان
@@ -17,8 +16,8 @@ urlpatterns = [
     # مسیر اصلی با error handling
     path('', views.safe_home, name='safe_home'),
     
-    # مسیرهای store_analysis با error handling
-    path('store/', include('store_analysis.urls')),  # مسیر اصلی - با prefix
+    # مسیرهای اصلی - موقتاً غیرفعال
+    # path('store/', include('store_analysis.urls')),  # مسیر اصلی - با prefix
     
     path('admin/', admin.site.urls),
     path('accounts/signup/', views.signup_view, name='signup'),  # اضافه شده
@@ -34,5 +33,4 @@ urlpatterns = [
     path('accounts/password_reset/', lambda request: HttpResponse('بازیابی رمز عبور فعال نیست.'), name='password_reset'),
     path('store-analysis/features/', views.features_view, name='features'),
     path('health/', views.health_check, name='health_check'),
-    path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
