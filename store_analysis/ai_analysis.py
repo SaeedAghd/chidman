@@ -45,7 +45,15 @@ try:
     except Exception:
         pass
         
-except Exception:
+except ImportError:
+    # Create a dummy numpy for when it's not available
+    class DummyNumpy:
+        def array(self, data):
+            return data
+        def ndarray(self, *args, **kwargs):
+            return []
+    
+    np = DummyNumpy()
     ML_AVAILABLE = False
     PANDAS_AVAILABLE = False
     SKLEARN_AVAILABLE = False
@@ -874,7 +882,7 @@ class StoreAnalysisAI:
             ],
             "short_term": [
                 "افزایش تعداد صندوق‌های پرداخت",
-                "پیاده‌سازی سیستم مدیریت صف هوشمند",
+                "پیاده‌سازی سیستم مدیریت صف",
                 "بهبود استراتژی قیمت‌گذاری محصولات"
             ],
             "long_term": [
