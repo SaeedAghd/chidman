@@ -12,6 +12,7 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),  # اضافه شده برای تغییر زبان
     path('', views.simple_home, name='simple_home'),  # صفحه تست ساده
     # path('main/', include('store_analysis.urls')),  # مسیر اصلی - موقتاً غیرفعال
+    path('store-analysis/', views.store_analysis_home, name='store_analysis_home'),  # مسیر اصلی store-analysis
     path('admin/', admin.site.urls),
     path('accounts/signup/', views.signup_view, name='signup'),  # اضافه شده
     path('accounts/login/', auth_views.LoginView.as_view(template_name='store_analysis/login.html'), name='login'),
