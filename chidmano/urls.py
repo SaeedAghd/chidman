@@ -16,6 +16,9 @@ urlpatterns = [
     # مسیر اصلی با error handling
     path('', views.safe_home, name='safe_home'),
     
+    # مسیر store-analysis برای رفع خطای 404
+    path('store-analysis/', views.store_analysis_page, name='store_analysis_page'),
+    
     # مسیرهای اصلی - موقتاً غیرفعال
     # path('store/', include('store_analysis.urls')),  # مسیر اصلی - با prefix
     

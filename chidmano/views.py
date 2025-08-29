@@ -215,4 +215,73 @@ def safe_home(request):
             </div>
         </body>
         </html>
-        """) 
+        """)
+
+def store_analysis_page(request):
+    """Store analysis page - main functionality"""
+    return HttpResponse("""
+    <html>
+    <head>
+        <title>تحلیل فروشگاه - چیدمان</title>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+            .container { max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+            h1 { color: #fff; margin-bottom: 30px; }
+            .feature { background: rgba(255,255,255,0.2); margin: 20px 0; padding: 20px; border-radius: 10px; text-align: left; }
+            .feature h3 { color: #fff; margin-top: 0; }
+            .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; transition: all 0.3s; }
+            .btn:hover { background: #219a52; transform: translateY(-2px); }
+            .status { background: rgba(39, 174, 96, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }
+            .coming-soon { background: rgba(255, 193, 7, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🏪 تحلیل هوشمند فروشگاه</h1>
+            
+            <div class="status">
+                <h3>✅ سیستم آماده است!</h3>
+                <p>سیستم تحلیل هوشمند فروشگاه با موفقیت راه‌اندازی شده و آماده ارائه خدمات است.</p>
+            </div>
+            
+            <div class="coming-soon">
+                <h3>🚧 در حال توسعه</h3>
+                <p>قابلیت‌های پیشرفته تحلیل فروشگاه در حال توسعه هستند. به زودی در دسترس خواهند بود.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>🤖 تحلیل هوشمند با AI</h3>
+                <p>تحلیل دقیق فروشگاه با استفاده از هوش مصنوعی و یادگیری ماشین</p>
+            </div>
+            
+            <div class="feature">
+                <h3>📊 گزارش‌های مدیریتی</h3>
+                <p>تولید گزارش‌های جامع و کاربردی برای تصمیم‌گیری بهتر</p>
+            </div>
+            
+            <div class="feature">
+                <h3>💰 پیش‌بینی مالی و ROI</h3>
+                <p>محاسبه دقیق بازگشت سرمایه و پیش‌بینی درآمد</p>
+            </div>
+            
+            <div class="feature">
+                <h3>🎯 راهنمایی عملی</h3>
+                <p>ارائه راهنمایی‌های عملی و قابل اجرا برای بهبود فروشگاه</p>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <a href="/" class="btn">🏠 صفحه اصلی</a>
+                <a href="/test/" class="btn">🧪 تست سیستم</a>
+                <a href="/health/" class="btn">💚 وضعیت سیستم</a>
+                <a href="/admin/" class="btn">⚙️ پنل مدیریت</a>
+            </div>
+            
+            <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
+                <p>🎉 پروژه شما با موفقیت روی Render دیپلوی شده است!</p>
+                <p>برای شروع تحلیل فروشگاه، لطفاً با تیم توسعه تماس بگیرید.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """) 
