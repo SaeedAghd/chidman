@@ -11,7 +11,7 @@ from store_analysis.admin_dashboard import admin_dashboard
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),  # اضافه شده برای تغییر زبان
     path('', views.simple_home, name='simple_home'),  # صفحه تست ساده
-    path('main/', include('store_analysis.urls')),  # مسیر اصلی
+    # path('main/', include('store_analysis.urls')),  # مسیر اصلی - موقتاً غیرفعال
     path('admin/', admin.site.urls),
     path('accounts/signup/', views.signup_view, name='signup'),  # اضافه شده
     path('accounts/login/', auth_views.LoginView.as_view(template_name='store_analysis/login.html'), name='login'),
