@@ -10,7 +10,16 @@ from store_analysis.admin_dashboard import admin_dashboard
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),  # اضافه شده برای تغییر زبان
-    path('', include('store_analysis.urls')),  # مسیر اصلی - فعال شد
+    
+    # صفحه تست برای اطمینان از کارکرد
+    path('test/', views.test_page, name='test_page'),
+    
+    # مسیر اصلی با error handling
+    path('', views.safe_home, name='safe_home'),
+    
+    # مسیرهای store_analysis با error handling
+    path('store/', include('store_analysis.urls')),  # مسیر اصلی - با prefix
+    
     path('admin/', admin.site.urls),
     path('accounts/signup/', views.signup_view, name='signup'),  # اضافه شده
     path('accounts/login/', auth_views.LoginView.as_view(template_name='store_analysis/login.html'), name='login'),

@@ -136,4 +136,75 @@ def store_analysis_home(request):
         </div>
     </body>
     </html>
-    """) 
+    """)
+
+def test_page(request):
+    """Test page to ensure everything works"""
+    return HttpResponse("""
+    <html>
+    <head>
+        <title>تست سیستم - چیدمان</title>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f8f9fa; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .success { color: #28a745; font-size: 18px; }
+            .info { color: #6c757d; margin: 20px 0; }
+            .btn { display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🧪 تست سیستم</h1>
+            <p class="success">✅ سیستم در حال کار است!</p>
+            <p class="info">این صفحه نشان می‌دهد که Django و URL routing درست کار می‌کند.</p>
+            
+            <div style="margin-top: 30px;">
+                <a href="/" class="btn">🏠 صفحه اصلی</a>
+                <a href="/health/" class="btn">💚 وضعیت سیستم</a>
+                <a href="/store/" class="btn">🏪 سایت اصلی</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """)
+
+def safe_home(request):
+    """Safe home page with error handling"""
+    try:
+        # سعی می‌کنیم سایت اصلی را load کنیم
+        from store_analysis.views import index
+        return index(request)
+    except Exception as e:
+        # اگر خطا داشت، صفحه fallback نمایش می‌دهیم
+        return HttpResponse(f"""
+        <html>
+        <head>
+            <title>چیدمان - تحلیل هوشمند فروشگاه</title>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }}
+                .container {{ max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; }}
+                .error {{ background: rgba(220, 53, 69, 0.3); padding: 15px; border-radius: 10px; margin: 20px 0; }}
+                .btn {{ display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🏪 چیدمان</h1>
+                
+                <div class="error">
+                    <h3>⚠️ مشکل موقت</h3>
+                    <p>سیستم در حال راه‌اندازی مجدد است. لطفاً چند دقیقه صبر کنید.</p>
+                    <p><strong>خطا:</strong> {str(e)}</p>
+                </div>
+                
+                <div style="margin-top: 40px;">
+                    <a href="/test/" class="btn">🧪 تست سیستم</a>
+                    <a href="/health/" class="btn">💚 وضعیت سیستم</a>
+                    <a href="/store/" class="btn">🏪 سایت اصلی</a>
+                </div>
+            </div>
+        </body>
+        </html>
+        """) 
