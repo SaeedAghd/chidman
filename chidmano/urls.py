@@ -5,10 +5,11 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.conf.urls.i18n import i18n_patterns
 from . import views
+from store_analysis.views import store_analysis_form
 from django.http import HttpResponse
 
 urlpatterns = [
-    # صفحه اصلی ساده
+    # صفحه اصلی - مستقیماً به فرم تحلیل فروشگاه
     path('', views.simple_home, name='home'),
     
     # صفحه تست
@@ -16,9 +17,6 @@ urlpatterns = [
     
     # صفحه وضعیت سیستم
     path('health/', views.health_check, name='health_check'),
-    
-    # مسیر مستقیم برای فرم تحلیل
-    path('analysis/', views.store_analysis_page, name='analysis'),
     
     # مسیرهای اصلی store_analysis
     path('store/', include('store_analysis.urls', namespace='store_analysis')),

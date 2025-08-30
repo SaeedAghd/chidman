@@ -43,594 +43,441 @@ class StoreAnalysisForm(forms.ModelForm):
             'estimated_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مدت زمان تخمینی (دقیقه)'})
         }
 
-# --- فرم تحلیل هوشمند فروشگاه ---
+# --- فرم تحلیل هوشمند فروشگاه ۷ گامه ---
 class AIStoreAnalysisForm(forms.Form):
-    """فرم تحلیل هوشمند فروشگاه"""
+    """فرم تحلیل هوشمند فروشگاه - ۷ گام بهینه‌سازی"""
     
-    # Basic Info
+    # ===== گام 1: اطلاعات پایه فروشگاه (📦 pandas / numpy) =====
     store_name = forms.CharField(
         max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام فروشگاه'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'نام فروشگاه',
+            'data-step': '1',
+            'data-tooltip': 'این اطلاعات به ما کمک می‌کنه تا ساختار کلی فروشگاه رو بسازیم'
+        })
+    )
+    
+    store_type = forms.ChoiceField(
+        choices=[
+            ('supermarket', 'سوپرمارکت'),
+            ('hypermarket', 'هایپرمارکت'),
+            ('convenience', 'فروشگاه راحتی'),
+            ('clothing', 'فروشگاه پوشاک'),
+            ('electronics', 'فروشگاه لوازم الکترونیکی'),
+            ('home_appliances', 'فروشگاه لوازم خانگی'),
+            ('pharmacy', 'داروخانه'),
+            ('bookstore', 'کتابفروشی'),
+            ('jewelry', 'فروشگاه جواهرات'),
+            ('sports', 'فروشگاه ورزشی'),
+            ('cosmetics', 'فروشگاه لوازم آرایشی'),
+            ('other', 'سایر'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '1',
+            'data-tooltip': 'نوع فروشگاه بر الگوی چیدمان تأثیر مستقیم دارد'
+        })
     )
     
     store_size = forms.IntegerField(
         min_value=50,
         max_value=10000,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مساحت فروشگاه (متر مربع)'})
-    )
-
-    store_type = forms.ChoiceField(
-        choices=[
-            ('retail', 'خرده فروشی'),
-            ('supermarket', 'سوپرمارکت'),
-            ('hypermarket', 'هایپرمارکت'),
-            ('convenience', 'فروشگاه راحتی'),
-            ('specialty', 'فروشگاه تخصصی'),
-        ],
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'مساحت کل فروشگاه (متر مربع)',
+            'data-step': '1',
+            'data-tooltip': 'مساحت کل برای محاسبه تراکم و بهینه‌سازی فضا'
+        })
     )
     
-    # اطلاعات تکمیلی فروشگاه
-    store_location = forms.CharField(
-        max_length=500,
+    # بخش‌های مختلف فروشگاه
+    food_section_size = forms.IntegerField(
+        min_value=0,
+        max_value=5000,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'آدرس کامل فروشگاه'})
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'مساحت بخش مواد غذایی (متر مربع)',
+            'data-step': '1'
+        })
     )
     
-    city = forms.CharField(
-        max_length=100,
+    beverage_section_size = forms.IntegerField(
+        min_value=0,
+        max_value=2000,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'شهر'})
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'مساحت بخش نوشیدنی‌ها (متر مربع)',
+            'data-step': '1'
+        })
     )
     
-    area = forms.CharField(
-        max_length=100,
+    household_section_size = forms.IntegerField(
+        min_value=0,
+        max_value=3000,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'منطقه یا محله'})
-    )
-    
-    establishment_year = forms.IntegerField(
-        min_value=1300,
-        max_value=1450,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'سال تاسیس (1300-1450)'})
-    )
-
-    phone = forms.CharField(
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'شماره تماس'})
-    )
-
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ایمیل'})
-    )
-    
-    # Layout Analysis
-    entrance_count = forms.IntegerField(
-        min_value=1,
-        max_value=10,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'تعداد ورودی‌ها'})
-    )
-    
-    checkout_count = forms.IntegerField(
-        min_value=1,
-        max_value=20,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'تعداد صندوق‌ها'})
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'مساحت بخش لوازم خانگی (متر مربع)',
+            'data-step': '1'
+        })
     )
     
     shelf_count = forms.IntegerField(
         min_value=1,
-        max_value=100,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'تعداد قفسه‌ها'})
+        max_value=1000,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'تعداد کل قفسه‌ها',
+            'data-step': '1',
+            'data-tooltip': 'تعداد قفسه‌ها برای محاسبه تراکم محصولات'
+        })
     )
     
-    # اطلاعات دقیق‌تر چیدمان
-    shelf_dimensions = forms.CharField(
-        max_length=200,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ابعاد تقریبی هر قفسه (مثال: 2×1.5 متر)'})
-    )
-    
-    shelf_contents = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'توضیح نوع محصولات موجود در هر قفسه...'})
-    )
-    
-    unused_area_size = forms.IntegerField(
-        min_value=0,
-        max_value=10000,
-        required=False,
-        initial=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'متراژ مناطق بلااستفاده'})
-    )
-    
-    unused_area_type = forms.ChoiceField(
-        choices=[
-        ('empty', 'منطقه خالی'),
-        ('low_traffic', 'کم‌ترافیک'),
-        ('storage', 'انبار'),
-        ('staff', 'فضای کارکنان'),
-        ('maintenance', 'نگهداری'),
-        ('delivery', 'تحویل'),
-            ('other', 'سایر')
-        ],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    
-    main_lighting = forms.ChoiceField(
-        choices=[
-            ('natural', 'نور طبیعی'),
-            ('artificial', 'مصنوعی'),
-            ('mixed', 'ترکیبی'),
-        ],
-        required=False,
-        widget=forms.RadioSelect(attrs={'class': 'form-check-input'})
-    )
-    
-    # طراحی و دکوراسیون
-    design_style = forms.ChoiceField(
-        choices=[
-            ('traditional', 'سنتی'),
-            ('modern', 'مدرن'),
-            ('minimal', 'مینیمال'),
-            ('luxury', 'لوکس'),
-            ('industrial', 'صنعتی'),
-            ('scandinavian', 'اسکاندیناوی'),
-            ('vintage', 'کلاسیک'),
-            ('contemporary', 'معاصر'),
-            ('other', 'سایر'),
-        ],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    
-    brand_colors = forms.CharField(
-        max_length=200,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'رنگ‌های اصلی برند (مثال: آبی، سفید، طلایی)'})
-    )
-    
-    lighting_intensity = forms.ChoiceField(
-        choices=[
-            ('low', 'کم'),
-            ('medium', 'متوسط'),
-            ('high', 'زیاد'),
-        ],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    
-    # Customer Behavior
-    customer_dwell_time = forms.IntegerField(
-        min_value=5,
-        max_value=180,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'متوسط زمان حضور مشتری (دقیقه)'})
-    )
-    
-    conversion_rate = forms.DecimalField(
+    # ===== گام 2: اطلاعات مشتریان (👥 scikit-learn / scipy) =====
+    daily_customers = forms.IntegerField(
         min_value=1,
-        max_value=100,
-        decimal_places=2,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'نرخ تبدیل (درصد)', 'step': '0.1'})
+        max_value=10000,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'میانگین مشتریان روزانه',
+            'data-step': '2',
+            'data-tooltip': 'الگوهای رفتاری مشتریان به ما کمک می‌کنه پیش‌بینی کنیم'
+        })
     )
     
-    stopping_points = forms.MultipleChoiceField(
-        required=False,
+    peak_hours = forms.MultipleChoiceField(
+        choices=[
+            ('morning', 'صبح (8-12)'),
+            ('afternoon', 'ظهر (12-16)'),
+            ('evening', 'عصر (16-20)'),
+            ('night', 'شب (20-24)'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '2'
+        })
+    )
+    
+    purchase_pattern = forms.ChoiceField(
+        choices=[
+            ('quick', 'خرید سریع (کمتر از 10 دقیقه)'),
+            ('medium', 'خرید متوسط (10-30 دقیقه)'),
+            ('long', 'خرید طولانی (بیش از 30 دقیقه)'),
+            ('mixed', 'ترکیبی از انواع خرید'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '2',
+            'data-tooltip': 'نوع خرید بر مسیر حرکت مشتریان تأثیر دارد'
+        })
+    )
+    
+    repeat_customers_percentage = forms.IntegerField(
+        min_value=0,
+        max_value=100,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'درصد مشتریان تکراری',
+            'data-step': '2',
+            'data-tooltip': 'مشتریان تکراری الگوی حرکت متفاوتی دارند'
+        })
+    )
+    
+    # ===== گام 3: جریان حرکتی مشتریان (➡ networkx) =====
+    entrance_to_first_stop = forms.ChoiceField(
+        choices=[
+            ('immediate', 'بلافاصله (کمتر از 1 دقیقه)'),
+            ('short', 'کوتاه (1-3 دقیقه)'),
+            ('medium', 'متوسط (3-5 دقیقه)'),
+            ('long', 'طولانی (بیش از 5 دقیقه)'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '3',
+            'data-tooltip': 'با این داده‌ها می‌تونیم شبکه حرکت مشتریان رو شبیه‌سازی کنیم'
+        })
+    )
+    
+    high_traffic_areas = forms.MultipleChoiceField(
         choices=[
             ('entrance', 'ورودی فروشگاه'),
-            ('promotions', 'قسمت تخفیف‌ها'),
-            ('new_products', 'محصولات جدید'),
-            ('checkout', 'صندوق‌ها'),
-        ],
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label='نقاط توقف مشتریان'
-    )
-    
-    customer_paths = forms.MultipleChoiceField(
-        required=False,
-        choices=[
-            ('clockwise', 'در جهت عقربه‌های ساعت'),
-            ('counterclockwise', 'خلاف عقربه‌های ساعت'),
-            ('random', 'تصادفی'),
-            ('direct', 'مستقیم به هدف'),
-        ],
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label='مسیرهای معمول مشتریان'
-    )
-
-    high_traffic_areas = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'مناطقی که بیشترین ترافیک را دارند...'})
-    )
-    
-    # Traffic Analysis
-    customer_traffic = forms.IntegerField(
-        min_value=10,
-        max_value=10000,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'متوسط تعداد مشتری روزانه'})
-    )
-    
-    peak_hours = forms.CharField(
-        max_length=200,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ساعات پیک فروش (مثال: 18-22)'})
-    )
-    
-    peak_days = forms.MultipleChoiceField(
-        choices=[
-            ('monday', 'دوشنبه'),
-            ('tuesday', 'سه‌شنبه'),
-            ('wednesday', 'چهارشنبه'),
-            ('thursday', 'پنج‌شنبه'),
-            ('friday', 'جمعه'),
-            ('saturday', 'شنبه'),
-            ('sunday', 'یکشنبه'),
-        ],
-        required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
-        label='روزهای شلوغ هفته'
-    )
-    
-    morning_sales_percent = forms.IntegerField(
-        min_value=0,
-        max_value=100,
-        initial=30,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'درصد فروش صبح (6-12)'})
-    )
-    
-    noon_sales_percent = forms.IntegerField(
-        min_value=0,
-        max_value=100,
-        initial=40,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'درصد فروش ظهر (12-18)'})
-    )
-    
-    evening_sales_percent = forms.IntegerField(
-        min_value=0,
-        max_value=100,
-        initial=30,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'درصد فروش شب (18-24)'})
-    )
-    
-    # محصولات و فروش
-    product_categories = forms.MultipleChoiceField(
-        choices=[
-            ('beverages', 'نوشیدنی'),
-            ('food', 'خوراکی'),
-            ('womens_clothing', 'پوشاک زنانه'),
-            ('mens_clothing', 'پوشاک مردانه'),
-            ('kids_clothing', 'پوشاک بچگانه'),
-            ('electronics', 'الکترونیک'),
-            ('home', 'لوازم خانگی'),
-            ('beauty', 'آرایشی و بهداشتی'),
-            ('books', 'کتاب'),
-            ('pharmacy', 'دارویی'),
-            ('sports', 'ورزشی'),
-            ('jewelry', 'جواهرات'),
+            ('checkout', 'صندوق پرداخت'),
+            ('promotions', 'بخش تخفیف‌ها'),
+            ('essentials', 'مواد ضروری'),
+            ('fresh_food', 'مواد غذایی تازه'),
+            ('beverages', 'نوشیدنی‌ها'),
+            ('snacks', 'تنقلات'),
+            ('household', 'لوازم خانگی'),
+            ('personal_care', 'لوازم بهداشتی'),
             ('other', 'سایر'),
         ],
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label='دسته‌بندی محصولات'
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '3'
+        })
     )
     
-    top_products = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'لیست محصولات پرفروش...'})
+    ignored_sections = forms.MultipleChoiceField(
+        choices=[
+            ('electronics', 'لوازم الکترونیکی'),
+            ('clothing', 'پوشاک'),
+            ('books', 'کتاب‌ها'),
+            ('sports', 'لوازم ورزشی'),
+            ('jewelry', 'جواهرات'),
+            ('cosmetics', 'لوازم آرایشی'),
+            ('automotive', 'لوازم خودرو'),
+            ('gardening', 'لوازم باغبانی'),
+            ('other', 'سایر'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '3'
+        })
     )
     
-    daily_sales_volume = forms.DecimalField(
-        max_digits=15,
-        decimal_places=0,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'متوسط فروش روزانه (تومان)'})
+    # ===== گام 4: تحلیل محصولات و قفسه‌ها (📊 pandas / seaborn) =====
+    top_selling_products = forms.CharField(
+        max_length=1000,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'محصولات پرفروش (مثال: نان، شیر، تخم مرغ، برنج)',
+            'data-step': '4',
+            'data-tooltip': 'شناخت محصولات مکمل به ما کمک می‌کنه پیشنهادهای چیدمانی بدیم'
+        })
     )
     
-    supplier_count = forms.IntegerField(
-        min_value=0,
-        max_value=1000,
+    complementary_products = forms.CharField(
+        max_length=1000,
         required=False,
-        initial=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'تعداد تامین‌کنندگان'})
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'محصولات مکمل (مثال: نان و پنیر، چای و قند)',
+            'data-step': '4'
+        })
     )
     
-    # نظارت و امنیت
-    has_surveillance = forms.BooleanField(
+    seasonal_products = forms.CharField(
+        max_length=1000,
         required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label='دوربین نظارتی'
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'محصولات فصلی (مثال: میوه‌های تابستانی، لوازم مدرسه)',
+            'data-step': '4'
+        })
     )
     
-    camera_count = forms.IntegerField(
-        min_value=0,
-        max_value=100,
+    low_selling_products = forms.CharField(
+        max_length=1000,
         required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'تعداد دوربین‌ها'})
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'محصولات کم‌فروش',
+            'data-step': '4'
+        })
     )
     
-    camera_locations = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'توضیح موقعیت نصب دوربین‌ها...'})
+    # ===== گام 5: چیدمان فعلی (🗺 matplotlib) =====
+    fixed_shelves = forms.MultipleChoiceField(
+        choices=[
+            ('entrance', 'قفسه‌های ورودی'),
+            ('checkout', 'قفسه‌های صندوق'),
+            ('wall_shelves', 'قفسه‌های دیواری'),
+            ('island_shelves', 'قفسه‌های جزیره‌ای'),
+            ('refrigerated', 'قفسه‌های یخچالی'),
+            ('freezer', 'قفسه‌های فریزر'),
+            ('other', 'سایر'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '5',
+            'data-tooltip': 'این بخش کمک می‌کنه بفهمیم چه جاهایی قابل تغییر نیست'
+        })
     )
     
-    # آپلود فایل‌ها و تصاویر
-    store_photos = forms.ImageField(
-        required=False,
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-        help_text='عکس کلی فروشگاه (حداکثر 10MB)'
+    attraction_elements = forms.MultipleChoiceField(
+        choices=[
+            ('refrigerator', 'یخچال/فریزر'),
+            ('promotion_area', 'بخش تخفیف'),
+            ('fresh_food_display', 'نمایش مواد تازه'),
+            ('beverage_cooler', 'سردکن نوشیدنی'),
+            ('bakery', 'نانوایی'),
+            ('deli', 'بخش گوشت'),
+            ('pharmacy', 'داروخانه'),
+            ('atm', 'دستگاه خودپرداز'),
+            ('seating_area', 'محل نشستن'),
+            ('other', 'سایر'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '5'
+        })
     )
     
-    store_plan = forms.FileField(
-        required=False,
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.jpg,.jpeg,.png,.pdf,.dwg'}),
-        help_text='نقشه یا طرح فروشگاه (PDF, DWG, تصویر)'
+    lighting_type = forms.ChoiceField(
+        choices=[
+            ('natural', 'نور طبیعی'),
+            ('fluorescent', 'نور فلورسنت'),
+            ('led', 'نور LED'),
+            ('halogen', 'نور هالوژن'),
+            ('mixed', 'ترکیبی'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '5'
+        })
     )
     
-    shelf_photos = forms.ImageField(
-        required=False,
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-        help_text='عکس قفسه‌ها و چیدمان'
+    # ===== گام 6: اهداف بهینه‌سازی (⚙ scikit-learn) =====
+    optimization_goals = forms.MultipleChoiceField(
+        choices=[
+            ('increase_sales', 'افزایش فروش'),
+            ('reduce_congestion', 'کاهش ازدحام'),
+            ('improve_experience', 'بهبود تجربه مشتری'),
+            ('optimize_space', 'بهینه‌سازی فضا'),
+            ('reduce_wait_time', 'کاهش زمان انتظار'),
+            ('increase_efficiency', 'افزایش کارایی'),
+            ('other', 'سایر'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '6',
+            'data-tooltip': 'این اطلاعات باعث می‌شه تحلیل دقیقاً متناسب با اهداف شما انجام بشه'
+        })
     )
     
-    entrance_photos = forms.ImageField(
-        required=False,
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-        help_text='عکس ورودی‌ها و ویترین‌ها'
+    priority_goal = forms.ChoiceField(
+        choices=[
+            ('sales', 'افزایش فروش مهم‌ترین هدف'),
+            ('experience', 'بهبود تجربه مشتری مهم‌ترین هدف'),
+            ('efficiency', 'افزایش کارایی مهم‌ترین هدف'),
+            ('balanced', 'تعادل بین همه اهداف'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '6'
+        })
     )
     
-    checkout_photos = forms.ImageField(
-        required=False,
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-        help_text='عکس صندوق‌ها و منطقه پرداخت'
+    budget_constraint = forms.ChoiceField(
+        choices=[
+            ('low', 'بودجه محدود (کمتر از 10 میلیون تومان)'),
+            ('medium', 'بودجه متوسط (10-50 میلیون تومان)'),
+            ('high', 'بودجه بالا (بیش از 50 میلیون تومان)'),
+            ('unlimited', 'بدون محدودیت بودجه'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '6'
+        })
     )
     
-    customer_video = forms.FileField(
-        required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'video/*'}),
-        help_text='ویدیوی مسیر حرکت مشتریان (حداکثر 50MB)'
+    # ===== گام 7: خروجی نهایی (📑 UX/Report) =====
+    report_detail_level = forms.ChoiceField(
+        choices=[
+            ('executive', 'خلاصه مدیریتی'),
+            ('detailed', 'تحلیل فنی کامل'),
+            ('both', 'هر دو نوع گزارش'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '7',
+            'data-tooltip': 'اینجا مشخص می‌کنید گزارش نهایی دقیقاً چطور باید ارائه بشه'
+        })
     )
     
-    surveillance_footage = forms.FileField(
-        required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'video/*'}),
-        help_text='نمونه فیلم دوربین نظارتی (حداکثر 50MB)'
+    output_format = forms.MultipleChoiceField(
+        choices=[
+            ('pdf', 'فایل PDF'),
+            ('excel', 'فایل Excel'),
+            ('dashboard', 'داشبورد آنلاین'),
+            ('presentation', 'ارائه پاورپوینت'),
+            ('web_report', 'گزارش وب'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '7'
+        })
     )
     
-    # اطلاعات ویدیو
-    video_date = forms.DateField(
+    include_visualizations = forms.BooleanField(
         required=False,
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-        help_text='تاریخ ضبط ویدیو'
+        initial=True,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'data-step': '7'
+        })
     )
     
-    video_time = forms.TimeField(
+    include_recommendations = forms.BooleanField(
         required=False,
-        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-        help_text='ساعت ضبط ویدیو'
+        initial=True,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'data-step': '7'
+        })
     )
     
-    video_duration = forms.IntegerField(
-        required=False,
-        min_value=1,
-        max_value=3600,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مدت زمان ویدیو (ثانیه)'}),
-        help_text='مدت زمان ویدیو به ثانیه'
-    )
-    
-    # اطلاعات فایل فروش
-    sales_file = forms.FileField(
-        required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.xlsx,.xls,.csv,.pdf'}),
-        help_text='فایل گزارش فروش (Excel, CSV, PDF)'
-    )
-    
-    product_catalog = forms.FileField(
-        required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.doc,.docx'}),
-        help_text='کاتالوگ محصولات (PDF, Word)'
-    )
-    
-    # اطلاعات نرم‌افزاری
-    pos_system = forms.CharField(
+    # اطلاعات تماس
+    contact_name = forms.CharField(
         max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام نرم‌افزار صندوق (مثال: سما، رایان، راهکار)'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'نام و نام خانوادگی'
+        })
     )
     
-    inventory_system = forms.CharField(
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نرم‌افزار مدیریت موجودی'})
-    )
-    
-    # Optimization
-    sales_improvement_target = forms.IntegerField(
-        min_value=5,
-        max_value=100,
-        initial=20,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'هدف بهبود فروش (%)'})
-    )
-    
-    optimization_timeline = forms.IntegerField(
-        min_value=1,
-        max_value=24,
-        initial=6,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'بازه زمانی هدف (ماه)'})
-    )
-    
-    optimization_types = forms.MultipleChoiceField(
-        required=False,
-        choices=[
-            ('layout', 'بهینه‌سازی چیدمان'),
-            ('pricing', 'استراتژی قیمت‌گذاری'),
-            ('inventory', 'مدیریت موجودی'),
-            ('staffing', 'بهینه‌سازی نیروی انسانی'),
-        ],
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label='نوع بهینه‌سازی مورد نیاز'
-    )
-    
-    # Sales Prediction
-    historical_data_months = forms.IntegerField(
-        min_value=3,
-        max_value=60,
-        initial=12,
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'داده‌های تاریخی فروش (ماه)'})
-    )
-    
-    prediction_period = forms.ChoiceField(
-        choices=[
-            ('', 'انتخاب کنید'),
-            ('1', '1 ماه آینده'),
-            ('3', '3 ماه آینده'),
-            ('6', '6 ماه آینده'),
-            ('12', '1 سال آینده'),
-        ],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label='دوره پیش‌بینی'
-    )
-    
-    seasonal_patterns = forms.MultipleChoiceField(
-        required=False,
-        choices=[
-            ('spring', 'فصل بهار'),
-            ('summer', 'فصل تابستان'),
-            ('autumn', 'فصل پاییز'),
-            ('winter', 'فصل زمستان'),
-        ],
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label='الگوهای فصلی'
-    )
-    
-    prediction_accuracy = forms.ChoiceField(
-        choices=[
-            ('high', 'دقت بالا (95%+) - زمان پردازش بیشتر'),
-            ('medium', 'دقت متوسط (85-95%) - تعادل مناسب'),
-            ('low', 'دقت پایین (75-85%) - سرعت بالا'),
-        ],
-        required=False,
-        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
-        label='دقت پیش‌بینی مورد انتظار'
-    )
-    
-    # Final Report
-    analyst_name = forms.CharField(
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام تحلیلگر'})
-    )
-    
-    report_email = forms.EmailField(
-        required=False,
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ایمیل برای دریافت گزارش'})
+    contact_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'ایمیل'
+        })
     )
     
     contact_phone = forms.CharField(
         max_length=20,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'شماره تماس'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'شماره تماس'
+        })
     )
     
-    report_deadline = forms.DateField(
+    # فایل‌های آپلود
+    store_photos = forms.FileField(
         required=False,
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        })
     )
     
-    report_types = forms.MultipleChoiceField(
-        choices=[
-            ('pdf', 'PDF جامع'),
-            ('excel', 'فایل Excel'),
-            ('presentation', 'ارائه پاورپوینت'),
-            ('dashboard', 'داشبورد تعاملی'),
-        ],
-        initial=['pdf'],
+    store_plan = forms.FileField(
         required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label='نوع گزارش'
-    )
-    
-    additional_notes = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'هرگونه توضیح یا درخواست خاص برای تحلیل...'})
-    )
-    
-    notifications = forms.MultipleChoiceField(
-        choices=[
-            ('email', 'ایمیل'),
-            ('sms', 'پیامک'),
-            ('whatsapp', 'واتساپ'),
-        ],
-        initial=['email'],
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label='نحوه اطلاع‌رسانی'
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.jpg,.png'
+        })
     )
     
     def clean(self):
         cleaned_data = super().clean()
         
-        # Validate sales percentages sum to 100
-        morning = cleaned_data.get('morning_sales_percent', 0)
-        noon = cleaned_data.get('noon_sales_percent', 0)
-        evening = cleaned_data.get('evening_sales_percent', 0)
+        # اعتبارسنجی مساحت‌ها
+        store_size = cleaned_data.get('store_size', 0)
+        food_size = cleaned_data.get('food_section_size', 0)
+        beverage_size = cleaned_data.get('beverage_section_size', 0)
+        household_size = cleaned_data.get('household_section_size', 0)
         
-        if morning and noon and evening:
-            total = morning + noon + evening
-            if total != 100:
-                raise ValidationError('مجموع درصدهای فروش باید 100 باشد')
-        
-        # Validate camera count if surveillance is enabled
-        has_surveillance = cleaned_data.get('has_surveillance')
-        camera_count = cleaned_data.get('camera_count')
-        if has_surveillance and not camera_count:
-            raise ValidationError('در صورت داشتن دوربین، تعداد دوربین‌ها الزامی است')
-        
-        # Validate unused area size
-        store_size = cleaned_data.get('store_size')
-        unused_area_size = cleaned_data.get('unused_area_size')
-        if store_size and unused_area_size and unused_area_size > store_size:
-            raise ValidationError('منطقه بلااستفاده نمی‌تواند بزرگتر از کل فروشگاه باشد')
-        
-        # Validate file sizes
-        files_to_check = [
-            'store_photos', 'shelf_photos', 'entrance_photos', 'checkout_photos',
-            'store_plan', 'sales_file', 'product_catalog'
-        ]
-        
-        for file_field in files_to_check:
-            file_obj = cleaned_data.get(file_field)
-            if file_obj and hasattr(file_obj, 'size'):
-                if file_obj.size > 10 * 1024 * 1024:  # 10MB
-                    raise ValidationError(f'حجم فایل {file_field} نباید بیش از 10 مگابایت باشد')
-        
-        # Validate video files (50MB limit)
-        video_files = ['customer_video', 'surveillance_footage']
-        for video_field in video_files:
-            video_obj = cleaned_data.get(video_field)
-            if video_obj and hasattr(video_obj, 'size'):
-                if video_obj.size > 50 * 1024 * 1024:  # 50MB
-                    raise ValidationError(f'حجم ویدیو {video_field} نباید بیش از 50 مگابایت باشد')
-        
-        # Validate video metadata
-        customer_video = cleaned_data.get('customer_video')
-        video_date = cleaned_data.get('video_date')
-        video_time = cleaned_data.get('video_time')
-        video_duration = cleaned_data.get('video_duration')
-        
-        if customer_video and not video_date:
-            raise ValidationError('در صورت آپلود ویدیو، تاریخ ضبط الزامی است')
+        total_sections = food_size + beverage_size + household_size
+        if total_sections > store_size:
+            raise ValidationError('مجموع مساحت بخش‌ها نمی‌تواند بیشتر از مساحت کل فروشگاه باشد.')
         
         return cleaned_data
 

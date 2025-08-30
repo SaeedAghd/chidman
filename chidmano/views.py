@@ -46,64 +46,9 @@ def dashboard_view(request):
     return render(request, 'store_analysis/dashboard.html')
 
 def simple_home(request):
-    """صفحه اصلی ساده برای تست"""
-    return HttpResponse("""
-    <html>
-    <head>
-        <title>چیدمان - تحلیل هوشمند فروشگاه</title>
-        <meta charset="utf-8">
-        <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-            .container { max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; }
-            .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 10px; transition: all 0.3s; }
-            .btn:hover { background: #219a52; transform: translateY(-2px); }
-            .btn-primary { background: #007bff; }
-            .btn-primary:hover { background: #0056b3; }
-            .hero { margin-bottom: 30px; }
-            .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0; }
-            .feature { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="hero">
-                <h1>🏪 چیدمان</h1>
-                <h2>تحلیل هوشمند فروشگاه</h2>
-                <p>✅ سیستم با موفقیت راه‌اندازی شده و آماده ارائه خدمات است!</p>
-            </div>
-            
-            <div class="features">
-                <div class="feature">
-                    <h3>🤖 تحلیل هوشمند</h3>
-                    <p>تحلیل دقیق فروشگاه با استفاده از هوش مصنوعی</p>
-                </div>
-                <div class="feature">
-                    <h3>📊 گزارش‌های مدیریتی</h3>
-                    <p>تولید گزارش‌های جامع و کاربردی</p>
-                </div>
-                <div class="feature">
-                    <h3>💰 پیش‌بینی مالی</h3>
-                    <p>محاسبه دقیق بازگشت سرمایه و پیش‌بینی درآمد</p>
-                </div>
-            </div>
-            
-            <div style="margin-top: 40px;">
-                <a href="/store/store-analysis/" class="btn btn-primary">📊 شروع تحلیل فروشگاه</a>
-                <a href="/store/store-analysis/submit/" class="btn">🤖 فرم هوشمند</a>
-                <a href="/analysis/" class="btn">🏪 صفحه تحلیل</a>
-                <a href="/test/" class="btn">🧪 تست سیستم</a>
-                <a href="/health/" class="btn">💚 وضعیت سیستم</a>
-                <a href="/admin/" class="btn">⚙️ پنل مدیریت</a>
-            </div>
-            
-            <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
-                <p>🎉 پروژه شما با موفقیت روی Render دیپلوی شده است!</p>
-                <p>برای استفاده کامل از امکانات، روی "شروع تحلیل فروشگاه" کلیک کنید.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """)
+    """صفحه اصلی - مستقیماً به صفحه اصلی سایت هدایت می‌کند"""
+    from django.shortcuts import redirect
+    return redirect('/store/')
 
 def store_analysis_home(request):
     """صفحه اصلی تحلیل فروشگاه"""

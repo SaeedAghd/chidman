@@ -1454,77 +1454,55 @@ def ai_analysis_guide(request):
 
 @login_required
 def store_analysis_form(request):
-    """Smart Store Analysis Form"""
+    """فرم تحلیل هوشمند فروشگاه - ۷ گام بهینه‌سازی"""
     if request.method == 'POST':
-        # Check if it's a quick form submission
-        if 'store_name' in request.POST and 'store_size' in request.POST:
-            # Quick free form submission
-            store_name = request.POST.get('store_name')
-            store_size = request.POST.get('store_size')
-            store_type = request.POST.get('store_type')
-            email = request.POST.get('email')
-            
-            if store_name and store_size and store_type and email:
-                # Create a new analysis record
-                analysis = StoreAnalysis.objects.create(
-                    user=request.user if request.user.is_authenticated else None,
-                    analysis_type='quick_free',
-                    store_name=store_name,
-                    store_size=store_size,
-                    store_type=store_type,
-                    status='pending',
-                    results='',
-                    error_message='',
-                    priority='medium',
-                    estimated_duration=15
-                )
-                
-                # Store quick form data
-                quick_data = {
-                    'store_name': store_name,
-                    'store_size': store_size,
-                    'store_type': store_type,
-                    'email': email,
-                    'analysis_type': 'quick_free'
-                }
-                analysis.set_analysis_data(quick_data)
-                
-                # Show success message
-                messages.success(request, 'Your free analysis request has been successfully registered!')
-                return redirect('store_analysis:analysis_results', pk=analysis.id)
-            else:
-                messages.error(request, 'Please fill in all required fields.')
-                return redirect('store_analysis:index')
-        
-        # Full AI form submission
-        form = StoreAnalysisForm(request.POST, request.FILES)
+        # استفاده از فرم جدید ۷ گامه
+        form = AIStoreAnalysisForm(request.POST, request.FILES)
         if form.is_valid():
-            # Process the form data
+            # پردازش داده‌های فرم
             form_data = form.cleaned_data
             
-            # Create a new analysis record
+            # تبدیل فایل‌های آپلود شده
+            file_fields = ['store_photos', 'store_plan']
+            for field in file_fields:
+                if field in form_data and form_data[field]:
+                    form_data[field] = f"File uploaded: {form_data[field].name}"
+                else:
+                    form_data[field] = None
+            
+            # ایجاد رکورد تحلیل جدید
             analysis = StoreAnalysis.objects.create(
                 user=request.user if request.user.is_authenticated else None,
-                analysis_type='comprehensive',
-                store_name=form_data.get('store_name', 'Unknown'),
+                analysis_type='comprehensive_7step',
+                store_name=form_data.get('store_name', 'فروشگاه جدید'),
                 store_size=form_data.get('store_size', 0),
-                store_type=form_data.get('store_type', 'retail'),
+                store_type=form_data.get('store_type', 'supermarket'),
                 status='pending',
                 results='',
                 error_message='',
-                priority='medium',
-                estimated_duration=30
+                priority='high',
+                estimated_duration=45
             )
             
-            # Store form data
+            # ذخیره داده‌های فرم
             analysis.set_analysis_data(form_data)
             
-            # Redirect to analysis results page
+            # نمایش پیام موفقیت
+            messages.success(request, 'درخواست تحلیل شما با موفقیت ثبت شد! تحلیل ۷ گامه در حال پردازش است.')
+            
+            # هدایت به صفحه نتایج
             return redirect('store_analysis:analysis_results', pk=analysis.id)
         else:
+            # نمایش خطاهای فرم
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'خطا در فیلد {field}: {error}')
+            
             return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
     else:
-        form = StoreAnalysisForm()
+        # نمایش فرم خالی
+        form = AIStoreAnalysisForm()
+    
     return render(request, 'store_analysis/store_analysis_form.html', {'form': form})
 
 
