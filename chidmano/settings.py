@@ -51,13 +51,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    # 'store_analysis.middleware.RateLimitMiddleware',  # موقتاً غیرفعال
-    # 'store_analysis.middleware.SecurityHeadersMiddleware',  # موقتاً غیرفعال
     'django.contrib.sessions.middleware.SessionMiddleware',
-
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'store_analysis.middleware.SecurityMiddleware',
+    'store_analysis.middleware.SecurityHeadersMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -206,7 +205,7 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1.0.0')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 
 # Authentication settings
-LOGIN_URL = 'login'
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = 'store_analysis:index'
 LOGOUT_REDIRECT_URL = 'store_analysis:index'
 

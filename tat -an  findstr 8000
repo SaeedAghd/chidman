@@ -1,0 +1,10 @@
+[33m6ea2f17[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Backup before fixing form issues - 7-step analysis form with all fields
+[33m3600d68[m اضافه کردن مسیر مستقیم برای فرم تحلیل و بهبود لینک‌ها
+[33m797e7e1[m راه‌حل نهایی و حرفه‌ای - ساده‌سازی کامل URL configuration
+[33m6ab8f7c[m حل مشکل URL conflict - حذف path تکراری و بهبود namespace
+[33m062df9f[m راه‌حل نهایی namespace - اضافه کردن در root level و redirect مستقیم
+[33m22857de[m اضافه کردن namespace store_analysis و بهبود error handling - راه‌حل نهایی
+[33m38c001b[m رفع مشکل AttributeError - استفاده از store_analysis_home به جای store_analysis_page
+[33m6c2d92f[m رفع مشکل namespace - اضافه کردن namespace store_analysis و بهبود error handling
+[33md62808f[m اضافه کردن مسیر store-analysis/ و صفحه جدید - رفع خطای 404
+[33m099f603[m رفع مشکل 502 - ساده‌سازی URLs و بهبود error handling

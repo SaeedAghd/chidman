@@ -57,20 +57,70 @@ class AIStoreAnalysisForm(forms.Form):
             'data-tooltip': 'این اطلاعات به ما کمک می‌کنه تا ساختار کلی فروشگاه رو بسازیم'
         })
     )
-    
+
     store_type = forms.ChoiceField(
         choices=[
+            # فروشگاه‌های مواد غذایی و خواربار
             ('supermarket', 'سوپرمارکت'),
             ('hypermarket', 'هایپرمارکت'),
             ('convenience', 'فروشگاه راحتی'),
+            ('bakery', 'نانوایی و شیرینی‌فروشی'),
+            ('butcher', 'قصابی و گوشت‌فروشی'),
+            ('fish_market', 'ماهی‌فروشی'),
+            ('vegetable_market', 'سبزی‌فروشی'),
+            ('dairy_store', 'لبنیات‌فروشی'),
+            
+            # فروشگاه‌های پوشاک و مد
             ('clothing', 'فروشگاه پوشاک'),
+            ('shoes_store', 'کفش‌فروشی'),
+            ('accessories', 'فروشگاه اکسسوری'),
+            ('lingerie', 'فروشگاه لباس زیر'),
+            ('kids_fashion', 'فروشگاه پوشاک کودکان'),
+            
+            # فروشگاه‌های لوازم و تجهیزات
             ('electronics', 'فروشگاه لوازم الکترونیکی'),
             ('home_appliances', 'فروشگاه لوازم خانگی'),
+            ('furniture', 'فروشگاه مبلمان'),
+            ('kitchen_ware', 'فروشگاه لوازم آشپزخانه'),
+            ('garden_center', 'فروشگاه لوازم باغبانی'),
+            ('hardware', 'فروشگاه ابزارآلات'),
+            
+            # فروشگاه‌های بهداشتی و درمانی
             ('pharmacy', 'داروخانه'),
+            ('optical', 'عینک‌فروشی'),
+            ('dental_supplies', 'فروشگاه لوازم دندانپزشکی'),
+            ('medical_equipment', 'فروشگاه تجهیزات پزشکی'),
+            
+            # فروشگاه‌های فرهنگی و آموزشی
             ('bookstore', 'کتابفروشی'),
+            ('stationery', 'فروشگاه لوازم التحریر'),
+            ('music_store', 'فروشگاه موسیقی'),
+            ('art_supplies', 'فروشگاه لوازم هنری'),
+            ('toy_store', 'فروشگاه اسباب بازی'),
+            
+            # فروشگاه‌های لوکس و تخصصی
             ('jewelry', 'فروشگاه جواهرات'),
-            ('sports', 'فروشگاه ورزشی'),
+            ('watches', 'فروشگاه ساعت'),
+            ('perfume', 'فروشگاه عطر'),
             ('cosmetics', 'فروشگاه لوازم آرایشی'),
+            ('spa_products', 'فروشگاه لوازم اسپا'),
+            
+            # فروشگاه‌های ورزشی و تفریحی
+            ('sports', 'فروشگاه ورزشی'),
+            ('fitness_equipment', 'فروشگاه تجهیزات بدنسازی'),
+            ('outdoor_sports', 'فروشگاه لوازم ورزش‌های فضای باز'),
+            ('bicycle_shop', 'دوچرخه‌فروشی'),
+            
+            # فروشگاه‌های خودرو و موتورسیکلت
+            ('auto_parts', 'فروشگاه لوازم یدکی خودرو'),
+            ('motorcycle_shop', 'موتورسیکلت‌فروشی'),
+            ('car_accessories', 'فروشگاه لوازم جانبی خودرو'),
+            
+            # فروشگاه‌های تخصصی دیگر
+            ('pet_shop', 'فروشگاه حیوانات خانگی'),
+            ('flower_shop', 'گل‌فروشی'),
+            ('gift_shop', 'فروشگاه هدیه'),
+            ('antique_shop', 'فروشگاه عتیقه'),
             ('other', 'سایر'),
         ],
         widget=forms.Select(attrs={
@@ -301,17 +351,97 @@ class AIStoreAnalysisForm(forms.Form):
         })
     )
     
+    checkout_count = forms.IntegerField(
+        min_value=1,
+        max_value=20,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'تعداد صندوق‌های پرداخت',
+            'data-step': '5'
+        })
+    )
+    
+    checkout_location = forms.ChoiceField(
+        choices=[
+            ('front', 'جلوی فروشگاه'),
+            ('back', 'پشت فروشگاه'),
+            ('side', 'کنار فروشگاه'),
+            ('center', 'وسط فروشگاه'),
+            ('multiple', 'چندین موقعیت'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '5'
+        })
+    )
+    
+    aisle_width = forms.FloatField(
+        min_value=1.0,
+        max_value=10.0,
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'عرض راهروها (متر)',
+            'step': '0.1',
+            'data-step': '5'
+        })
+    )
+    
+    shelf_spacing = forms.FloatField(
+        min_value=0.5,
+        max_value=5.0,
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'فاصله بین قفسه‌ها (متر)',
+            'step': '0.1',
+            'data-step': '5'
+        })
+    )
+    
+    problem_areas = forms.CharField(
+        max_length=1000,
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'نقاط کور و مشکل‌دار (مثال: گوشه‌های دور، راهروهای باریک)',
+            'data-step': '5'
+        })
+    )
+    
+    restricted_areas = forms.MultipleChoiceField(
+        choices=[
+            ('fixed_shelves', 'قفسه‌های ثابت و غیرقابل جابجایی'),
+            ('electrical_outlets', 'پریزهای برق و تابلوهای الکتریکی'),
+            ('lighting_fixtures', 'سیستم نورپردازی و چراغ‌ها'),
+            ('structural_columns', 'ستون‌های ساختمانی'),
+            ('entrance_exit', 'درهای ورودی و خروجی'),
+            ('windows', 'پنجره‌ها و نور طبیعی'),
+            ('heating_cooling', 'سیستم تهویه و کولر'),
+            ('security_cameras', 'دوربین‌های امنیتی'),
+            ('fire_safety', 'تجهیزات ایمنی و آتش‌نشانی'),
+            ('storage_rooms', 'انبارها و اتاق‌های ذخیره'),
+            ('other', 'سایر'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input',
+            'data-step': '5'
+        })
+    )
+    
     attraction_elements = forms.MultipleChoiceField(
         choices=[
-            ('refrigerator', 'یخچال/فریزر'),
-            ('promotion_area', 'بخش تخفیف'),
-            ('fresh_food_display', 'نمایش مواد تازه'),
-            ('beverage_cooler', 'سردکن نوشیدنی'),
-            ('bakery', 'نانوایی'),
-            ('deli', 'بخش گوشت'),
-            ('pharmacy', 'داروخانه'),
-            ('atm', 'دستگاه خودپرداز'),
-            ('seating_area', 'محل نشستن'),
+            ('refrigerators', 'یخچال‌ها و فریزرهای نمایشی'),
+            ('promotion_area', 'بخش تخفیف‌ها و حراج'),
+            ('new_products', 'محصولات جدید و ویژه'),
+            ('seasonal_displays', 'ویترین‌های فصلی'),
+            ('demo_stations', 'ایستگاه‌های نمایش و تست'),
+            ('entrance_display', 'ویترین ورودی و جاذبه اولیه'),
+            ('end_caps', 'انتهای قفسه‌ها (End Caps)'),
+            ('cross_promotion', 'محصولات مکمل و عرضه متقابل'),
+            ('interactive_displays', 'نمایش‌های تعاملی'),
+            ('brand_zones', 'مناطق برندهای خاص'),
             ('other', 'سایر'),
         ],
         widget=forms.CheckboxSelectMultiple(attrs={
@@ -369,8 +499,9 @@ class AIStoreAnalysisForm(forms.Form):
         choices=[
             ('low', 'بودجه محدود (کمتر از 10 میلیون تومان)'),
             ('medium', 'بودجه متوسط (10-50 میلیون تومان)'),
-            ('high', 'بودجه بالا (بیش از 50 میلیون تومان)'),
+            ('high', 'بودجه بالا (50-200 میلیون تومان)'),
             ('unlimited', 'بدون محدودیت بودجه'),
+            ('flexible', 'انعطاف‌پذیر بر اساس پیشنهادات'),
         ],
         widget=forms.Select(attrs={
             'class': 'form-control form-control-lg',
@@ -462,7 +593,111 @@ class AIStoreAnalysisForm(forms.Form):
         required=False,
         widget=forms.FileInput(attrs={
             'class': 'form-control',
-            'accept': '.pdf,.jpg,.png'
+            'accept': '.pdf,.jpg,.png,.dwg'
+        })
+    )
+    
+    # فیلدهای آپلود تکمیلی
+    shelf_photos = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        })
+    )
+    
+    entrance_photos = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        })
+    )
+    
+    checkout_photos = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        })
+    )
+    
+    customer_video = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'video/*'
+        })
+    )
+    
+    surveillance_footage = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'video/*'
+        })
+    )
+    
+    sales_file = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.xlsx,.xls,.csv,.pdf'
+        })
+    )
+    
+    product_catalog = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.doc,.docx'
+        })
+    )
+    
+    # ===== فیلدهای نرم‌افزار =====
+    pos_system = forms.ChoiceField(
+        choices=[
+            ('', 'انتخاب کنید'),
+            ('parsian', 'پارسیان'),
+            ('novin', 'نوین'),
+            ('saman', 'سامان'),
+            ('hamkaran', 'همکاران'),
+            ('rayan', 'ریان'),
+            ('shaparak', 'شاپرک'),
+            ('pasargad', 'پاسارگاد'),
+            ('mellat', 'ملت'),
+            ('saderat', 'صادرات'),
+            ('tejarat', 'تجارت'),
+            ('maskan', 'مسکن'),
+            ('other', 'سایر'),
+        ],
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '6'
+        })
+    )
+    
+    inventory_system = forms.ChoiceField(
+        choices=[
+            ('', 'انتخاب کنید'),
+            ('parsian', 'پارسیان'),
+            ('novin', 'نوین'),
+            ('saman', 'سامان'),
+            ('hamkaran', 'همکاران'),
+            ('rayan', 'ریان'),
+            ('shaparak', 'شاپرک'),
+            ('pasargad', 'پاسارگاد'),
+            ('mellat', 'ملت'),
+            ('saderat', 'صادرات'),
+            ('tejarat', 'تجارت'),
+            ('maskan', 'مسکن'),
+            ('other', 'سایر'),
+        ],
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg',
+            'data-step': '6'
         })
     )
     
@@ -470,10 +705,10 @@ class AIStoreAnalysisForm(forms.Form):
         cleaned_data = super().clean()
         
         # اعتبارسنجی مساحت‌ها
-        store_size = cleaned_data.get('store_size', 0)
-        food_size = cleaned_data.get('food_section_size', 0)
-        beverage_size = cleaned_data.get('beverage_section_size', 0)
-        household_size = cleaned_data.get('household_section_size', 0)
+        store_size = cleaned_data.get('store_size', 0) or 0
+        food_size = cleaned_data.get('food_section_size', 0) or 0
+        beverage_size = cleaned_data.get('beverage_section_size', 0) or 0
+        household_size = cleaned_data.get('household_section_size', 0) or 0
         
         total_sections = food_size + beverage_size + household_size
         if total_sections > store_size:
