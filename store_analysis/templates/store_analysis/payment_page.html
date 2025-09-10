@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}پرداخت - تحلیل فروشگاه{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Payment Page Styles */
+.payment-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.payment-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 3rem;
+}
+
+.payment-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.payment-header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.payment-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+/* Order Summary */
+.order-summary {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f1f3f4;
+}
+
+.summary-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.summary-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.store-info {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.store-info h3 {
+    color: #2d3748;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.store-info p {
+    color: #718096;
+    margin: 0.5rem 0;
+}
+
+.cost-breakdown {
+    margin-bottom: 2rem;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.cost-item:last-child {
+    border-bottom: none;
+}
+
+.cost-label {
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.cost-amount {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.total-cost {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+}
+
+.total-cost .cost-item {
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.total-cost .cost-label,
+.total-cost .cost-amount {
+    color: white;
+    font-size: 1.1rem;
+}
+
+/* Payment Methods */
+.payment-methods {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.payment-header-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f1f3f4;
+}
+
+.payment-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.payment-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.payment-options {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.payment-option {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.payment-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.payment-option.selected {
+    border-color: #667eea;
+    background: #f7fafc;
+}
+
+.payment-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.payment-option-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.payment-option-icon {
+    width: 40px;
+    height: 40px;
+    background: #667eea;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.payment-option-info h4 {
+    color: #2d3748;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.payment-option-info p {
+    color: #718096;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Security Badge */
+.security-badge {
+    background: #f0fff4;
+    border: 1px solid #9ae6b4;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.security-badge i {
+    color: #38a169;
+    font-size: 1.2rem;
+}
+
+.security-badge p {
+    color: #2f855a;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Payment Button */
+.payment-button {
+    width: 100%;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.payment-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
+}
+
+.payment-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .payment-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .payment-header h1 {
+        font-size: 2rem;
+    }
+    
+    .payment-container {
+        padding: 1rem;
+    }
+}
+
+/* Loading Animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="payment-header">
+        <h1>پرداخت و تکمیل سفارش</h1>
+        <p>مرحله نهایی برای دریافت تحلیل حرفه‌ای فروشگاه شما</p>
+    </div>
+    
+    <div class="payment-content">
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <div class="summary-header">
+                <div class="summary-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <h2 class="summary-title">خلاصه سفارش</h2>
+            </div>
+            
+            {% if store_analysis %}
+            <div class="store-info">
+                <h3>
+                    <i class="fas fa-store"></i>
+                    اطلاعات فروشگاه
+                </h3>
+                <p><strong>نام:</strong> {{ store_analysis.store_name }}</p>
+                <p><strong>نوع:</strong> {{ store_analysis.get_store_type_display }}</p>
+                <p><strong>اندازه:</strong> {{ store_analysis.get_store_size_display }}</p>
+                <p><strong>تاریخ سفارش:</strong> {{ order.created_at|date:"Y/m/d H:i" }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- تحلیل اولیه -->
+            {% if store_analysis.preliminary_analysis %}
+            <div class="preliminary-analysis" style="background: #f8f9fa; border-radius: 10px; padding: 1.5rem; margin-bottom: 2rem; border-right: 4px solid #28a745;">
+                <h3 style="color: #28a745; margin-bottom: 1rem; display: flex; align-items: center;">
+                    <i class="fas fa-lightbulb" style="margin-left: 0.5rem;"></i>
+                    تحلیل اولیه
+                </h3>
+                <div class="analysis-content" style="color: #495057; line-height: 1.6;">
+                    <p>{{ store_analysis.preliminary_analysis }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="cost-breakdown">
+                <h3 style="color: #2d3748; margin-bottom: 1rem;">جزئیات هزینه‌ها</h3>
+                
+                {% for item in cost_breakdown.breakdown %}
+                <div class="cost-item">
+                    <span class="cost-label">{{ item.item }}</span>
+                    <span class="cost-amount">{{ item.amount|floatformat:0 }} تومان</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="total-cost">
+                <div class="cost-item">
+                    <span class="cost-label">مجموع کل</span>
+                    <span class="cost-amount">{{ cost_breakdown.final|floatformat:0 }} تومان</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+            <div class="payment-header-section">
+                <div class="payment-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <h2 class="payment-title">روش پرداخت</h2>
+            </div>
+            
+            <form method="post" action="{% url 'store_analysis:process_payment' order.order_id %}">
+                {% csrf_token %}
+                
+                <div class="payment-options">
+                    {% for method in payment_methods %}
+                    <div class="payment-option" onclick="selectPaymentMethod('{{ method.id }}')">
+                        <input type="radio" name="payment_method" value="{{ method.id }}" id="payment_{{ method.id }}" required>
+                        <div class="payment-option-content">
+                            <div class="payment-option-icon">
+                                <i class="{{ method.icon }}"></i>
+                            </div>
+                            <div class="payment-option-info">
+                                <h4>{{ method.name }}</h4>
+                                <p>پرداخت امن و سریع</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="security-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>پرداخت شما با بالاترین استانداردهای امنیتی محافظت می‌شود</p>
+                </div>
+                
+                <button type="submit" class="payment-button" id="paymentButton">
+                    <i class="fas fa-lock"></i>
+                    پرداخت {{ cost_breakdown.final|floatformat:0 }} تومان
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectPaymentMethod(methodId) {
+    // Remove selected class from all options
+    document.querySelectorAll('.payment-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    document.getElementById('payment_' + methodId).closest('.payment-option').classList.add('selected');
+    
+    // Check the radio button
+    document.getElementById('payment_' + methodId).checked = true;
+}
+
+// Form submission handling
+document.querySelector('form').addEventListener('submit', function(e) {
+    const paymentButton = document.getElementById('paymentButton');
+    paymentButton.disabled = true;
+    paymentButton.innerHTML = '<div class="loading-spinner"></div> در حال پردازش...';
+});
+
+// Auto-select first payment method
+document.addEventListener('DOMContentLoaded', function() {
+    const firstPaymentMethod = document.querySelector('.payment-option');
+    if (firstPaymentMethod) {
+        firstPaymentMethod.click();
+    }
+});
+</script>
+{% endblock %}

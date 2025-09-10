@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.core.exceptions import ValidationError
 import re
 import os
+import uuid
 
 # --- Custom Validators ---
 def validate_store_name(value):
@@ -543,7 +544,7 @@ class StoreProducts(TimestampedModel):
         ]
 
 # --- مدل اصلی تحلیل فروشگاه (ساده شده) ---
-class StoreAnalysis(UserOwnedModel, TimestampedModel):
+class StoreAnalysis(TimestampedModel):
     """مدل اصلی تحلیل فروشگاه - ساده شده"""
     STATUS_CHOICES = [
         ('pending', _('در انتظار')),
@@ -560,6 +561,7 @@ class StoreAnalysis(UserOwnedModel, TimestampedModel):
         ('ai_enhanced', _('تحلیل هوشمند')),
     ]
     
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('کاربر'))
     store_info = models.OneToOneField(StoreBasicInfo, on_delete=models.CASCADE, related_name='analysis', null=True, blank=True)
     analysis_type = models.CharField(
         max_length=20,
@@ -638,6 +640,7 @@ class StoreAnalysis(UserOwnedModel, TimestampedModel):
         verbose_name=_('داده‌های تحلیل'),
         help_text='داده‌های ارسالی از فرم'
     )
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='analyses', verbose_name='سفارش')
 
     def __str__(self):
         store_name = self.store_name or (self.store_info.store_name if self.store_info else 'نامشخص')
@@ -898,3 +901,124 @@ class StoreAnalysisDetail(models.Model):
 
     def __str__(self):
         return f"جزئیات {self.store_analysis.store_info.store_name}"
+
+class PricingPlan(models.Model):
+    """مدل پلن‌های قیمت‌گذاری"""
+    PLAN_TYPES = [
+        ('one_time', 'تحلیل یکباره'),
+        ('monthly', 'پلن ماهیانه'),
+        ('yearly', 'پلن سالیانه'),
+    ]
+    
+    name = models.CharField(max_length=100, verbose_name="نام پلن")
+    plan_type = models.CharField(max_length=20, choices=PLAN_TYPES, verbose_name="نوع پلن")
+    price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="قیمت (تومان)")
+    original_price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="قیمت اصلی")
+    discount_percentage = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], verbose_name="درصد تخفیف")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    features = models.JSONField(default=list, verbose_name="ویژگی‌ها")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "پلن قیمت‌گذاری"
+        verbose_name_plural = "پلن‌های قیمت‌گذاری"
+    
+    def __str__(self):
+        return f"{self.name} - {self.price:,} تومان"
+
+class DiscountCode(models.Model):
+    """مدل کدهای تخفیف"""
+    code = models.CharField(max_length=20, unique=True, verbose_name="کد تخفیف")
+    discount_percentage = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], verbose_name="درصد تخفیف")
+    max_uses = models.IntegerField(default=1, verbose_name="حداکثر استفاده")
+    used_count = models.IntegerField(default=0, verbose_name="تعداد استفاده شده")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    valid_from = models.DateTimeField(verbose_name="اعتبار از")
+    valid_until = models.DateTimeField(verbose_name="اعتبار تا")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="ایجاد شده توسط")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "کد تخفیف"
+        verbose_name_plural = "کدهای تخفیف"
+    
+    def __str__(self):
+        return f"{self.code} - {self.discount_percentage}%"
+
+class Order(models.Model):
+    """مدل سفارش"""
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار پرداخت'),
+        ('paid', 'پرداخت شده'),
+        ('processing', 'در حال پردازش'),
+        ('completed', 'تکمیل شده'),
+        ('failed', 'ناموفق'),
+    ]
+    
+    order_id = models.UUIDField(default=uuid.uuid4, unique=True, verbose_name="شناسه سفارش")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
+    plan = models.ForeignKey(PricingPlan, on_delete=models.CASCADE, null=True, blank=True, verbose_name="پلن انتخاب شده")
+    original_amount = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="مبلغ اصلی")
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=0, default=0, verbose_name="مبلغ تخفیف")
+    final_amount = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="مبلغ نهایی")
+    discount_code = models.ForeignKey(DiscountCode, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="کد تخفیف")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="وضعیت")
+    payment_method = models.CharField(max_length=50, blank=True, verbose_name="روش پرداخت")
+    transaction_id = models.CharField(max_length=100, blank=True, verbose_name="شناسه تراکنش")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "سفارش"
+        verbose_name_plural = "سفارش‌ها"
+    
+    def __str__(self):
+        return f"سفارش {self.order_id} - {self.user.username}"
+
+class AnalysisRequest(models.Model):
+    """مدل درخواست تحلیل"""
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار پردازش'),
+        ('processing', 'در حال پردازش'),
+        ('completed', 'تکمیل شده'),
+        ('failed', 'ناموفق'),
+    ]
+    
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, verbose_name="سفارش")
+    store_analysis_data = models.JSONField(verbose_name="داده‌های تحلیل فروشگاه")
+    initial_analysis = models.TextField(blank=True, verbose_name="تحلیل اولیه")
+    ai_analysis = models.TextField(blank=True, verbose_name="تحلیل هوش مصنوعی")
+    ai_analysis_results = models.JSONField(blank=True, null=True, verbose_name="نتایج تحلیل هوش مصنوعی")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="وضعیت")
+    estimated_completion = models.DateTimeField(null=True, blank=True, verbose_name="زمان تخمینی تکمیل")
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان تکمیل")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "درخواست تحلیل"
+        verbose_name_plural = "درخواست‌های تحلیل"
+    
+    def __str__(self):
+        return f"تحلیل {self.order.order_id} - {self.status}"
+
+class PromotionalBanner(models.Model):
+    """مدل بنر تبلیغاتی تخفیف"""
+    title = models.CharField(max_length=200, verbose_name="عنوان")
+    subtitle = models.CharField(max_length=300, verbose_name="زیرعنوان")
+    discount_percentage = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], verbose_name="درصد تخفیف")
+    discount_text = models.CharField(max_length=100, default="تخفیف", verbose_name="متن تخفیف")
+    background_color = models.CharField(max_length=7, default="#FF6B6B", verbose_name="رنگ پس‌زمینه")
+    text_color = models.CharField(max_length=7, default="#FFFFFF", verbose_name="رنگ متن")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    start_date = models.DateTimeField(verbose_name="تاریخ شروع")
+    end_date = models.DateTimeField(verbose_name="تاریخ پایان")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "بنر تبلیغاتی"
+        verbose_name_plural = "بنرهای تبلیغاتی"
+    
+    def __str__(self):
+        return f"{self.title} - {self.discount_percentage}% تخفیف"

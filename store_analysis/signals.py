@@ -19,18 +19,20 @@ def handle_store_analysis_save(sender, instance, created, **kwargs):
         instance.save(update_fields=['status'])
         
         # Log the creation
-        logger.info(f"New store analysis created: {instance.store_name} by {instance.user.username}")
+        user_info = instance.user.username if instance.user else "Anonymous"
+        logger.info(f"New store analysis created: {instance.store_name} by {user_info}")
         
-        # Send notification to user
-        try:
-            from .utils.notification import send_email_notification
-            send_email_notification(
-                instance.user.email,
-                'تحلیل جدید ایجاد شد',
-                f'تحلیل فروشگاه {instance.store_name} با موفقیت ایجاد شد.'
-            )
-        except Exception as e:
-            logger.error(f"Failed to send notification: {e}")
+        # Send notification to user (if user exists)
+        if instance.user and instance.user.email:
+            try:
+                from .utils.notification import send_email_notification
+                send_email_notification(
+                    instance.user.email,
+                    'تحلیل جدید ایجاد شد',
+                    f'تحلیل فروشگاه {instance.store_name} با موفقیت ایجاد شد.'
+                )
+            except Exception as e:
+                logger.error(f"Failed to send notification: {e}")
 
 @receiver(post_delete, sender=StoreAnalysis)
 def handle_store_analysis_delete(sender, instance, **kwargs):

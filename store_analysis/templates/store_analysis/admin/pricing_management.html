@@ -1,0 +1,421 @@
+{% extends 'store_analysis/base.html' %}
+
+{% block title %}مدیریت قیمت‌ها - چیدمانو{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .admin-header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+
+    .admin-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .admin-header p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .pricing-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        transition: all 0.3s ease;
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .plan-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .plan-title {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .plan-type {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .price-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        color: white;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .btn-update {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-update:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        color: white;
+    }
+
+    .price-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .price-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .price-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .price-value {
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .discount-badge {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 0.5rem;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-active {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .status-inactive {
+        background: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+        border: 1px solid rgba(244, 67, 54, 0.3);
+    }
+
+    .back-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .admin-header h1 {
+            font-size: 2rem;
+        }
+        
+        .price-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .price-info {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="container">
+        <!-- Header -->
+        <div class="admin-header">
+            <h1>
+                <i class="fas fa-dollar-sign me-3"></i>
+                مدیریت قیمت‌ها
+            </h1>
+            <p>تنظیم و مدیریت قیمت‌های پلن‌های مختلف</p>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mb-4">
+            <a href="{% url 'store_analysis:user_dashboard' %}" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به پنل حرفه‌ای
+            </a>
+        </div>
+
+        <!-- Pricing Plans -->
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for plan in plans %}
+            <div class="pricing-card">
+                <div class="plan-header">
+                    <h3 class="plan-title">{{ plan.name }}</h3>
+                    <span class="plan-type">
+                        {% if plan.plan_type == 'one_time' %}
+                            <i class="fas fa-calendar-day me-1"></i>یکباره
+                        {% elif plan.plan_type == 'monthly' %}
+                            <i class="fas fa-calendar-alt me-1"></i>ماهیانه
+                        {% elif plan.plan_type == 'yearly' %}
+                            <i class="fas fa-calendar me-1"></i>سالانه
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="price-info">
+                    <div class="price-item">
+                        <div class="price-label">قیمت اصلی</div>
+                        <div class="price-value">{{ plan.original_price|floatformat:0 }} تومان</div>
+                    </div>
+                    <div class="price-item">
+                        <div class="price-label">قیمت فعلی</div>
+                        <div class="price-value">{{ plan.price|floatformat:0 }} تومان</div>
+                    </div>
+                    <div class="price-item">
+                        <div class="price-label">درصد تخفیف</div>
+                        <div class="price-value">{{ plan.discount_percentage }}%</div>
+                    </div>
+                    <div class="price-item">
+                        <div class="price-label">وضعیت</div>
+                        <div class="price-value">
+                            <span class="status-badge {% if plan.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                {% if plan.is_active %}
+                                    <i class="fas fa-check me-1"></i>فعال
+                                {% else %}
+                                    <i class="fas fa-times me-1"></i>غیرفعال
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="price-form">
+                    <div class="form-group">
+                        <label for="price_{{ plan.id }}">قیمت جدید (تومان)</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="price_{{ plan.id }}" 
+                               name="price_{{ plan.id }}" 
+                               value="{{ plan.price|floatformat:0 }}"
+                               min="0"
+                               step="1000"
+                               placeholder="قیمت را وارد کنید">
+                    </div>
+                    <div class="form-group">
+                        <label for="original_price_{{ plan.id }}">قیمت اصلی (تومان)</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="original_price_{{ plan.id }}" 
+                               name="original_price_{{ plan.id }}" 
+                               value="{{ plan.original_price|floatformat:0 }}"
+                               min="0"
+                               step="1000"
+                               placeholder="قیمت اصلی را وارد کنید">
+                    </div>
+                    <div class="form-group">
+                        <label for="discount_{{ plan.id }}">درصد تخفیف</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="discount_{{ plan.id }}" 
+                               name="discount_{{ plan.id }}" 
+                               value="{{ plan.discount_percentage }}"
+                               min="0"
+                               max="100"
+                               placeholder="درصد تخفیف">
+                    </div>
+                    <div class="form-group d-flex align-items-end">
+                        <button type="submit" class="btn btn-update">
+                            <i class="fas fa-save me-2"></i>
+                            بروزرسانی قیمت
+                        </button>
+                    </div>
+                </div>
+
+                {% if plan.features %}
+                <div class="mt-3">
+                    <h6 class="text-white mb-2">ویژگی‌های پلن:</h6>
+                    <ul class="text-white-50">
+                        {% for feature in plan.features %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-3x text-white-50 mb-3"></i>
+                <p class="text-white-50">هیچ پلن قیمت‌گذاری یافت نشد.</p>
+            </div>
+            {% endfor %}
+        </form>
+
+        <!-- Quick Actions -->
+        <div class="mt-4">
+            <a href="{% url 'store_analysis:admin_discount_management' %}" class="btn btn-update me-2">
+                <i class="fas fa-percentage me-2"></i>
+                مدیریت کدهای تخفیف
+            </a>
+            <a href="{% url 'store_analysis:admin_dashboard' %}" class="back-btn">
+                <i class="fas fa-cog me-2"></i>
+                داشبورد ادمین
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-calculate discount percentage when price or original price changes
+    const priceInputs = document.querySelectorAll('input[name^="price_"]');
+    const originalPriceInputs = document.querySelectorAll('input[name^="original_price_"]');
+    const discountInputs = document.querySelectorAll('input[name^="discount_"]');
+
+    function updateDiscount(index) {
+        const price = parseFloat(priceInputs[index].value) || 0;
+        const originalPrice = parseFloat(originalPriceInputs[index].value) || 0;
+        
+        if (originalPrice > 0) {
+            const discount = Math.round(((originalPrice - price) / originalPrice) * 100);
+            discountInputs[index].value = Math.max(0, Math.min(100, discount));
+        }
+    }
+
+    function updatePrice(index) {
+        const originalPrice = parseFloat(originalPriceInputs[index].value) || 0;
+        const discount = parseFloat(discountInputs[index].value) || 0;
+        
+        if (originalPrice > 0) {
+            const price = originalPrice * (1 - discount / 100);
+            priceInputs[index].value = Math.round(price);
+        }
+    }
+
+    // Add event listeners
+    priceInputs.forEach((input, index) => {
+        input.addEventListener('input', () => updateDiscount(index));
+    });
+
+    originalPriceInputs.forEach((input, index) => {
+        input.addEventListener('input', () => updateDiscount(index));
+    });
+
+    discountInputs.forEach((input, index) => {
+        input.addEventListener('input', () => updatePrice(index));
+    });
+
+    // Add hover effects
+    const cards = document.querySelectorAll('.pricing-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}

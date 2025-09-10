@@ -207,7 +207,7 @@ class TrafficAnalyzer:
             else:
                 external_insights.append('منطقه فروشگاه مشخص نیست')
             
-        return {
+            return {
                 'score': min(external_score, 1.0),
                 'location': store_location,
                 'city': city,

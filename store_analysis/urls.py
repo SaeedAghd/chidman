@@ -1,40 +1,71 @@
-from django.urls import path, include
+from django.urls import path
 from . import views
-from . import consumers
 
 app_name = 'store_analysis'
 
 urlpatterns = [
-    # صفحات وب اصلی
+    # Main index page
     path('', views.index, name='index'),
-    path('education/', views.education_library, name='education_library'),
-    path('education/article/<slug:slug>/', views.article_detail, name='article_detail'),
+    
+    # Core URLs
     path('features/', views.features, name='features'),
-
-    # مسیرهای آنالیز فروشگاه
+    path('education/', views.education_library, name='education_library'),
+    path('article/<slug:slug>/', views.article_detail, name='article_detail'),
+    path('ai-guide/', views.ai_analysis_guide, name='ai_analysis_guide'),
+    
+    # Analysis URLs
+    path('form/', views.store_analysis_form, name='store_analysis_form'),
     path('store-analysis/', views.store_analysis_form, name='store_analysis'),
-    path('store-analysis/submit/', views.submit_analysis, name='submit_analysis'),
+    path('professional-form/', views.store_analysis_form, name='professional_form'),
+    path('submit/', views.submit_analysis, name='submit_analysis'),
+    path('analysis/create/', views.analysis_create, name='analysis_create'),
+    path('analysis/list/', views.analysis_list, name='analysis_list'),
+    path('analysis/<int:pk>/', views.analysis_detail, name='analysis_detail'),
+    path('analysis/<int:pk>/download/', views.download_analysis_report, name='download_analysis'),
+    path('analysis/<int:pk>/progress/', views.analysis_progress, name='analysis_progress'),
+    path('analysis/<int:pk>/start/', views.start_analysis, name='start_analysis'),
+    path('analysis/<int:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
+    path('analysis/<int:pk>/insights/', views.analysis_insights, name='analysis_insights'),
+    path('analysis/<int:pk>/ml/', views.advanced_ml_analysis, name='advanced_ml_analysis'),
+    path('analysis/<int:pk>/ai/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
+    path('analysis/<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
+    path('analysis/<int:pk>/generate-ai/', views.generate_ai_report, name='generate_ai_report'),
+    
+    # Dashboard URLs
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
-    
-    # مسیرهای تحلیل‌ها
-    path('analyses/', views.analysis_list, name='analysis_list'),
-    path('analyses/<int:pk>/results/', views.analysis_results, name='analysis_results'),
-    path('analyses/<int:pk>/download/', views.download_analysis_report, name='download_analysis'),
-
-    # مسیرهای تحلیل AI
-    path('analysis/<int:pk>/ai-detailed/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
-    path('analyses/<int:pk>/advanced-ml/', views.advanced_ml_analysis, name='advanced_ml_analysis'),
-    path('api/generate-ai-report/', views.generate_ai_report, name='generate_ai_report'),
-    
-    # مسیرهای ادمین
-    path('admin/analyses/<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
-    
-    # مسیرهای پنل کاربری فوق حرفه‌ای
-    path('professional-dashboard/', views.professional_dashboard, name='professional_dashboard'),
-    path('analyses/<int:pk>/insights/', views.analysis_insights, name='analysis_insights'),
-    path('store-comparison/', views.store_comparison, name='store_comparison'),
+    path('analysis/<int:pk>/download-detailed-pdf/', views.download_detailed_pdf, name='download_detailed_pdf'),
     path('ai-consultant/', views.ai_consultant, name='ai_consultant'),
+    path('store-comparison/', views.store_comparison, name='store_comparison'),
     
-    # مسیرهای راهنما
-    path('ai-analysis-guide/', views.ai_analysis_guide, name='ai_analysis_guide'),
+    # Result URLs
+    path('result/', views.store_analysis_result, name='store_analysis_result'),
+    
+    # Admin URLs
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/pricing/', views.admin_pricing_management, name='admin_pricing_management'),
+    path('admin/discounts/', views.admin_discount_management, name='admin_discount_management'),
+    path('admin/banners/', views.admin_promotional_banner_management, name='admin_promotional_banner_management'),
+    
+    # Payment and Analysis URLs
+    path('submit-request/', views.submit_analysis_request, name='submit_analysis_request'),
+    path('payment/<uuid:order_id>/', views.payment_page, name='payment'),
+    path('process-payment/<uuid:order_id>/', views.process_payment, name='process_payment'),
+    path('payment-success/<uuid:order_id>/', views.payment_success, name='payment_success'),
+    path('payment-failed/<uuid:order_id>/', views.payment_failed, name='payment_failed'),
+    path('order-results/<uuid:order_id>/', views.order_analysis_results, name='order_analysis_results'),
+    path('check-status/<uuid:order_id>/', views.check_analysis_status, name='check_analysis_status'),
+    path('create-order/<int:plan_id>/', views.create_order, name='create_order'),
+    path('checkout/<uuid:order_id>/', views.checkout, name='checkout'),
+    path('apply-discount/', views.apply_discount, name='apply_discount'),
+
+    path('analysis-results/<int:pk>/', views.analysis_results, name='analysis_results'),
+    path('analysis-results-session/', views.analysis_results_session, name='analysis_results_session'),
+    
+    # Forms
+    path('forms/', views.forms, name='forms'),
+    path('forms/submit/', views.forms_submit, name='forms_submit'),
+    
+    # Legal Agreement URLs
+    path('check-legal-agreement/', views.check_legal_agreement, name='check_legal_agreement'),
+    path('accept-legal-agreement/', views.accept_legal_agreement, name='accept_legal_agreement'),
 ]

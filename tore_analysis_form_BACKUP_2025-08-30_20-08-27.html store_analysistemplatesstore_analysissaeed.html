@@ -1,0 +1,920 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}فرم تحلیل هوشمند فروشگاه{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* طراحی کلی */
+    .analysis-form-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin: 0 auto;
+        max-width: 1200px;
+    }
+
+    /* Header زیبا */
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .form-header h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .form-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Progress Bar پیشرفته */
+    .progress-section {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .progress-container {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .progress-bar {
+        height: 12px;
+        background: #e9ecef;
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+        border-radius: 6px;
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .progress-text {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        font-weight: 600;
+    }
+
+    /* Step Indicator */
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-weight: 700;
+        font-size: 1.2rem;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        border: 3px solid transparent;
+    }
+
+    .step.active .step-number {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .step.completed .step-number {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .step-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: center;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+    .step.active .step-title {
+        color: #667eea;
+        font-weight: 700;
+    }
+
+    .step.completed .step-title {
+        color: #28a745;
+    }
+
+    /* Form Pages */
+    .form-page {
+        display: none;
+        padding: 3rem 2rem;
+        animation: slideIn 0.5s ease;
+    }
+
+    .form-page.active {
+        display: block;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Section Headers */
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+
+    .section-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .section-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+        font-size: 1.1rem;
+        color: #6c757d;
+        line-height: 1.6;
+    }
+
+    /* Form Controls */
+    .form-group {
+        margin-bottom: 2rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .required-field::after {
+        content: ' *';
+        color: #dc3545;
+    }
+
+    .form-control {
+        width: 100%;
+        border: 2px solid #e9ecef;
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #f8f9fa;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .form-control.is-valid {
+        border-color: #28a745;
+        background: #f8fff9;
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background: #fff5f5;
+    }
+
+    /* Checkboxes and Radio Buttons */
+    .form-check {
+        margin-bottom: 1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        background: #f8f9fa;
+    }
+
+    .form-check:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-check-input {
+        margin-right: 0.75rem;
+        transform: scale(1.2);
+    }
+
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        color: #2c3e50;
+        cursor: pointer;
+    }
+
+    /* Navigation Buttons */
+    .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn-nav {
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 150px;
+        justify-content: center;
+    }
+
+    .btn-prev {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-next {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+
+    .btn-nav:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-nav:active {
+        transform: translateY(-1px);
+    }
+
+    .btn-nav:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Error Messages */
+    .invalid-feedback {
+        display: block;
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        background: #fff5f5;
+        border-radius: 0.75rem;
+        border: 1px solid #ffcdd2;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Success Messages */
+    .valid-feedback {
+        display: block;
+        color: #28a745;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        background: #f8fff9;
+        border-radius: 0.75rem;
+        border: 1px solid #c3e6cb;
+    }
+
+    /* Info Cards */
+    .info-card {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .info-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+
+    .info-card h4 {
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .info-card p {
+        margin: 0;
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.5rem;
+        }
+        
+        .form-header {
+            padding: 1rem 0.5rem;
+        }
+        
+        .form-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .form-subtitle {
+            font-size: 0.85rem;
+        }
+
+        .step-indicator {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .step-indicator::before {
+            display: none;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .step-number {
+            margin: 0;
+            width: 25px;
+            height: 25px;
+            font-size: 0.7rem;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 0.5rem;
+        }
+        
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+        }
+        
+        .section-subtitle {
+            font-size: 0.8rem;
+        }
+        
+        .info-card {
+            padding: 1rem;
+        }
+        
+        .info-card h4 {
+            font-size: 0.9rem;
+        }
+        
+        .info-card p {
+            font-size: 0.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            font-size: 0.85rem;
+        }
+        
+        .form-control {
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+        
+        .form-check-label {
+            font-size: 0.8rem;
+        }
+
+        .nav-buttons {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-nav {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .progress-container {
+            margin: 1rem 0;
+        }
+    }
+
+    /* Loading Spinner */
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
+
+    .toast {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 1rem;
+        animation: slideInRight 0.3s ease;
+    }
+
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analysis-form-container">
+    <div class="form-card">
+        <!-- Header -->
+        <div class="form-header">
+            <h2><i class="fas fa-store me-3"></i>فرم تحلیل هوشمند فروشگاه</h2>
+            <p>با استفاده از هوش مصنوعی و الگوریتم‌های پیشرفته، فروشگاه خود را بهینه کنید</p>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 16.67%;"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progressText">مرحله 1 از 7</span>
+                    <span id="progressPercent">16.7%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-title">تحلیل چیدمان<br><small>OpenCV</small></div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-title">رفتار مشتری<br><small>TensorFlow</small></div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-title">تحلیل ترافیک<br><small>Scikit-learn</small></div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-title">بهینه‌سازی<br><small>Algorithms</small></div>
+            </div>
+            <div class="step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-title">پیش‌بینی فروش<br><small>Deep Learning</small></div>
+            </div>
+            <div class="step" data-step="6">
+                <div class="step-number">6</div>
+                <div class="step-title">فایل‌ها و تصاویر<br><small>Media Upload</small></div>
+            </div>
+            <div class="step" data-step="7">
+                <div class="step-number">7</div>
+                <div class="step-title">گزارش نهایی<br><small>AI Report</small></div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form id="analysisForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            
+            <!-- Page 1: Layout Analysis (OpenCV) -->
+            <div class="form-page active" id="page-1">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-th-large"></i>
+                    </div>
+                    <h3 class="section-title">تحلیل چیدمان فروشگاه</h3>
+                    <p class="section-subtitle">OpenCV و پردازش تصویر برای تحلیل بهینه چیدمان</p>
+                    </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-eye me-2"></i>چگونه کار می‌کند؟</h4>
+                    <p>OpenCV با تحلیل تصاویر فروشگاه، نقاط کور، مسیرهای حرکت و بهینه‌سازی فضای فروش را شناسایی می‌کند.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-ruler-combined"></i>مساحت فروشگاه (متر مربع)
+                            </label>
+                            <input type="number" name="store_area" class="form-control" required min="50" max="10000">
+                    </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-door-open"></i>تعداد ورودی‌ها
+                            </label>
+                            <input type="number" name="entrance_count" class="form-control" required min="1" max="10">
+                </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-shopping-cart"></i>تعداد صندوق‌ها
+                            </label>
+                            <input type="number" name="checkout_count" class="form-control" required min="1" max="20">
+                    </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-boxes"></i>تعداد قفسه‌ها
+                            </label>
+                            <input type="number" name="shelf_count" class="form-control" required min="5" max="200">
+                </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-lightbulb"></i>نوع نورپردازی
+                            </label>
+                            <div class="form-check">
+                                <input type="radio" name="lighting_type" value="natural" class="form-check-input" id="lighting_natural" required>
+                                <label class="form-check-label" for="lighting_natural">نور طبیعی</label>
+                    </div>
+                            <div class="form-check">
+                                <input type="radio" name="lighting_type" value="fluorescent" class="form-check-input" id="lighting_fluorescent">
+                                <label class="form-check-label" for="lighting_fluorescent">فلورسنت</label>
+                    </div>
+                            <div class="form-check">
+                                <input type="radio" name="lighting_type" value="led" class="form-check-input" id="lighting_led">
+                                <label class="form-check-label" for="lighting_led">LED</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="lighting_type" value="mixed" class="form-check-input" id="lighting_mixed">
+                                <label class="form-check-label" for="lighting_mixed">ترکیبی</label>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-palette"></i>رنگ‌بندی غالب
+                            </label>
+                            <div class="form-check">
+                                <input type="checkbox" name="color_scheme" value="warm" class="form-check-input" id="color_warm">
+                                <label class="form-check-label" for="color_warm">گرم (قرمز، نارنجی، زرد)</label>
+                        </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="color_scheme" value="cool" class="form-check-input" id="color_cool">
+                                <label class="form-check-label" for="color_cool">سرد (آبی، سبز، بنفش)</label>
+                        </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="color_scheme" value="neutral" class="form-check-input" id="color_neutral">
+                                <label class="form-check-label" for="color_neutral">خنثی (سفید، خاکستری، سیاه)</label>
+                    </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="color_scheme" value="bright" class="form-check-input" id="color_bright">
+                                <label class="form-check-label" for="color_bright">روشن و شاداب</label>
+                    </div>
+                            </div>
+                            </div>
+                </div>
+            </div>
+
+            <!-- Page 2: Customer Behavior (TensorFlow) -->
+            <div class="form-page" id="page-2">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-users"></i>
+                            </div>
+                    <h3 class="section-title">تحلیل رفتار مشتری</h3>
+                    <p class="section-subtitle">TensorFlow و یادگیری ماشین برای درک رفتار مشتریان</p>
+                </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-brain me-2"></i>چگونه کار می‌کند؟</h4>
+                    <p>TensorFlow با تحلیل الگوهای حرکتی، زمان توقف و مسیرهای مشتریان، رفتار خرید را پیش‌بینی می‌کند.</p>
+                            </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-clock"></i>متوسط زمان حضور مشتری (دقیقه)
+                            </label>
+                            <input type="number" name="avg_customer_time" class="form-control" required min="5" max="180">
+                            </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-percentage"></i>نرخ تبدیل (مشتری خریدار)
+                        </label>
+                            <input type="number" name="conversion_rate" class="form-control" required min="1" max="100" step="0.1">
+                        </div>
+                    </div>
+                    </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-map-marker-alt"></i>نقاط توقف مشتریان
+                            </label>
+                            <div class="form-check">
+                                <input type="checkbox" name="stopping_points" value="entrance" class="form-check-input" id="stop_entrance">
+                                <label class="form-check-label" for="stop_entrance">ورودی فروشگاه</label>
+                        </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="stopping_points" value="promotions" class="form-check-input" id="stop_promotions">
+                                <label class="form-check-label" for="stop_promotions">قسمت تخفیف‌ها</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="stopping_points" value="new_products" class="form-check-input" id="stop_new_products">
+                                <label class="form-check-label" for="stop_new_products">محصولات جدید</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="stopping_points" value="checkout" class="form-check-input" id="stop_checkout">
+                                <label class="form-check-label" for="stop_checkout">صندوق‌ها</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-route"></i>مسیرهای معمول مشتریان
+                            </label>
+                            <div class="form-check">
+                                <input type="checkbox" name="customer_paths" value="clockwise" class="form-check-input" id="path_clockwise">
+                                <label class="form-check-label" for="path_clockwise">در جهت عقربه‌های ساعت</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="customer_paths" value="counterclockwise" class="form-check-input" id="path_counterclockwise">
+                                <label class="form-check-label" for="path_counterclockwise">خلاف عقربه‌های ساعت</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="customer_paths" value="random" class="form-check-input" id="path_random">
+                                <label class="form-check-label" for="path_random">تصادفی</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="customer_paths" value="direct" class="form-check-input" id="path_direct">
+                                <label class="form-check-label" for="path_direct">مستقیم به هدف</label>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-chart-line"></i>الگوهای خرید
+                            </label>
+                            <div class="form-check">
+                                <input type="checkbox" name="purchase_patterns" value="impulse" class="form-check-input" id="pattern_impulse">
+                                <label class="form-check-label" for="pattern_impulse">خرید آنی</label>
+                        </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="purchase_patterns" value="planned" class="form-check-input" id="pattern_planned">
+                                <label class="form-check-label" for="pattern_planned">خرید برنامه‌ریزی شده</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="purchase_patterns" value="seasonal" class="form-check-input" id="pattern_seasonal">
+                                <label class="form-check-label" for="pattern_seasonal">خرید فصلی</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="purchase_patterns" value="bulk" class="form-check-input" id="pattern_bulk">
+                                <label class="form-check-label" for="pattern_bulk">خرید عمده</label>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+            <!-- Page 3: Traffic Analysis (Scikit-learn) -->
+            <div class="form-page" id="page-3">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3 class="section-title">تحلیل ترافیک فروشگاه</h3>
+                    <p class="section-subtitle">Scikit-learn برای تحلیل الگوهای ترافیک و ساعات شلوغی</p>
+                    </div>
+
+                <div class="info-card">
+                    <h4><i class="fas fa-chart-area me-2"></i>چگونه کار می‌کند؟</h4>
+                    <p>Scikit-learn با تحلیل داده‌های ترافیک، الگوهای فصلی و ساعات اوج را شناسایی و پیش‌بینی می‌کند.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-users"></i>متوسط تعداد مشتری روزانه
+                            </label>
+                            <input type="number" name="avg_daily_customers" class="form-control" required min="10" max="10000">
+                    </div>
+                </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-calendar-week"></i>روزهای شلوغ هفته
+                            </label>
+                            <select name="busy_days" class="form-control" required multiple>
+                                <option value="monday">دوشنبه</option>
+                                <option value="tuesday">سه‌شنبه</option>
+                                <option value="wednesday">چهارشنبه</option>
+                                <option value="thursday">پنج‌شنبه</option>
+                                <option value="friday">جمعه</option>
+                                <option value="saturday">شنبه</option>
+                                <option value="sunday">یکشنبه</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-sun"></i>درصد فروش صبح (6-12)
+                            </label>
+                            <input type="number" name="morning_sales_percent" class="form-control" required min="0" max="100" value="30">
+                            </div>
+                        </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                <i class="fas fa-cloud-sun"></i>درصد فروش ظهر (12-18)
+                            </label>
+                            <input type="number" name="noon_sales_percent" class="form-contro

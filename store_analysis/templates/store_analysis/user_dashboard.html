@@ -1,302 +1,661 @@
-{% extends 'base.html' %}
+{% extends 'store_analysis/base.html' %}
 {% load static %}
 
-{% block title %}داشبورد کاربری - تحلیل فروشگاه{% endblock %}
+{% block title %}پنل حرفه‌ای - چیدمانو{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-0 text-primary">
-                        <i class="fas fa-tachometer-alt me-2"></i>
-                        داشبورد کاربری
-                    </h1>
-                    <p class="text-muted mb-0">خوش آمدید {{ user.get_full_name|default:user.username }}</p>
-                </div>
-                <div>
-                    <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
-                        تحلیل جدید
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                کل تحلیل‌ها
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_analyses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                تکمیل شده
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_analyses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                در حال پردازش
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ processing_analyses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-spinner fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                در انتظار
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_analyses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Analyses -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-history me-2"></i>
-                        آخرین تحلیل‌ها
-                    </h6>
-                    <a href="{% url 'store_analysis:analysis_list' %}" class="btn btn-sm btn-outline-primary">
-                        مشاهده همه
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if recent_analyses %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>نام فروشگاه</th>
-                                        <th>نوع تحلیل</th>
-                                        <th>وضعیت</th>
-                                        <th>تاریخ</th>
-                                        <th>عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for analysis in recent_analyses %}
-                                    <tr>
-                                        <td>
-                                            <strong>{{ analysis.store_name|default:"نامشخص" }}</strong>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary">{{ analysis.get_analysis_type_display }}</span>
-                                        </td>
-                                        <td>
-                                            {% if analysis.status == 'completed' %}
-                                                <span class="badge bg-success">تکمیل شده</span>
-                                            {% elif analysis.status == 'processing' %}
-                                                <span class="badge bg-warning">در حال پردازش</span>
-                                            {% elif analysis.status == 'pending' %}
-                                                <span class="badge bg-info">در انتظار</span>
-                                            {% elif analysis.status == 'preliminary_completed' %}
-                                                <span class="badge bg-success">پیش‌تحلیل آماده</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ analysis.get_status_display }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ analysis.created_at|date:"Y/m/d" }}</td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <a href="{% url 'store_analysis:analysis_results' pk=analysis.pk %}" 
-                                                   class="btn btn-outline-primary" title="مشاهده">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                {% if analysis.has_preliminary %}
-                                                <a href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}" 
-                                                   class="btn btn-outline-warning" title="دانلود">
-                                                    <i class="fas fa-download"></i>
-                                                </a>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-inbox text-muted fa-3x mb-3"></i>
-                            <p class="text-muted">هنوز تحلیلی ثبت نکرده‌اید</p>
-                            <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-primary">
-                                شروع اولین تحلیل
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Downloadable Reports -->
-    {% if downloadable_analyses %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-download me-2"></i>
-                        گزارش‌های قابل دانلود
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for analysis in downloadable_analyses %}
-                        <div class="col-lg-4 col-md-6 mb-3">
-                            <div class="card h-100 border-left-success">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="card-title mb-0">{{ analysis.store_name|default:"نامشخص" }}</h6>
-                                        <span class="badge bg-success">آماده دانلود</span>
-                                    </div>
-                                    <p class="card-text text-muted small">
-                                        <i class="fas fa-calendar me-1"></i>
-                                        {{ analysis.created_at|date:"Y/m/d" }}
-                                    </p>
-                                    <p class="card-text text-muted small">
-                                        <i class="fas fa-chart-bar me-1"></i>
-                                        {{ analysis.get_analysis_type_display }}
-                                    </p>
-                                    <div class="mt-3">
-                                        <a href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}" 
-                                           class="btn btn-success btn-sm w-100">
-                                            <i class="fas fa-download me-1"></i>
-                                            دانلود گزارش
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
+{% block extra_css %}
+<!-- تعهدنامه حقوقی -->
+{% include 'store_analysis/legal_agreement_modal.html' %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
+    :root {
+        --apple-white: #ffffff;
+        --apple-gray-50: #f9fafb;
+        --apple-gray-100: #f3f4f6;
+        --apple-gray-200: #e5e7eb;
+        --apple-gray-300: #d1d5db;
+        --apple-gray-400: #9ca3af;
+        --apple-gray-500: #6b7280;
+        --apple-gray-600: #4b5563;
+        --apple-gray-700: #374151;
+        --apple-gray-800: #1f2937;
+        --apple-gray-900: #111827;
+        --apple-blue: #007aff;
+        --apple-green: #34c759;
+        --apple-orange: #ff9500;
+        --apple-red: #ff3b30;
+        --apple-purple: #af52de;
+        
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+        --border-radius-xl: 20px;
+    }
 
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        background: var(--apple-gray-50);
+        min-height: 100vh;
+    }
 
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
+    .dashboard-header {
+        background: var(--apple-white);
+        padding: 2rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--apple-gray-200);
+        margin-bottom: 2rem;
+    }
 
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
+    .welcome-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
 
-.text-gray-800 {
-    color: #5a5c69 !important;
-}
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        background: var(--apple-blue);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
 
-.text-gray-300 {
-    color: #dddfeb !important;
-}
+    .welcome-text h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--apple-gray-900);
+        margin-bottom: 0.25rem;
+    }
 
-.text-xs {
-    font-size: 0.7rem;
-}
+    .welcome-text p {
+        color: var(--apple-gray-600);
+        font-size: 0.875rem;
+    }
 
-.font-weight-bold {
-    font-weight: 700 !important;
-}
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
 
-.card {
-    transition: transform 0.2s ease-in-out;
-}
+    .stat-card {
+        background: var(--apple-gray-50);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--apple-gray-200);
+        text-align: center;
+    }
 
-.card:hover {
-    transform: translateY(-2px);
-}
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--apple-blue);
+        margin-bottom: 0.5rem;
+    }
 
-.table th {
-    border-top: none;
-    font-weight: 600;
-}
+    .stat-label {
+        color: var(--apple-gray-600);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
 
-.btn-group-sm > .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-}
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .card {
+        background: var(--apple-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--apple-gray-200);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--apple-gray-200);
+        background: var(--apple-gray-50);
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--apple-gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .analysis-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .analysis-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: var(--apple-gray-50);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--apple-gray-200);
+        transition: all 0.3s ease;
+    }
+
+    .analysis-item:hover {
+        background: var(--apple-white);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .analysis-info h4 {
+        font-weight: 600;
+        color: var(--apple-gray-900);
+        margin-bottom: 0.25rem;
+    }
+
+    .analysis-info p {
+        color: var(--apple-gray-600);
+        font-size: 0.875rem;
+    }
+
+    .analysis-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .status-completed {
+        background: var(--apple-green);
+        color: white;
+    }
+
+    .status-processing {
+        background: var(--apple-orange);
+        color: white;
+    }
+
+    .status-pending {
+        background: var(--apple-gray-300);
+        color: var(--apple-gray-700);
+    }
+
+    .cta-section {
+        text-align: center;
+        padding: 2rem;
+        background: var(--apple-gray-50);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--apple-gray-200);
+    }
+
+    .cta-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--apple-gray-900);
+        margin-bottom: 1rem;
+    }
+
+    .cta-subtitle {
+        color: var(--apple-gray-600);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .cta-button {
+        background: var(--apple-blue);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-md);
+    }
+
+    .cta-button:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .action-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        background: var(--apple-white);
+        border: 1px solid var(--apple-gray-200);
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        color: var(--apple-gray-700);
+        transition: all 0.3s ease;
+    }
+
+    .action-button:hover {
+        background: var(--apple-gray-50);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: var(--apple-gray-900);
+        text-decoration: none;
+    }
+
+    .action-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .action-label {
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .insights-section {
+        background: var(--apple-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--apple-gray-200);
+        overflow: hidden;
+    }
+
+    .insight-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--apple-gray-200);
+    }
+
+    .insight-item:last-child {
+        border-bottom: none;
+    }
+
+    .insight-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--apple-gray-100);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .insight-content h4 {
+        font-weight: 600;
+        color: var(--apple-gray-900);
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .insight-content p {
+        color: var(--apple-gray-600);
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .welcome-section {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .quick-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header fade-in-up">
+        <div class="welcome-section">
+            <div class="user-avatar">
+                {{ user.get_full_name|default:user.username|first|upper }}
+                </div>
+            <div class="welcome-text">
+                <h1>سلام {{ user.get_full_name|default:user.username }}! 👋</h1>
+                <p>بیایید فروشگاه شما را بهتر کنیم</p>
+                <p style="font-size: 0.9rem; color: var(--apple-gray-500); margin-top: 0.5rem;">
+                    📅 امروز: {{ persian_date }}
+                </p>
+        </div>
+    </div>
+
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_analyses|default:0 }}</div>
+                <div class="stat-label">تحلیل انجام شده</div>
+                            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ completed_analyses|default:0 }}</div>
+                <div class="stat-label">تحلیل تکمیل شده</div>
+                        </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ processing_analyses|default:0 }}</div>
+                <div class="stat-label">در حال پردازش</div>
+                        </div>
+            <div class="stat-card">
+                <div class="stat-number">۳۰٪</div>
+                <div class="stat-label">افزایش متوسط فروش</div>
+                </div>
+            </div>
+        </div>
+
+    <div class="dashboard-grid">
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Recent Analyses -->
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>📊</span>
+                        تحلیل‌های اخیر شما
+                    </h2>
+                </div>
+                <div class="card-body">
+                    {% if recent_analyses %}
+                        <div class="analysis-list">
+                            {% for analysis in recent_analyses %}
+                            <div class="analysis-item">
+                                <div class="analysis-info">
+                                    <h4>{{ analysis.store_name|default:"فروشگاه بدون نام" }}</h4>
+                                    <p>{{ analysis.created_at|date:"j F Y" }} • {{ analysis.get_store_type_display|default:"نوع نامشخص" }}</p>
+                            </div>
+                                <div class="analysis-status status-{{ analysis.status }}">
+                                    {% if analysis.status == 'completed' %}
+                                        <span>✅</span>
+                                        <span>تکمیل شده</span>
+                                    {% elif analysis.status == 'processing' %}
+                                        <span>⏳</span>
+                                        <span>در حال پردازش</span>
+                                    {% else %}
+                                        <span>⏸️</span>
+                                        <span>در انتظار</span>
+                                    {% endif %}
+                        </div>
+                    </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="cta-section">
+                            <h3 class="cta-title">هنوز تحلیلی انجام نداده‌اید</h3>
+                            <p class="cta-subtitle">اولین تحلیل فروشگاه خود را شروع کنید و ببینید چقدر می‌توانید فروش خود را افزایش دهید</p>
+                            <a href="{% url 'store_analysis:forms' %}" class="cta-button">
+                                <span>🚀</span>
+                                <span>شروع تحلیل جدید</span>
+                            </a>
+                </div>
+                    {% endif %}
+            </div>
+        </div>
+
+            <!-- Quick Actions -->
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>⚡</span>
+                        اقدامات سریع
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <a href="{% url 'store_analysis:forms' %}" class="action-button">
+                            <div class="action-icon">➕</div>
+                            <div class="action-label">تحلیل جدید</div>
+                        </a>
+                        <a href="{% url 'store_analysis:analysis_list' %}" class="action-button">
+                            <div class="action-icon">📋</div>
+                            <div class="action-label">لیست تحلیل‌ها</div>
+                        </a>
+                        <a href="{% url 'store_analysis:store_comparison' %}" class="action-button">
+                            <div class="action-icon">⚖️</div>
+                            <div class="action-label">مقایسه فروشگاه‌ها</div>
+                        </a>
+                        <a href="{% url 'store_analysis:ai_consultant' %}" class="action-button">
+                            <div class="action-icon">🤖</div>
+                            <div class="action-label">مشاور AI</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- تحلیل کامل و تفصیلی -->
+            {% if detailed_analysis %}
+            <div class="card fade-in-up" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span>📊</span>
+                        تحلیل کامل و تفصیلی
+                    </h3>
+                    {% if recent_analyses %}
+                    <div style="margin-top: 1rem;">
+                        <a href="{% url 'store_analysis:download_detailed_pdf' recent_analyses.first.id %}" 
+                           class="cta-button" 
+                           target="_blank"
+                           style="background: var(--apple-green); padding: 0.5rem 1rem; font-size: 0.875rem; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <span>📄</span>
+                            دانلود PDF تفصیلی
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    <div style="white-space: pre-line; line-height: 1.6; color: var(--apple-gray-700);">
+                        {{ detailed_analysis }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Personal Insights -->
+            <div class="insights-section fade-in-up">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span>💡</span>
+                        بینش‌های شخصی
+                    </h3>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-icon">📈</div>
+                    <div class="insight-content">
+                        <h4>پتانسیل رشد</h4>
+                        <p>فروشگاه شما پتانسیل ۲۵٪ افزایش فروش دارد</p>
+                            </div>
+                        </div>
+                <div class="insight-item">
+                    <div class="insight-icon">🎯</div>
+                    <div class="insight-content">
+                        <h4>نقاط بهبود</h4>
+                        <p>چیدمان قفسه‌ها نیاز به بهینه‌سازی دارد</p>
+                        </div>
+                    </div>
+                <div class="insight-item">
+                    <div class="insight-icon">⏰</div>
+                    <div class="insight-content">
+                        <h4>زمان بهینه</h4>
+                        <p>ساعات ۱۸-۲۰ بهترین زمان برای فروش است</p>
+            </div>
+        </div>
+    </div>
+
+            <!-- Tips & Tricks -->
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span>💡</span>
+                        نکات طلایی
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="insight-item">
+                        <div class="insight-icon">🏪</div>
+                        <div class="insight-content">
+                            <h4>چیدمان هوشمند</h4>
+                            <p>محصولات پرفروش را در ارتفاع چشم قرار دهید</p>
+                        </div>
+                                            </div>
+                    <div class="insight-item">
+                        <div class="insight-icon">💡</div>
+                        <div class="insight-content">
+                            <h4>نورپردازی</h4>
+                            <p>نور مناسب ۲۰٪ فروش را افزایش می‌دهد</p>
+                        </div>
+                        </div>
+                    <div class="insight-item">
+                        <div class="insight-icon">👥</div>
+                        <div class="insight-content">
+                            <h4>تجربه مشتری</h4>
+                            <p>صندوق‌های بیشتر = انتظار کمتر</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <!-- Support -->
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span>🤝</span>
+                        پشتیبانی
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--apple-gray-600); margin-bottom: 1rem; font-size: 0.875rem;">
+                        ما اینجا هستیم تا به شما کمک کنیم
+                    </p>
+                    <div class="quick-actions">
+                        <a href="#" class="action-button">
+                            <div class="action-icon">💬</div>
+                            <div class="action-label">چت آنلاین</div>
+                        </a>
+                        <a href="#" class="action-button">
+                            <div class="action-icon">📧</div>
+                            <div class="action-label">ایمیل</div>
+                                        </a>
+                                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Auto-hide toasts after 5 seconds
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        var toasts = document.querySelectorAll('.toast');
-        toasts.forEach(function(toast) {
-            var bsToast = new bootstrap.Toast(toast);
-            bsToast.hide();
+    // Add smooth animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
         });
-    }, 5000);
+    }, observerOptions);
+
+    // Observe elements for animation
+    document.querySelectorAll('.card, .insights-section').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+
+    // Add click tracking
+    document.querySelectorAll('.action-button, .cta-button').forEach(button => {
+        button.addEventListener('click', function() {
+            console.log('Dashboard action clicked:', this.textContent.trim());
+        });
 });
 </script>
 {% endblock %}

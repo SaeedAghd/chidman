@@ -43,4 +43,8 @@ def health_check(request):
 
 def dashboard_view(request):
     """Dashboard view"""
-    return render(request, 'store_analysis/dashboard.html') 
+    return render(request, 'store_analysis/dashboard.html')
+
+def landing_page(request):
+    """Apple-style landing page"""
+    return render(request, 'store_analysis/landing_page.html') 

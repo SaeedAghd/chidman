@@ -9,10 +9,17 @@ from django.http import HttpResponse
 from store_analysis.admin_dashboard import admin_dashboard
 
 urlpatterns = [
-    path('i18n/', include('django.conf.urls.i18n')),  # اضافه شده برای تغییر زبان
-    path('', include('store_analysis.urls')),
+    # Landing Page - Apple-style
+    path('', views.landing_page, name='landing_page'),
+    
+    # Main App
+    path('app/', include('store_analysis.urls')),
+    
+    # Admin
     path('admin/', admin.site.urls),
-    path('accounts/signup/', views.signup_view, name='signup'),  # اضافه شده
+    
+    # Authentication
+    path('accounts/signup/', views.signup_view, name='signup'),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='store_analysis/login.html'), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(
@@ -23,7 +30,12 @@ urlpatterns = [
         template_name='store_analysis/password_change_done.html'
     ), name='password_change_done'),
     path('accounts/password_reset/', lambda request: HttpResponse('بازیابی رمز عبور فعال نیست.'), name='password_reset'),
-    path('store-analysis/features/', views.features_view, name='features'),
+    
+    # Features & Health
+    path('features/', views.features_view, name='features'),
     path('health/', views.health_check, name='health_check'),
     path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
+    
+    # Internationalization
+    path('i18n/', include('django.conf.urls.i18n')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

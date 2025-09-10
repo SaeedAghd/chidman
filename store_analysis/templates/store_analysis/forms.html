@@ -1,0 +1,1194 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}فرم تحلیل فروشگاه - حرفه‌ای{% endblock %}
+
+{% block extra_css %}
+<!-- فونت‌های بهینه‌شده -->
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Estedad:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- CSS اصلی فرم -->
+<link rel="stylesheet" href="{% static 'css/forms-simple.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Simple Trust Indicators -->
+    <div class="trust-indicators">
+        <div class="trust-item">
+            <span class="trust-icon">🔒</span>
+            <span>امن و محرمانه</span>
+        </div>
+        <div class="trust-item">
+            <span class="trust-icon">⚡</span>
+            <span>تحلیل در 24 ساعت</span>
+        </div>
+        <div class="trust-item">
+            <span class="trust-icon">💰</span>
+            <span>کاملاً رایگان</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="form-header">
+        <div class="form-badge">
+            <span>🤝</span>
+            <span>دوست و همراه فروشگاه شما</span>
+        </div>
+        <h1 class="form-title">بیایید فروشگاه شما را بهتر کنیم</h1>
+        <p class="form-subtitle">در ۷ مرحله ساده، فروشگاه خود را بهینه کنید</p>
+        <div class="form-motivation">
+            <span class="motivation-emoji">✨</span>
+            <span>هر مرحله شما را به موفقیت نزدیک‌تر می‌کند</span>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text">
+            <span id="progressText">مرحله 1 از 7</span>
+            <span id="progressPercent">14%</span>
+        </div>
+    </div>
+
+    <!-- Step Navigation -->
+    <div class="step-navigation">
+        <div class="step-item active" data-step="1">
+            <div class="step-circle">1</div>
+            <div class="step-label">اطلاعات پایه</div>
+        </div>
+        <div class="step-item" data-step="2">
+            <div class="step-circle">2</div>
+            <div class="step-label">ساختار فروشگاه</div>
+        </div>
+        <div class="step-item" data-step="3">
+            <div class="step-circle">3</div>
+            <div class="step-label">برند و طراحی</div>
+        </div>
+        <div class="step-item" data-step="4">
+            <div class="step-circle">4</div>
+            <div class="step-label">رفتار مشتری</div>
+        </div>
+        <div class="step-item" data-step="5">
+            <div class="step-circle">5</div>
+            <div class="step-label">فروش و محصولات</div>
+        </div>
+        <div class="step-item" data-step="6">
+            <div class="step-circle">6</div>
+            <div class="step-label">امنیت و نظارت</div>
+        </div>
+        <div class="step-item" data-step="7">
+            <div class="step-circle">7</div>
+            <div class="step-label">اهداف و خروجی</div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="form-content">
+        <form id="storeAnalysisForm" method="post" enctype="multipart/form-data" action="{% url 'store_analysis:forms_submit' %}">
+            {% csrf_token %}
+            
+            <!-- Step 1: Basic Information -->
+            <div class="form-section active" data-step="1">
+                <div class="section-header">
+                    <div class="section-icon">🏪</div>
+                    <h2 class="section-title">اطلاعات پایه فروشگاه</h2>
+                    <p class="section-description">اطلاعات کلی و اساسی فروشگاه خود را وارد کنید</p>
+                    <div class="motivation-text">
+                        <span class="motivation-emoji">✨</span>
+                        <span>شروع سفر موفقیت فروشگاه شما از همینجا آغاز می‌شود!</span>
+                    </div>
+                </div>
+                
+                <!-- اطلاعات تحلیل -->
+                <div class="analysis-info">
+                    <div class="info-icon">📊</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این گام</h4>
+                        <p>اطلاعات شما با استفاده از <strong>OpenAI GPT-4</strong>، <strong>Google Analytics API</strong>، و <strong>پایگاه داده‌های تجاری</strong> تحلیل می‌شود تا بهترین پیشنهادات را دریافت کنید.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label required">نام فروشگاه</label>
+                        <input type="text" name="store_name" class="form-control" placeholder="نام فروشگاه شما" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">نوع فروشگاه</label>
+                        <select name="store_type" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="grocery">فروشگاه مواد غذایی</option>
+                            <option value="clothing">فروشگاه پوشاک</option>
+                            <option value="womens_clothing">پوشاک زنانه</option>
+                            <option value="mens_clothing">پوشاک مردانه</option>
+                            <option value="kids_clothing">پوشاک نوزاد و کودک</option>
+                            <option value="shoes">فروشگاه کفش</option>
+                            <option value="bags">فروشگاه کیف و کوله</option>
+                            <option value="womens_bags">کیف زنانه 👛</option>
+                            <option value="womens_shoes">کفش زنانه 👠</option>
+                            <option value="mens_shoes">کفش مردانه 👞</option>
+                            <option value="leather_goods">فروشگاه منسوجات چرمی 👜</option>
+                            <option value="fabric_store">فروشگاه پارچه و منسوجات 🧵</option>
+                            <option value="textile_shop">فروشگاه منسوجات 🧶</option>
+                            <option value="handbag_store">فروشگاه کیف دستی 🎒</option>
+                            <option value="shoe_store">فروشگاه کفش 👟</option>
+                            <option value="accessories_store">فروشگاه اکسسوری 💍</option>
+                            <option value="electronics">فروشگاه الکترونیک</option>
+                            <option value="home_appliances">لوازم خانگی</option>
+                            <option value="cosmetics">فروشگاه زیبایی</option>
+                            <option value="sports">فروشگاه ورزشی</option>
+                            <option value="bookstore">کتابفروشی</option>
+                            <option value="toys">فروشگاه اسباب‌بازی</option>
+                            <option value="furniture">فروشگاه مبلمان</option>
+                            <option value="pharmacy">داروخانه</option>
+                            <option value="jewelry">فروشگاه جواهرات</option>
+                            <option value="automotive">فروشگاه لوازم خودرو</option>
+                            <option value="pet_shop">فروشگاه حیوانات خانگی 🐕</option>
+                            <option value="cafe">کافه ☕</option>
+                            <option value="juice_bar">آبمیوه و اسموتی 🥤</option>
+                            <option value="fresh_produce">میوه و سبزیجات تازه 🥬</option>
+                            <option value="flower_shop">فروشگاه گل و گیاه 🌸</option>
+                            <option value="ice_cream">بستنی فروشی 🍦</option>
+                            <option value="bakery">نانوایی و شیرینی 🥖</option>
+                            <option value="coffee_shop">قهوه خانه ☕</option>
+                            <option value="tea_house">چای خانه 🍵</option>
+                            <option value="smoothie_bar">اسموتی بار 🥤</option>
+                            <option value="organic_store">فروشگاه ارگانیک 🌿</option>
+                            <option value="health_food">فروشگاه غذای سالم 🥗</option>
+                            <option value="specialty_store">فروشگاه تخصصی</option>
+                            <option value="other">سایر</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">اندازه فروشگاه</label>
+                        <select name="store_size" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="small">کوچک (کمتر از 50 متر)</option>
+                            <option value="medium">متوسط (50-200 متر)</option>
+                            <option value="large">بزرگ (200-500 متر)</option>
+                            <option value="xlarge">خیلی بزرگ (بیش از 500 متر)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">شهر</label>
+                        <input type="text" name="city" class="form-control" placeholder="تهران" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">منطقه</label>
+                        <input type="text" name="area" class="form-control" placeholder="تجریش" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">نوع مکان فروشگاه</label>
+                        <select name="location_type" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="shopping_mall">مرکز خرید (مال)</option>
+                            <option value="main_street">خیابان اصلی</option>
+                            <option value="secondary_street">خیابان فرعی</option>
+                            <option value="residential_area">محله مسکونی</option>
+                            <option value="commercial_district">منطقه تجاری</option>
+                            <option value="highway_road">جاده اصلی</option>
+                            <option value="subway_station">نزدیک مترو</option>
+                            <option value="bus_station">نزدیک اتوبوس</option>
+                            <option value="university_area">نزدیک دانشگاه</option>
+                            <option value="hospital_area">نزدیک بیمارستان</option>
+                            <option value="office_building">ساختمان اداری</option>
+                            <option value="standalone">مستقل</option>
+                            <option value="other">سایر</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">سال تأسیس</label>
+                        <input type="number" name="establishment_year" class="form-control" placeholder="1400" min="1300" max="1410" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">تعداد کارکنان</label>
+                        <input type="number" name="workforce_count" class="form-control" placeholder="5" min="1" max="1000" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Store Structure -->
+            <div class="form-section" data-step="2">
+                <div class="section-header">
+                    <div class="section-icon">🏗️</div>
+                    <h2 class="section-title">ساختار فیزیکی فروشگاه</h2>
+                    <p class="section-description">اطلاعات مربوط به ساختار و چیدمان فروشگاه</p>
+                    <div class="motivation-text">
+                        <span class="motivation-emoji">🎯</span>
+                        <span>هر متر مربع فروشگاه شما پتانسیل درآمدزایی دارد!</span>
+                    </div>
+                </div>
+                
+                <!-- اطلاعات تحلیل -->
+                <div class="analysis-info">
+                    <div class="info-icon">🏗️</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این گام</h4>
+                        <p>تحلیل ساختار با <strong>Computer Vision AI</strong>، <strong>AutoCAD API</strong>، و <strong>اصول طراحی تجاری</strong> برای بهینه‌سازی چیدمان و جریان مشتریان.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label required">طول فروشگاه (متر)</label>
+                        <input type="number" name="store_length" class="form-control" placeholder="10" step="0.1" min="0" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">عرض فروشگاه (متر)</label>
+                        <input type="number" name="store_width" class="form-control" placeholder="8" step="0.1" min="0" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">ارتفاع فروشگاه (متر)</label>
+                        <input type="number" name="store_height" class="form-control" placeholder="3" step="0.1" min="0" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">تعداد طبقات</label>
+                        <select name="floor_count" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="1">یک طبقه</option>
+                            <option value="2">دو طبقه</option>
+                            <option value="3">سه طبقه</option>
+                            <option value="4">چهار طبقه</option>
+                            <option value="5+">پنج طبقه یا بیشتر</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">محل انبار</label>
+                        <select name="warehouse_location" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="inside">داخل فروشگاه</option>
+                            <option value="outside">خارج از فروشگاه</option>
+                            <option value="separate">ساختمان جداگانه</option>
+                            <option value="none">انبار ندارم</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">تعداد ورودی</label>
+                        <input type="number" name="entrance_count" class="form-control" placeholder="1" min="1" max="10" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">تعداد صندوق پرداخت</label>
+                        <input type="number" name="checkout_count" class="form-control" placeholder="2" min="1" max="20" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">تعداد قفسه</label>
+                        <input type="number" name="shelf_count" class="form-control" placeholder="20" min="0" max="1000" required>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">ابعاد قفسه‌ها</label>
+                    <input type="text" name="shelf_dimensions" class="form-control" placeholder="2×1×0.5 متر">
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label required">چیدمان قفسه‌ها</label>
+                    <select name="shelf_layout" class="form-control" required>
+                        <option value="">انتخاب کنید</option>
+                        <option value="parallel">موازی</option>
+                        <option value="perpendicular">عمود</option>
+                        <option value="mixed">ترکیبی</option>
+                        <option value="circular">دایره‌ای</option>
+                        <option value="other">سایر</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">نقشه فروشگاه</label>
+                    <div class="file-upload-container">
+                        <div class="file-upload">
+                            <input type="file" name="store_plan" accept=".pdf,.jpg,.png,.dwg,.dxf" id="store-plan-input">
+                            <div class="file-upload-text">🗺️ نقشه یا پلان فروشگاه را آپلود کنید</div>
+                            <div class="file-upload-hint">فرمت‌های مجاز: PDF، JPG، PNG، DWG، DXF (حداکثر 20MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="store-plan-input-preview">
+                            <!-- پیش‌نمایش فایل اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">عکس‌های ساختار فروشگاه</label>
+                    <div class="file-upload-container">
+                        <div class="file-upload">
+                            <input type="file" name="structure_photos" multiple accept="image/*" id="structure-photos-input">
+                            <div class="file-upload-text">📸 عکس‌های ساختار و چیدمان فعلی فروشگاه را آپلود کنید</div>
+                            <div class="file-upload-hint">💡 می‌توانید چندین عکس همزمان انتخاب کنید</div>
+                            <div class="file-upload-hint">فرمت‌های مجاز: JPG، PNG، GIF (حداکثر 10MB)</div>
+                            <button type="button" class="file-upload-button" onclick="document.getElementById('structure-photos-input').click()">
+                                انتخاب فایل
+                            </button>
+                        </div>
+                        <div class="file-preview-container" id="structure-photos-input-preview">
+                            <!-- پیش‌نمایش عکس‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Brand and Design -->
+            <div class="form-section" data-step="3">
+                <div class="section-header">
+                    <div class="section-icon">🎨</div>
+                    <h2 class="section-title">برند و طراحی فروشگاه</h2>
+                    <p class="section-description">اطلاعات مربوط به هویت بصری و طراحی فروشگاه</p>
+                    <div class="motivation-text">
+                        <span class="motivation-emoji">✨</span>
+                        <span>طراحی زیبا = مشتریان بیشتر = فروش بالاتر!</span>
+                    </div>
+                </div>
+                
+                <!-- اطلاعات تحلیل -->
+                <div class="analysis-info">
+                    <div class="info-icon">🎨</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این گام</h4>
+                        <p>تحلیل طراحی با <strong>Adobe Creative Suite AI</strong>، <strong>Color Psychology Database</strong>، و <strong>اصول طراحی UX/UI</strong> برای بهینه‌سازی هویت بصری.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label required">سبک طراحی</label>
+                        <select name="design_style" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="modern">مدرن</option>
+                            <option value="classic">کلاسیک</option>
+                            <option value="minimalist">مینیمال</option>
+                            <option value="vintage">وینتیج</option>
+                            <option value="industrial">صنعتی</option>
+                            <option value="traditional">سنتی</option>
+                            <option value="contemporary">معاصر</option>
+                            <option value="other">سایر</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">رنگ اصلی برند</label>
+                        <input type="text" name="primary_brand_color" class="form-control" placeholder="آبی" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">رنگ ثانویه برند</label>
+                        <input type="text" name="secondary_brand_color" class="form-control" placeholder="سفید">
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">رنگ تاکیدی برند</label>
+                        <input type="text" name="accent_brand_color" class="form-control" placeholder="طلایی">
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">نوع نورپردازی</label>
+                        <select name="lighting_type" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="natural">طبیعی</option>
+                            <option value="led">LED</option>
+                            <option value="fluorescent">فلورسنت</option>
+                            <option value="incandescent">رشته‌ای</option>
+                            <option value="mixed">ترکیبی</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">شدت نورپردازی</label>
+                        <select name="lighting_intensity" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="low">کم</option>
+                            <option value="medium">متوسط</option>
+                            <option value="high">زیاد</option>
+                            <option value="variable">متغیر</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">نوع ویترین</label>
+                        <select name="window_display_type" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="open">باز</option>
+                            <option value="closed">بسته</option>
+                            <option value="semi_open">نیمه باز</option>
+                            <option value="none">ویترین ندارم</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">اندازه ویترین</label>
+                        <select name="window_display_size" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="small">کوچک</option>
+                            <option value="medium">متوسط</option>
+                            <option value="large">بزرگ</option>
+                            <option value="full_width">تمام عرض</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">تم ویترین</label>
+                        <input type="text" name="window_display_theme" class="form-control" placeholder="فصلی، مناسبت‌ها، محصولات جدید">
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">عکس‌های طراحی فروشگاه</label>
+                    <div class="file-upload-container">
+                    <div class="file-upload">
+                            <input type="file" name="design_photos" multiple accept="image/*" id="design-photos-input">
+                            <div class="file-upload-text">📸 عکس‌های طراحی و دکوراسیون فروشگاه را آپلود کنید</div>
+                            <div class="file-upload-hint">💡 می‌توانید چندین عکس همزمان انتخاب کنید</div>
+                        <div class="file-upload-hint">فرمت‌های مجاز: JPG, PNG, GIF (حداکثر 10MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="design-photos-input-preview">
+                            <!-- پیش‌نمایش عکس‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Customer Behavior -->
+            <div class="form-section" data-step="4">
+                <div class="section-header">
+                    <div class="section-icon">👥</div>
+                    <h2 class="section-title">رفتار مشتریان</h2>
+                    <p class="section-description">اطلاعات مربوط به رفتار و الگوی خرید مشتریان</p>
+                    <div class="motivation-text">
+                        <span class="motivation-emoji">🧠</span>
+                        <span>درک رفتار مشتریان کلید موفقیت فروشگاه شماست!</span>
+                    </div>
+                </div>
+                
+                <!-- اطلاعات تحلیل -->
+                <div class="analysis-info">
+                    <div class="info-icon">👥</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این گام</h4>
+                        <p>تحلیل رفتار با <strong>Machine Learning Algorithms</strong>، <strong>Customer Journey Analytics</strong>، و <strong>Behavioral Psychology Models</strong> برای بهینه‌سازی تجربه مشتری.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label required">تعداد مشتری روزانه</label>
+                        <input type="number" name="daily_customers" class="form-control" placeholder="100" min="1" max="10000" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">زمان حضور مشتریان</label>
+                        <select name="customer_time" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="morning">صبح (6-12)</option>
+                            <option value="afternoon">ظهر (12-18)</option>
+                            <option value="evening">عصر (18-24)</option>
+                            <option value="all_day">تمام روز</option>
+                            <option value="peak_hours">ساعات پیک</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">جریان مشتریان</label>
+                        <select name="customer_flow" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="clockwise">ساعتگرد</option>
+                            <option value="counterclockwise">پادساعتگرد</option>
+                            <option value="random">تصادفی</option>
+                            <option value="guided">هدایت شده</option>
+                            <option value="mixed">ترکیبی</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label required">نقاط توقف مشتریان</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="stopping_points" value="entrance" id="stop_entrance">
+                            <label for="stop_entrance">ورودی فروشگاه</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="stopping_points" value="checkout" id="stop_checkout">
+                            <label for="stop_checkout">صندوق پرداخت</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="stopping_points" value="promotions" id="stop_promotions">
+                            <label for="stop_promotions">قسمت پیشنهادات</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="stopping_points" value="new_products" id="stop_new">
+                            <label for="stop_new">محصولات جدید</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="stopping_points" value="bestsellers" id="stop_bestsellers">
+                            <label for="stop_bestsellers">پرفروش‌ها</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="stopping_points" value="end_aisles" id="stop_end">
+                            <label for="stop_end">انتهای راهروها</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label required">مناطق پرترافیک</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="high_traffic_areas" value="entrance" id="traffic_entrance">
+                            <label for="traffic_entrance">ورودی فروشگاه</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="high_traffic_areas" value="checkout" id="traffic_checkout">
+                            <label for="traffic_checkout">صندوق پرداخت</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="high_traffic_areas" value="center" id="traffic_center">
+                            <label for="traffic_center">مرکز فروشگاه</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="high_traffic_areas" value="promotions" id="traffic_promotions">
+                            <label for="traffic_promotions">قسمت پیشنهادات</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="high_traffic_areas" value="popular_products" id="traffic_popular">
+                            <label for="traffic_popular">محصولات محبوب</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">ویدیو جریان مشتریان</label>
+                    <div class="file-upload-container">
+                    <div class="file-upload">
+                            <input type="file" name="customer_flow_video" accept="video/*" id="customer-flow-video-input">
+                        <div class="file-upload-text">🎥 ویدیو جریان مشتریان را آپلود کنید</div>
+                        <div class="file-upload-hint">فرمت‌های مجاز: MP4, MOV, AVI (حداکثر 50MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="customer-flow-video-input-preview">
+                            <!-- پیش‌نمایش ویدیو اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">عکس‌های فروشگاه</label>
+                    <div class="file-upload-container">
+                        <div class="file-upload">
+                            <input type="file" name="store_photos" multiple accept="image/*" id="store-photos-input">
+                            <div class="file-upload-text">📸 عکس‌های کلی فروشگاه را آپلود کنید</div>
+                            <div class="file-upload-hint">💡 می‌توانید چندین عکس همزمان انتخاب کنید</div>
+                            <div class="file-upload-hint">فرمت‌های مجاز: JPG, PNG, GIF (حداکثر 10MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="store-photos-input-preview">
+                            <!-- پیش‌نمایش عکس‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Sales and Products -->
+            <div class="form-section" data-step="5">
+                <div class="section-header">
+                    <div class="section-icon">💰</div>
+                    <h2 class="section-title">فروش و محصولات</h2>
+                    <p class="section-description">اطلاعات مربوط به فروش و تحلیل محصولات بر اساس نوع فروشگاه</p>
+                    <div class="motivation-text">
+                        <span class="motivation-emoji">📈</span>
+                        <span>هر محصول شما داستان موفقیت دارد - بیایید آن را کشف کنیم!</span>
+                    </div>
+                </div>
+                
+                <!-- اطلاعات تحلیل -->
+                <div class="analysis-info">
+                    <div class="info-icon">💰</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این گام</h4>
+                        <p>تحلیل فروش با <strong>Sales Analytics AI</strong>، <strong>Product Performance Database</strong>، و <strong>Market Research APIs</strong> برای بهینه‌سازی استراتژی فروش.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label required">محصولات پرفروش</label>
+                        <textarea name="top_products" class="form-control" rows="4" placeholder="لیست محصولات پرفروش خود را وارد کنید..." required></textarea>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">محصولات گران‌قیمت</label>
+                        <textarea name="expensive_products" class="form-control" rows="3" placeholder="محصولات گران‌قیمت و لوکس..." required></textarea>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">محصولات ارزان‌قیمت</label>
+                        <textarea name="cheap_products" class="form-control" rows="3" placeholder="محصولات ارزان‌قیمت و اقتصادی..." required></textarea>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">فروش روزانه (تومان)</label>
+                        <input type="number" name="daily_sales" class="form-control" placeholder="5000000" min="0" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">فروش ماهانه (تومان)</label>
+                        <input type="number" name="monthly_sales" class="form-control" placeholder="150000000" min="0" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">تعداد محصولات موجود</label>
+                        <input type="number" name="product_count" class="form-control" placeholder="500" min="1" required>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label required">عکس‌های محصولات</label>
+                    <div class="file-upload-container">
+                    <div class="file-upload">
+                            <input type="file" name="product_photos" multiple accept="image/*" id="product-photos-input">
+                        <div class="file-upload-text">📷 عکس‌های محصولات و چیدمان فعلی را آپلود کنید</div>
+                            <div class="file-upload-hint">💡 می‌توانید چندین عکس همزمان انتخاب کنید</div>
+                        <div class="file-upload-hint">فرمت‌های مجاز: JPG, PNG, GIF (حداکثر 10MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="product-photos-input-preview">
+                            <!-- پیش‌نمایش عکس‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">کاتالوگ محصولات</label>
+                    <div class="file-upload-container">
+                        <div class="file-upload">
+                            <input type="file" name="product_catalog" accept=".pdf,.doc,.docx,.xlsx,.xls" id="product-catalog-input">
+                            <div class="file-upload-text">📋 کاتالوگ یا لیست محصولات را آپلود کنید</div>
+                            <div class="file-upload-hint">فرمت‌های مجاز: PDF، Word، Excel (حداکثر 20MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="product-catalog-input-preview">
+                            <!-- پیش‌نمایش فایل اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">فایل آمار فروش</label>
+                    <div class="file-upload-container">
+                    <div class="file-upload">
+                            <input type="file" name="sales_file" accept=".xlsx,.xls,.csv,.pdf" id="sales-file-input">
+                        <div class="file-upload-text">📊 فایل آمار فروش را آپلود کنید</div>
+                        <div class="file-upload-hint">فرمت‌های مجاز: Excel, CSV, PDF</div>
+                        </div>
+                        <div class="file-preview-container" id="sales-file-input-preview">
+                            <!-- پیش‌نمایش فایل اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">ویدیو فروشگاه</label>
+                    <div class="file-upload-container">
+                    <div class="file-upload">
+                            <input type="file" name="store_video" accept="video/*" id="store-video-input">
+                        <div class="file-upload-text">🎥 ویدیو کلی از فروشگاه و محصولات</div>
+                        <div class="file-upload-hint">فرمت‌های مجاز: MP4, MOV, AVI (حداکثر 50MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="store-video-input-preview">
+                            <!-- پیش‌نمایش ویدیو اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Security and Monitoring -->
+            <div class="form-section" data-step="6">
+                <div class="section-header">
+                    <div class="section-icon">🔒</div>
+                    <h2 class="section-title">امنیت و نظارت</h2>
+                    <p class="section-description">اطلاعات مربوط به سیستم‌های امنیتی و نظارتی</p>
+                    <div class="motivation-text">
+                        <span class="motivation-emoji">🛡️</span>
+                        <span>امنیت فروشگاه شما = آرامش خاطر شما و مشتریان!</span>
+                    </div>
+                </div>
+                
+                <!-- اطلاعات تحلیل -->
+                <div class="analysis-info">
+                    <div class="info-icon">🔒</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این گام</h4>
+                        <p>تحلیل امنیت با <strong>Security Analytics AI</strong>، <strong>Video Analysis Algorithms</strong>، و <strong>Risk Assessment Models</strong> برای بهینه‌سازی سیستم‌های امنیتی.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label required">دوربین نظارتی</label>
+                        <select name="has_cameras" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes">دارم</option>
+                            <option value="no">ندارم</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">تعداد دوربین</label>
+                        <input type="number" name="camera_count" class="form-control" placeholder="4" min="0" max="100">
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">مکان‌های نصب دوربین</label>
+                        <textarea name="camera_locations" class="form-control" rows="3" placeholder="ورودی، صندوق، انبار،..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">فیلم نظارتی</label>
+                    <div class="file-upload-container">
+                    <div class="file-upload">
+                            <input type="file" name="surveillance_footage" accept="video/*" id="surveillance-footage-input">
+                        <div class="file-upload-text">🎥 فیلم نظارتی را آپلود کنید</div>
+                            <div class="file-upload-hint">فرمت‌های مجاز: MP4, MOV, AVI (حداکثر 50MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="surveillance-footage-input-preview">
+                            <!-- پیش‌نمایش ویدیو اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Goals and Output -->
+            <div class="form-section" data-step="7">
+                <div class="section-header">
+                    <div class="section-icon">🎯</div>
+                    <h2 class="section-title">اهداف و خروجی</h2>
+                    <p class="section-description">اهداف بهینه‌سازی و نحوه دریافت گزارش</p>
+                    <div class="motivation-text">
+                        <span class="motivation-emoji">🚀</span>
+                        <span>آخرین مرحله! شما در آستانه تحول فروشگاه خود هستید!</span>
+                    </div>
+                </div>
+                
+                <!-- اطلاعات تحلیل -->
+                <div class="analysis-info">
+                    <div class="info-icon">🎯</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این گام</h4>
+                        <p>تولید گزارش با <strong>Advanced Analytics Engine</strong>، <strong>Business Intelligence Tools</strong>، و <strong>Custom Report Generator</strong> برای ارائه راهکارهای عملی و قابل اجرا.</p>
+                            </div>
+                            </div>
+                
+                <!-- بخش 1: اهداف بهینه‌سازی -->
+                <div class="goals-section">
+                    <h3 class="section-subtitle">
+                        <span class="section-icon">🎯</span>
+                        اهداف بهینه‌سازی
+                    </h3>
+                    <p class="section-description">اهداف اصلی خود را برای بهبود فروشگاه انتخاب کنید</p>
+                    
+                    <div class="goals-container">
+                        <div class="goals-grid">
+                            <!-- اهداف فروش و درآمد -->
+                            <div class="goal-category" data-category="sales">
+                                <h4 class="goal-category-title">
+                                    <span class="category-icon">📈</span>
+                                    فروش و درآمد
+                                </h4>
+                                <div class="goal-options">
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="increase_sales" name="optimization_goals" value="increase_sales">
+                                        <label for="increase_sales">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">افزایش فروش و درآمد</span>
+                                            <span class="label-desc">بهبود عملکرد فروش و رشد درآمد</span>
+                                        </label>
+                            </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="increase_profit_margin" name="optimization_goals" value="increase_profit_margin">
+                                        <label for="increase_profit_margin">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">افزایش حاشیه سود</span>
+                                            <span class="label-desc">بهبود سودآوری و کاهش هزینه‌ها</span>
+                                        </label>
+                            </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="boost_impulse_purchases" name="optimization_goals" value="boost_impulse_purchases">
+                                        <label for="boost_impulse_purchases">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">افزایش خریدهای آنی</span>
+                                            <span class="label-desc">تحریک خریدهای غیرمنتظره مشتریان</span>
+                                        </label>
+                            </div>
+                                </div>
+                            </div>
+
+                            <!-- اهداف تجربه مشتری -->
+                            <div class="goal-category" data-category="customer">
+                                <h4 class="goal-category-title">
+                                    <span class="category-icon">👥</span>
+                                    تجربه مشتری
+                                </h4>
+                                <div class="goal-options">
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="improve_customer_experience" name="optimization_goals" value="improve_customer_experience">
+                                        <label for="improve_customer_experience">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">بهبود تجربه مشتری</span>
+                                            <span class="label-desc">ارتقای کیفیت خدمات و رضایت مشتری</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="reduce_wait_time" name="optimization_goals" value="reduce_wait_time">
+                                        <label for="reduce_wait_time">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">کاهش زمان انتظار</span>
+                                            <span class="label-desc">بهینه‌سازی صف‌ها و سرعت خدمات</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="increase_customer_satisfaction" name="optimization_goals" value="increase_customer_satisfaction">
+                                        <label for="increase_customer_satisfaction">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">افزایش رضایت مشتری</span>
+                                            <span class="label-desc">ارتقای سطح رضایت و وفاداری مشتریان</span>
+                                        </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                            <!-- اهداف عملیاتی -->
+                            <div class="goal-category" data-category="operational">
+                                <h4 class="goal-category-title">
+                                    <span class="category-icon">⚙️</span>
+                                    عملیات و کارایی
+                                </h4>
+                                <div class="goal-options">
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="reduce_congestion" name="optimization_goals" value="reduce_congestion">
+                                        <label for="reduce_congestion">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">کاهش ازدحام</span>
+                                            <span class="label-desc">بهینه‌سازی ترافیک و جریان مشتریان</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="optimize_space_utilization" name="optimization_goals" value="optimize_space_utilization">
+                                        <label for="optimize_space_utilization">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">بهینه‌سازی فضا</span>
+                                            <span class="label-desc">استفاده بهتر از فضای فروشگاه</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="increase_operational_efficiency" name="optimization_goals" value="increase_operational_efficiency">
+                                        <label for="increase_operational_efficiency">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">افزایش کارایی عملیاتی</span>
+                                            <span class="label-desc">بهبود فرآیندها و کاهش اتلاف</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- اهداف امنیت -->
+                            <div class="goal-category" data-category="security">
+                                <h4 class="goal-category-title">
+                                    <span class="category-icon">🔒</span>
+                                    امنیت و نظارت
+                                </h4>
+                                <div class="goal-options">
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="improve_security" name="optimization_goals" value="improve_security">
+                                        <label for="improve_security">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">بهبود امنیت</span>
+                                            <span class="label-desc">تقویت سیستم‌های امنیتی و نظارتی</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="reduce_theft" name="optimization_goals" value="reduce_theft">
+                                        <label for="reduce_theft">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">کاهش سرقت</span>
+                                            <span class="label-desc">پیشگیری از دزدی و کاهش ضرر</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                    <div class="form-field">
+                            <label class="form-label required">
+                                <span class="field-icon">⭐</span>
+                                مهم‌ترین هدف
+                            </label>
+                        <select name="priority_goal" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                                <option value="increase_sales">افزایش فروش و درآمد</option>
+                                <option value="increase_profit_margin">افزایش حاشیه سود</option>
+                                <option value="boost_impulse_purchases">افزایش خریدهای آنی</option>
+                                <option value="improve_customer_experience">بهبود تجربه مشتری</option>
+                                <option value="reduce_wait_time">کاهش زمان انتظار</option>
+                                <option value="increase_customer_satisfaction">افزایش رضایت مشتری</option>
+                                <option value="reduce_congestion">کاهش ازدحام</option>
+                                <option value="optimize_space_utilization">بهینه‌سازی فضا</option>
+                                <option value="increase_operational_efficiency">افزایش کارایی عملیاتی</option>
+                                <option value="improve_security">بهبود امنیت</option>
+                                <option value="reduce_theft">کاهش سرقت</option>
+                        </select>
+                            <small class="form-text">هدف اصلی که بیشترین اولویت را دارد</small>
+                    </div>
+                    
+                    <div class="form-field">
+                            <label class="form-label required">
+                                <span class="field-icon">⏰</span>
+                                بازه زمانی بهبود
+                            </label>
+                            <select name="improvement_timeline" class="form-control" required>
+                                <option value="">انتخاب کنید</option>
+                                <option value="immediate">فوری (1-2 هفته)</option>
+                                <option value="short_term">کوتاه مدت (1-3 ماه)</option>
+                                <option value="medium_term">متوسط (3-6 ماه)</option>
+                                <option value="long_term">بلند مدت (6-12 ماه)</option>
+                            </select>
+                            <small class="form-text">زمان مورد نظر برای دستیابی به اهداف</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش 2: نوع گزارش -->
+                <div class="report-section">
+                    <h3 class="section-subtitle">
+                        <span class="section-icon">📊</span>
+                        نوع گزارش
+                    </h3>
+                    <p class="section-description">نوع گزارش مورد انتظار و روش دریافت آن</p>
+                    
+                    <div class="report-options-container">
+                        <div class="report-categories-grid">
+                            <!-- گزارش‌های تحلیلی -->
+                            <div class="report-category" data-category="analytical">
+                                <h4 class="report-category-title">
+                                    <span class="category-icon">📈</span>
+                                    گزارش‌های تحلیلی
+                                </h4>
+                                <div class="report-options">
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="comprehensive_pdf" name="report_format" value="comprehensive_pdf">
+                                        <label for="comprehensive_pdf">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">گزارش جامع PDF</span>
+                                            <span class="label-desc">تحلیل کامل با نمودارها و پیشنهادات</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="executive_summary" name="report_format" value="executive_summary">
+                                        <label for="executive_summary">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">خلاصه مدیریتی</span>
+                                            <span class="label-desc">خلاصه‌ای برای مدیران و تصمیم‌گیرندگان</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="detailed_analysis" name="report_format" value="detailed_analysis">
+                                        <label for="detailed_analysis">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">تحلیل تفصیلی</span>
+                                            <span class="label-desc">تحلیل عمیق برای کارشناسان</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- گزارش‌های عملیاتی -->
+                            <div class="report-category" data-category="operational">
+                                <h4 class="report-category-title">
+                                    <span class="category-icon">✅</span>
+                                    گزارش‌های عملیاتی
+                                </h4>
+                                <div class="report-options">
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="action_plan" name="report_format" value="action_plan">
+                                        <label for="action_plan">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">برنامه عملیاتی</span>
+                                            <span class="label-desc">مراحل اجرا و اقدامات مورد نیاز</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="implementation_guide" name="report_format" value="implementation_guide">
+                                        <label for="implementation_guide">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">راهنمای پیاده‌سازی</span>
+                                            <span class="label-desc">دستورالعمل‌های گام به گام</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="checklist" name="report_format" value="checklist">
+                                        <label for="checklist">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">چک‌لیست بهبود</span>
+                                            <span class="label-desc">فهرست اقدامات و پیشرفت</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- گزارش‌های بصری -->
+                            <div class="report-category" data-category="visual">
+                                <h4 class="report-category-title">
+                                    <span class="category-icon">👁️</span>
+                                    گزارش‌های بصری
+                                </h4>
+                                <div class="report-options">
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="visual_dashboard" name="report_format" value="visual_dashboard">
+                                        <label for="visual_dashboard">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">داشبورد بصری</span>
+                                            <span class="label-desc">داشبورد آنلاین تعاملی</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="interactive_report" name="report_format" value="interactive_report">
+                                        <label for="interactive_report">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">گزارش تعاملی</span>
+                                            <span class="label-desc">گزارش وب با قابلیت تعامل</span>
+                                        </label>
+                                    </div>
+                                    <div class="modern-checkbox">
+                                        <input type="checkbox" id="presentation_slides" name="report_format" value="presentation_slides">
+                                        <label for="presentation_slides">
+                                            <span class="checkmark"></span>
+                                            <span class="label-text">اسلایدهای ارائه</span>
+                                            <span class="label-desc">پاورپوینت برای ارائه</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label required">
+                            <span class="field-icon">🔔</span>
+                            روش اطلاع‌رسانی
+                        </label>
+                        <select name="notification_method" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="email">ایمیل</option>
+                            <option value="whatsapp">واتساپ</option>
+                            <option value="telegram">تلگرام</option>
+                            <option value="phone">تماس تلفنی</option>
+                            <option value="sms">پیامک</option>
+                        </select>
+                        <small class="form-text">روش دریافت گزارش و اطلاع‌رسانی</small>
+                    </div>
+                    </div>
+                    
+                <!-- بخش 3: اطلاعات تماس -->
+                <div class="contact-section">
+                    <h3 class="section-subtitle">
+                        <span class="section-icon">👤</span>
+                        اطلاعات تماس
+                    </h3>
+                    <p class="section-description">اطلاعات تماس برای ارسال گزارش و پیگیری</p>
+                    
+                    <div class="form-grid">
+                    <div class="form-field">
+                            <label class="form-label required">
+                                <span class="field-icon">👤</span>
+                                نام و نام خانوادگی
+                            </label>
+                            <input type="text" name="contact_name" class="form-control" placeholder="نام کامل خود را وارد کنید" required>
+                            <small class="form-text">نام کامل برای ارتباط و ارسال گزارش</small>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label required">
+                                <span class="field-icon">📧</span>
+                                ایمیل
+                            </label>
+                            <input type="email" name="contact_email" class="form-control" placeholder="example@email.com" required>
+                            <small class="form-text">ایمیل برای دریافت گزارش‌ها</small>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="form-label">
+                                <span class="field-icon">📱</span>
+                                شماره تماس
+                            </label>
+                            <input type="tel" name="contact_phone" class="form-control" placeholder="09123456789">
+                            <small class="form-text">شماره تماس برای پیگیری (اختیاری)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">توضیحات اضافی</label>
+                        <textarea name="additional_notes" class="form-control" rows="4" placeholder="هر توضیح یا درخواست خاصی دارید؟"></textarea>
+                        <small class="form-text">هر درخواست خاص یا توضیح اضافی که دارید</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="navigation-buttons">
+                <button type="button" class="nav-button prev-button" id="prevBtn" style="display: none;">
+                    <span>←</span>
+                    <span>قبلی</span>
+                </button>
+                
+                <button type="button" class="nav-button next-button" id="nextBtn">
+                    <span>بعدی</span>
+                    <span>→</span>
+                </button>
+                
+                <button type="submit" class="submit-button" id="submitBtn" style="display: none;">
+                    <span>ارسال فرم</span>
+                </button>
+            </div>
+            
+            <!-- راهنمای آپلود چندگانه -->
+            <div class="upload-guide" id="uploadGuide" style="display: none;">
+                <div class="guide-icon">💡</div>
+                <div class="guide-content">
+                    <h4>راهنمای آپلود فایل‌ها</h4>
+                    <p>برای انتخاب چندین عکس همزمان:</p>
+                    <ul>
+                        <li><strong>Windows:</strong> Ctrl+Click روی فایل‌های مختلف</li>
+                        <li><strong>Mac:</strong> Cmd+Click روی فایل‌های مختلف</li>
+                        <li><strong>انتخاب محدوده:</strong> Shift+Click برای انتخاب فایل‌های متوالی</li>
+                    </ul>
+                </div>
+                <button type="button" class="guide-close" onclick="hideUploadGuide()">×</button>
+            </div>
+            
+            <!-- Final Message -->
+            <div class="final-motivation" id="finalMotivation" style="display: none;">
+                <div class="final-motivation-content">
+                    <h3>تبریک! فرم تکمیل شد</h3>
+                    <p>گزارش تحلیل فروشگاه شما در 24 ساعت آماده خواهد شد.</p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="{% static 'js/forms-simple.js' %}"></script>
+{% endblock %}

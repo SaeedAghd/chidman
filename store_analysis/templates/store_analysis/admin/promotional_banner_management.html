@@ -1,0 +1,261 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}مدیریت بنرهای تبلیغاتی{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-bullhorn"></i>
+                        مدیریت بنرهای تبلیغاتی
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- فرم ایجاد بنر جدید -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-plus"></i>
+                                ایجاد بنر تبلیغاتی جدید
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="create">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="title" class="form-label">عنوان بنر</label>
+                                            <input type="text" class="form-control" id="title" name="title" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="subtitle" class="form-label">زیرعنوان</label>
+                                            <input type="text" class="form-control" id="subtitle" name="subtitle" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="discount_percentage" class="form-label">درصد تخفیف</label>
+                                            <input type="number" class="form-control" id="discount_percentage" name="discount_percentage" min="1" max="100" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="discount_text" class="form-label">متن تخفیف</label>
+                                            <input type="text" class="form-control" id="discount_text" name="discount_text" value="تخفیف" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="background_color" class="form-label">رنگ پس‌زمینه</label>
+                                            <input type="color" class="form-control form-control-color" id="background_color" name="background_color" value="#FF6B6B">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="text_color" class="form-label">رنگ متن</label>
+                                            <input type="color" class="form-control form-control-color" id="text_color" name="text_color" value="#FFFFFF">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                        <label class="form-check-label" for="is_active">
+                                            فعال
+                                        </label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    ایجاد بنر
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- لیست بنرهای موجود -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i>
+                                بنرهای موجود
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if banners %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>عنوان</th>
+                                                <th>زیرعنوان</th>
+                                                <th>تخفیف</th>
+                                                <th>وضعیت</th>
+                                                <th>تاریخ ایجاد</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for banner in banners %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="color-preview me-2" style="background-color: {{ banner.background_color }}; width: 20px; height: 20px; border-radius: 4px;"></div>
+                                                        {{ banner.title }}
+                                                    </div>
+                                                </td>
+                                                <td>{{ banner.subtitle|truncatechars:50 }}</td>
+                                                <td>
+                                                    <span class="badge bg-success">{{ banner.discount_percentage }}%</span>
+                                                </td>
+                                                <td>
+                                                    {% if banner.is_active %}
+                                                        <span class="badge bg-success">فعال</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">غیرفعال</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ banner.created_at|date:"Y/m/d H:i" }}</td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                                onclick="editBanner({{ banner.id }}, '{{ banner.title }}', '{{ banner.subtitle }}', {{ banner.discount_percentage }}, '{{ banner.discount_text }}', '{{ banner.background_color }}', '{{ banner.text_color }}', {{ banner.is_active|yesno:'true,false' }})">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <form method="post" style="display: inline;" onsubmit="return confirm('آیا از حذف این بنر اطمینان دارید؟')">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="banner_id" value="{{ banner.id }}">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">هیچ بنر تبلیغاتی یافت نشد</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ویرایش بنر -->
+<div class="modal fade" id="editBannerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ویرایش بنر تبلیغاتی</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="banner_id" id="edit_banner_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_title" class="form-label">عنوان بنر</label>
+                                <input type="text" class="form-control" id="edit_title" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_subtitle" class="form-label">زیرعنوان</label>
+                                <input type="text" class="form-control" id="edit_subtitle" name="subtitle" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="edit_discount_percentage" class="form-label">درصد تخفیف</label>
+                                <input type="number" class="form-control" id="edit_discount_percentage" name="discount_percentage" min="1" max="100" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="edit_discount_text" class="form-label">متن تخفیف</label>
+                                <input type="text" class="form-control" id="edit_discount_text" name="discount_text" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="edit_background_color" class="form-label">رنگ پس‌زمینه</label>
+                                <input type="color" class="form-control form-control-color" id="edit_background_color" name="background_color">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="edit_text_color" class="form-label">رنگ متن</label>
+                                <input type="color" class="form-control form-control-color" id="edit_text_color" name="text_color">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
+                            <label class="form-check-label" for="edit_is_active">
+                                فعال
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        ذخیره تغییرات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editBanner(id, title, subtitle, discount, discountText, bgColor, textColor, isActive) {
+    document.getElementById('edit_banner_id').value = id;
+    document.getElementById('edit_title').value = title;
+    document.getElementById('edit_subtitle').value = subtitle;
+    document.getElementById('edit_discount_percentage').value = discount;
+    document.getElementById('edit_discount_text').value = discountText;
+    document.getElementById('edit_background_color').value = bgColor;
+    document.getElementById('edit_text_color').value = textColor;
+    document.getElementById('edit_is_active').checked = isActive;
+    
+    new bootstrap.Modal(document.getElementById('editBannerModal')).show();
+}
+</script>
+{% endblock %}

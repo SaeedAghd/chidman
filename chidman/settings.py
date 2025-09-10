@@ -204,6 +204,7 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1.0.0')
 
 # OpenAI settings
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', 'sk-your-deepseek-api-key')
 
 # Authentication settings
 LOGIN_URL = 'login'

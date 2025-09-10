@@ -181,7 +181,7 @@ class CustomerBehaviorAnalyzer:
                 environmental_score += 0.2
                 environmental_insights.append('ساعات پیک فروش مشخص است')
             
-        return {
+            return {
                 'score': min(environmental_score, 1.0),
                 'design_style': design_style,
                 'brand_colors': brand_colors,

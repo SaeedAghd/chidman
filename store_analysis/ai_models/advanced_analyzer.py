@@ -42,14 +42,101 @@ class AdvancedStoreAnalyzer:
         self.openai_client = None
         self.setup_openai()
         self.executor = ThreadPoolExecutor(max_workers=4)
+    
+    def analyze_store(self, store_data: Dict) -> Dict[str, Any]:
+        """تحلیل فروشگاه به صورت همزمان"""
+        try:
+            # محاسبه امتیاز کلی
+            overall_score = self._calculate_basic_score(store_data)
+            
+            # تولید تحلیل پایه
+            analysis = self._generate_basic_analysis(store_data)
+            
+            # تولید توصیه‌ها
+            recommendations = self._generate_basic_recommendations(store_data)
+            
+            return {
+                'score': overall_score,
+                'analysis': analysis,
+                'recommendations': recommendations,
+                'metrics': self._extract_basic_metrics(store_data)
+            }
+        except Exception as e:
+            logger.error(f"Error in basic store analysis: {e}")
+            return {
+                'score': 70.0,
+                'analysis': 'تحلیل پایه انجام شد',
+                'recommendations': ['لطفاً برای تحلیل پیشرفته از OpenAI استفاده کنید'],
+                'metrics': {}
+            }
+    
+    def _calculate_basic_score(self, store_data: Dict) -> float:
+        """محاسبه امتیاز پایه"""
+        score = 70.0
+        
+        # بهبود بر اساس اندازه فروشگاه
+        store_size = store_data.get('store_size', 0)
+        if store_size > 100:
+            score += 10
+        if store_size > 200:
+            score += 10
+            
+        # بهبود بر اساس تعداد مشتریان
+        daily_customers = store_data.get('daily_customers', 0)
+        if daily_customers > 100:
+            score += 10
+            
+        return min(score, 100.0)
+    
+    def _generate_basic_analysis(self, store_data: Dict) -> str:
+        """تولید تحلیل پایه"""
+        store_name = store_data.get('store_name', 'فروشگاه')
+        store_type = store_data.get('store_type', 'عمومی')
+        store_size = store_data.get('store_size', 0)
+        
+        return f"""
+        تحلیل پایه {store_name}
+        
+        نوع فروشگاه: {store_type}
+        متراژ: {store_size} متر مربع
+        
+        این تحلیل پایه بر اساس داده‌های ورودی انجام شده است.
+        برای تحلیل پیشرفته و دقیق‌تر، از OpenAI API استفاده کنید.
+        """
+    
+    def _generate_basic_recommendations(self, store_data: Dict) -> List[str]:
+        """تولید توصیه‌های پایه"""
+        recommendations = []
+        
+        store_size = store_data.get('store_size', 0)
+        if store_size < 100:
+            recommendations.append('متراژ فروشگاه را افزایش دهید')
+            
+        daily_customers = store_data.get('daily_customers', 0)
+        if daily_customers < 50:
+            recommendations.append('استراتژی‌های جذب مشتری را بهبود دهید')
+            
+        return recommendations
+    
+    def _extract_basic_metrics(self, store_data: Dict) -> Dict:
+        """استخراج متریک‌های پایه"""
+        return {
+            'store_size': store_data.get('store_size', 0),
+            'daily_customers': store_data.get('daily_customers', 0),
+            'store_type': store_data.get('store_type', 'عمومی')
+        }
         
     def setup_openai(self):
         """تنظیم OpenAI Client"""
         try:
             from openai import OpenAI
+            # فقط API key را ارسال کن، بدون تنظیمات proxy
             self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
         except ImportError:
             logger.warning("OpenAI library not found, using fallback")
+            self.openai_client = None
+        except Exception as e:
+            logger.error(f"Error setting up OpenAI client: {e}")
             self.openai_client = None
     
     async def analyze_store_comprehensive(self, store_data: Dict) -> Dict[str, AnalysisResult]:
