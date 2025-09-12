@@ -20,6 +20,9 @@ class SimpleAIAnalysisService:
         try:
             logger.info(f"شروع تحلیل AI برای فروشگاه: {store_data.get('store_name', 'نامشخص')}")
             
+            # محاسبه درصد اطلاعات موجود
+            data_completeness = self._calculate_data_completeness(store_data)
+            
             # تحلیل چیدمان
             layout_analysis = self._analyze_layout(store_data)
             
@@ -37,10 +40,13 @@ class SimpleAIAnalysisService:
                 'overall_score': self._calculate_overall_score(layout_analysis, traffic_analysis, customer_analysis),
                 'recommendations': self._generate_recommendations(layout_analysis, traffic_analysis, customer_analysis),
                 'key_insights': self._generate_key_insights(store_data, layout_analysis),
+                'data_completeness': data_completeness,
+                'analysis_confidence': self._calculate_analysis_confidence(data_completeness),
+                'missing_data_warning': self._generate_missing_data_warning(data_completeness),
                 'timestamp': timezone.now().isoformat()
             }
             
-            logger.info(f"تحلیل AI تکمیل شد برای فروشگاه: {store_data.get('store_name', 'نامشخص')}")
+            logger.info(f"تحلیل AI تکمیل شد برای فروشگاه: {store_data.get('store_name', 'نامشخص')} - درصد اطلاعات: {data_completeness['percentage']}%")
             return combined_results
             
         except Exception as e:
@@ -52,6 +58,97 @@ class SimpleAIAnalysisService:
                 'recommendations': ['لطفاً دوباره تلاش کنید'],
                 'key_insights': ['سیستم تحلیل موقتاً در دسترس نیست'],
                 'timestamp': timezone.now().isoformat()
+            }
+    
+    def _calculate_data_completeness(self, store_data: Dict) -> Dict:
+        """محاسبه درصد اطلاعات موجود"""
+        # فیلدهای مهم برای تحلیل
+        important_fields = [
+            'store_name', 'store_type', 'store_size', 'store_location',
+            'daily_customers', 'monthly_revenue', 'employee_count',
+            'checkout_count', 'fixed_shelves', 'high_traffic_areas',
+            'ignored_sections', 'customer_videos', 'store_photos'
+        ]
+        
+        # فیلدهای اختیاری (کمتر مهم)
+        optional_fields = [
+            'phone', 'email', 'store_dimensions', 'city', 'area',
+            'establishment_year', 'working_hours'
+        ]
+        
+        # محاسبه فیلدهای پر شده
+        filled_important = 0
+        filled_optional = 0
+        
+        for field in important_fields:
+            value = store_data.get(field)
+            if value and value != '' and value != [] and value != 0:
+                filled_important += 1
+        
+        for field in optional_fields:
+            value = store_data.get(field)
+            if value and value != '' and value != [] and value != 0:
+                filled_optional += 1
+        
+        # محاسبه درصد
+        total_important = len(important_fields)
+        total_optional = len(optional_fields)
+        
+        important_percentage = (filled_important / total_important) * 100
+        optional_percentage = (filled_optional / total_optional) * 100
+        
+        # وزن‌دهی: فیلدهای مهم 80% و اختیاری 20%
+        overall_percentage = (important_percentage * 0.8) + (optional_percentage * 0.2)
+        
+        return {
+            'percentage': round(overall_percentage, 1),
+            'important_fields_filled': filled_important,
+            'important_fields_total': total_important,
+            'optional_fields_filled': filled_optional,
+            'optional_fields_total': total_optional,
+            'missing_important_fields': [field for field in important_fields if not store_data.get(field) or store_data.get(field) == '' or store_data.get(field) == []],
+            'filled_fields': [field for field in important_fields + optional_fields if store_data.get(field) and store_data.get(field) != '' and store_data.get(field) != []]
+        }
+    
+    def _calculate_analysis_confidence(self, data_completeness: Dict) -> str:
+        """محاسبه سطح اطمینان تحلیل"""
+        percentage = data_completeness['percentage']
+        
+        if percentage >= 80:
+            return "عالی"
+        elif percentage >= 60:
+            return "خوب"
+        elif percentage >= 40:
+            return "متوسط"
+        elif percentage >= 20:
+            return "ضعیف"
+        else:
+            return "خیلی ضعیف"
+    
+    def _generate_missing_data_warning(self, data_completeness: Dict) -> Dict:
+        """تولید هشدار برای اطلاعات ناقص"""
+        percentage = data_completeness['percentage']
+        missing_fields = data_completeness['missing_important_fields']
+        
+        if percentage >= 70:
+            return {
+                'level': 'info',
+                'message': f'تحلیل بر اساس {percentage}% اطلاعات موجود انجام شده است.',
+                'suggestion': 'برای تحلیل دقیق‌تر، اطلاعات بیشتری اضافه کنید.'
+            }
+        elif percentage >= 40:
+            return {
+                'level': 'warning',
+                'message': f'تحلیل بر اساس {percentage}% اطلاعات موجود انجام شده است. برخی اطلاعات مهم ناقص است.',
+                'suggestion': f'فیلدهای ناقص: {", ".join(missing_fields[:5])}',
+                'impact': 'دقت تحلیل کاهش یافته است.'
+            }
+        else:
+            return {
+                'level': 'error',
+                'message': f'تحلیل بر اساس {percentage}% اطلاعات موجود انجام شده است. اطلاعات بسیار ناقص است.',
+                'suggestion': f'لطفاً فیلدهای مهم زیر را تکمیل کنید: {", ".join(missing_fields[:5])}',
+                'impact': 'تحلیل با دقت پایین انجام شده و ممکن است نتایج قابل اعتماد نباشد.'
             }
     
     def _calculate_overall_score(self, layout: Dict, traffic: Dict, customer: Dict) -> int:

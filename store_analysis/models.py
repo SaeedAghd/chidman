@@ -1022,3 +1022,82 @@ class PromotionalBanner(models.Model):
     
     def __str__(self):
         return f"{self.title} - {self.discount_percentage}% تخفیف"
+
+# --- AI Consultant Models ---
+class AIConsultantSession(TimestampedModel):
+    """جلسه مشاوره هوش مصنوعی"""
+    STATUS_CHOICES = [
+        ('active', 'فعال'),
+        ('expired', 'منقضی شده'),
+        ('completed', 'تکمیل شده'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    store_analysis = models.ForeignKey('StoreAnalysis', on_delete=models.CASCADE, verbose_name='تحلیل فروشگاه')
+    session_id = models.UUIDField(default=uuid.uuid4, unique=True, verbose_name='شناسه جلسه')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name='وضعیت')
+    free_questions_used = models.PositiveIntegerField(default=0, verbose_name='سوالات رایگان استفاده شده')
+    paid_questions_used = models.PositiveIntegerField(default=0, verbose_name='سوالات پولی استفاده شده')
+    expires_at = models.DateTimeField(verbose_name='تاریخ انقضا')
+    is_paid = models.BooleanField(default=False, verbose_name='پرداخت شده')
+    
+    class Meta:
+        verbose_name = 'جلسه مشاوره هوش مصنوعی'
+        verbose_name_plural = 'جلسات مشاوره هوش مصنوعی'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"مشاوره {self.user.username} - {self.store_analysis.store_name}"
+    
+    def can_ask_free_question(self):
+        """آیا می‌تواند سوال رایگان بپرسد؟"""
+        return self.free_questions_used < 3 and self.status == 'active'
+    
+    def can_ask_paid_question(self):
+        """آیا می‌تواند سوال پولی بپرسد؟"""
+        return self.is_paid and self.status == 'active' and timezone.now() < self.expires_at
+    
+    def get_remaining_free_questions(self):
+        """تعداد سوالات رایگان باقی‌مانده"""
+        return max(0, 3 - self.free_questions_used)
+
+class AIConsultantQuestion(TimestampedModel):
+    """سوالات مشاوره هوش مصنوعی"""
+    session = models.ForeignKey(AIConsultantSession, on_delete=models.CASCADE, related_name='questions', verbose_name='جلسه')
+    question = models.TextField(verbose_name='سوال')
+    answer = models.TextField(blank=True, null=True, verbose_name='پاسخ')
+    is_answered = models.BooleanField(default=False, verbose_name='پاسخ داده شده')
+    is_free = models.BooleanField(default=True, verbose_name='رایگان')
+    response_time = models.DurationField(blank=True, null=True, verbose_name='زمان پاسخ')
+    
+    class Meta:
+        verbose_name = 'سوال مشاوره'
+        verbose_name_plural = 'سوالات مشاوره'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"سوال: {self.question[:50]}..."
+
+class AIConsultantPayment(TimestampedModel):
+    """پرداخت‌های مشاوره هوش مصنوعی"""
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار'),
+        ('completed', 'تکمیل شده'),
+        ('failed', 'ناموفق'),
+        ('cancelled', 'لغو شده'),
+    ]
+    
+    session = models.OneToOneField(AIConsultantSession, on_delete=models.CASCADE, verbose_name='جلسه')
+    amount = models.PositiveIntegerField(default=200000, verbose_name='مبلغ (تومان)')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
+    payment_id = models.UUIDField(default=uuid.uuid4, unique=True, verbose_name='شناسه پرداخت')
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
+    payment_gateway = models.CharField(max_length=50, default='zarinpal', verbose_name='درگاه پرداخت')
+    
+    class Meta:
+        verbose_name = 'پرداخت مشاوره'
+        verbose_name_plural = 'پرداخت‌های مشاوره'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"پرداخت {self.amount:,} تومان - {self.session.user.username}"

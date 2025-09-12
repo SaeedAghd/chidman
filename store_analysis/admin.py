@@ -12,7 +12,8 @@ from datetime import datetime, timedelta
 from .models import (
     StoreAnalysis, StoreAnalysisResult, DetailedAnalysis, Payment, 
     Article, ArticleCategory, StoreBasicInfo, StoreLayout, StoreTraffic, 
-    StoreDesign, StoreSurveillance, StoreProducts
+    StoreDesign, StoreSurveillance, StoreProducts, AIConsultantSession, 
+    AIConsultantQuestion, AIConsultantPayment
 )
 
 # --- Custom Filters ---
@@ -596,6 +597,74 @@ class ArticleCategoryAdmin(admin.ModelAdmin):
     get_article_count.short_description = 'تعداد مقالات'
 
 # --- تنظیمات Admin Site ---
+# --- AI Consultant Admin ---
+@admin.register(AIConsultantSession)
+class AIConsultantSessionAdmin(admin.ModelAdmin):
+    """مدیریت جلسات مشاوره هوش مصنوعی"""
+    list_display = ['session_id', 'user', 'store_analysis', 'status', 'is_paid', 'free_questions_used', 'paid_questions_used', 'expires_at', 'created_at']
+    list_filter = ['status', 'is_paid', 'created_at', 'expires_at']
+    search_fields = ['user__username', 'user__email', 'store_analysis__store_name', 'session_id']
+    readonly_fields = ['session_id', 'created_at', 'updated_at']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('اطلاعات جلسه', {
+            'fields': ('session_id', 'user', 'store_analysis', 'status')
+        }),
+        ('آمار سوالات', {
+            'fields': ('free_questions_used', 'paid_questions_used', 'is_paid')
+        }),
+        ('زمان‌بندی', {
+            'fields': ('expires_at', 'created_at', 'updated_at')
+        }),
+    )
+
+@admin.register(AIConsultantQuestion)
+class AIConsultantQuestionAdmin(admin.ModelAdmin):
+    """مدیریت سوالات مشاوره"""
+    list_display = ['id', 'session', 'question_short', 'is_answered', 'is_free', 'response_time', 'created_at']
+    list_filter = ['is_answered', 'is_free', 'created_at']
+    search_fields = ['question', 'answer', 'session__user__username']
+    readonly_fields = ['created_at', 'updated_at', 'response_time']
+    ordering = ['-created_at']
+    
+    def question_short(self, obj):
+        return obj.question[:50] + '...' if len(obj.question) > 50 else obj.question
+    question_short.short_description = 'سوال'
+    
+    fieldsets = (
+        ('اطلاعات سوال', {
+            'fields': ('session', 'question', 'is_free')
+        }),
+        ('پاسخ', {
+            'fields': ('answer', 'is_answered', 'response_time')
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+@admin.register(AIConsultantPayment)
+class AIConsultantPaymentAdmin(admin.ModelAdmin):
+    """مدیریت پرداخت‌های مشاوره"""
+    list_display = ['payment_id', 'session', 'amount', 'status', 'payment_gateway', 'transaction_id', 'created_at']
+    list_filter = ['status', 'payment_gateway', 'created_at']
+    search_fields = ['payment_id', 'transaction_id', 'session__user__username']
+    readonly_fields = ['payment_id', 'created_at', 'updated_at']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('اطلاعات پرداخت', {
+            'fields': ('payment_id', 'session', 'amount', 'status')
+        }),
+        ('جزئیات تراکنش', {
+            'fields': ('payment_gateway', 'transaction_id')
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
 admin.site.site_header = "مدیریت سیستم تحلیل فروشگاه"
 admin.site.site_title = "تحلیل فروشگاه"
 admin.site.index_title = "پنل مدیریت"

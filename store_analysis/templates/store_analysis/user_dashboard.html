@@ -6,9 +6,6 @@
 {% block extra_css %}
 <!-- تعهدنامه حقوقی -->
 {% include 'store_analysis/legal_agreement_modal.html' %}
-{% endblock %}
-
-{% block extra_css %}
 <style>
     :root {
         --apple-white: #ffffff;
@@ -494,9 +491,9 @@
                             <div class="action-icon">⚖️</div>
                             <div class="action-label">مقایسه فروشگاه‌ها</div>
                         </a>
-                        <a href="{% url 'store_analysis:ai_consultant' %}" class="action-button">
+                        <a href="{% url 'store_analysis:ai_consultant_list' %}" class="action-button" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                             <div class="action-icon">🤖</div>
-                            <div class="action-label">مشاور AI</div>
+                            <div class="action-label">مشاور هوش مصنوعی</div>
                         </a>
                     </div>
                 </div>

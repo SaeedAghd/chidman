@@ -48,6 +48,113 @@
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--apple-gray-200);
         margin-bottom: 2rem;
+    }
+    
+    .data-completeness-card {
+        background: var(--apple-white);
+        padding: 2rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--apple-gray-200);
+        margin-bottom: 2rem;
+    }
+    
+    .completeness-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .completeness-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+        font-size: 1.5rem;
+        color: white;
+    }
+    
+    .completeness-icon.info {
+        background: var(--apple-blue);
+    }
+    
+    .completeness-icon.warning {
+        background: var(--apple-orange);
+    }
+    
+    .completeness-icon.error {
+        background: var(--apple-red);
+    }
+    
+    .completeness-percentage {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--apple-gray-800);
+        margin-bottom: 0.5rem;
+    }
+    
+    .completeness-message {
+        color: var(--apple-gray-600);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .completeness-suggestion {
+        background: var(--apple-gray-50);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border-right: 4px solid var(--apple-blue);
+        margin-bottom: 1rem;
+    }
+    
+    .completeness-impact {
+        background: var(--apple-gray-50);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border-right: 4px solid var(--apple-orange);
+    }
+    
+    .missing-fields-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .missing-field-tag {
+        background: var(--apple-gray-200);
+        color: var(--apple-gray-700);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+    
+    .completeness-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--apple-gray-200);
+    }
+    
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--apple-gray-600);
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        color: var(--apple-gray-800);
+    }
         text-align: center;
     }
 
@@ -507,7 +614,84 @@
                 <p>{{ analysis.get_store_type_display|default:"نوع فروشگاه" }} • {{ analysis.created_at|date:"j F Y" }}</p>
             </div>
         </div>
+        
+        <!-- AI Consultant Button -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{% url 'store_analysis:ai_consultant' analysis.id %}" 
+               class="ai-consultant-button"
+               style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                <span>🤖</span>
+                <span>مشاور هوش مصنوعی</span>
+                <span style="background: rgba(255, 255, 255, 0.2); padding: 4px 8px; border-radius: 12px; font-size: 0.9rem;">3 سوال رایگان</span>
+            </a>
+            <p style="color: #718096; font-size: 0.9rem; margin-top: 10px;">
+                سوالات خود را درباره تحلیل بپرسید • 3 سوال رایگان • برای بیشتر 200,000 تومان
+            </p>
+        </div>
     </div>
+
+    <!-- Data Completeness Card -->
+    {% if analysis.results.data_completeness %}
+    <div class="data-completeness-card fade-in-up">
+        <div class="completeness-header">
+            <div class="completeness-icon {{ analysis.results.missing_data_warning.level }}">
+                {% if analysis.results.missing_data_warning.level == 'info' %}
+                    ℹ️
+                {% elif analysis.results.missing_data_warning.level == 'warning' %}
+                    ⚠️
+                {% else %}
+                    ❌
+                {% endif %}
+            </div>
+            <div>
+                <h3>وضعیت اطلاعات تحلیل</h3>
+                <p>درصد کامل بودن داده‌های ارائه شده</p>
+            </div>
+        </div>
+        
+        <div class="completeness-percentage">
+            {{ analysis.results.data_completeness.percentage }}%
+        </div>
+        
+        <div class="completeness-message">
+            {{ analysis.results.missing_data_warning.message }}
+        </div>
+        
+        {% if analysis.results.missing_data_warning.suggestion %}
+        <div class="completeness-suggestion">
+            <strong>پیشنهاد:</strong> {{ analysis.results.missing_data_warning.suggestion }}
+        </div>
+        {% endif %}
+        
+        {% if analysis.results.missing_data_warning.impact %}
+        <div class="completeness-impact">
+            <strong>تأثیر:</strong> {{ analysis.results.missing_data_warning.impact }}
+        </div>
+        {% endif %}
+        
+        {% if analysis.results.data_completeness.missing_important_fields %}
+        <div class="missing-fields-section">
+            <h4>فیلدهای ناقص مهم:</h4>
+            <div class="missing-fields-list">
+                {% for field in analysis.results.data_completeness.missing_important_fields %}
+                <span class="missing-field-tag">{{ field }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="completeness-stats">
+            <div class="stat-item">
+                <span class="stat-label">فیلدهای مهم پر شده:</span>
+                <span class="stat-value">{{ analysis.results.data_completeness.important_fields_filled }}/{{ analysis.results.data_completeness.important_fields_total }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">سطح اطمینان تحلیل:</span>
+                <span class="stat-value">{{ analysis.results.analysis_confidence }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Overall Score -->
     <div class="score-section fade-in-up">

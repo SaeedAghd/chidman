@@ -34,7 +34,6 @@ urlpatterns = [
     # Dashboard URLs
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
     path('analysis/<int:pk>/download-detailed-pdf/', views.download_detailed_pdf, name='download_detailed_pdf'),
-    path('ai-consultant/', views.ai_consultant, name='ai_consultant'),
     path('store-comparison/', views.store_comparison, name='store_comparison'),
     
     # Result URLs
@@ -68,4 +67,13 @@ urlpatterns = [
     # Legal Agreement URLs
     path('check-legal-agreement/', views.check_legal_agreement, name='check_legal_agreement'),
     path('accept-legal-agreement/', views.accept_legal_agreement, name='accept_legal_agreement'),
+    
+    # AI Consultant URLs
+    path('ai-consultant/', views.ai_consultant_list, name='ai_consultant_list'),
+    path('ai-consultant/<int:analysis_id>/', views.ai_consultant, name='ai_consultant'),
+    path('consultant/ask/<uuid:session_id>/', views.ask_consultant_question, name='ask_consultant_question'),
+    path('consultant/payment/<uuid:session_id>/', views.consultant_payment, name='consultant_payment'),
+    path('consultant/process-payment/<uuid:session_id>/', views.process_consultant_payment, name='process_consultant_payment'),
+    path('consultant/payment-success/<uuid:session_id>/', views.consultant_payment_success, name='consultant_payment_success'),
+    path('consultant/payment-failed/<uuid:session_id>/', views.consultant_payment_failed, name='consultant_payment_failed'),
 ]

@@ -15,7 +15,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from .models import StoreAnalysis, StoreBasicInfo, DetailedAnalysis, StoreAnalysisResult, PricingPlan, DiscountCode, Order, AnalysisRequest, PromotionalBanner, Payment, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts
+from .models import StoreAnalysis, StoreBasicInfo, DetailedAnalysis, StoreAnalysisResult, PricingPlan, DiscountCode, Order, AnalysisRequest, PromotionalBanner, Payment, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, AIConsultantSession, AIConsultantQuestion, AIConsultantPayment
 from .ai_analysis import StoreAnalysisAI
 # from .forms import StoreAnalysisForm, ProfessionalStoreAnalysisForm
 
@@ -31,6 +31,7 @@ except ImportError:
     get_display = None
 from io import BytesIO
 from .utils import calculate_analysis_cost, generate_initial_ai_analysis, color_name_to_hex
+from .services.ai_consultant_service import AIConsultantService
 import logging
 
 # Setup logger
@@ -3585,5 +3586,196 @@ def payment_failed(request, order_id):
         logger.error(f"Error in payment failed: {e}")
         messages.error(request, 'خطا در پردازش!')
         return redirect('store_analysis:index')
+
+# --- AI Consultant Views ---
+
+@login_required
+def ai_consultant_list(request):
+    """لیست تحلیل‌ها برای انتخاب مشاور"""
+    try:
+        # دریافت تحلیل‌های کاربر که تکمیل شده‌اند
+        analyses = StoreAnalysis.objects.filter(
+            user=request.user,
+            status='completed'
+        ).order_by('-created_at')
+        
+        context = {
+            'analyses': analyses
+        }
+        
+        return render(request, 'store_analysis/ai_consultant_list.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in ai_consultant_list: {e}")
+        messages.error(request, 'خطا در بارگذاری لیست تحلیل‌ها')
+        return redirect('store_analysis:user_dashboard')
+
+@login_required
+def ai_consultant(request, analysis_id):
+    """صفحه مشاور هوش مصنوعی"""
+    try:
+        analysis = get_object_or_404(StoreAnalysis, id=analysis_id, user=request.user)
+        
+        # بررسی اینکه تحلیل تکمیل شده باشد
+        if analysis.status != 'completed':
+            messages.error(request, 'تحلیل شما هنوز تکمیل نشده است')
+            return redirect('store_analysis:user_dashboard')
+        
+        # ایجاد یا دریافت جلسه مشاوره
+        consultant_service = AIConsultantService()
+        session = consultant_service.create_consultant_session(request.user, analysis)
+        
+        # دریافت سوالات قبلی
+        questions = AIConsultantQuestion.objects.filter(session=session).order_by('-created_at')
+        
+        # وضعیت جلسه
+        session_status = consultant_service.get_session_status(session)
+        
+        context = {
+            'analysis': analysis,
+            'session': session,
+            'questions': questions,
+            'session_status': session_status,
+            'consultant_service': consultant_service
+        }
+        
+        return render(request, 'store_analysis/ai_consultant.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in ai_consultant: {e}")
+        messages.error(request, 'خطا در بارگذاری مشاور هوش مصنوعی')
+        return redirect('store_analysis:user_dashboard')
+
+@login_required
+def ask_consultant_question(request, session_id):
+    """پرسیدن سوال از مشاور"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'})
+    
+    try:
+        session = get_object_or_404(AIConsultantSession, session_id=session_id, user=request.user)
+        question = request.POST.get('question', '').strip()
+        
+        if not question:
+            return JsonResponse({'success': False, 'error': 'لطفاً سوال خود را وارد کنید'})
+        
+        if len(question) < 10:
+            return JsonResponse({'success': False, 'error': 'سوال باید حداقل 10 کاراکتر باشد'})
+        
+        if len(question) > 1000:
+            return JsonResponse({'success': False, 'error': 'سوال نباید بیشتر از 1000 کاراکتر باشد'})
+        
+        # پرسیدن سوال
+        consultant_service = AIConsultantService()
+        result = consultant_service.ask_question(session, question)
+        
+        return JsonResponse(result)
+        
+    except Exception as e:
+        logger.error(f"Error in ask_consultant_question: {e}")
+        return JsonResponse({'success': False, 'error': 'خطا در پردازش سوال'})
+
+@login_required
+def consultant_payment(request, session_id):
+    """صفحه پرداخت مشاور"""
+    try:
+        session = get_object_or_404(AIConsultantSession, session_id=session_id, user=request.user)
+        
+        # بررسی اینکه آیا قبلاً پرداخت شده
+        if session.is_paid:
+            messages.info(request, 'شما قبلاً برای این جلسه پرداخت کرده‌اید')
+            return redirect('store_analysis:ai_consultant', analysis_id=session.store_analysis.id)
+        
+        # ایجاد یا دریافت پرداخت
+        payment, created = AIConsultantPayment.objects.get_or_create(
+            session=session,
+            defaults={
+                'amount': 200000,
+                'status': 'pending'
+            }
+        )
+        
+        context = {
+            'session': session,
+            'payment': payment,
+            'amount': payment.amount
+        }
+        
+        return render(request, 'store_analysis/consultant_payment.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in consultant_payment: {e}")
+        messages.error(request, 'خطا در بارگذاری صفحه پرداخت')
+        return redirect('store_analysis:user_dashboard')
+
+@login_required
+def process_consultant_payment(request, session_id):
+    """پردازش پرداخت مشاور"""
+    if request.method != 'POST':
+        return redirect('store_analysis:consultant_payment', session_id=session_id)
+    
+    try:
+        session = get_object_or_404(AIConsultantSession, session_id=session_id, user=request.user)
+        payment = get_object_or_404(AIConsultantPayment, session=session)
+        
+        # شبیه‌سازی پرداخت موفق (در واقعیت باید با درگاه پرداخت ارتباط برقرار شود)
+        payment.status = 'completed'
+        payment.transaction_id = f"TXN_{uuid.uuid4().hex[:12].upper()}"
+        payment.save()
+        
+        # فعال کردن جلسه پولی
+        session.is_paid = True
+        session.expires_at = timezone.now() + timedelta(days=1)  # 24 ساعت
+        session.save()
+        
+        messages.success(request, 'پرداخت با موفقیت انجام شد! حالا می‌توانید سوالات نامحدود بپرسید.')
+        return redirect('store_analysis:ai_consultant', analysis_id=session.store_analysis.id)
+        
+    except Exception as e:
+        logger.error(f"Error in process_consultant_payment: {e}")
+        messages.error(request, 'خطا در پردازش پرداخت')
+        return redirect('store_analysis:consultant_payment', session_id=session_id)
+
+@login_required
+def consultant_payment_success(request, session_id):
+    """صفحه موفقیت پرداخت مشاور"""
+    try:
+        session = get_object_or_404(AIConsultantSession, session_id=session_id, user=request.user)
+        payment = get_object_or_404(AIConsultantPayment, session=session)
+        
+        context = {
+            'session': session,
+            'payment': payment
+        }
+        
+        return render(request, 'store_analysis/consultant_payment_success.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in consultant_payment_success: {e}")
+        messages.error(request, 'خطا در بارگذاری صفحه')
+        return redirect('store_analysis:user_dashboard')
+
+@login_required
+def consultant_payment_failed(request, session_id):
+    """صفحه عدم موفقیت پرداخت مشاور"""
+    try:
+        session = get_object_or_404(AIConsultantSession, session_id=session_id, user=request.user)
+        payment = get_object_or_404(AIConsultantPayment, session=session)
+        
+        # تغییر وضعیت پرداخت به ناموفق
+        payment.status = 'failed'
+        payment.save()
+        
+        context = {
+            'session': session,
+            'payment': payment
+        }
+        
+        return render(request, 'store_analysis/consultant_payment_failed.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in consultant_payment_failed: {e}")
+        messages.error(request, 'خطا در پردازش')
+        return redirect('store_analysis:user_dashboard')
 
 

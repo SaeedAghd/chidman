@@ -1,139 +1,224 @@
-{% extends 'store_analysis/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
-{% block title %}مشاور هوش مصنوعی{% endblock %}
+{% block title %}مشاور هوش مصنوعی - {{ analysis.store_name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        --info-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        --glass-bg: rgba(255, 255, 255, 0.1);
-        --glass-border: rgba(255, 255, 255, 0.2);
-        --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
-        --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.15);
-        --chat-bg: rgba(255, 255, 255, 0.05);
-        --user-msg-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --ai-msg-bg: rgba(255, 255, 255, 0.1);
-    }
-
-    .ai-consultant-page {
+    .consultant-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        padding: 2rem 0;
     }
 
-    .page-header {
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
+    .consultant-header {
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-light);
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .consultant-title {
+        color: #2d3748;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
         text-align: center;
     }
 
-    .page-header h1 {
-        color: white;
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    .consultant-subtitle {
+        color: #718096;
+        font-size: 1.2rem;
+        text-align: center;
+        margin-bottom: 30px;
     }
 
-    .page-header p {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 1.1rem;
-        margin-bottom: 0;
+    .session-status {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .status-item {
+        display: inline-block;
+        margin: 0 15px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 25px;
+        font-weight: 600;
     }
 
     .chat-container {
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
-        box-shadow: var(--shadow-light);
-        height: 70vh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .chat-header {
-        background: var(--chat-bg);
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid var(--glass-border);
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .ai-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: var(--primary-gradient);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        box-shadow: var(--shadow-light);
-    }
-
-    .ai-status {
-        flex: 1;
-    }
-
-    .ai-name {
-        color: white;
-        font-weight: 600;
-        font-size: 1.2rem;
-        margin-bottom: 0.25rem;
-    }
-
-    .ai-status-text {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #4caf50;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-bottom: 30px;
     }
 
     .chat-messages {
-        flex: 1;
-        padding: 2rem;
+        max-height: 500px;
         overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 15px;
+        margin-bottom: 20px;
     }
 
     .message {
-        display: flex;
-        gap: 1rem;
-        max-width: 80%;
-        animation: slideIn 0.3s ease;
+        margin-bottom: 20px;
+        animation: fadeInUp 0.5s ease-out;
     }
 
-    @keyframes slideIn {
+    .message.user {
+        text-align: right;
+    }
+
+    .message.ai {
+        text-align: left;
+    }
+
+    .message-content {
+        display: inline-block;
+        max-width: 80%;
+        padding: 15px 20px;
+        border-radius: 20px;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .message.user .message-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .message.ai .message-content {
+        background: white;
+        color: #2d3748;
+        border: 2px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-meta {
+        font-size: 0.8rem;
+        color: #718096;
+        margin-top: 5px;
+    }
+
+    .question-form {
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+    }
+
+    .question-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid #e2e8f0;
+        border-radius: 25px;
+        font-size: 1rem;
+        resize: none;
+        min-height: 50px;
+        max-height: 120px;
+        transition: all 0.3s ease;
+    }
+
+    .question-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .ask-button {
+        padding: 15px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+
+    .ask-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .ask-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .payment-prompt {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .payment-button {
+        background: white;
+        color: #ff6b6b;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 15px;
+    }
+
+    .payment-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        text-decoration: none;
+        color: #ff6b6b;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #718096;
+    }
+
+    .loading.show {
+        display: block;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #e2e8f0;
+        border-radius: 50%;
+        border-top-color: #667eea;
+        animation: spin 1s ease-in-out infinite;
+        margin-left: 10px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
         from {
             opacity: 0;
             transform: translateY(20px);
@@ -144,493 +229,307 @@
         }
     }
 
-    .message.user {
-        align-self: flex-end;
-        flex-direction: row-reverse;
-    }
-
-    .message-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        color: white;
-        flex-shrink: 0;
-    }
-
-    .message.user .message-avatar {
-        background: var(--user-msg-bg);
-    }
-
-    .message.ai .message-avatar {
-        background: var(--ai-msg-bg);
-        border: 1px solid var(--glass-border);
-    }
-
-    .message-content {
-        background: var(--ai-msg-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        padding: 1rem 1.5rem;
-        color: rgba(255, 255, 255, 0.9);
-        line-height: 1.6;
-        position: relative;
-    }
-
-    .message.user .message-content {
-        background: var(--user-msg-bg);
-        color: white;
-    }
-
-    .message-time {
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.6);
-        margin-top: 0.5rem;
-        text-align: right;
-    }
-
-    .message.user .message-time {
-        text-align: left;
-    }
-
-    .chat-input-container {
-        background: var(--chat-bg);
-        padding: 1.5rem 2rem;
-        border-top: 1px solid var(--glass-border);
-        display: flex;
-        gap: 1rem;
-        align-items: flex-end;
-    }
-
-    .chat-input {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid var(--glass-border);
-        border-radius: 25px;
-        padding: 1rem 1.5rem;
-        color: white;
-        font-size: 1rem;
-        resize: none;
-        min-height: 50px;
-        max-height: 120px;
-        transition: all 0.3s ease;
-    }
-
-    .chat-input:focus {
-        outline: none;
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
-        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-    }
-
-    .chat-input::placeholder {
-        color: rgba(255, 255, 255, 0.6);
-    }
-
-    .send-btn {
-        background: var(--primary-gradient);
-        border: none;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.2rem;
-        transition: all 0.3s ease;
-        box-shadow: var(--shadow-light);
-        flex-shrink: 0;
-    }
-
-    .send-btn:hover {
-        transform: scale(1.1);
-        box-shadow: var(--shadow-medium);
-        color: white;
-    }
-
-    .send-btn:disabled {
-        opacity: 0.5;
-        transform: none;
-    }
-
-    .quick-questions {
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: var(--shadow-light);
-        margin-top: 2rem;
-    }
-
-    .quick-questions h3 {
-        color: white;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .questions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-    }
-
-    .question-btn {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
+    .analysis-context {
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
         border-radius: 15px;
-        padding: 1rem 1.5rem;
-        color: rgba(255, 255, 255, 0.9);
-        text-align: left;
-        transition: all 0.3s ease;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .context-title {
+        color: #2d3748;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .context-item {
+        margin-bottom: 10px;
+        color: #4a5568;
+    }
+
+    .context-label {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .back-button {
+        background: #e2e8f0;
+        color: #4a5568;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .question-btn:hover {
-        background: rgba(255, 255, 255, 0.15);
-        transform: translateY(-2px);
-        color: white;
+        transition: all 0.3s ease;
         text-decoration: none;
+        display: inline-block;
+        margin-bottom: 20px;
     }
 
-    .typing-indicator {
-        display: none;
-        align-items: center;
-        gap: 0.5rem;
-        color: rgba(255, 255, 255, 0.8);
-        font-style: italic;
-        margin-top: 1rem;
+    .back-button:hover {
+        background: #cbd5e0;
+        text-decoration: none;
+        color: #4a5568;
     }
 
-    .typing-dots {
-        display: flex;
-        gap: 0.25rem;
+    .error-message {
+        background: #fed7d7;
+        color: #c53030;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #feb2b2;
     }
 
-    .typing-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.6);
-        animation: typing 1.4s infinite;
-    }
-
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes typing {
-        0%, 60%, 100% { transform: translateY(0); }
-        30% { transform: translateY(-10px); }
-    }
-
-    @media (max-width: 768px) {
-        .chat-container {
-            height: 60vh;
-        }
-        
-        .page-header h1 {
-            font-size: 2rem;
-        }
-        
-        .message {
-            max-width: 90%;
-        }
-        
-        .questions-grid {
-            grid-template-columns: 1fr;
-        }
+    .success-message {
+        background: #c6f6d5;
+        color: #2f855a;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #9ae6b4;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ai-consultant-page">
-    <div class="container">
-        <!-- Header -->
-        <div class="page-header">
-            <h1>
-                <i class="fas fa-robot me-3"></i>
-                مشاور هوش مصنوعی
-            </h1>
-            <p>پاسخ به سوالات شما درباره چیدمان و بهینه‌سازی فروشگاه</p>
-        </div>
+<div class="consultant-container">
+    <a href="{% url 'store_analysis:analysis_results' analysis.id %}" class="back-button">
+        ← بازگشت به نتایج تحلیل
+    </a>
 
-        <!-- Chat Container -->
-        <div class="chat-container">
-            <!-- Chat Header -->
-            <div class="chat-header">
-                <div class="ai-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="ai-status">
-                    <div class="ai-name">مشاور چیدمان</div>
-                    <div class="ai-status-text">
-                        <span class="status-dot"></span>
-                        آنلاین و آماده پاسخگویی
-                    </div>
-                </div>
+    <div class="consultant-header">
+        <h1 class="consultant-title">🤖 مشاور هوش مصنوعی</h1>
+        <p class="consultant-subtitle">
+            سوالات خود را درباره تحلیل فروشگاه <strong>{{ analysis.store_name }}</strong> بپرسید
+        </p>
+        
+        <div class="session-status">
+            <div class="status-item">
+                سوالات رایگان: {{ session_status.free_questions_remaining }}/3
             </div>
-
-            <!-- Chat Messages -->
-            <div class="chat-messages" id="chat-messages">
-                <!-- Welcome Message -->
-                <div class="message ai">
-                    <div class="message-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-content">
-                        سلام! 👋 من مشاور هوش مصنوعی چیدمان هستم. می‌توانم به سوالات شما درباره بهینه‌سازی فروشگاه، چیدمان، ترافیک مشتریان و راه‌های افزایش فروش پاسخ دهم. چه سوالی دارید؟
-                        <div class="message-time">اکنون</div>
-                    </div>
-                </div>
+            <div class="status-item">
+                وضعیت: {% if session_status.is_paid %}پولی (24 ساعت){% else %}رایگان{% endif %}
             </div>
-
-            <!-- Typing Indicator -->
-            <div class="typing-indicator" id="typing-indicator">
-                <i class="fas fa-robot"></i>
-                مشاور در حال تایپ است
-                <div class="typing-dots">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            </div>
-
-            <!-- Chat Input -->
-            <div class="chat-input-container">
-                <textarea 
-                    class="chat-input" 
-                    id="chat-input" 
-                    placeholder="سوال خود را بنویسید..."
-                    rows="1"
-                ></textarea>
-                <button class="send-btn" id="send-btn" onclick="sendMessage()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Quick Questions -->
-        <div class="quick-questions">
-            <h3>
-                <i class="fas fa-lightbulb"></i>
-                سوالات متداول
-            </h3>
-            <div class="questions-grid">
-                <button class="question-btn" onclick="askQuestion('چگونه می‌توانم ترافیک فروشگاه خود را افزایش دهم؟')">
-                    <i class="fas fa-users"></i>
-                    چگونه می‌توانم ترافیک فروشگاه خود را افزایش دهم؟
-                </button>
-                <button class="question-btn" onclick="askQuestion('بهترین چیدمان برای فروشگاه من چیست؟')">
-                    <i class="fas fa-palette"></i>
-                    بهترین چیدمان برای فروشگاه من چیست؟
-                </button>
-                <button class="question-btn" onclick="askQuestion('چگونه می‌توانم مسیر حرکت مشتریان را بهینه کنم؟')">
-                    <i class="fas fa-route"></i>
-                    چگونه می‌توانم مسیر حرکت مشتریان را بهینه کنم؟
-                </button>
-                <button class="question-btn" onclick="askQuestion('چه رنگ‌هایی برای فروشگاه من مناسب است؟')">
-                    <i class="fas fa-paint-brush"></i>
-                    چه رنگ‌هایی برای فروشگاه من مناسب است؟
-                </button>
-                <button class="question-btn" onclick="askQuestion('چگونه می‌توانم نورپردازی فروشگاه را بهبود دهم؟')">
-                    <i class="fas fa-lightbulb"></i>
-                    چگونه می‌توانم نورپردازی فروشگاه را بهبود دهم؟
-                </button>
-                <button class="question-btn" onclick="askQuestion('بهترین مکان برای قرار دادن محصولات پرطرفدار کجاست؟')">
-                    <i class="fas fa-star"></i>
-                    بهترین مکان برای قرار دادن محصولات پرطرفدار کجاست؟
-                </button>
+            <div class="status-item">
+                انقضا: {{ session.expires_at|date:"Y/m/d H:i" }}
             </div>
         </div>
     </div>
+
+    <div class="analysis-context">
+        <h3 class="context-title">📊 اطلاعات تحلیل در دسترس مشاور:</h3>
+        <div class="context-item">
+            <span class="context-label">نام فروشگاه:</span> {{ analysis.store_name }}
+        </div>
+        <div class="context-item">
+            <span class="context-label">نوع فروشگاه:</span> {{ analysis.store_type }}
+        </div>
+        <div class="context-item">
+            <span class="context-label">اندازه فروشگاه:</span> {{ analysis.store_size }}
+        </div>
+        {% if analysis.results.overall_score %}
+        <div class="context-item">
+            <span class="context-label">نمره کلی:</span> {{ analysis.results.overall_score }}/10
+        </div>
+        {% endif %}
+        {% if analysis.results.data_completeness %}
+        <div class="context-item">
+            <span class="context-label">درصد اطلاعات:</span> {{ analysis.results.data_completeness.percentage }}%
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            {% if questions %}
+                {% for question in questions %}
+                    <div class="message user">
+                        <div class="message-content">
+                            {{ question.question }}
+                        </div>
+                        <div class="message-meta">
+                            {{ question.created_at|date:"H:i" }} - 
+                            {% if question.is_free %}رایگان{% else %}پولی{% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if question.answer %}
+                        <div class="message ai">
+                            <div class="message-content">
+                                {{ question.answer|linebreaks }}
+                            </div>
+                            <div class="message-meta">
+                                پاسخ در {{ question.response_time }}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="message ai">
+                    <div class="message-content">
+                        سلام! من مشاور هوش مصنوعی شما هستم. 
+                        می‌توانید سوالات خود را درباره تحلیل فروشگاه <strong>{{ analysis.store_name }}</strong> بپرسید.
+                        <br><br>
+                        💡 <strong>نکات مهم:</strong>
+                        <br>• 3 سوال اول رایگان است
+                        <br>• برای سوالات بیشتر باید 200,000 تومان پرداخت کنید
+                        <br>• جلسه پولی 24 ساعت اعتبار دارد
+                        <br>• من به تمام اطلاعات تحلیل شما دسترسی دارم
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if session_status.requires_payment %}
+            <div class="payment-prompt">
+                <h3>💳 برای ادامه نیاز به پرداخت دارید</h3>
+                <p>شما 3 سوال رایگان خود را استفاده کرده‌اید. برای پرسیدن سوالات بیشتر، لطفاً پرداخت کنید.</p>
+                <a href="{% url 'store_analysis:consultant_payment' session.session_id %}" class="payment-button">
+                    پرداخت 200,000 تومان (24 ساعت)
+                </a>
+            </div>
+        {% else %}
+            <form class="question-form" id="questionForm">
+                {% csrf_token %}
+                <textarea 
+                    class="question-input" 
+                    id="questionInput" 
+                    placeholder="سوال خود را درباره تحلیل فروشگاه بپرسید..."
+                    rows="2"
+                    maxlength="1000"
+                ></textarea>
+                <button type="submit" class="ask-button" id="askButton">
+                    پرسیدن سوال
+                </button>
+            </form>
+        {% endif %}
+
+        <div class="loading" id="loading">
+            <span>در حال پردازش سوال...</span>
+            <div class="spinner"></div>
+        </div>
+    </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-let isTyping = false;
+document.addEventListener('DOMContentLoaded', function() {
+    const questionForm = document.getElementById('questionForm');
+    const questionInput = document.getElementById('questionInput');
+    const askButton = document.getElementById('askButton');
+    const loading = document.getElementById('loading');
+    const chatMessages = document.getElementById('chatMessages');
 
-// Auto-resize textarea
-document.getElementById('chat-input').addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-});
-
-// Send message on Enter (but allow Shift+Enter for new line)
-document.getElementById('chat-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-});
-
-function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    
-    if (!message || isTyping) return;
-    
-    // Add user message
-    addMessage(message, 'user');
-    input.value = '';
-    input.style.height = 'auto';
-    
-    // Show typing indicator
-    showTypingIndicator();
-    
-    // Simulate AI response
-    setTimeout(() => {
-        hideTypingIndicator();
-        const response = generateAIResponse(message);
-        addMessage(response, 'ai');
-    }, 1500 + Math.random() * 1000);
-}
-
-function askQuestion(question) {
-    if (isTyping) return;
-    
-    // Add user message
-    addMessage(question, 'user');
-    
-    // Show typing indicator
-    showTypingIndicator();
-    
-    // Simulate AI response
-    setTimeout(() => {
-        hideTypingIndicator();
-        const response = generateAIResponse(question);
-        addMessage(response, 'ai');
-    }, 1000 + Math.random() * 500);
-}
-
-function addMessage(text, sender) {
-    const messagesContainer = document.getElementById('chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}`;
-    
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('fa-IR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
-    
-    messageDiv.innerHTML = `
-        <div class="message-avatar">
-            <i class="fas fa-${sender === 'user' ? 'user' : 'robot'}"></i>
-        </div>
-        <div class="message-content">
-            ${text}
-            <div class="message-time">${timeString}</div>
-        </div>
-    `;
-    
-    messagesContainer.appendChild(messageDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function showTypingIndicator() {
-    isTyping = true;
-    document.getElementById('typing-indicator').style.display = 'flex';
-    document.getElementById('send-btn').disabled = true;
-    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-}
-
-function hideTypingIndicator() {
-    isTyping = false;
-    document.getElementById('typing-indicator').style.display = 'none';
-    document.getElementById('send-btn').disabled = false;
-}
-
-function generateAIResponse(question) {
-    const responses = {
-        'چگونه می‌توانم ترافیک فروشگاه خود را افزایش دهم؟': 
-            'برای افزایش ترافیک فروشگاه، توصیه می‌کنم:\n\n' +
-            '• استفاده از ویترین جذاب و نورپردازی مناسب\n' +
-            '• قرار دادن محصولات پرطرفدار در معرض دید\n' +
-            '• استفاده از رنگ‌های گرم و جذاب\n' +
-            '• ایجاد مسیر حرکت منطقی برای مشتریان\n' +
-            '• استفاده از موسیقی ملایم و رایحه خوش\n\n' +
-            'آیا می‌خواهید تحلیل دقیق‌تری از فروشگاه شما انجام دهم؟',
-        
-        'بهترین چیدمان برای فروشگاه من چیست؟':
-            'بهترین چیدمان بستگی به نوع فروشگاه شما دارد:\n\n' +
-            '• فروشگاه‌های پوشاک: چیدمان U شکل یا خطی\n' +
-            '• فروشگاه‌های مواد غذایی: چیدمان شبکه‌ای\n' +
-            '• فروشگاه‌های لوازم خانگی: چیدمان جزیره‌ای\n\n' +
-            'برای توصیه دقیق‌تر، لطفاً نوع فروشگاه و متراژ آن را مشخص کنید.',
-        
-        'چگونه می‌توانم مسیر حرکت مشتریان را بهینه کنم؟':
-            'برای بهینه‌سازی مسیر حرکت مشتریان:\n\n' +
-            '• ورودی را در سمت چپ قرار دهید (طبق عادت ایرانیان)\n' +
-            '• مسیر حرکت را به صورت U یا S طراحی کنید\n' +
-            '• محصولات ضروری را در انتهای مسیر قرار دهید\n' +
-            '• از مانع‌های غیرضروری جلوگیری کنید\n' +
-            '• مسیر خروج را مشخص و آسان کنید',
-        
-        'چه رنگ‌هایی برای فروشگاه من مناسب است؟':
-            'انتخاب رنگ مناسب برای فروشگاه:\n\n' +
-            '• رنگ‌های گرم (قرمز، نارنجی): افزایش اشتها و هیجان\n' +
-            '• رنگ‌های سرد (آبی، سبز): آرامش و اعتماد\n' +
-            '• رنگ‌های خنثی (سفید، خاکستری): تمیزی و مدرن بودن\n\n' +
-            'ترکیب 60% رنگ اصلی، 30% رنگ ثانویه و 10% رنگ تاکیدی توصیه می‌شود.',
-        
-        'چگونه می‌توانم نورپردازی فروشگاه را بهبود دهم؟':
-            'برای بهبود نورپردازی فروشگاه:\n\n' +
-            '• استفاده از نور طبیعی در صورت امکان\n' +
-            '• ترکیب نور عمومی و نور نقطه‌ای\n' +
-            '• نورپردازی مناسب ویترین‌ها\n' +
-            '• استفاده از نور گرم برای ایجاد فضای دوستانه\n' +
-            '• اجتناب از نورهای خیلی تند یا خیلی کم',
-        
-        'بهترین مکان برای قرار دادن محصولات پرطرفدار کجاست؟':
-            'بهترین مکان‌ها برای محصولات پرطرفدار:\n\n' +
-            '• نزدیک ورودی فروشگاه\n' +
-            '• در انتهای مسیر حرکت مشتریان\n' +
-            '• در ارتفاع چشم (120-160 سانتی‌متر)\n' +
-            '• در کنار محصولات مرتبط\n' +
-            '• در ویترین‌های شیشه‌ای'
-    };
-    
-    // Check for exact matches first
-    if (responses[question]) {
-        return responses[question];
+    if (questionForm) {
+        questionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const question = questionInput.value.trim();
+            if (!question) {
+                alert('لطفاً سوال خود را وارد کنید');
+                return;
+            }
+            
+            if (question.length < 10) {
+                alert('سوال باید حداقل 10 کاراکتر باشد');
+                return;
+            }
+            
+            // نمایش loading
+            loading.classList.add('show');
+            askButton.disabled = true;
+            questionInput.disabled = true;
+            
+            // ارسال سوال
+            fetch('{% url "store_analysis:ask_consultant_question" session.session_id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: 'question=' + encodeURIComponent(question)
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.classList.remove('show');
+                askButton.disabled = false;
+                questionInput.disabled = false;
+                
+                if (data.success) {
+                    // اضافه کردن سوال و پاسخ به چت
+                    addMessageToChat(question, 'user', data.is_free);
+                    addMessageToChat(data.answer, 'ai');
+                    
+                    // پاک کردن input
+                    questionInput.value = '';
+                    
+                    // به‌روزرسانی وضعیت
+                    updateSessionStatus(data);
+                    
+                    // اسکرول به پایین
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    if (data.requires_payment) {
+                        // هدایت به صفحه پرداخت
+                        window.location.href = '{% url "store_analysis:consultant_payment" session.session_id %}';
+                    } else {
+                        alert('خطا: ' + data.error);
+                    }
+                }
+            })
+            .catch(error => {
+                loading.classList.remove('show');
+                askButton.disabled = false;
+                questionInput.disabled = false;
+                alert('خطا در ارتباط با سرور');
+                console.error('Error:', error);
+            });
+        });
     }
     
-    // Check for partial matches
-    for (const [key, value] of Object.entries(responses)) {
-        if (question.includes(key.split(' ')[0]) || key.includes(question.split(' ')[0])) {
-            return value;
+    function addMessageToChat(message, type, isFree = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + type;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = message.replace(/\n/g, '<br>');
+        
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'message-meta';
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                    now.getMinutes().toString().padStart(2, '0');
+        
+        if (type === 'user') {
+            metaDiv.textContent = time + ' - ' + (isFree ? 'رایگان' : 'پولی');
+        } else {
+            metaDiv.textContent = 'پاسخ فوری';
+        }
+        
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(metaDiv);
+        chatMessages.appendChild(messageDiv);
+    }
+    
+    function updateSessionStatus(data) {
+        // به‌روزرسانی نمایش وضعیت جلسه
+        const statusItems = document.querySelectorAll('.status-item');
+        if (statusItems.length > 0) {
+            statusItems[0].textContent = 'سوالات رایگان: ' + data.remaining_free + '/3';
         }
     }
     
-    // Default response
-    return 'سوال جالبی پرسیدید! برای پاسخ دقیق‌تر، لطفاً اطلاعات بیشتری درباره فروشگاه خود ارائه دهید. می‌توانم در زمینه چیدمان، ترافیک مشتریان، نورپردازی و رنگ‌بندی به شما کمک کنم.';
-}
-
-// Add hover effects
-document.addEventListener('DOMContentLoaded', function() {
-    const questionBtns = document.querySelectorAll('.question-btn');
-    questionBtns.forEach(btn => {
-        btn.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-3px) scale(1.02)';
+    // Auto-resize textarea
+    if (questionInput) {
+        questionInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
-        
-        btn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
+    }
 });
 </script>
 {% endblock %}
