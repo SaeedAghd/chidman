@@ -12,6 +12,13 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 
+# Import Ollama
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+
 # Import ML libraries
 try:
     import numpy as np
@@ -66,8 +73,7 @@ class StoreAnalysisAI:
     """کلاس تحلیل هوشمند فروشگاه با استفاده از Ollama (رایگان و محلی)"""
     
     def __init__(self):
-        # تنظیمات Ollama API (رایگان و محلی)
-        self.ollama_api_url = "http://localhost:11434/api/generate"
+        # تنظیمات Ollama
         self.model_name = "llama3.2"  # مدل پیش‌فرض Ollama
         
         # بررسی دسترسی به Ollama
@@ -78,11 +84,20 @@ class StoreAnalysisAI:
     
     def _check_ollama_availability(self):
         """بررسی دسترسی به Ollama"""
-        try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=5)
-            return response.status_code == 200
-        except:
+        if not OLLAMA_AVAILABLE:
             return False
+        
+        try:
+            # بررسی دسترسی به Ollama با کتابخانه ollama
+            ollama.list()
+            return True
+        except:
+            try:
+                # Fallback به API request
+                response = requests.get("http://localhost:11434/api/tags", timeout=5)
+                return response.status_code == 200
+            except:
+                return False
     
     def call_ollama_api(self, prompt: str, max_tokens: int = 2000) -> str:
         """فراخوانی API Ollama (رایگان و محلی)"""
@@ -106,8 +121,27 @@ class StoreAnalysisAI:
                 }
             }
             
+            # استفاده از کتابخانه ollama
+            if OLLAMA_AVAILABLE:
+                try:
+                    response = ollama.generate(
+                        model=self.model_name,
+                        prompt=full_prompt,
+                        options={
+                            'temperature': 0.7,
+                            'top_p': 0.9,
+                            'num_predict': max_tokens
+                        }
+                    )
+                    return response['response']
+                except Exception as e:
+                    logger.error(f"Ollama library error: {str(e)}")
+                    # Fallback به API request
+                    pass
+            
+            # Fallback به API request
             response = requests.post(
-                self.ollama_api_url,
+                "http://localhost:11434/api/generate",
                 json=payload,
                 timeout=60  # Ollama ممکن است کمی کندتر باشد
             )

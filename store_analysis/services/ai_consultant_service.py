@@ -8,6 +8,13 @@ from datetime import timedelta
 from django.db import transaction
 from ..models import AIConsultantSession, AIConsultantQuestion, StoreAnalysis
 
+# Import Ollama
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 class AIConsultantService:
@@ -114,14 +121,60 @@ class AIConsultantService:
             # ساخت context برای پاسخ
             context = self._build_analysis_context(store_analysis, analysis_data, results)
             
-            # تولید پاسخ بر اساس context
-            response = self._generate_contextual_response(question, context)
+            # تلاش برای استفاده از Ollama
+            if OLLAMA_AVAILABLE:
+                try:
+                    ollama_response = self._generate_ollama_response(question, context)
+                    if ollama_response and len(ollama_response) > 50:
+                        return ollama_response
+                except Exception as e:
+                    logger.error(f"خطا در Ollama: {str(e)}")
             
+            # Fallback به پاسخ محلی
+            response = self._generate_contextual_response(question, context)
             return response
             
         except Exception as e:
             logger.error(f"خطا در تولید پاسخ AI: {str(e)}")
             return "متأسفانه در حال حاضر قادر به پاسخ‌دهی نیستم. لطفاً سوال خود را مجدداً مطرح کنید."
+    
+    def _generate_ollama_response(self, question: str, context: Dict[str, Any]) -> str:
+        """تولید پاسخ با استفاده از Ollama"""
+        try:
+            # ساخت prompt برای Ollama
+            prompt = f"""
+شما یک متخصص تحلیل فروشگاه و مشاور کسب‌وکار هستید. بر اساس اطلاعات زیر به سوال کاربر پاسخ دهید:
+
+اطلاعات فروشگاه:
+- نام: {context['store_info']['name']}
+- نوع: {context['store_info']['type']}
+- اندازه: {context['store_info']['size']}
+- نمره کلی: {context.get('overall_score', 'نامشخص')}/10
+- درصد اطلاعات: {context.get('data_completeness', {}).get('percentage', 'نامشخص')}%
+
+توصیه‌ها: {', '.join(context.get('recommendations', [])[:3])}
+نکات کلیدی: {', '.join(context.get('key_insights', [])[:3])}
+
+سوال کاربر: {question}
+
+لطفاً پاسخ جامع، عملی و به فارسی ارائه دهید:
+"""
+            
+            response = ollama.generate(
+                model='llama3.2',
+                prompt=prompt,
+                options={
+                    'temperature': 0.7,
+                    'top_p': 0.9,
+                    'num_predict': 1000
+                }
+            )
+            
+            return response['response']
+            
+        except Exception as e:
+            logger.error(f"خطا در Ollama: {str(e)}")
+            return ""
     
     def _build_analysis_context(self, store_analysis, analysis_data: Dict, results: Dict) -> Dict[str, Any]:
         """ساخت context کامل از اطلاعات تحلیل"""
