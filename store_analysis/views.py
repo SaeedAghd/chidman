@@ -558,12 +558,12 @@ def generate_management_report(analysis, has_ai_results=False):
     import uuid
     certificate_id = str(uuid.uuid4())[:8].upper()
     
-    # Professional HTML report
+    # Professional International Certificate
     report_content = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Professional Store Analysis Report - {analysis.store_name}</title>
+    <title>AI Store Analysis Certificate - {analysis.store_name}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap');
@@ -578,50 +578,368 @@ def generate_management_report(analysis, has_ai_results=False):
             font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif; 
             margin: 0; 
             padding: 20px; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); 
             direction: rtl;
+            min-height: 100vh;
         }}
-        .certificate {{ max-width: 1000px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }}
-        .header {{ background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px; text-align: center; }}
-        .title {{ font-size: 36px; font-weight: bold; margin-bottom: 10px; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .subtitle {{ font-size: 18px; opacity: 0.9; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .cert-id {{ background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 25px; font-family: 'Courier New', monospace; margin-top: 20px; }}
-        .body {{ padding: 40px; }}
-        .store-info {{ background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 30px; border-left: 5px solid #1e3c72; }}
-        .store-name {{ font-size: 24px; font-weight: bold; color: #1e3c72; margin-bottom: 20px; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .info-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }}
-        .info-item {{ background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-        .info-label {{ font-weight: bold; color: #6c757d; font-size: 12px; text-transform: uppercase; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .info-value {{ font-size: 16px; color: #1e3c72; margin-top: 5px; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .scores {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }}
-        .scores-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }}
-        .score-item {{ background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; text-align: center; }}
-        .score-value {{ font-size: 32px; font-weight: bold; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .score-label {{ font-size: 14px; opacity: 0.9; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .section {{ margin-bottom: 30px; }}
-        .section-title {{ font-size: 22px; font-weight: bold; color: #1e3c72; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #1e3c72; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .swot-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }}
-        .swot-card {{ background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 5px solid; }}
+        
+        .certificate {{ 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%); 
+            border-radius: 20px; 
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,215,0,0.3); 
+            overflow: hidden;
+            position: relative;
+            border: 3px solid #FFD700;
+        }}
+        
+        .certificate::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255,215,0,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,215,0,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(255,215,0,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }}
+        
+        .hologram {{
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 0 20px rgba(255,215,0,0.6);
+            animation: hologramGlow 3s ease-in-out infinite alternate;
+        }}
+        
+        @keyframes hologramGlow {{
+            0% {{ box-shadow: 0 0 20px rgba(255,215,0,0.6); }}
+            100% {{ box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 40px rgba(255,215,0,0.3); }}
+        }}
+        
+        .header {{ 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%); 
+            color: white; 
+            padding: 50px 40px; 
+            text-align: center; 
+            position: relative;
+            border-bottom: 3px solid #FFD700;
+        }}
+        
+        .header::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }}
+        
+        .title {{ 
+            font-size: 42px; 
+            font-weight: 900; 
+            margin-bottom: 15px; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .subtitle {{ 
+            font-size: 20px; 
+            opacity: 0.95; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif; 
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .cert-id {{ 
+            background: rgba(255,215,0,0.2); 
+            padding: 12px 25px; 
+            border-radius: 30px; 
+            font-family: 'Courier New', monospace; 
+            margin-top: 20px;
+            border: 2px solid rgba(255,215,0,0.5);
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .body {{ padding: 50px; position: relative; z-index: 1; }}
+        
+        .store-info {{ 
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+            padding: 40px; 
+            border-radius: 15px; 
+            margin-bottom: 40px; 
+            border-left: 6px solid #FFD700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }}
+        
+        .store-info::before {{
+            content: '🏪';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+        }}
+        
+        .store-name {{ 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #1e3c72; 
+            margin-bottom: 25px; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }}
+        
+        .info-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; }}
+        .info-item {{ 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1); 
+            border: 2px solid #f8f9fa;
+            transition: transform 0.3s ease;
+        }}
+        
+        .info-item:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }}
+        
+        .info-label {{ 
+            font-weight: bold; 
+            color: #6c757d; 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            letter-spacing: 1px;
+        }}
+        
+        .info-value {{ 
+            font-size: 18px; 
+            color: #1e3c72; 
+            margin-top: 8px; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            font-weight: 600;
+        }}
+        
+        .scores {{ 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }}
+        
+        .scores::before {{
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }}
+        
+        @keyframes rotate {{
+            0% {{ transform: rotate(0deg); }}
+            100% {{ transform: rotate(360deg); }}
+        }}
+        
+        .scores-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 25px; position: relative; z-index: 1; }}
+        .score-item {{ 
+            background: rgba(255,255,255,0.15); 
+            padding: 25px; 
+            border-radius: 12px; 
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }}
+        
+        .score-value {{ 
+            font-size: 36px; 
+            font-weight: bold; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }}
+        
+        .score-label {{ 
+            font-size: 14px; 
+            opacity: 0.95; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            margin-top: 8px;
+        }}
+        
+        .section {{ margin-bottom: 40px; }}
+        .section-title {{ 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #1e3c72; 
+            margin-bottom: 25px; 
+            padding-bottom: 15px; 
+            border-bottom: 3px solid #FFD700; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            text-align: center;
+            position: relative;
+        }}
+        
+        .section-title::after {{
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+        }}
+        
+        .swot-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }}
+        .swot-card {{ 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            border-top: 6px solid;
+            transition: transform 0.3s ease;
+        }}
+        
+        .swot-card:hover {{
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }}
+        
         .swot-strengths {{ border-top-color: #28a745; }}
         .swot-weaknesses {{ border-top-color: #dc3545; }}
         .swot-opportunities {{ border-top-color: #ffc107; }}
         .swot-threats {{ border-top-color: #6f42c1; }}
-        .swot-title {{ font-weight: bold; font-size: 18px; margin-bottom: 15px; text-align: center; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
+        
+        .swot-title {{ 
+            font-weight: bold; 
+            font-size: 20px; 
+            margin-bottom: 20px; 
+            text-align: center; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            padding: 10px;
+            border-radius: 8px;
+        }}
+        
         .swot-list {{ list-style: none; }}
-        .swot-list li {{ padding: 8px 0; border-bottom: 1px solid #f8f9fa; padding-left: 20px; position: relative; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }}
-        .swot-list li::before {{ content: '•'; position: absolute; left: 0; color: #1e3c72; font-weight: bold; }}
-        .footer {{ background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; text-align: center; }}
-        .signature-section {{ display: flex; justify-content: space-between; margin-top: 30px; padding-top: 30px; border-top: 2px solid rgba(255,255,255,0.3); }}
+        .swot-list li {{ 
+            padding: 12px 0; 
+            border-bottom: 1px solid #f8f9fa; 
+            padding-left: 25px; 
+            position: relative; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            line-height: 1.6;
+        }}
+        
+        .swot-list li::before {{ 
+            content: '✨'; 
+            position: absolute; 
+            left: 0; 
+            color: #FFD700; 
+            font-weight: bold;
+        }}
+        
+        .footer {{ 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%); 
+            color: white; 
+            padding: 40px; 
+            text-align: center;
+            position: relative;
+            border-top: 3px solid #FFD700;
+        }}
+        
+        .footer::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain2" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain2)"/></svg>');
+            opacity: 0.3;
+        }}
+        
+        .signature-section {{ 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 40px; 
+            padding-top: 40px; 
+            border-top: 2px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 1;
+        }}
+        
         .signature-box {{ text-align: center; }}
-        .signature-line {{ width: 200px; height: 2px; background: white; margin: 10px auto; }}
-        .cert-date {{ font-family: monospace; font-size: 14px; opacity: 0.9; }}
-        @media print {{ body {{ background: white; }} .certificate {{ box-shadow: none; }} }}
+        .signature-line {{ 
+            width: 250px; 
+            height: 3px; 
+            background: linear-gradient(90deg, #FFD700, #FFA500); 
+            margin: 15px auto;
+            border-radius: 2px;
+        }}
+        
+        .cert-date {{ 
+            font-family: monospace; 
+            font-size: 16px; 
+            opacity: 0.95;
+            background: rgba(255,215,0,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }}
+        
+        .chidmano-logo {{
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }}
+        
+        @media print {{ 
+            body {{ background: white; }} 
+            .certificate {{ box-shadow: none; border: 2px solid #FFD700; }}
+            .hologram {{ display: none; }}
+        }}
     </style>
 </head>
 <body>
     <div class="certificate">
+        <div class="hologram">🏆</div>
         <div class="header">
-            <div class="title">گواهینامه AI تحلیل فروشگاه</div>
+            <div class="title">🏆 گواهینامه AI تحلیل فروشگاه 🏆</div>
             <div class="subtitle">تحلیل هوشمند چیدمان و بهینه‌سازی فروشگاه با هوش مصنوعی</div>
             <div class="cert-id">شناسه گواهی: {certificate_id}</div>
         </div>
@@ -807,21 +1125,29 @@ def generate_management_report(analysis, has_ai_results=False):
         </div>
         
         <div class="footer">
-            <p>این گواهی‌نامه تأیید می‌کند که تحلیل جامع فروشگاه با استفاده از فناوری هوش مصنوعی پیشرفته و روش‌های تحلیلی حرفه‌ای خرده‌فروشی انجام شده است.</p>
+            <p style="font-size: 18px; margin-bottom: 30px; line-height: 1.8;">این گواهی‌نامه تأیید می‌کند که تحلیل جامع فروشگاه <strong>{analysis.store_name}</strong> با استفاده از فناوری هوش مصنوعی پیشرفته و روش‌های تحلیلی حرفه‌ای خرده‌فروشی انجام شده است.</p>
+            
             <div class="signature-section">
                 <div class="signature-box">
+                    <div style="font-size: 20px; margin-bottom: 10px;">🏆</div>
                     <div class="signature-line"></div>
-                    <div>مشاور ارشد چیدمان فروشگاه</div>
-                    <div>سیستم تحلیل فروشگاه</div>
+                    <div style="font-weight: bold; margin-top: 10px;">مشاور ارشد چیدمان فروشگاه</div>
+                    <div>سیستم تحلیل هوشمند چیدمانو</div>
                 </div>
                 <div class="signature-box">
+                    <div style="font-size: 20px; margin-bottom: 10px;">🤖</div>
                     <div class="signature-line"></div>
-                    <div>متخصص بازاریابی</div>
+                    <div style="font-weight: bold; margin-top: 10px;">متخصص AI و بازاریابی</div>
                     <div>کارشناس بهینه‌سازی خرده‌فروشی</div>
                 </div>
             </div>
+            
             <div class="cert-date">
-                شناسه گواهی: {certificate_id} | تولید شده در: {datetime.now().strftime('%Y/%m/%d ساعت %H:%M')}
+                🏆 شناسه گواهی: {certificate_id} | 📅 تولید شده در: {datetime.now().strftime('%Y/%m/%d ساعت %H:%M')}
+            </div>
+            
+            <div class="chidmano-logo">
+                🏪 چیدمانو - سیستم تحلیل هوشمند فروشگاه
             </div>
         </div>
     </div>
