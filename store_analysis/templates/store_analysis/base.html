@@ -10,6 +10,11 @@
     <!-- Bootstrap RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
     
+    <!-- Modern Professional Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <!-- Vazirmatn Font -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     
@@ -28,10 +33,51 @@
         }
 
         body {
-            font-family: 'Vazirmatn', sans-serif;
+            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', sans-serif;
             background-color: var(--light-bg);
             color: var(--text-color);
             line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Professional Title Font - Same as "آموزش جامع بهینه‌سازی چیدمان فروشگاه" */
+        h1, h2, h3, h4, h5, h6,
+        .display-1, .display-2, .display-3, .display-4, .display-5, .display-6,
+        .hero-title, .section-title, .page-title, .card-title {
+            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            line-height: 1.3;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Make titles slightly smaller */
+        h1, .display-1 { font-size: 2.2rem; }
+        h2, .display-2 { font-size: 1.9rem; }
+        h3, .display-3 { font-size: 1.6rem; }
+        h4, .display-4 { font-size: 1.4rem; }
+        h5, .display-5 { font-size: 1.2rem; }
+        h6, .display-6 { font-size: 1.1rem; }
+
+        /* Responsive title sizes */
+        @media (max-width: 768px) {
+            h1, .display-1 { font-size: 1.8rem; }
+            h2, .display-2 { font-size: 1.6rem; }
+            h3, .display-3 { font-size: 1.4rem; }
+            h4, .display-4 { font-size: 1.2rem; }
+            h5, .display-5 { font-size: 1.1rem; }
+            h6, .display-6 { font-size: 1rem; }
+        }
+
+        @media (max-width: 576px) {
+            h1, .display-1 { font-size: 1.6rem; }
+            h2, .display-2 { font-size: 1.4rem; }
+            h3, .display-3 { font-size: 1.2rem; }
+            h4, .display-4 { font-size: 1.1rem; }
+            h5, .display-5 { font-size: 1rem; }
+            h6, .display-6 { font-size: 0.95rem; }
         }
         
         .navbar {
