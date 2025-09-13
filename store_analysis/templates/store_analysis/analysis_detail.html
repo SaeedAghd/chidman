@@ -539,7 +539,7 @@
                     {% endif %}
                     
                     {% if analysis.preliminary_analysis or analysis.results %}
-                    <a href="{% url 'store_analysis:download_detailed_pdf' pk=analysis.pk %}" class="btn btn-success" onclick="showPdfLoading()">
+                    <a href="{% url 'store_analysis:download_detailed_pdf' pk=analysis.pk %}" class="btn btn-success" id="pdf-download-btn">
                         <i class="fas fa-file-pdf"></i>دانلود گزارش PDF
                     </a>
                     {% endif %}
@@ -601,7 +601,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 "></div>
                 <h3 style="color: #333; margin-bottom: 1rem;">در حال آماده‌سازی گزارش PDF</h3>
                 <p style="color: #666; margin-bottom: 1rem;">لطفاً صبر کنید، گزارش در حال تولید است...</p>
-                <p style="color: #999; font-size: 0.9rem;">این فرآیند ممکن است 30-60 ثانیه طول بکشد</p>
+                <p style="color: #28a745; font-size: 0.9rem; margin-bottom: 0.5rem;">✅ گزارش در تب جدید باز شده</p>
+                <p style="color: #999; font-size: 0.8rem;">اگر تب جدید باز نشد، popup blocker را غیرفعال کنید</p>
+                <button onclick="hidePdfLoading()" style="
+                    background: #dc3545;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    margin-top: 1rem;
+                ">لغو</button>
             </div>
             <style>
                 @keyframes spin {
@@ -613,17 +623,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.body.appendChild(loadingModal);
         
-        // Remove modal after 60 seconds as fallback
+        // Remove modal after 10 seconds as fallback
         setTimeout(() => {
-            const modal = document.getElementById('pdf-loading-modal');
-            if (modal) {
-                modal.remove();
-            }
-        }, 60000);
+            hidePdfLoading();
+        }, 10000);
     }
 
-    // Make showPdfLoading globally available
+    // Hide PDF loading message
+    function hidePdfLoading() {
+        const modal = document.getElementById('pdf-loading-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    // Make functions globally available
     window.showPdfLoading = showPdfLoading;
+    window.hidePdfLoading = hidePdfLoading;
 
     // Update progress based on analysis status
     function updateProgress() {
@@ -688,6 +704,40 @@ document.addEventListener('DOMContentLoaded', function() {
             this.parentElement.scrollIntoView({ behavior: 'smooth' });
         });
     });
+    
+    // Add event listener for PDF download
+    const pdfDownloadBtn = document.getElementById('pdf-download-btn');
+    if (pdfDownloadBtn) {
+        pdfDownloadBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent default link behavior
+            
+            // Show loading modal
+            showPdfLoading();
+            
+            // Get the download URL
+            const downloadUrl = this.href;
+            
+            // Open in new tab/window
+            const newWindow = window.open(downloadUrl, '_blank');
+            
+            // If popup was blocked, try alternative method
+            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                // Create a temporary link and click it
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.target = '_blank';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            // Hide loading modal after 3 seconds
+            setTimeout(() => {
+                hidePdfLoading();
+            }, 3000);
+        });
+    }
 });
 </script>
 {% endblock %} 
