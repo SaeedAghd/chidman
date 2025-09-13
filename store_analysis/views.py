@@ -526,7 +526,7 @@ def download_analysis_report(request, pk):
             text_content = generate_pdf_report(analysis, has_ai_results)
             
             response = HttpResponse(content_type='text/plain; charset=utf-8')
-            response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_professional_report.txt"'
+            response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_گزارش_تحلیل_{analysis.id}.txt"'
             response.write(text_content.encode('utf-8'))
             return response
             
@@ -535,7 +535,7 @@ def download_analysis_report(request, pk):
             html_content = generate_management_report(analysis, has_ai_results)
             
             response = HttpResponse(content_type='text/html; charset=utf-8')
-            response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_analysis_report.html"'
+            response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_گواهینامه_AI_{analysis.id}.html"'
             response.write(html_content.encode('utf-8'))
             return response
         
@@ -621,8 +621,8 @@ def generate_management_report(analysis, has_ai_results=False):
 <body>
     <div class="certificate">
         <div class="header">
-            <div class="title">گواهی‌نامه تحلیل حرفه‌ای</div>
-            <div class="subtitle">تحلیل تخصصی چیدمان و بازاریابی فروشگاه</div>
+            <div class="title">گواهینامه AI تحلیل فروشگاه</div>
+            <div class="subtitle">تحلیل هوشمند چیدمان و بهینه‌سازی فروشگاه با هوش مصنوعی</div>
             <div class="cert-id">شناسه گواهی: {certificate_id}</div>
         </div>
         
@@ -1162,6 +1162,7 @@ def user_dashboard(request):
     pending_analyses = StoreAnalysis.objects.filter(user=request.user, status='pending').count()
     processing_analyses = StoreAnalysis.objects.filter(user=request.user, status='processing').count()
     
+    
     # آخرین تحلیل‌ها
     recent_analyses = StoreAnalysis.objects.filter(user=request.user).order_by('-created_at')[:5]
     
@@ -1203,6 +1204,7 @@ def user_dashboard(request):
     }
     
     return render(request, 'store_analysis/user_dashboard.html', context)
+
 
 @login_required
 def download_detailed_pdf(request, pk):
@@ -1516,7 +1518,7 @@ def download_detailed_pdf(request, pk):
         # آماده‌سازی response
         buffer.seek(0)
         response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="detailed_implementation_plan_{analysis.store_name}_{analysis.id}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_برنامه_اجرایی_تفصیلی_{analysis.id}.pdf"'
         
         return response
         
@@ -2212,7 +2214,7 @@ def submit_analysis(request):
         # else:
             # print(f"Form errors: {form.errors}")
             # return render(request, 'store_analysis/store_analysis_form.html', {'form': None})
-    return redirect('store_analysis:store_analysis')
+    return render(request, 'store_analysis/forms.html')
 
 
 @login_required

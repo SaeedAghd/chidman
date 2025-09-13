@@ -528,13 +528,19 @@
                         <i class="fas fa-arrow-left"></i>بازگشت به لیست
                     </a>
                     
-                    <a href="{% url 'store_analysis:store_analysis_form' %}" class="btn btn-primary">
+                    <a href="{% url 'store_analysis:forms' %}" class="btn btn-primary">
                         <i class="fas fa-plus"></i>تحلیل جدید
                     </a>
                     
                     {% if analysis.preliminary_analysis or analysis.results %}
                     <a href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}" class="btn btn-warning">
-                        <i class="fas fa-download"></i>دانلود گزارش
+                        <i class="fas fa-certificate"></i>دانلود گواهینامه AI
+                    </a>
+                    {% endif %}
+                    
+                    {% if analysis.preliminary_analysis or analysis.results %}
+                    <a href="{% url 'store_analysis:download_detailed_pdf' pk=analysis.pk %}" class="btn btn-success" onclick="showPdfLoading()">
+                        <i class="fas fa-file-pdf"></i>دانلود گزارش PDF
                     </a>
                     {% endif %}
                     
@@ -557,6 +563,68 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Show PDF loading message
+    function showPdfLoading() {
+        const loadingModal = document.createElement('div');
+        loadingModal.id = 'pdf-loading-modal';
+        loadingModal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
+        `;
+        
+        loadingModal.innerHTML = `
+            <div style="
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                text-align: center;
+                max-width: 400px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            ">
+                <div style="
+                    width: 50px;
+                    height: 50px;
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #007bff;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 1rem;
+                "></div>
+                <h3 style="color: #333; margin-bottom: 1rem;">در حال آماده‌سازی گزارش PDF</h3>
+                <p style="color: #666; margin-bottom: 1rem;">لطفاً صبر کنید، گزارش در حال تولید است...</p>
+                <p style="color: #999; font-size: 0.9rem;">این فرآیند ممکن است 30-60 ثانیه طول بکشد</p>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        
+        document.body.appendChild(loadingModal);
+        
+        // Remove modal after 60 seconds as fallback
+        setTimeout(() => {
+            const modal = document.getElementById('pdf-loading-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }, 60000);
+    }
+
+    // Make showPdfLoading globally available
+    window.showPdfLoading = showPdfLoading;
+
     // Update progress based on analysis status
     function updateProgress() {
         fetch(`{% url 'store_analysis:get_analysis_status' pk=analysis.pk %}`)
