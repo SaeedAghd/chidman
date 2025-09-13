@@ -310,15 +310,15 @@
         <div class="session-status">
             <div class="status-item">
                 سوالات رایگان: {{ session_status.free_questions_remaining }}/3
-            </div>
+        </div>
             <div class="status-item">
                 وضعیت: {% if session_status.is_paid %}پولی (24 ساعت){% else %}رایگان{% endif %}
-            </div>
+                </div>
             <div class="status-item">
                 انقضا: {{ session.expires_at|date:"Y/m/d H:i" }}
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
     <div class="analysis-context">
         <h3 class="context-title">📊 اطلاعات تحلیل در دسترس مشاور:</h3>
@@ -341,22 +341,22 @@
             <span class="context-label">درصد اطلاعات:</span> {{ analysis.results.data_completeness.percentage }}%
         </div>
         {% endif %}
-    </div>
+                    </div>
 
     <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
             {% if questions %}
                 {% for question in questions %}
                     <div class="message user">
-                        <div class="message-content">
+                    <div class="message-content">
                             {{ question.question }}
-                        </div>
+                    </div>
                         <div class="message-meta">
                             {{ question.created_at|date:"H:i" }} - 
                             {% if question.is_free %}رایگان{% else %}پولی{% endif %}
-                        </div>
-                    </div>
-                    
+                </div>
+            </div>
+
                     {% if question.answer %}
                         <div class="message ai">
                             <div class="message-content">
@@ -364,8 +364,8 @@
                             </div>
                             <div class="message-meta">
                                 پاسخ در {{ question.response_time }}
-                            </div>
-                        </div>
+                </div>
+            </div>
                     {% endif %}
                 {% endfor %}
             {% else %}
@@ -379,7 +379,7 @@
                         <br>• برای سوالات بیشتر باید 200,000 تومان پرداخت کنید
                         <br>• جلسه پولی 24 ساعت اعتبار دارد
                         <br>• من به تمام اطلاعات تحلیل شما دسترسی دارم
-                    </div>
+            </div>
                 </div>
             {% endif %}
         </div>
@@ -411,9 +411,9 @@
         <div class="loading" id="loading">
             <span>در حال پردازش سوال...</span>
             <div class="spinner"></div>
+            </div>
         </div>
     </div>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (questionForm) {
         questionForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        e.preventDefault();
             
             const question = questionInput.value.trim();
             if (!question) {

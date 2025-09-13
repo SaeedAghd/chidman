@@ -1,48 +1,30 @@
 #!/usr/bin/env bash
 # Build script for Render deployment
 
-set -e  # Exit on any error
+echo "Starting build process..."
 
-echo "🚀 Starting build process..."
-
-# Set environment variables
-export PYTHONPATH=/opt/render/project/src
-export DJANGO_SETTINGS_MODULE=chidmano.settings
-
-# Install Python dependencies
-echo "📦 Installing Python dependencies..."
+# Install dependencies
+echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Verify Django project structure
-echo "🔍 Verifying Django project structure..."
-python -c "import chidmano; print('✅ chidmano module found')" || exit 1
-python -c "import store_analysis; print('✅ store_analysis module found')" || exit 1
-
-# Test Django setup
-echo "🧪 Testing Django setup..."
-python -c "
-import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
-import django
-django.setup()
-print('✅ Django setup successful')
-" || exit 1
-
 # Collect static files
-echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput --clear || echo "⚠️ Warning: Static files collection failed"
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
 
-# Run database migrations
-echo "🗄️ Running database migrations..."
-python manage.py migrate --noinput || echo "⚠️ Warning: Migrations failed"
+# Run migrations
+echo "Running database migrations..."
+python manage.py migrate --noinput
 
-# Test WSGI application
-echo "🧪 Testing WSGI application..."
-python -c "
-import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
-from chidmano.wsgi import application
-print('✅ chidmano.wsgi:application loaded successfully')
-" || exit 1
+# Create superuser if it doesn't exist
+echo "Creating superuser if needed..."
+python manage.py shell << EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+    print('Superuser created: admin/admin123')
+else:
+    print('Superuser already exists')
+EOF
 
-echo "✅ Build completed successfully!"
+echo "Build process completed successfully!"

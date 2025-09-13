@@ -9,20 +9,11 @@ from store_analysis.views import store_analysis_form
 from django.http import HttpResponse
 
 urlpatterns = [
-    # صفحه اصلی - مستقیماً به فرم تحلیل فروشگاه
+    # صفحه اصلی حرفه‌ای
     path('', views.simple_home, name='home'),
-    
-    # صفحه تست
-    path('test/', views.test_page, name='test_page'),
-    
-    # صفحه وضعیت سیستم
-    path('health/', views.health_check, name='health_check'),
     
     # مسیرهای اصلی store_analysis
     path('store/', include('store_analysis.urls', namespace='store_analysis')),
-    
-    # مسیرهای ادمین
-    path('admin/', admin.site.urls),
     
     # مسیرهای احراز هویت
     path('accounts/signup/', views.signup_view, name='signup'),
@@ -39,4 +30,11 @@ urlpatterns = [
     
     # مسیرهای اضافی
     path('features/', views.features_view, name='features'),
+    
+    # مسیرهای ادمین
+    path('admin/', admin.site.urls),
+    
+    # مسیرهای سیستم
+    path('health/', views.health_check, name='health_check'),
+    path('test/', views.test_page, name='test_page'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

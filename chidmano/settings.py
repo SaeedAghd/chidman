@@ -66,7 +66,10 @@ ROOT_URLCONF = 'chidmano.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'store_analysis', 'templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'store_analysis', 'templates'),
+            os.path.join(BASE_DIR, 'chidmano', 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -93,19 +96,28 @@ DATABASES = {
     }
 }
 
-# Use PostgreSQL in production
-if not DEBUG:
-    # Manual database configuration to avoid timeout parameter issues
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Production database configuration
+    DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+elif not DEBUG:
+    # Fallback production database configuration
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chidman',
-        'USER': 'chidman_user',
-        'PASSWORD': 'm29sVvjb7fCXMNei6MzdaazBXibIaV2f',
-        'HOST': 'dpg-d329b5jipnbc73d12130-a.singapore-postgres.render.com',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME', 'chidman'),
+        'USER': os.getenv('DB_USER', 'chidman_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'm29sVvjb7fCXMNei6MzdaazBXibIaV2f'),
+        'HOST': os.getenv('DB_HOST', 'dpg-d329b5jipnbc73d12130-a.singapore-postgres.render.com'),
+        'PORT': os.getenv('DB_PORT', '5432'),
         'OPTIONS': {
             'sslmode': 'require',
         },
+        'CONN_MAX_AGE': 600,
     }
 else:
     # Use SQLite for local development
@@ -159,6 +171,8 @@ if not DEBUG:
         import whitenoise
         MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
         STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        WHITENOISE_USE_FINDERS = True
+        WHITENOISE_AUTOREFRESH = True
     except ImportError:
         # Fallback if whitenoise is not available
         pass
@@ -288,7 +302,7 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
@@ -301,8 +315,13 @@ LOGGING = {
         },
         'store_analysis': {
             'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'WARNING',
+            'propagate': False,
         },
     },
 }
@@ -367,8 +386,8 @@ SECURITY_SETTINGS = {
 }
 
 # Custom exception handlers
-# HANDLER404 = 'store_analysis.handlers.security_exception_handler'
-# HANDLER500 = 'store_analysis.handlers.security_exception_handler'
+HANDLER404 = 'chidmano.error_handlers.custom_404_handler'
+HANDLER500 = 'chidmano.error_handlers.custom_500_handler'
 
 # Django REST Framework settings
 REST_FRAMEWORK = {
