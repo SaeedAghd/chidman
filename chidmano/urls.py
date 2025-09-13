@@ -39,7 +39,4 @@ urlpatterns = [
     
     # مسیرهای اضافی
     path('features/', views.features_view, name='features'),
-    
-    # مسیرهای store_analysis بدون namespace
-    path('store-analysis/', include('store_analysis.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

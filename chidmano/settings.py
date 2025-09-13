@@ -95,16 +95,14 @@ DATABASES = {
 
 # Use PostgreSQL in production
 if not DEBUG:
-    # Parse DATABASE_URL manually to avoid timeout parameter issues
-    import dj_database_url
-    db_config = dj_database_url.parse(os.getenv('DATABASE_URL'))
+    # Manual database configuration to avoid timeout parameter issues
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': db_config['NAME'],
-        'USER': db_config['USER'],
-        'PASSWORD': db_config['PASSWORD'],
-        'HOST': db_config['HOST'],
-        'PORT': db_config['PORT'],
+        'NAME': 'chidman',
+        'USER': 'chidman_user',
+        'PASSWORD': 'm29sVvjb7fCXMNei6MzdaazBXibIaV2f',
+        'HOST': 'dpg-d329b5jipnbc73d12130-a.singapore-postgres.render.com',
+        'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require',
         },
