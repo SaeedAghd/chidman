@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 import json
 import os
 import logging
@@ -13,19 +14,24 @@ logger = logging.getLogger(__name__)
 
 def signup_view(request):
     """View for user registration"""
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'حساب کاربری شما با موفقیت ایجاد شد!')
-            return redirect('store_analysis:index')
+    try:
+        if request.method == 'POST':
+            form = UserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save()
+                login(request, user)
+                messages.success(request, 'حساب کاربری شما با موفقیت ایجاد شد!')
+                return redirect('store_analysis:index')
+            else:
+                messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
         else:
-            messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
-    else:
-        form = UserCreationForm()
-    
-    return render(request, 'store_analysis/signup.html', {'form': form})
+            form = UserCreationForm()
+        
+        return render(request, 'store_analysis/signup.html', {'form': form})
+    except Exception as e:
+        logger.error(f"Error in signup_view: {e}")
+        messages.error(request, 'خطا در سیستم. لطفاً دوباره تلاش کنید.')
+        return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
 
 def logout_view(request):
     """Custom logout view that handles GET requests"""
@@ -38,8 +44,32 @@ def features_view(request):
     return render(request, 'store_analysis/features.html')
 
 def health_check(request):
-    """Health check endpoint"""
-    return JsonResponse({'status': 'healthy', 'message': 'Chidemano is running'})
+    """Health check endpoint for Render deployment"""
+    try:
+        from django.db import connection
+        from django.core.cache import cache
+        
+        # Test database connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        
+        # Test cache
+        cache.set('health_check', 'ok', 30)
+        cache_status = cache.get('health_check') == 'ok'
+        
+        return JsonResponse({
+            'status': 'healthy',
+            'message': 'Chidemano is running',
+            'database': 'connected',
+            'cache': 'working' if cache_status else 'error',
+            'timestamp': str(timezone.now())
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'unhealthy',
+            'message': f'Error: {str(e)}',
+            'timestamp': str(timezone.now())
+        }, status=500)
 
 def dashboard_view(request):
     """Dashboard view"""

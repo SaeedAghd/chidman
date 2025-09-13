@@ -2,7 +2,12 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; frame-src 'none';">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="چیدمانو - سیستم تحلیل هوشمند فروشگاه با هوش مصنوعی">
+    <meta name="keywords" content="تحلیل فروشگاه, چیدمان, هوش مصنوعی, بهینه‌سازی">
+    <meta name="author" content="چیدمانو">
     <title>{% block title %}تحلیل هوشمند فروشگاه{% endblock %}</title>
     
     <!-- Vazirmatn Font -->
@@ -48,6 +53,147 @@
             background-color: #2980b9;
             border-color: #2980b9;
         }
+        
+        /* Combined Logo Styling - Artistic Design */
+        .combined-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 5px 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .combined-logo:hover {
+            transform: translateY(-1px) scale(1.02);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .logo-img {
+            height: 35px;
+            width: auto;
+            max-width: 35px;
+            object-fit: contain;
+            transition: all 0.4s ease;
+            filter: brightness(1.1) contrast(1.1) drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        .combined-logo:hover .logo-img {
+            transform: rotate(2deg) scale(1.06);
+            filter: brightness(1.2) contrast(1.2) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+        }
+        
+        /* Rainbow Text - 7 Colors with Elegance */
+        .rainbow-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+            background: linear-gradient(
+                135deg,
+                #ff0000 0%,      /* قرمز */
+                #ff7f00 16.66%,  /* نارنجی */
+                #ffff00 33.33%,  /* زرد */
+                #00ff00 50%,     /* سبز */
+                #0000ff 66.66%,  /* آبی */
+                #4b0082 83.33%,  /* نیلی */
+                #9400d3 100%     /* بنفش */
+            );
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow-flow 4s ease-in-out infinite;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.2px;
+            position: relative;
+        }
+        
+        .rainbow-text::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 0, 0, 0.06) 0%,
+                rgba(255, 127, 0, 0.06) 16.66%,
+                rgba(255, 255, 0, 0.06) 33.33%,
+                rgba(0, 255, 0, 0.06) 50%,
+                rgba(0, 0, 255, 0.06) 66.66%,
+                rgba(75, 0, 130, 0.06) 83.33%,
+                rgba(148, 0, 211, 0.06) 100%
+            );
+            border-radius: 5px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .combined-logo:hover .rainbow-text::before {
+            opacity: 1;
+        }
+        
+        .combined-logo:hover .rainbow-text {
+            animation-duration: 2s;
+            transform: scale(1.05);
+        }
+        
+        @keyframes rainbow-flow {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            25% {
+                background-position: 100% 50%;
+            }
+            50% {
+                background-position: 100% 100%;
+            }
+            75% {
+                background-position: 0% 100%;
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .combined-logo {
+                gap: 6px;
+                padding: 4px 6px;
+            }
+            
+            .logo-img {
+                height: 30px;
+                max-width: 30px;
+            }
+            
+            .rainbow-text {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .combined-logo {
+                gap: 5px;
+                padding: 3px 5px;
+            }
+            
+            .logo-img {
+                height: 28px;
+                max-width: 28px;
+            }
+            
+            .rainbow-text {
+                font-size: 1rem;
+            }
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -56,9 +202,9 @@
     <!-- Professional Header -->
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-store me-2"></i>
-                چیدمانو
+            <a class="navbar-brand" href="{% url 'home' %}" class="combined-logo">
+                <img src="{% static 'images/logo.png' %}" alt="چیدمانو" class="logo-img">
+                <span class="rainbow-text">چیدمانو</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

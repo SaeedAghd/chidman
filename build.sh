@@ -3,13 +3,18 @@
 
 echo "Starting build process..."
 
+# Set environment variables
+export PYTHONPATH="${PYTHONPATH}:/opt/render/project/src"
+export DJANGO_SETTINGS_MODULE="chidmano.settings"
+
 # Install dependencies
 echo "Installing Python dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
 # Collect static files
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear
 
 # Run migrations
 echo "Running database migrations..."
@@ -26,5 +31,9 @@ if not User.objects.filter(username='admin').exists():
 else:
     print('Superuser already exists')
 EOF
+
+# Test the application
+echo "Testing application..."
+python manage.py check --deploy
 
 echo "Build process completed successfully!"
