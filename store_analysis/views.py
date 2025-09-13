@@ -1940,8 +1940,14 @@ def payment_page(request, order_id):
         try:
             order = Order.objects.get(order_id=order_id, user=request.user)
         except Order.DoesNotExist:
-            messages.error(request, f'سفارش با شناسه {order_id} یافت نشد یا شما دسترسی ندارید.')
-            return redirect('store_analysis:user_dashboard')
+            # اگر Order یافت نشد، آخرین Order کاربر را پیدا کن
+            latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
+            if latest_order:
+                messages.warning(request, f'سفارش {order_id} یافت نشد. آخرین سفارش شما ({latest_order.order_id}) نمایش داده می‌شود.')
+                order = latest_order
+            else:
+                messages.error(request, f'سفارش با شناسه {order_id} یافت نشد یا شما دسترسی ندارید.')
+                return redirect('store_analysis:user_dashboard')
         
         # بررسی وجود StoreAnalysis
         store_analysis = StoreAnalysis.objects.filter(order=order).first()
@@ -3607,6 +3613,7 @@ def generate_comprehensive_implementation_plan(analysis_data):
     
     return implementation_plan
 
+@login_required
 def forms_submit(request):
     """پردازش فرم تک صفحه‌ای تحلیل فروشگاه"""
     if request.method == 'POST':
@@ -3829,9 +3836,14 @@ def forms_submit(request):
                 }
             )
             
+            # بررسی authentication
+            if not request.user.is_authenticated:
+                messages.error(request, 'لطفاً ابتدا وارد حساب کاربری خود شوید.')
+                return redirect('store_analysis:login')
+            
             # ایجاد سفارش
             order = Order.objects.create(
-                user=request.user if request.user.is_authenticated else None,
+                user=request.user,
                 plan=default_plan,
                 original_amount=default_plan.original_price,
                 discount_amount=default_plan.original_price - default_plan.price,
