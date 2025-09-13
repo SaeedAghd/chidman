@@ -440,7 +440,7 @@
                 </p>
             </div>
             <div class="header-actions">
-                <a href="{% url 'store_analysis:store_analysis_form' %}" class="cta-button">
+                <a href="{% url 'store_analysis:forms' %}" class="cta-button">
                     <span>🚀</span>
                     <span>تحلیل جدید</span>
                 </a>
@@ -557,33 +557,6 @@
 
         <!-- Sidebar -->
         <div class="sidebar">
-            <!-- تحلیل کامل و تفصیلی -->
-            {% if detailed_analysis %}
-            <div class="card fade-in-up" style="margin-bottom: 2rem;">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <span>📊</span>
-                        تحلیل کامل و تفصیلی
-                    </h3>
-                    {% if recent_analyses %}
-                    <div style="margin-top: 1rem;">
-                        <a href="{% url 'store_analysis:download_detailed_pdf' recent_analyses.first.id %}" 
-                           class="cta-button" 
-                           target="_blank"
-                           style="background: var(--apple-green); padding: 0.5rem 1rem; font-size: 0.875rem; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.5rem;">
-                            <span>📄</span>
-                            دانلود PDF تفصیلی
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                    <div style="white-space: pre-line; line-height: 1.6; color: var(--apple-gray-700);">
-                        {{ detailed_analysis }}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
 
             <!-- Personal Insights -->
             <div class="insights-section fade-in-up">
