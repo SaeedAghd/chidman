@@ -14,7 +14,6 @@ urlpatterns = [
     path('ai-guide/', views.ai_analysis_guide, name='ai_analysis_guide'),
     
     # Analysis URLs
-    path('form/', views.store_analysis_form, name='store_analysis_form'),
     path('store-analysis/', views.store_analysis_form, name='store_analysis'),
     path('professional-form/', views.store_analysis_form, name='professional_form'),
     path('submit/', views.submit_analysis, name='submit_analysis'),

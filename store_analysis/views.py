@@ -2468,7 +2468,7 @@ def store_analysis_form(request):
         # form = ProfessionalStoreAnalysisForm()
         pass
     
-    return render(request, 'store_analysis/user_dashboard.html', {'form': None})
+    return redirect('store_analysis:forms')
 
 
 @login_required
@@ -3915,8 +3915,8 @@ def payment_success(request, order_id):
             store_analysis.save()
             messages.warning(request, 'خطا در تحلیل AI. تحلیل دستی انجام خواهد شد.')
         
-        # هدایت به صفحه نتایج
-        return redirect('store_analysis:analysis_detail', analysis_id=store_analysis.id)
+        # هدایت به داشبورد
+        return redirect('store_analysis:user_dashboard')
         
     except Exception as e:
         logger.error(f"Error in payment success: {e}")
