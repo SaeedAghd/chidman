@@ -48,7 +48,7 @@
         }
         
         .navbar-brand {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
             font-weight: 700;
             font-size: 1.5rem;
             color: #1a1a1a;
@@ -117,13 +117,15 @@
         }
         
         .hero h1 {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
             font-size: 3.5rem;
-            font-weight: 800;
+            font-weight: 700;
             margin-bottom: 1.5rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             animation: slideInUp 1s ease-out;
             letter-spacing: -0.02em;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .hero p {
@@ -238,7 +240,7 @@
         }
         
         .feature-card h3 {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 15px;
@@ -372,6 +374,7 @@
             .hero h1 {
                 font-size: 2.5rem;
                 line-height: 1.2;
+                font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
             }
             
             .hero p {
@@ -402,6 +405,7 @@
         @media (max-width: 576px) {
             .hero h1 {
                 font-size: 2rem;
+                font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
             }
             
             .hero p {
@@ -477,8 +481,8 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-chart-line me-2"></i>
-                چیدمان
+                <i class="fas fa-store me-2"></i>
+                چیدمانو
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -486,7 +490,8 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <!-- Right-aligned main menu -->
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">خانه</a>
                     </li>
@@ -501,7 +506,8 @@
                     </li>
                 </ul>
                 
-                <div class="d-flex">
+                <!-- Left-aligned dashboard and login buttons -->
+                <div class="d-flex me-auto">
                     <a href="{% url 'store_analysis:store_analysis_form' %}" class="btn btn-nav me-2">
                         <i class="fas fa-rocket me-1"></i>
                         شروع تحلیل
