@@ -95,11 +95,20 @@ DATABASES = {
 
 # Use PostgreSQL in production
 if not DEBUG:
-    DATABASES['default'] = dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'chidman',
+        'USER': 'chidman_user',
+        'PASSWORD': 'm29sVvjb7fCXMNei6MzdaazBXibIaV2f',
+        'HOST': 'dpg-d329b5jipnbc73d12130-a.singapore-postgres.render.com',
+        'PORT': '5432',
+    }
+else:
+    # Use SQLite for local development
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
