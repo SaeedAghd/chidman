@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'store_analysis/base.html' %}
 {% load static %}
 
 {% block title %}جزئیات تحلیل - {{ analysis.store_name|default:"تحلیل فروشگاه" }}{% endblock %}
@@ -363,24 +363,62 @@
                     </h3>
                     <div class="progress-container">
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: {{ analysis.get_progress }}%;"></div>
+                            <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
                         </div>
-                        <div class="progress-text">{{ analysis.get_progress }}% تکمیل شده</div>
+                        <div class="progress-text" id="progress-text">در حال بررسی...</div>
                         </div>
                     </div>
                 </div>
             </div>
 
         <!-- Preliminary Analysis -->
-        {% if analysis.has_preliminary %}
+        {% if analysis.preliminary_analysis %}
         <div class="detail-card">
             <div class="detail-body">
                 <div class="preliminary-analysis">
                     <h3>
                         <i class="fas fa-lightbulb"></i>
-                        پیش‌تحلیل اولیه
+                        تحلیل اولیه
                     </h3>
                     <div class="preliminary-content">{{ analysis.preliminary_analysis }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Analysis Results -->
+        {% if analysis.results %}
+        <div class="detail-card">
+            <div class="detail-body">
+                <div class="preliminary-analysis" style="background: linear-gradient(135deg, #e6f3ff 0%, #b3d9ff 100%); border: 1px solid #4a90e2;">
+                    <h3 style="color: #1e40af;">
+                        <i class="fas fa-chart-line"></i>
+                        نتایج تحلیل کامل
+                    </h3>
+                    <div class="preliminary-content">
+                        {% if analysis.results.executive_summary %}
+                            <h4 style="color: #1e40af; margin-bottom: 1rem;">خلاصه اجرایی:</h4>
+                            <p style="margin-bottom: 1.5rem;">{{ analysis.results.executive_summary }}</p>
+                        {% endif %}
+                        
+                        {% if analysis.results.recommendations %}
+                            <h4 style="color: #1e40af; margin-bottom: 1rem;">توصیه‌ها:</h4>
+                            <ul style="margin-bottom: 1.5rem;">
+                                {% for recommendation in analysis.results.recommendations %}
+                                    <li style="margin-bottom: 0.5rem;">{{ recommendation }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        
+                        {% if analysis.results.improvement_areas %}
+                            <h4 style="color: #1e40af; margin-bottom: 1rem;">نقاط بهبود:</h4>
+                            <ul style="margin-bottom: 1.5rem;">
+                                {% for area in analysis.results.improvement_areas %}
+                                    <li style="margin-bottom: 0.5rem;">{{ area }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -490,11 +528,11 @@
                         <i class="fas fa-arrow-left"></i>بازگشت به لیست
                     </a>
                     
-                    <a href="{% url 'store_analysis:analysis_update' pk=analysis.pk %}" class="btn btn-primary">
-                        <i class="fas fa-edit"></i>ویرایش
+                    <a href="{% url 'store_analysis:store_analysis_form' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>تحلیل جدید
                     </a>
                     
-                    {% if analysis.has_preliminary %}
+                    {% if analysis.preliminary_analysis or analysis.results %}
                     <a href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}" class="btn btn-warning">
                         <i class="fas fa-download"></i>دانلود گزارش
                     </a>
@@ -506,9 +544,9 @@
                     </a>
                     {% endif %}
                     
-                    <a href="{% url 'store_analysis:analysis_delete' pk=analysis.pk %}" class="btn btn-danger">
-                        <i class="fas fa-trash"></i>حذف
-                </a>
+                    <a href="{% url 'store_analysis:user_dashboard' %}" class="btn btn-info">
+                        <i class="fas fa-dashboard"></i>داشبورد
+                    </a>
             </div>
         </div>
     </div>
@@ -519,18 +557,59 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-refresh for processing analyses
-    {% if analysis.status == 'processing' %}
-    setInterval(function() {
+    // Update progress based on analysis status
+    function updateProgress() {
         fetch(`{% url 'store_analysis:get_analysis_status' pk=analysis.pk %}`)
             .then(response => response.json())
             .then(data => {
-                if (data.status !== 'processing') {
-                    location.reload();
+                const progressFill = document.getElementById('progress-fill');
+                const progressText = document.getElementById('progress-text');
+                
+                if (data.status && data.status.progress !== undefined) {
+                    const progress = data.status.progress;
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = progress + '% تکمیل شده - ' + data.status.message;
+                    
+                    // Auto-reload if analysis is completed
+                    if (progress === 100 && data.status.message.includes('تکمیل')) {
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                } else {
+                    // Fallback based on analysis status
+                    {% if analysis.status == 'completed' or analysis.status == 'preliminary_completed' %}
+                    progressFill.style.width = '100%';
+                    progressText.textContent = '100% تکمیل شده';
+                    {% elif analysis.status == 'processing' %}
+                    progressFill.style.width = '50%';
+                    progressText.textContent = '50% در حال پردازش';
+                    {% else %}
+                    progressFill.style.width = '0%';
+                    progressText.textContent = '0% در انتظار';
+                    {% endif %}
                 }
             })
-            .catch(error => console.error('Error:', error));
-    }, 5000); // Check every 5 seconds
+            .catch(error => {
+                console.error('Error fetching progress:', error);
+                // Fallback
+                {% if analysis.status == 'completed' or analysis.status == 'preliminary_completed' %}
+                document.getElementById('progress-fill').style.width = '100%';
+                document.getElementById('progress-text').textContent = '100% تکمیل شده';
+                {% elif analysis.status == 'processing' %}
+                document.getElementById('progress-fill').style.width = '50%';
+                document.getElementById('progress-text').textContent = '50% در حال پردازش';
+                {% else %}
+                document.getElementById('progress-fill').style.width = '0%';
+                document.getElementById('progress-text').textContent = '0% در انتظار';
+                {% endif %}
+            });
+    }
+    
+    // Initial progress update
+    updateProgress();
+    
+    // Auto-refresh for processing analyses
+    {% if analysis.status == 'processing' %}
+    setInterval(updateProgress, 3000); // Check every 3 seconds
     {% endif %}
     
     // Smooth scroll to sections

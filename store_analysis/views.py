@@ -535,7 +535,7 @@ def download_analysis_report(request, pk):
             html_content = generate_management_report(analysis, has_ai_results)
             
             response = HttpResponse(content_type='text/html; charset=utf-8')
-            response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_professional_certificate.html"'
+            response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_analysis_report.html"'
             response.write(html_content.encode('utf-8'))
             return response
         
@@ -2318,6 +2318,30 @@ def get_analysis_status(request, pk):
     analyzer = RealTimeAnalyzer()
     status = analyzer.get_analysis_status(pk)
     results = analyzer.get_analysis_results(pk)
+    
+    # اگر status در cache نیست، از مدل استفاده کن
+    if not status:
+        if analysis.status == 'completed' or analysis.status == 'preliminary_completed':
+            status = {
+                'analysis_id': pk,
+                'message': 'تحلیل تکمیل شده',
+                'progress': 100,
+                'timestamp': analysis.updated_at.isoformat()
+            }
+        elif analysis.status == 'processing':
+            status = {
+                'analysis_id': pk,
+                'message': 'در حال پردازش',
+                'progress': 50,
+                'timestamp': analysis.updated_at.isoformat()
+            }
+        else:
+            status = {
+                'analysis_id': pk,
+                'message': 'در انتظار',
+                'progress': 0,
+                'timestamp': analysis.created_at.isoformat()
+            }
     
     return JsonResponse({
         'status': status,
