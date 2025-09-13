@@ -147,6 +147,22 @@
             transition: all 0.3s ease;
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
+        }
+        
+        .btn-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
             font-weight: 500;
         }
         
@@ -254,87 +270,61 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'store_analysis:index' %}">
+            <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="fas fa-store me-2"></i>چیدمانو
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <!-- Right-aligned main menu -->
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" href="{% url 'store_analysis:index' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
                             <i class="fas fa-home me-1"></i>خانه
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'features' %}active{% endif %}" href="{% url 'store_analysis:features' %}">
-                            <i class="fas fa-star me-1"></i>ویژگی‌ها
+                        <a class="nav-link {% if request.resolver_match.url_name == 'store_analysis_form' %}active{% endif %}" href="{% url 'store_analysis:store_analysis_form' %}">
+                            <i class="fas fa-chart-line me-1"></i>تحلیل فروشگاه
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'ai_analysis_guide' %}active{% endif %}" href="{% url 'store_analysis:ai_analysis_guide' %}">
+                            <i class="fas fa-robot me-1"></i>راهنمای AI
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'education_library' %}active{% endif %}" href="{% url 'store_analysis:education_library' %}">
-                            <i class="fas fa-book-open me-1"></i>آموزش چیدمان
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'store_analysis' %}active{% endif %}" href="{% url 'store_analysis:store_analysis' %}">
-                            <i class="fas fa-chart-line me-1"></i>درخواست تحلیل
+                            <i class="fas fa-graduation-cap me-1"></i>آموزش
                         </a>
                     </li>
                 </ul>
-                <div class="d-flex">
+                <!-- Left-aligned dashboard and login buttons -->
+                <div class="d-flex me-auto">
+                    <a href="{% url 'store_analysis:store_analysis_form' %}" class="btn btn-nav me-2">
+                        <i class="fas fa-rocket me-1"></i>
+                        شروع تحلیل
+                    </a>
                     {% if user.is_authenticated %}
-                        <div class="dropdown me-2">
-                            <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>{{ user.get_full_name|default:user.username }}
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'store_analysis:user_dashboard' %}">
-                                    <i class="fas fa-chart-line me-2"></i>پنل حرفه‌ای
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'store_analysis:analysis_list' %}">
-                                    <i class="fas fa-list me-2"></i>لیست تحلیل‌ها
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'store_analysis:store_comparison' %}">
-                                    <i class="fas fa-balance-scale me-2"></i>مقایسه فروشگاه‌ها
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'store_analysis:ai_consultant_list' %}">
-                                    <i class="fas fa-robot me-2"></i>مشاور AI
-                                </a></li>
-                                
-                                {% if user.is_staff %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">
-                                    <i class="fas fa-shield-alt me-2"></i>مدیریت سیستم
-                                </h6></li>
-                                <li><a class="dropdown-item" href="{% url 'store_analysis:admin_pricing_management' %}">
-                                    <i class="fas fa-dollar-sign me-2"></i>مدیریت قیمت‌ها
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'store_analysis:admin_discount_management' %}">
-                                    <i class="fas fa-percentage me-2"></i>مدیریت تخفیف‌ها
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'store_analysis:admin_dashboard' %}">
-                                    <i class="fas fa-cog me-2"></i>داشبورد ادمین
-                                </a></li>
-                                {% endif %}
-                                
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>خروج
-                                </a></li>
-                            </ul>
-                        </div>
-                        <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-primary me-2">
-                            <i class="fas fa-plus me-1"></i>تحلیل جدید
+                        <a href="{% url 'store_analysis:user_dashboard' %}" class="btn btn-outline-light me-2">
+                            <i class="fas fa-tachometer-alt me-1"></i>
+                            داشبورد
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt me-1"></i>
+                            خروج
                         </a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-light">
-                            <i class="fas fa-sign-in-alt me-1"></i>ورود
+                        <a href="{% url 'login' %}" class="btn btn-outline-light me-2">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            ورود
+                        </a>
+                        <a href="{% url 'signup' %}" class="btn btn-outline-light">
+                            <i class="fas fa-user-plus me-1"></i>
+                            ثبت نام
                         </a>
                     {% endif %}
-                    
-
                 </div>
             </div>
         </div>
