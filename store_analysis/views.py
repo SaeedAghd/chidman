@@ -2705,7 +2705,7 @@ def create_order(request, plan_id):
     form_data = request.session.get('store_analysis_data', {})
     if not form_data:
         messages.error(request, 'لطفاً ابتدا فرم تحلیل فروشگاه را تکمیل کنید.')
-        return redirect('store_analysis:store_analysis_form')
+        return redirect('store_analysis:forms')
     
     # ایجاد سفارش
     order = Order.objects.create(

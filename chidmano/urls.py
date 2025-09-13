@@ -5,7 +5,6 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.conf.urls.i18n import i18n_patterns
 from . import views
-from store_analysis.views import store_analysis_form
 from django.http import HttpResponse
 
 urlpatterns = [

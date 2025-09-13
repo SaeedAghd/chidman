@@ -285,7 +285,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'store_analysis_form' %}active{% endif %}" href="{% url 'store_analysis:store_analysis_form' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'forms' %}active{% endif %}" href="{% url 'store_analysis:forms' %}">
                             <i class="fas fa-chart-line me-1"></i>تحلیل فروشگاه
                         </a>
                     </li>
@@ -302,7 +302,7 @@
                 </ul>
                 <!-- Left-aligned dashboard and login buttons -->
                 <div class="d-flex me-auto">
-                    <a href="{% url 'store_analysis:store_analysis_form' %}" class="btn btn-nav me-2">
+                    <a href="{% url 'store_analysis:forms' %}" class="btn btn-nav me-2">
                         <i class="fas fa-rocket me-1"></i>
                         شروع تحلیل
                     </a>

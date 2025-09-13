@@ -136,4 +136,4 @@ def safe_home(request):
 
 def store_analysis_page(request):
     """Store analysis page - redirect to main store analysis form"""
-    return redirect('store_analysis:store_analysis_form') 
+    return redirect('store_analysis:forms') 
