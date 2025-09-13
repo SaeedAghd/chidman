@@ -1158,7 +1158,7 @@ def user_dashboard(request):
     
     # آمار تحلیل‌ها
     total_analyses = StoreAnalysis.objects.filter(user=request.user).count()
-    completed_analyses = StoreAnalysis.objects.filter(user=request.user, status='completed').count()
+    completed_analyses = StoreAnalysis.objects.filter(user=request.user, status__in=['completed', 'preliminary_completed']).count()
     pending_analyses = StoreAnalysis.objects.filter(user=request.user, status='pending').count()
     processing_analyses = StoreAnalysis.objects.filter(user=request.user, status='processing').count()
     

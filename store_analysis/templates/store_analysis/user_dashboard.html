@@ -55,8 +55,15 @@
     .welcome-section {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 1rem;
         margin-bottom: 1.5rem;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 
     .user-avatar {
@@ -181,6 +188,34 @@
         transform: translateY(-2px);
     }
 
+    .analysis-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .view-details-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--apple-blue);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .view-details-btn:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+
     .analysis-info h4 {
         font-weight: 600;
         color: var(--apple-gray-900);
@@ -204,6 +239,11 @@
 
     .status-completed {
         background: var(--apple-green);
+        color: white;
+    }
+
+    .status-preliminary_completed {
+        background: var(--apple-blue);
         color: white;
     }
 
@@ -398,7 +438,13 @@
                 <p style="font-size: 0.9rem; color: var(--apple-gray-500); margin-top: 0.5rem;">
                     📅 امروز: {{ persian_date }}
                 </p>
-        </div>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'store_analysis:store_analysis_form' %}" class="cta-button">
+                    <span>🚀</span>
+                    <span>تحلیل جدید</span>
+                </a>
+            </div>
     </div>
 
         <div class="quick-stats">
@@ -440,20 +486,29 @@
                                 <div class="analysis-info">
                                     <h4>{{ analysis.store_name|default:"فروشگاه بدون نام" }}</h4>
                                     <p>{{ analysis.created_at|date:"j F Y" }} • {{ analysis.get_store_type_display|default:"نوع نامشخص" }}</p>
+                                </div>
+                                <div class="analysis-actions">
+                                    <div class="analysis-status status-{{ analysis.status }}">
+                                        {% if analysis.status == 'completed' %}
+                                            <span>✅</span>
+                                            <span>تکمیل شده</span>
+                                        {% elif analysis.status == 'preliminary_completed' %}
+                                            <span>📋</span>
+                                            <span>پیش‌تحلیل تکمیل</span>
+                                        {% elif analysis.status == 'processing' %}
+                                            <span>⏳</span>
+                                            <span>در حال پردازش</span>
+                                        {% else %}
+                                            <span>⏸️</span>
+                                            <span>در انتظار</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'store_analysis:analysis_detail' analysis.pk %}" class="view-details-btn">
+                                        <span>👁️</span>
+                                        <span>مشاهده</span>
+                                    </a>
+                                </div>
                             </div>
-                                <div class="analysis-status status-{{ analysis.status }}">
-                                    {% if analysis.status == 'completed' %}
-                                        <span>✅</span>
-                                        <span>تکمیل شده</span>
-                                    {% elif analysis.status == 'processing' %}
-                                        <span>⏳</span>
-                                        <span>در حال پردازش</span>
-                                    {% else %}
-                                        <span>⏸️</span>
-                                        <span>در انتظار</span>
-                                    {% endif %}
-                        </div>
-                    </div>
                             {% endfor %}
                         </div>
                     {% else %}
