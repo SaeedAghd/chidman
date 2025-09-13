@@ -39,6 +39,29 @@ def logout_view(request):
     messages.success(request, 'شما با موفقیت از سیستم خارج شدید.')
     return redirect('store_analysis:index')
 
+def simple_login_view(request):
+    """Simple login view for testing"""
+    try:
+        if request.method == 'POST':
+            from django.contrib.auth import authenticate, login
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            
+            if username and password:
+                user = authenticate(request, username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    return redirect('store_analysis:user_dashboard')
+                else:
+                    messages.error(request, 'نام کاربری یا رمز عبور اشتباه است.')
+            else:
+                messages.error(request, 'لطفاً همه فیلدها را پر کنید.')
+        
+        return render(request, 'store_analysis/login.html')
+    except Exception as e:
+        logger.error(f"Error in simple_login_view: {e}")
+        return HttpResponse(f"Login error: {str(e)}", status=500)
+
 def features_view(request):
     """Features page view"""
     return render(request, 'store_analysis/features.html')

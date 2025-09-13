@@ -16,7 +16,7 @@ urlpatterns = [
     
     # مسیرهای احراز هویت
     path('accounts/signup/', views.signup_view, name='signup'),
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='store_analysis/login.html'), name='login'),
+    path('accounts/login/', views.simple_login_view, name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(
         template_name='store_analysis/password_change.html',

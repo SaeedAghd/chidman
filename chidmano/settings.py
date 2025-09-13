@@ -19,7 +19,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-development-key-change-in-production-2024')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+
+# Enable debug for Render if needed
+if os.getenv('RENDER'):
+    DEBUG = True  # Enable debug on Render for troubleshooting
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,chidman-store-analysis.onrender.com').split(',')
 
@@ -55,8 +59,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'store_analysis.middleware.SecurityMiddleware',
-    'store_analysis.middleware.SecurityHeadersMiddleware',
+    # 'store_analysis.middleware.SecurityMiddleware',  # موقتاً غیرفعال
+    # 'store_analysis.middleware.SecurityHeadersMiddleware',  # موقتاً غیرفعال
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
