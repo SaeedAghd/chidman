@@ -31,6 +31,123 @@ except ImportError:
     get_display = None
 from io import BytesIO
 from .utils import calculate_analysis_cost, generate_initial_ai_analysis, color_name_to_hex
+from decimal import Decimal
+
+def calculate_analysis_cost_for_object(analysis):
+    """محاسبه هزینه تحلیل برای StoreAnalysis object"""
+    try:
+        # هزینه پایه
+        base_cost = Decimal('100000')  # 100,000 تومان
+        
+        # دریافت اطلاعات فروشگاه
+        basic_info = StoreBasicInfo.objects.filter(analysis=analysis).first()
+        
+        if basic_info:
+            # هزینه بر اساس نوع فروشگاه
+            store_type = basic_info.store_type or ''
+            if 'پوشاک' in store_type:
+                base_cost += Decimal('50000')
+            elif 'مواد غذایی' in store_type:
+                base_cost += Decimal('30000')
+            elif 'الکترونیک' in store_type:
+                base_cost += Decimal('70000')
+            
+            # هزینه بر اساس اندازه فروشگاه
+            store_size = basic_info.store_size or 0
+            if store_size > 1000:
+                base_cost += Decimal('100000')
+            elif store_size > 500:
+                base_cost += Decimal('50000')
+            elif store_size > 200:
+                base_cost += Decimal('25000')
+        
+        # هزینه‌های اضافی
+        additional_cost = Decimal('0')
+        
+        # اگر تحلیل پیشرفته درخواست شده
+        if hasattr(analysis, 'analysis_type') and analysis.analysis_type == 'advanced':
+            additional_cost += Decimal('200000')
+        
+        # اگر گزارش PDF درخواست شده
+        additional_cost += Decimal('50000')  # هزینه گزارش PDF
+        
+        total_cost = base_cost + additional_cost
+        
+        return total_cost
+        
+    except Exception as e:
+        logger.error(f"Error calculating analysis cost: {e}")
+        return Decimal('150000')  # هزینه پیش‌فرض
+
+def generate_free_initial_analysis(analysis):
+    """تولید تحلیل اولیه رایگان"""
+    try:
+        # دریافت اطلاعات پایه فروشگاه
+        basic_info = StoreBasicInfo.objects.filter(analysis=analysis).first()
+        
+        if not basic_info:
+            return {
+                'error': 'اطلاعات فروشگاه یافت نشد',
+                'recommendations': []
+            }
+        
+        # تحلیل اولیه بر اساس اطلاعات موجود
+        recommendations = []
+        
+        # تحلیل بر اساس نوع فروشگاه
+        if basic_info.store_type:
+            if 'پوشاک' in basic_info.store_type:
+                recommendations.extend([
+                    'چیدمان پوشاک باید بر اساس فصل و رنگ‌بندی باشد',
+                    'راهروهای عریض برای راحتی مشتریان ضروری است',
+                    'آینه‌های بزرگ برای امتحان لباس مهم است'
+                ])
+            elif 'مواد غذایی' in basic_info.store_type:
+                recommendations.extend([
+                    'محصولات تازه در معرض دید قرار دهید',
+                    'راهروهای باریک برای افزایش فروش مناسب است',
+                    'محصولات پرفروش در انتهای فروشگاه قرار دهید'
+                ])
+            elif 'الکترونیک' in basic_info.store_type:
+                recommendations.extend([
+                    'محصولات گران‌قیمت در ویترین قرار دهید',
+                    'فضای کافی برای تست محصولات فراهم کنید',
+                    'نورپردازی مناسب برای نمایش محصولات'
+                ])
+        
+        # تحلیل بر اساس اندازه فروشگاه
+        if basic_info.store_size:
+            if basic_info.store_size < 50:
+                recommendations.append('فروشگاه کوچک: از فضای عمودی استفاده کنید')
+            elif basic_info.store_size > 200:
+                recommendations.append('فروشگاه بزرگ: راهنمایی مشتریان با تابلوها')
+        
+        # تحلیل بر اساس موقعیت
+        if basic_info.location:
+            if 'مرکز شهر' in basic_info.location:
+                recommendations.append('موقعیت مرکزی: از ترافیک بالا استفاده کنید')
+            elif 'حومه' in basic_info.location:
+                recommendations.append('موقعیت حومه: پارکینگ رایگان ارائه دهید')
+        
+        return {
+            'store_name': basic_info.store_name or 'فروشگاه شما',
+            'store_type': basic_info.store_type or 'نامشخص',
+            'store_size': basic_info.store_size or 0,
+            'location': basic_info.location or 'نامشخص',
+            'recommendations': recommendations[:5],  # حداکثر 5 توصیه
+            'analysis_date': timezone.now(),
+            'is_free': True
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating free analysis: {e}")
+        return {
+            'error': 'خطا در تولید تحلیل',
+            'recommendations': [
+                'برای دریافت تحلیل کامل، لطفاً پرداخت را انجام دهید',
+                'تحلیل اولیه رایگان در حال آماده‌سازی است'
+            ]
+        }
 from .services.ai_consultant_service import AIConsultantService
 import logging
 
@@ -3062,7 +3179,64 @@ def analysis_detail(request, pk):
     """نمایش جزئیات تحلیل"""
     # هر کاربر فقط تحلیل‌های خودش را ببیند
     analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
-    return render(request, 'store_analysis/analysis_detail.html', {'analysis': analysis})
+    
+    # اگر تحلیل در انتظار است، تحلیل اولیه رایگان ارائه دهید
+    if analysis.status == 'pending':
+        free_analysis = generate_free_initial_analysis(analysis)
+        context = {
+            'analysis': analysis,
+            'free_analysis': free_analysis,
+            'show_payment_prompt': True,
+        }
+    else:
+        context = {
+            'analysis': analysis,
+            'show_payment_prompt': False,
+        }
+    
+    return render(request, 'store_analysis/analysis_detail.html', context)
+
+@login_required
+def delete_analysis(request, pk):
+    """حذف تحلیل"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        analysis.delete()
+        messages.success(request, 'تحلیل با موفقیت حذف شد.')
+        return redirect('store_analysis:user_dashboard')
+    
+    return render(request, 'store_analysis/delete_analysis_confirm.html', {'analysis': analysis})
+
+@login_required
+def analysis_payment_page(request, pk):
+    """صفحه پرداخت برای تحلیل"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    # اگر تحلیل قبلاً پرداخت شده، به صفحه تحلیل هدایت شود
+    if analysis.status != 'pending':
+        messages.info(request, 'این تحلیل قبلاً پرداخت شده است.')
+        return redirect('store_analysis:analysis_detail', pk=pk)
+    
+    # محاسبه هزینه تحلیل
+    cost = calculate_analysis_cost_for_object(analysis)
+    
+    # ایجاد Order جدید
+    order = Order.objects.create(
+        user=request.user,
+        original_amount=cost,
+        final_amount=cost,
+        status='pending',
+        order_id=str(uuid.uuid4())
+    )
+    
+    context = {
+        'analysis': analysis,
+        'order': order,
+        'cost': cost,
+    }
+    
+    return render(request, 'store_analysis/payment_page.html', context)
 
 def forms(request):
     """فرم تک صفحه‌ای تحلیل فروشگاه"""
