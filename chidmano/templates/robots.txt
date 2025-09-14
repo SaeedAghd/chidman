@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://chidman-store-analysis.onrender.com/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /store/dashboard/
+Disallow: /store/analysis/
+Disallow: /media/
+Disallow: /static/admin/
+
+# Allow important pages
+Allow: /
+Allow: /store/forms/
+Allow: /store/ai-guide/
+
+# Crawl delay
+Crawl-delay: 1

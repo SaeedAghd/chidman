@@ -373,6 +373,98 @@
 
         <!-- Preliminary Analysis -->
         {% if analysis.preliminary_analysis %}
+        <!-- تحلیل اولیه رایگان -->
+        {% if show_payment_prompt and free_analysis %}
+        <div class="detail-card">
+            <div class="detail-body">
+                <div class="preliminary-analysis">
+                    <h3>
+                        <i class="fas fa-gift text-success"></i>
+                        تحلیل اولیه رایگان
+                        <span class="badge bg-success ms-2">رایگان</span>
+                    </h3>
+                    
+                    {% if free_analysis.error %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {{ free_analysis.error }}
+                        </div>
+                    {% else %}
+                        <div class="free-analysis-content">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-store"></i> اطلاعات فروشگاه</h5>
+                                    <ul class="list-unstyled">
+                                        <li><strong>نام:</strong> {{ free_analysis.store_name }}</li>
+                                        <li><strong>نوع:</strong> {{ free_analysis.store_type }}</li>
+                                        <li><strong>اندازه:</strong> {{ free_analysis.store_size }} متر مربع</li>
+                                        <li><strong>موقعیت:</strong> {{ free_analysis.location }}</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-chart-line text-primary"></i> توصیه‌های اولیه</h5>
+                                    <ul class="recommendations-list">
+                                        {% for recommendation in free_analysis.recommendations %}
+                                        <li class="recommendation-item">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            {{ recommendation }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- دعوت به پرداخت -->
+        <div class="detail-card payment-prompt">
+            <div class="detail-body text-center">
+                <div class="payment-prompt-content">
+                    <h3 class="text-primary">
+                        <i class="fas fa-rocket"></i>
+                        برای دریافت تحلیل کامل و حرفه‌ای
+                    </h3>
+                    <p class="lead">تحلیل جامع با هوش مصنوعی شامل:</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="feature-item">
+                                <i class="fas fa-brain fa-2x text-primary"></i>
+                                <h5>تحلیل هوشمند</h5>
+                                <p>بررسی کامل با AI</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-item">
+                                <i class="fas fa-chart-bar fa-2x text-success"></i>
+                                <h5>گزارش جامع</h5>
+                                <p>راهکارهای عملی</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-item">
+                                <i class="fas fa-certificate fa-2x text-warning"></i>
+                                <h5>گواهینامه</h5>
+                                <p>مدرک معتبر</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'store_analysis:analysis_payment' analysis.id %}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-credit-card"></i>
+                            پرداخت و دریافت تحلیل کامل
+                        </a>
+                        <a href="{% url 'store_analysis:delete_analysis' analysis.id %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i>
+                            حذف تحلیل
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
         <div class="detail-card">
             <div class="detail-body">
                 <div class="preliminary-analysis">
@@ -384,6 +476,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         {% endif %}
 
         <!-- Analysis Results -->
@@ -740,4 +833,70 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<style>
+/* Free Analysis Styles */
+.free-analysis-content {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.recommendations-list {
+    list-style: none;
+    padding: 0;
+}
+
+.recommendations-list .recommendation-item {
+    background: white;
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.recommendations-list .recommendation-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.payment-prompt {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.payment-prompt .detail-body {
+    background: transparent;
+}
+
+.feature-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.2);
+}
+
+.feature-item i {
+    margin-bottom: 1rem;
+}
+
+.feature-item h5 {
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.feature-item p {
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+}
+</style>
 {% endblock %} 

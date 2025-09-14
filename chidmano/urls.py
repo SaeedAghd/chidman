@@ -6,6 +6,7 @@ from django.contrib.auth import views as auth_views
 from django.conf.urls.i18n import i18n_patterns
 from . import views
 from django.http import HttpResponse
+from django.views.generic import TemplateView
 
 urlpatterns = [
     # صفحه اصلی حرفه‌ای
@@ -36,4 +37,8 @@ urlpatterns = [
     # مسیرهای سیستم
     path('health/', views.health_check, name='health_check'),
     path('test/', views.test_page, name='test_page'),
+    
+    # SEO فایل‌ها
+    path('sitemap.xml', TemplateView.as_view(template_name='sitemap.xml', content_type='application/xml'), name='sitemap'),
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain'), name='robots'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

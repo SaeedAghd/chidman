@@ -1,0 +1,239 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}حذف تحلیل - {{ analysis.store_name|default:"تحلیل فروشگاه" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.delete-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.delete-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.delete-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.delete-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.delete-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.delete-body {
+    padding: 2rem;
+}
+
+.analysis-info {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.analysis-info h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.analysis-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.analysis-info li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+}
+
+.analysis-info li:last-child {
+    border-bottom: none;
+}
+
+.analysis-info strong {
+    color: #495057;
+}
+
+.warning-message {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.warning-message .warning-icon {
+    color: #856404;
+    font-size: 1.5rem;
+    margin-left: 0.5rem;
+}
+
+.warning-message p {
+    color: #856404;
+    margin: 0;
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.btn-cancel {
+    background: #6c757d;
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+@media (max-width: 768px) {
+    .delete-container {
+        padding: 1rem;
+    }
+    
+    .delete-header {
+        padding: 1.5rem;
+    }
+    
+    .delete-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .delete-body {
+        padding: 1.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-delete,
+    .btn-cancel {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="delete-header">
+            <h1>
+                <i class="fas fa-exclamation-triangle"></i>
+                حذف تحلیل
+            </h1>
+            <p>آیا مطمئن هستید که می‌خواهید این تحلیل را حذف کنید؟</p>
+        </div>
+        
+        <div class="delete-body">
+            <div class="analysis-info">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    اطلاعات تحلیل
+                </h3>
+                <ul>
+                    <li>
+                        <strong>نام فروشگاه:</strong>
+                        <span>{{ analysis.store_name|default:"نامشخص" }}</span>
+                    </li>
+                    <li>
+                        <strong>تاریخ ایجاد:</strong>
+                        <span>{{ analysis.created_at|date:"Y/m/d H:i" }}</span>
+                    </li>
+                    <li>
+                        <strong>وضعیت:</strong>
+                        <span class="badge bg-warning">{{ analysis.get_status_display }}</span>
+                    </li>
+                    <li>
+                        <strong>نوع تحلیل:</strong>
+                        <span>{{ analysis.analysis_type|default:"تحلیل جامع" }}</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="warning-message">
+                <p>
+                    <i class="fas fa-exclamation-triangle warning-icon"></i>
+                    <strong>توجه:</strong> این عمل قابل بازگشت نیست. تمام اطلاعات مربوط به این تحلیل برای همیشه حذف خواهد شد.
+                </p>
+            </div>
+            
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <div class="action-buttons">
+                    <button type="submit" class="btn-delete">
+                        <i class="fas fa-trash"></i>
+                        بله، حذف کن
+                    </button>
+                    <a href="{% url 'store_analysis:analysis_detail' analysis.pk %}" class="btn-cancel">
+                        <i class="fas fa-times"></i>
+                        لغو
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-development-key-change-in-production-2024')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for development
 
 # Enable debug for Render if needed
 if os.getenv('RENDER'):
@@ -103,12 +103,21 @@ DATABASES = {
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL:
+# Force SQLite for local development
+if DEBUG and not os.getenv('RENDER'):
+    # Use SQLite for local development
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+elif DATABASE_URL:
     # Production database configuration
     DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require',
-    }
+    # Add SSL mode for PostgreSQL
+    if 'postgresql' in DATABASES['default']['ENGINE']:
+        DATABASES['default']['OPTIONS'] = {
+            'sslmode': 'require',
+        }
 elif not DEBUG:
     # Fallback production database configuration
     DATABASES['default'] = {
@@ -122,12 +131,6 @@ elif not DEBUG:
             'sslmode': 'require',
         },
         'CONN_MAX_AGE': 600,
-    }
-else:
-    # Use SQLite for local development
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
     }
 
 # Password validation
@@ -258,11 +261,12 @@ CACHES = {
     }
 }
 
-# Database optimization
-DATABASES['default']['OPTIONS'] = {
-    'timeout': 20,
-    'check_same_thread': False,
-}
+# Database optimization - only for SQLite
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    DATABASES['default']['OPTIONS'] = {
+        'timeout': 20,
+        'check_same_thread': False,
+    }
 
 # Static files optimization
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'

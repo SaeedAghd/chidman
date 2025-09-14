@@ -929,15 +929,58 @@ class PricingPlan(models.Model):
 
 class DiscountCode(models.Model):
     """مدل کدهای تخفیف"""
-    code = models.CharField(max_length=20, unique=True, verbose_name="کد تخفیف")
-    discount_percentage = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)], verbose_name="درصد تخفیف")
-    max_uses = models.IntegerField(default=1, verbose_name="حداکثر استفاده")
-    used_count = models.IntegerField(default=0, verbose_name="تعداد استفاده شده")
+    DISCOUNT_TYPES = [
+        ('percentage', 'درصدی'),
+        ('fixed', 'مبلغ ثابت'),
+        ('seasonal', 'فصلی'),
+        ('event', 'مناسبتی'),
+    ]
+    
+    EVENT_TYPES = [
+        ('opening', 'افتتاحیه'),
+        ('spring', 'بهار'),
+        ('summer', 'تابستان'),
+        ('autumn', 'پاییز'),
+        ('winter', 'زمستان'),
+        ('nowruz', 'نوروز'),
+        ('yalda', 'شب یلدا'),
+        ('ramadan', 'رمضان'),
+        ('black_friday', 'جمعه سیاه'),
+        ('new_year', 'سال نو'),
+    ]
+    
+    code = models.CharField(max_length=50, unique=True, verbose_name="کد تخفیف")
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES, verbose_name="نوع تخفیف")
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES, blank=True, null=True, verbose_name="نوع مناسبت")
+    percentage = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(70)], verbose_name="درصد تخفیف")
+    fixed_amount = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name="مبلغ ثابت")
+    max_usage = models.PositiveIntegerField(default=100, verbose_name="حداکثر استفاده")
+    used_count = models.PositiveIntegerField(default=0, verbose_name="تعداد استفاده شده")
     is_active = models.BooleanField(default=True, verbose_name="فعال")
     valid_from = models.DateTimeField(verbose_name="اعتبار از")
     valid_until = models.DateTimeField(verbose_name="اعتبار تا")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="ایجاد شده توسط")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = "کد تخفیف"
+        verbose_name_plural = "کدهای تخفیف"
+    
+    def __str__(self):
+        return f"{self.code} - {self.percentage}% تخفیف"
+    
+    def is_valid(self):
+        """بررسی اعتبار کد تخفیف"""
+        from django.utils import timezone
+        now = timezone.now()
+        return (
+            self.is_active and
+            self.used_count < self.max_usage and
+            self.valid_from <= now <= self.valid_until
+        )
+    
+    def can_use(self):
+        """بررسی امکان استفاده از کد تخفیف"""
+        return self.is_valid()
     
     class Meta:
         verbose_name = "کد تخفیف"
