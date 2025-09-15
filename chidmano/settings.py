@@ -217,6 +217,10 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1.0.0')
 # OpenAI settings
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 
+# Payment Gateway Settings
+ZARINPAL_MERCHANT_ID = os.getenv('ZARINPAL_MERCHANT_ID', '')
+ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
+
 # Authentication settings
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = 'store_analysis:user_dashboard'
