@@ -21,7 +21,7 @@ def signup_view(request):
                 user = form.save()
                 login(request, user)
                 messages.success(request, 'حساب کاربری شما با موفقیت ایجاد شد!')
-                return redirect('store_analysis:index')
+                return redirect('store_analysis:user_dashboard')
             else:
                 messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
         else:
@@ -37,7 +37,7 @@ def logout_view(request):
     """Custom logout view that handles GET requests"""
     logout(request)
     messages.success(request, 'شما با موفقیت از سیستم خارج شدید.')
-    return redirect('store_analysis:index')
+    return redirect('home')
 
 def simple_login_view(request):
     """Simple login view for testing"""

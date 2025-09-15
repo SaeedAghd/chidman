@@ -373,14 +373,14 @@
 
         <!-- Preliminary Analysis -->
         {% if analysis.preliminary_analysis %}
-        <!-- تحلیل اولیه رایگان -->
+        <!-- تحلیل اولیه هوشمند -->
         {% if show_payment_prompt and free_analysis %}
         <div class="detail-card">
             <div class="detail-body">
                 <div class="preliminary-analysis">
                     <h3>
                         <i class="fas fa-gift text-success"></i>
-                        تحلیل اولیه رایگان
+                        تحلیل اولیه هوشمند
                         <span class="badge bg-success ms-2">رایگان</span>
                     </h3>
                     
@@ -637,6 +637,12 @@
                     </a>
                     {% endif %}
                     
+                    {% if analysis.analysis_data %}
+                    <a href="{% url 'store_analysis:reprocess_analysis_with_ollama' pk=analysis.pk %}" class="btn btn-warning" onclick="return confirm('آیا می‌خواهید تحلیل را با Ollama دوباره پردازش کنید؟')">
+                        <i class="fas fa-robot"></i>پردازش مجدد با Ollama
+                    </a>
+                    {% endif %}
+                    
                     {% if analysis.status == 'pending' %}
                     <a href="{% url 'store_analysis:start_analysis' pk=analysis.pk %}" class="btn btn-success">
                         <i class="fas fa-play"></i>شروع تحلیل
@@ -645,7 +651,7 @@
                     
                     <a href="{% url 'store_analysis:user_dashboard' %}" class="btn btn-info">
                         <i class="fas fa-dashboard"></i>داشبورد
-                    </a>
+                </a>
             </div>
         </div>
     </div>

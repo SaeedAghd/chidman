@@ -1,4 +1,4 @@
-{% load static %}
+ {% load static %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -432,9 +432,15 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'forms' %}active{% endif %}" href="{% url 'store_analysis:forms' %}">
-                            <i class="fas fa-chart-line me-1"></i>تحلیل فروشگاه
-                        </a>
+                        {% if user.is_authenticated %}
+                            <a class="nav-link {% if request.resolver_match.url_name == 'forms' %}active{% endif %}" href="{% url 'store_analysis:forms' %}">
+                                <i class="fas fa-chart-line me-1"></i>تحلیل فروشگاه
+                            </a>
+                        {% else %}
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-chart-line me-1"></i>تحلیل فروشگاه
+                            </a>
+                        {% endif %}
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'ai_analysis_guide' %}active{% endif %}" href="{% url 'store_analysis:ai_analysis_guide' %}">

@@ -1,1 +1,1 @@
-web: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile -
+web: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --max-requests 1000 --max-requests-jitter 100

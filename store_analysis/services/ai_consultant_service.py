@@ -139,25 +139,62 @@ class AIConsultantService:
             return "متأسفانه در حال حاضر قادر به پاسخ‌دهی نیستم. لطفاً سوال خود را مجدداً مطرح کنید."
     
     def _generate_ollama_response(self, question: str, context: Dict[str, Any]) -> str:
-        """تولید پاسخ با استفاده از Ollama"""
+        """تولید پاسخ با استفاده از Ollama - بهترین بات هوشمند چیدمان دنیا"""
         try:
-            # ساخت prompt برای Ollama
+            # ساخت prompt حرفه‌ای برای Ollama - بهترین بات هوشمند چیدمان دنیا
+            store_info = context['store_info']
+            
+            # ساخت اطلاعات فروشگاه
+            store_details = f"""
+اطلاعات فروشگاه "{store_info['name']}":
+- نام فروشگاه: {store_info['name']}
+- نوع فروشگاه: {store_info['type']}
+- اندازه فروشگاه: {store_info['size']}"""
+            
+            # اضافه کردن اطلاعات اضافی اگر موجود باشد
+            if store_info['daily_customers'] != 'نامشخص':
+                store_details += f"\n- مشتریان روزانه: {store_info['daily_customers']}"
+            if store_info['daily_sales'] != 'نامشخص':
+                store_details += f"\n- فروش روزانه: {store_info['daily_sales']}"
+            if store_info['target_market'] != 'نامشخص':
+                store_details += f"\n- بازار هدف: {store_info['target_market']}"
+            if store_info['main_products']:
+                store_details += f"\n- محصولات اصلی: {', '.join(store_info['main_products'][:5])}"
+            if store_info['color_scheme'] != 'نامشخص':
+                store_details += f"\n- رنگ‌بندی فعلی: {store_info['color_scheme']}"
+            if store_info['lighting_type'] != 'نامشخص':
+                store_details += f"\n- نوع نورپردازی: {store_info['lighting_type']}"
+            if store_info['shelf_arrangement'] != 'نامشخص':
+                store_details += f"\n- چیدمان قفسه‌ها: {store_info['shelf_arrangement']}"
+            if store_info['customer_flow'] != 'نامشخص':
+                store_details += f"\n- جریان مشتریان: {store_info['customer_flow']}"
+            
             prompt = f"""
-شما یک متخصص تحلیل فروشگاه و مشاور کسب‌وکار هستید. بر اساس اطلاعات زیر به سوال کاربر پاسخ دهید:
+شما بهترین متخصص تحلیل فروشگاه و مشاور کسب‌وکار دنیا هستید. شما با نام "چیدمانو" شناخته می‌شوید و تخصص شما در بهینه‌سازی چیدمان فروشگاه‌ها است.
 
-اطلاعات فروشگاه:
-- نام: {context['store_info']['name']}
-- نوع: {context['store_info']['type']}
-- اندازه: {context['store_info']['size']}
-- نمره کلی: {context.get('overall_score', 'نامشخص')}/10
-- درصد اطلاعات: {context.get('data_completeness', {}).get('percentage', 'نامشخص')}%
+{store_details}
 
-توصیه‌ها: {', '.join(context.get('recommendations', [])[:3])}
-نکات کلیدی: {', '.join(context.get('key_insights', [])[:3])}
+نمره کلی: {context.get('overall_score', 'نامشخص')}/10
+درصد اطلاعات: {context.get('data_completeness', {}).get('percentage', 'نامشخص')}%
+نوع تحلیل: {context.get('analysis_type', 'نامشخص')}
+تاریخ تحلیل: {context.get('created_at', 'نامشخص')}
+
+توصیه‌های قبلی: {', '.join(context.get('recommendations', [])[:5])}
+نکات کلیدی: {', '.join(context.get('key_insights', [])[:5])}
+تحلیل اولیه: {context.get('preliminary_analysis', '')[:200]}...
 
 سوال کاربر: {question}
 
-لطفاً پاسخ جامع، عملی و به فارسی ارائه دهید:
+لطفاً به عنوان بهترین متخصص چیدمان دنیا:
+1. پاسخ جامع، عملی و شخصی‌سازی شده ارائه دهید
+2. از نام فروشگاه "{store_info['name']}" و جزئیات آن استفاده کنید
+3. راهکارهای عملی و قابل اجرا پیشنهاد دهید
+4. مانند یک دوست و مشاور قابل اعتماد صحبت کنید
+5. از تجربه‌های واقعی و مثال‌های عملی استفاده کنید
+6. پاسخ را به فارسی روان و حرفه‌ای بنویسید
+7. بر اساس نوع فروشگاه ({store_info['type']}) راهکار ارائه دهید
+
+پاسخ شما:
 """
             
             response = ollama.generate(
@@ -177,27 +214,77 @@ class AIConsultantService:
             return ""
     
     def _build_analysis_context(self, store_analysis, analysis_data: Dict, results: Dict) -> Dict[str, Any]:
-        """ساخت context کامل از اطلاعات تحلیل"""
-        context = {
-            'store_info': {
-                'name': store_analysis.store_name or 'نامشخص',
-                'type': store_analysis.store_type or 'نامشخص',
-                'size': store_analysis.store_size or 'نامشخص',
-                'description': store_analysis.description or 'توضیحی ارائه نشده'
-            },
-            'analysis_results': results,
-            'data_completeness': results.get('data_completeness', {}),
-            'recommendations': results.get('recommendations', []),
-            'key_insights': results.get('key_insights', []),
-            'overall_score': results.get('overall_score', 0),
-            'analysis_confidence': results.get('analysis_confidence', 'متوسط')
-        }
-        
-        # اضافه کردن اطلاعات اضافی از analysis_data
-        if analysis_data:
-            context['additional_data'] = analysis_data
-        
-        return context
+        """ساخت context کامل از اطلاعات تحلیل - بهترین بات هوشمند چیدمان دنیا"""
+        try:
+            # استخراج اطلاعات از analysis_data و results
+            basic_info = analysis_data.get('basic_info', {}) if analysis_data else {}
+            layout_info = analysis_data.get('layout_info', {}) if analysis_data else {}
+            traffic_info = analysis_data.get('traffic_info', {}) if analysis_data else {}
+            design_info = analysis_data.get('design_info', {}) if analysis_data else {}
+            products_info = analysis_data.get('products_info', {}) if analysis_data else {}
+            
+            context = {
+                'store_info': {
+                    'name': store_analysis.store_name or 'نامشخص',
+                    'type': store_analysis.store_type or 'نامشخص',
+                    'size': store_analysis.store_size or 'نامشخص',
+                    'description': getattr(store_analysis, 'description', '') or 'توضیحی ارائه نشده',
+                    'daily_customers': basic_info.get('daily_customers', 'نامشخص'),
+                    'daily_sales': basic_info.get('daily_sales', 'نامشخص'),
+                    'target_market': basic_info.get('target_market', 'نامشخص'),
+                    'main_products': products_info.get('main_products', []),
+                    'color_scheme': design_info.get('color_scheme', 'نامشخص'),
+                    'lighting_type': design_info.get('lighting_type', 'نامشخص'),
+                    'shelf_arrangement': layout_info.get('shelf_arrangement', 'نامشخص'),
+                    'customer_flow': traffic_info.get('customer_flow', 'نامشخص')
+                },
+                'analysis_results': results,
+                'data_completeness': results.get('data_completeness', {}),
+                'recommendations': results.get('recommendations', []),
+                'key_insights': results.get('key_insights', []),
+                'overall_score': results.get('overall_score', 0),
+                'analysis_confidence': results.get('analysis_confidence', 'متوسط'),
+                'preliminary_analysis': store_analysis.preliminary_analysis or '',
+                'analysis_type': store_analysis.get_analysis_type_display(),
+                'created_at': store_analysis.created_at.strftime('%Y/%m/%d %H:%M') if store_analysis.created_at else 'نامشخص'
+            }
+            
+            # اضافه کردن اطلاعات اضافی از analysis_data
+            if analysis_data:
+                context['additional_data'] = analysis_data
+                context['detailed_recommendations'] = analysis_data.get('detailed_recommendations', [])
+                context['implementation_timeline'] = analysis_data.get('implementation_timeline', [])
+                context['success_metrics'] = analysis_data.get('success_metrics', [])
+            
+            return context
+            
+        except Exception as e:
+            logger.error(f"خطا در ساخت context: {str(e)}")
+            # Fallback context
+            return {
+                'store_info': {
+                    'name': store_analysis.store_name or 'نامشخص',
+                    'type': store_analysis.store_type or 'نامشخص',
+                    'size': store_analysis.store_size or 'نامشخص',
+                    'description': 'اطلاعات محدود',
+                    'daily_customers': 'نامشخص',
+                    'daily_sales': 'نامشخص',
+                    'target_market': 'نامشخص',
+                    'main_products': [],
+                    'color_scheme': 'نامشخص',
+                    'lighting_type': 'نامشخص',
+                    'shelf_arrangement': 'نامشخص',
+                    'customer_flow': 'نامشخص'
+                },
+                'analysis_results': results or {},
+                'recommendations': [],
+                'key_insights': [],
+                'overall_score': 0,
+                'analysis_confidence': 'متوسط',
+                'preliminary_analysis': store_analysis.preliminary_analysis or '',
+                'analysis_type': store_analysis.get_analysis_type_display(),
+                'created_at': store_analysis.created_at.strftime('%Y/%m/%d %H:%M') if store_analysis.created_at else 'نامشخص'
+            }
     
     def _generate_contextual_response(self, question: str, context: Dict[str, Any]) -> str:
         """تولید پاسخ بر اساس context تحلیل"""

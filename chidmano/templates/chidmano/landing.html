@@ -53,7 +53,7 @@
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "IRR",
-            "description": "تحلیل رایگان چیدمان فروشگاه"
+            "description": "تحلیل هوشمند چیدمان فروشگاه"
         },
         "author": {
             "@type": "Organization",
@@ -102,6 +102,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --apple-blue: #007AFF;
+            --apple-green: #34C759;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -881,7 +886,11 @@
                         <a class="nav-link" href="{% url 'home' %}">خانه</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'store_analysis:forms' %}">تحلیل فروشگاه</a>
+                        {% if user.is_authenticated %}
+                            <a class="nav-link" href="{% url 'store_analysis:forms' %}">تحلیل فروشگاه</a>
+                        {% else %}
+                            <a class="nav-link" href="{% url 'login' %}">تحلیل فروشگاه</a>
+                        {% endif %}
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'store_analysis:ai_analysis_guide' %}">راهنمای AI</a>
@@ -893,7 +902,11 @@
                 
                 <!-- Left-aligned dashboard and login buttons -->
                 <div class="d-flex me-auto">
-                    <a href="{% url 'store_analysis:forms' %}" class="btn btn-nav me-2">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'store_analysis:forms' %}" class="btn btn-nav me-2">
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-nav me-2">
+                    {% endif %}
                         <i class="fas fa-rocket me-1"></i>
                         شروع تحلیل
                     </a>
@@ -925,12 +938,20 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <h1>تحلیل هوشمند چیدمان فروشگاه - افزایش فروش تا 30%</h1>
+                <!-- Updated: Hero title styling - v1.4 -->
+                <h1>
+                    <span style="color: var(--apple-blue); font-size: 1.2em;">تحلیل هوشمند چیدمان فروشگاه</span><br>
+                    <span style="color: var(--apple-green); font-weight: 600;">افزایش فروش تا 30%</span>
+                </h1>
                 <p>با هوش مصنوعی چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا 30% افزایش دهید. تحلیل حرفه‌ای ترافیک و طراحی فروشگاه</p>
                 <div class="cta-buttons">
-                    <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom">
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn-primary-custom">
+                    {% endif %}
                         <i class="fas fa-rocket me-2"></i>
-                        شروع تحلیل رایگان
+                        شروع تحلیل هوشمند
                     </a>
                     <a href="{% url 'store_analysis:ai_analysis_guide' %}" class="btn-secondary-custom">
                         <i class="fas fa-info-circle me-2"></i>
@@ -1016,15 +1037,19 @@
                     <h2 class="section-title text-start">شروع تحلیل فروشگاه</h2>
                     <p class="lead">با چند کلیک ساده، تحلیل کاملی از فروشگاه خود دریافت کنید</p>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>تحلیل رایگان و فوری</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>تحلیل هوشمند و فوری</li>
                         <li class="mb-2"><i class="fas fa-check text-success me-2"></i>گزارش‌های جامع و عملی</li>
                         <li class="mb-2"><i class="fas fa-check text-success me-2"></i>توصیه‌های هوشمند AI</li>
                         <li class="mb-2"><i class="fas fa-check text-success me-2"></i>پشتیبانی 24/7</li>
                     </ul>
                     <div class="mt-4">
-                        <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom me-3">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom me-3">
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn-primary-custom me-3">
+                        {% endif %}
                             <i class="fas fa-rocket me-2"></i>
-                            شروع تحلیل رایگان
+                            شروع تحلیل هوشمند
                         </a>
                         <a href="{% url 'store_analysis:ai_analysis_guide' %}" class="btn-secondary-custom">
                             <i class="fas fa-info-circle me-2"></i>
@@ -1093,9 +1118,13 @@
         <div class="container">
             <h2>آماده شروع هستید؟</h2>
             <p>همین حالا تحلیل فروشگاه خود را شروع کنید و نتایج شگفت‌انگیز را ببینید</p>
-            <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom">
+            {% if user.is_authenticated %}
+                <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom">
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-primary-custom">
+            {% endif %}
                 <i class="fas fa-arrow-left me-2"></i>
-                شروع تحلیل رایگان
+                شروع تحلیل هوشمند
             </a>
         </div>
     </section>

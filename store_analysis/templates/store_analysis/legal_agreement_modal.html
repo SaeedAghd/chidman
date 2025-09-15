@@ -356,7 +356,7 @@ function closeLegalModal() {
 
 function acceptLegalAgreement() {
     // ارسال درخواست به سرور برای ذخیره تایید
-    fetch('/store_analysis/accept-legal-agreement/', {
+    fetch('/store/accept-legal-agreement/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -373,7 +373,7 @@ function acceptLegalAgreement() {
             // بستن مودال
             document.getElementById('legalAgreementModal').style.display = 'none';
             // هدایت به داشبورد
-            window.location.href = '/store_analysis/dashboard/';
+            window.location.href = '/store/dashboard/';
         } else {
             alert('خطا در ذخیره تایید. لطفاً دوباره تلاش کنید.');
         }
@@ -402,7 +402,7 @@ function getCookie(name) {
 // نمایش مودال پس از بارگذاری صفحه
 document.addEventListener('DOMContentLoaded', function() {
     // بررسی اینکه آیا کاربر قبلاً تایید کرده یا نه
-    fetch('/store_analysis/check-legal-agreement/')
+    fetch('/store/check-legal-agreement/')
     .then(response => response.json())
     .then(data => {
         if (!data.accepted) {

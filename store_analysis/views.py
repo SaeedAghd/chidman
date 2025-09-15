@@ -179,7 +179,7 @@ def index(request):
             'pending_analyses': user_analyses.filter(status='pending').count(),
         })
     
-    return render(request, 'store_analysis/landing_page.html', context)
+    return render(request, 'chidmano/landing.html', context)
 
 def problem_detection(request):
     """تشخیص مشکل فروشگاه با AI"""
@@ -663,9 +663,17 @@ def download_analysis_report(request, pk):
 def generate_management_report(analysis, has_ai_results=False):
     """Generate Professional Certificate-Style Management Report"""
     
-    # Get analysis data
+    # Get analysis data - اولویت با نتایج جدید Ollama
     analysis_data = analysis.get_analysis_data()
     results = analysis.results if hasattr(analysis, 'results') and analysis.results else {}
+    
+    # اگر نتایج جدید Ollama موجود است، از آن استفاده کن
+    if results and isinstance(results, dict) and 'analysis_text' in results:
+        # استفاده از تحلیل جدید Ollama
+        ollama_analysis = results.get('analysis_text', '')
+        if ollama_analysis:
+            # اضافه کردن تحلیل جدید به نتایج
+            results['ollama_analysis'] = ollama_analysis
     
     # Check for analysis results
     has_results = hasattr(analysis, 'analysis_result')
@@ -1299,11 +1307,19 @@ def generate_pdf_report(analysis, has_ai_results=False):
     # Generate unique certificate ID
     certificate_id = str(uuid.uuid4())[:8].upper()
     
-    # Get analysis data
+    # Get analysis data - اولویت با نتایج جدید Ollama
     analysis_data = analysis.get_analysis_data()
     results = analysis.results if hasattr(analysis, 'results') and analysis.results else {}
     has_results = hasattr(analysis, 'analysis_result')
     result = analysis.analysis_result if has_results else None
+    
+    # اگر نتایج جدید Ollama موجود است، از آن استفاده کن
+    if results and isinstance(results, dict) and 'analysis_text' in results:
+        # استفاده از تحلیل جدید Ollama
+        ollama_analysis = results.get('analysis_text', '')
+        if ollama_analysis:
+            # اضافه کردن تحلیل جدید به نتایج
+            results['ollama_analysis'] = ollama_analysis
     
     # Build report content
     report_content = f"""
@@ -1678,8 +1694,13 @@ def download_detailed_pdf(request, pk):
         return redirect('store_analysis:user_dashboard')
     
     try:
-        # تولید برنامه اجرایی تفصیلی
-        implementation_plan = generate_comprehensive_implementation_plan(analysis.analysis_data)
+        # استفاده از نتایج تحلیل جدید Ollama اگر موجود باشد
+        if analysis.results and isinstance(analysis.results, dict):
+            # تبدیل نتایج Ollama به متن برای PDF
+            implementation_plan = _convert_ollama_results_to_text(analysis.results)
+        else:
+            # تولید برنامه اجرایی تفصیلی از داده‌های اصلی
+            implementation_plan = generate_comprehensive_implementation_plan(analysis.analysis_data)
         
         # ایجاد PDF
         from reportlab.lib.pagesizes import A4
@@ -2295,7 +2316,7 @@ def store_comparison(request):
 @login_required
 def ai_consultant(request):
     """مشاور هوش مصنوعی شخصی"""
-    user_analyses = StoreAnalysis.objects.filter(user=request.user, status='completed')
+    user_analyses = StoreAnalysis.objects.filter(user=request.user, status__in=['completed', 'preliminary_completed'])
     
     # تولید مشاوره شخصی‌سازی شده
     ai_advice = {
@@ -2434,6 +2455,169 @@ def generate_ai_report(request, pk):
             'message': f'خطا در تولید تحلیل: {str(e)}'
         })
 
+@login_required
+def processing_status(request, pk):
+    """نمایش صفحه وضعیت پردازش"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    return render(request, 'store_analysis/processing_status.html', {
+        'analysis': analysis,
+        'analysis_id': pk
+    })
+
+@login_required
+def reprocess_analysis_with_ollama(request, pk):
+    """پردازش مجدد تحلیل با Ollama - هدایت به صفحه پردازش"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    # ابتدا به صفحه پردازش هدایت کن
+    return redirect('store_analysis:processing_status', pk=pk)
+
+@login_required
+def start_ollama_processing(request, pk):
+    """شروع پردازش واقعی با Ollama"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Method not allowed'})
+    
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    try:
+        analysis_data = analysis.analysis_data
+        if not analysis_data:
+            return JsonResponse({'status': 'error', 'message': 'داده‌های تحلیل موجود نیست'})
+        
+        # تغییر وضعیت به در حال پردازش
+        analysis.status = 'processing'
+        analysis.save()
+        
+        # شروع پردازش در background
+        import threading
+        def process_analysis():
+            try:
+                ai_analyzer = StoreAnalysisAI()
+                detailed_analysis = ai_analyzer.generate_detailed_analysis(analysis_data)
+                
+                # به‌روزرسانی نتایج
+                analysis.results = detailed_analysis
+                analysis.status = 'completed'
+                analysis.preliminary_analysis = detailed_analysis.get('analysis_text', 'تحلیل جدید با Ollama تولید شد.')
+                analysis.save()
+                
+                # به‌روزرسانی StoreAnalysisResult
+                from .models import StoreAnalysisResult
+                StoreAnalysisResult.objects.update_or_create(
+                    store_analysis=analysis,
+                    defaults={
+                        'overall_score': detailed_analysis.get('overall_score', 75.0),
+                        'layout_score': detailed_analysis.get('layout_score', 75.0),
+                        'traffic_score': detailed_analysis.get('traffic_score', 75.0),
+                        'design_score': detailed_analysis.get('design_score', 75.0),
+                        'sales_score': detailed_analysis.get('sales_score', 75.0),
+                        'layout_analysis': str(detailed_analysis.get('strengths', [])),
+                        'traffic_analysis': str(detailed_analysis.get('weaknesses', [])),
+                        'design_analysis': str(detailed_analysis.get('opportunities', [])),
+                        'sales_analysis': str(detailed_analysis.get('threats', [])),
+                        'overall_analysis': str(detailed_analysis.get('recommendations', [])),
+                    }
+                )
+            except Exception as e:
+                logger.error(f"خطا در پردازش تحلیل: {e}")
+                analysis.status = 'failed'
+                analysis.save()
+        
+        # شروع پردازش در thread جداگانه
+        thread = threading.Thread(target=process_analysis)
+        thread.daemon = True
+        thread.start()
+        
+        return JsonResponse({'status': 'success', 'message': f'پردازش تحلیل "{analysis.store_name}" با Ollama شروع شد!'})
+    except Exception as e:
+        logger.error(f"خطا در شروع پردازش: {e}")
+        return JsonResponse({'status': 'error', 'message': f'خطا در شروع پردازش: {str(e)}'})
+
+@login_required
+def check_processing_status(request, pk):
+    """بررسی وضعیت پردازش"""
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    return JsonResponse({
+        'status': analysis.status,
+        'completed': analysis.status == 'completed',
+        'failed': analysis.status == 'failed',
+        'processing': analysis.status == 'processing'
+    })
+
+def _convert_ollama_results_to_text(results):
+    """تبدیل نتایج Ollama به متن برای PDF"""
+    try:
+        text_content = ""
+        
+        # اضافه کردن تحلیل اصلی
+        if 'analysis_text' in results:
+            text_content += f"## تحلیل هوشمند فروشگاه\n\n{results['analysis_text']}\n\n"
+        
+        # اضافه کردن امتیازات
+        if 'overall_score' in results:
+            text_content += f"## امتیاز کلی\n\nامتیاز کلی: {results['overall_score']}/10\n\n"
+        
+        # اضافه کردن نقاط قوت
+        if 'strengths' in results and results['strengths']:
+            text_content += "## نقاط قوت\n\n"
+            if isinstance(results['strengths'], list):
+                for strength in results['strengths']:
+                    text_content += f"• {strength}\n"
+            else:
+                text_content += f"{results['strengths']}\n"
+            text_content += "\n"
+        
+        # اضافه کردن نقاط ضعف
+        if 'weaknesses' in results and results['weaknesses']:
+            text_content += "## نقاط ضعف\n\n"
+            if isinstance(results['weaknesses'], list):
+                for weakness in results['weaknesses']:
+                    text_content += f"• {weakness}\n"
+            else:
+                text_content += f"{results['weaknesses']}\n"
+            text_content += "\n"
+        
+        # اضافه کردن توصیه‌ها
+        if 'recommendations' in results and results['recommendations']:
+            text_content += "## توصیه‌های عملی\n\n"
+            if isinstance(results['recommendations'], list):
+                for recommendation in results['recommendations']:
+                    text_content += f"• {recommendation}\n"
+            else:
+                text_content += f"{results['recommendations']}\n"
+            text_content += "\n"
+        
+        # اضافه کردن فرصت‌ها
+        if 'opportunities' in results and results['opportunities']:
+            text_content += "## فرصت‌های بهبود\n\n"
+            if isinstance(results['opportunities'], list):
+                for opportunity in results['opportunities']:
+                    text_content += f"• {opportunity}\n"
+            else:
+                text_content += f"{results['opportunities']}\n"
+            text_content += "\n"
+        
+        # اضافه کردن تهدیدات
+        if 'threats' in results and results['threats']:
+            text_content += "## تهدیدات و چالش‌ها\n\n"
+            if isinstance(results['threats'], list):
+                for threat in results['threats']:
+                    text_content += f"• {threat}\n"
+            else:
+                text_content += f"{results['threats']}\n"
+            text_content += "\n"
+        
+        # اگر هیچ محتوایی نبود، پیام پیش‌فرض
+        if not text_content.strip():
+            text_content = "تحلیل هوشمند فروشگاه با استفاده از Ollama انجام شده است.\n\nنتایج تحلیل در حال پردازش است."
+        
+        return text_content
+        
+    except Exception as e:
+        logger.error(f"خطا در تبدیل نتایج Ollama: {e}")
+        return "تحلیل هوشمند فروشگاه با استفاده از Ollama انجام شده است."
+
 
 @login_required
 def advanced_ml_analysis(request, pk):
@@ -2481,7 +2665,6 @@ def ai_analysis_guide(request):
     """راهنمای کامل تحلیل AI"""
     return render(request, 'store_analysis/ai_analysis_guide.html')
 
-@login_required
 def check_legal_agreement(request):
     """بررسی وضعیت تایید تعهدنامه حقوقی"""
     try:
@@ -2492,7 +2675,7 @@ def check_legal_agreement(request):
         
         return JsonResponse({
             'accepted': accepted,
-            'user_id': request.user.id
+            'user_id': request.user.id if request.user.is_authenticated else None
         })
     except Exception as e:
         return JsonResponse({
@@ -2500,7 +2683,6 @@ def check_legal_agreement(request):
             'error': str(e)
         })
 
-@login_required
 def accept_legal_agreement(request):
     """تایید تعهدنامه حقوقی"""
     if request.method == 'POST':
@@ -4150,10 +4332,10 @@ def payment_failed(request, order_id):
 def ai_consultant_list(request):
     """لیست تحلیل‌ها برای انتخاب مشاور"""
     try:
-        # دریافت تحلیل‌های کاربر که تکمیل شده‌اند
+        # دریافت تحلیل‌های کاربر که تکمیل شده‌اند (شامل preliminary_completed)
         analyses = StoreAnalysis.objects.filter(
             user=request.user,
-            status='completed'
+            status__in=['completed', 'preliminary_completed']
         ).order_by('-created_at')
         
         context = {
@@ -4173,8 +4355,8 @@ def ai_consultant(request, analysis_id):
     try:
         analysis = get_object_or_404(StoreAnalysis, id=analysis_id, user=request.user)
         
-        # بررسی اینکه تحلیل تکمیل شده باشد
-        if analysis.status != 'completed':
+        # بررسی اینکه تحلیل تکمیل شده باشد (شامل preliminary_completed)
+        if analysis.status not in ['completed', 'preliminary_completed']:
             messages.error(request, 'تحلیل شما هنوز تکمیل نشده است')
             return redirect('store_analysis:user_dashboard')
         

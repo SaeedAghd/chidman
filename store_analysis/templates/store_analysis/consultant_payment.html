@@ -366,7 +366,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => {
                     if (response.ok) {
                         // هدایت به صفحه موفقیت
+                        {% if session.store_analysis.id %}
                         window.location.href = '{% url "store_analysis:ai_consultant" session.store_analysis.id %}';
+                        {% else %}
+                        window.location.href = '{% url "store_analysis:user_dashboard" %}';
+                        {% endif %}
                     } else {
                         throw new Error('Payment failed');
                     }

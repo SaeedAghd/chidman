@@ -31,6 +31,10 @@ urlpatterns = [
     path('analysis/<int:pk>/ai/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
     path('analysis/<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
     path('analysis/<int:pk>/generate-ai/', views.generate_ai_report, name='generate_ai_report'),
+    path('analysis/<int:pk>/reprocess-ollama/', views.reprocess_analysis_with_ollama, name='reprocess_analysis_with_ollama'),
+    path('analysis/<int:pk>/processing-status/', views.processing_status, name='processing_status'),
+    path('analysis/<int:pk>/start-ollama-processing/', views.start_ollama_processing, name='start_ollama_processing'),
+    path('analysis/<int:pk>/check-processing-status/', views.check_processing_status, name='check_processing_status'),
     
     # Dashboard URLs
     path('dashboard/', views.user_dashboard, name='user_dashboard'),

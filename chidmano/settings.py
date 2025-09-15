@@ -16,16 +16,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-development-key-change-in-production-2024')
+SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan3h$&$esj')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for development
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'  # Default to False for production
 
 # Enable debug for Render if needed
 if os.getenv('RENDER'):
     DEBUG = True  # Enable debug on Render for troubleshooting
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,chidman-store-analysis.onrender.com').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.liara.ir,*.liara.app,chidmano.liara.app').split(',')
 
 # Security settings for development
 SECURE_SSL_REDIRECT = False
@@ -55,12 +55,11 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # برای static files در production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # 'store_analysis.middleware.SecurityMiddleware',  # موقتاً غیرفعال
-    # 'store_analysis.middleware.SecurityHeadersMiddleware',  # موقتاً غیرفعال
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -93,6 +92,7 @@ WSGI_APPLICATION = 'chidmano.wsgi.application'
 
 import dj_database_url
 
+# Database configuration - Force SQLite for development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -100,17 +100,10 @@ DATABASES = {
     }
 }
 
-# Database configuration
+# Only use PostgreSQL in production with explicit environment variables
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-# Force SQLite for local development
-if DEBUG and not os.getenv('RENDER'):
-    # Use SQLite for local development
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-elif DATABASE_URL:
+if DATABASE_URL and (os.getenv('RENDER') or os.getenv('LIARA') or os.getenv('PRODUCTION')):
     # Production database configuration
     DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     # Add SSL mode for PostgreSQL
@@ -118,20 +111,6 @@ elif DATABASE_URL:
         DATABASES['default']['OPTIONS'] = {
             'sslmode': 'require',
         }
-elif not DEBUG:
-    # Fallback production database configuration
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'chidman'),
-        'USER': os.getenv('DB_USER', 'chidman_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'm29sVvjb7fCXMNei6MzdaazBXibIaV2f'),
-        'HOST': os.getenv('DB_HOST', 'dpg-d329b5jipnbc73d12130-a.singapore-postgres.render.com'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
-        'CONN_MAX_AGE': 600,
-    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -240,8 +219,8 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 
 # Authentication settings
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = 'store_analysis:index'
-LOGOUT_REDIRECT_URL = 'store_analysis:index'
+LOGIN_REDIRECT_URL = 'store_analysis:user_dashboard'
+LOGOUT_REDIRECT_URL = 'home'
 
 # Celery settings
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
@@ -301,6 +280,10 @@ LOGGING = {
             'format': '{levelname} {message}',
             'style': '{',
         },
+        'production': {
+            'format': '{asctime} {levelname} {name} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'file': {
@@ -312,7 +295,13 @@ LOGGING = {
         'console': {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'formatter': 'production' if not DEBUG else 'simple',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': logs_dir / 'error.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -322,13 +311,18 @@ LOGGING = {
             'propagate': True,
         },
         'store_analysis': {
-            'handlers': ['file', 'console'],
+            'handlers': ['file', 'console', 'error_file'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
         'django.db.backends': {
             'handlers': ['console'],
             'level': 'DEBUG' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['error_file', 'console'],
+            'level': 'ERROR',
             'propagate': False,
         },
     },
@@ -445,6 +439,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://127.0.0.1:8443",
 ]
 
+# Add production domains
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS.extend([
+        "https://your-domain.com",
+        "https://www.your-domain.com",
+    ])
+
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF settings for HTTPS proxy
@@ -452,6 +453,13 @@ CSRF_TRUSTED_ORIGINS = [
     "https://localhost:8443",
     "https://127.0.0.1:8443",
 ]
+
+# Add production domains
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        "https://your-domain.com",
+        "https://www.your-domain.com",
+    ])
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -490,15 +498,16 @@ CHANNEL_LAYERS = {
 
 # HTTPS Settings for production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # Production settings - HTTPS disabled for Liara deployment
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 else:
     # Development settings
     SECURE_SSL_REDIRECT = False

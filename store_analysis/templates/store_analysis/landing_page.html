@@ -2,13 +2,21 @@
 {% load static %}
 
 {% block title %}چیدمانو - دوست و همراه فروشگاه شما{% endblock %}
+<!-- Updated: Navigation fixed -->
+<!-- Updated: Hero subtitle styling - v1.2 -->
+
+{% block extra_meta %}
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+{% endblock %}
 
 {% block extra_css %}
 <!-- فونت‌های محبوب فارسی -->
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&family=Estedad:wght@100;200;300;400;500;600;700;800;900&family=Samim:wght@400;700&family=Shabnam:wght@300;400;500;600;700&family=Tanha:wght@400;700&family=Yekan:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- Landing Page Custom CSS -->
-<link rel="stylesheet" href="{% static 'css/landing-page.css' %}">
+<link rel="stylesheet" href="{% static 'css/landing-page.css' %}?v=1.3">
 
 <style>
     :root {
@@ -702,14 +710,20 @@
             <span style="color: var(--apple-blue);">هوشمند</span> کنید
         </h1>
         
+        <!-- Updated: Hero subtitle styling - v1.3 -->
         <p class="hero-subtitle">
-            با تحلیل هوش مصنوعی، چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا ۳۰٪ افزایش دهید
+            <strong style="color: var(--apple-blue); font-size: 1.2em;">تحلیل هوشمند چیدمان فروشگاه</strong><br>
+            <span style="color: var(--apple-green); font-weight: 600;">افزایش فروش تا 30%</span>
         </p>
         
         <div class="hero-cta">
-            <a href="{% url 'store_analysis:forms' %}" class="cta-primary">
+            {% if user.is_authenticated %}
+                <a href="{% url 'store_analysis:forms' %}" class="cta-primary">
+            {% else %}
+                <a href="{% url 'login' %}" class="cta-primary">
+            {% endif %}
                 <span>🚀</span>
-                <span>شروع تحلیل رایگان</span>
+                <span>شروع تحلیل هوشمند</span>
             </a>
             <a href="#features" class="cta-secondary">
                 <span>📖</span>
@@ -745,8 +759,8 @@
             
             <div class="trust-item">
                 <div class="trust-icon">💰</div>
-                <h3>کاملاً رایگان</h3>
-                <p>تحلیل اولیه کاملاً رایگان و بدون هیچ هزینه‌ای</p>
+                <h3>تحلیل هوشمند</h3>
+                <p>تحلیل اولیه تحلیل هوشمند و بدون هیچ هزینه‌ای</p>
             </div>
         </div>
     </div>
@@ -859,16 +873,20 @@
     <div class="cta-content">
         <h2 class="cta-title">آماده شروع هستید؟</h2>
         <p class="cta-subtitle">
-            همین حالا تحلیل رایگان فروشگاه خود را شروع کنید و ببینید چقدر می‌توانید فروش خود را افزایش دهید
+            همین حالا تحلیل هوشمند فروشگاه خود را شروع کنید و ببینید چقدر می‌توانید فروش خود را افزایش دهید
         </p>
         
         <div class="cta-buttons">
-            <a href="{% url 'store_analysis:forms' %}" class="cta-white">
+            {% if user.is_authenticated %}
+                <a href="{% url 'store_analysis:forms' %}" class="cta-white">
+            {% else %}
+                <a href="{% url 'login' %}" class="cta-white">
+            {% endif %}
                 <span>🚀</span>
-                <span>شروع تحلیل رایگان</span>
+                <span>شروع تحلیل هوشمند</span>
             </a>
             <p style="color: var(--apple-gray-400); font-size: 0.875rem; margin-top: 1rem;">
-                بدون نیاز به ثبت‌نام • کاملاً رایگان • نتایج در ۲۴ ساعت
+                نیاز به ثبت‌نام • تحلیل هوشمند • نتایج در ۲۴ ساعت
             </p>
         </div>
     </div>

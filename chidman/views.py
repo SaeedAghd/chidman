@@ -19,7 +19,7 @@ def signup_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'حساب کاربری شما با موفقیت ایجاد شد!')
-            return redirect('store_analysis:index')
+            return redirect('store_analysis:user_dashboard')
         else:
             messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
     else:
