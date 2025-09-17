@@ -26,12 +26,12 @@ class LiaraAIService:
         
         # مدل‌های پیشرفته برای تحلیل‌های مختلف
         self.models = {
-            'analysis': 'openai/gpt-4.1',     # تحلیل اصلی - جدیدترین مدل
-            'design': 'openai/gpt-4.1',       # تحلیل طراحی - قدرت بالا
-            'marketing': 'openai/gpt-4.1',    # تحلیل بازاریابی - بینش عمیق
-            'psychology': 'openai/gpt-4.1',   # روانشناسی مشتری - تحلیل پیشرفته
-            'optimization': 'openai/gpt-4.1', # بهینه‌سازی - الگوریتم‌های پیشرفته
-            'summary': 'openai/gpt-4.1'       # خلاصه‌سازی - کیفیت بالا
+            'analysis': 'openai/gpt-4.1',     # تحلیل اصلی - جدیدترین و قدرتمندترین مدل
+            'design': 'openai/gpt-4.1',       # تحلیل طراحی - قدرت بالا و درک چندرسانه‌ای
+            'marketing': 'openai/gpt-4.1',    # تحلیل بازاریابی - بینش عمیق و استدلال پیشرفته
+            'psychology': 'openai/gpt-4.1',   # روانشناسی مشتری - تحلیل پیشرفته و دقیق
+            'optimization': 'openai/gpt-4.1', # بهینه‌سازی - الگوریتم‌های پیشرفته و مهندسی نرم‌افزار
+            'summary': 'openai/gpt-4.1'       # خلاصه‌سازی - کیفیت بالا و پنجره محتوا بزرگ
         }
     
     def _make_request(self, model: str, prompt: str, max_tokens: int = 4000, temperature: float = 0.7) -> Dict:
