@@ -30,6 +30,11 @@ EMAIL_HOST_PASSWORD=your-app-password
 # OpenAI API
 OPENAI_API_KEY=your-openai-api-key
 
+# Liara AI Settings
+LIARA_AI_API_KEY=your_liara_ai_api_key_here
+USE_LIARA_AI=True
+FALLBACK_TO_OLLAMA=True
+
 # Media and Static Files
 MEDIA_URL=/media/
 MEDIA_ROOT=/app/media

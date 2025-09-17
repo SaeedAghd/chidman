@@ -950,7 +950,7 @@ class DiscountCode(models.Model):
     ]
     
     code = models.CharField(max_length=50, unique=True, verbose_name="کد تخفیف")
-    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES, verbose_name="نوع تخفیف")
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES, default='percentage', verbose_name="نوع تخفیف")
     event_type = models.CharField(max_length=20, choices=EVENT_TYPES, blank=True, null=True, verbose_name="نوع مناسبت")
     percentage = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(70)], verbose_name="درصد تخفیف")
     fixed_amount = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name="مبلغ ثابت")
@@ -1144,3 +1144,322 @@ class AIConsultantPayment(TimestampedModel):
     
     def __str__(self):
         return f"پرداخت {self.amount:,} تومان - {self.session.user.username}"
+
+
+class EmailVerification(TimestampedModel):
+    """تاییدیه ایمیل برای ثبت نام"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    email = models.EmailField(verbose_name='ایمیل')
+    verification_code = models.CharField(max_length=6, verbose_name='کد تایید')
+    is_verified = models.BooleanField(default=False, verbose_name='تایید شده')
+    attempts = models.PositiveIntegerField(default=0, verbose_name='تعداد تلاش')
+    expires_at = models.DateTimeField(verbose_name='انقضا')
+    
+    class Meta:
+        verbose_name = 'تاییدیه ایمیل'
+        verbose_name_plural = 'تاییدیه‌های ایمیل'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"تاییدیه {self.email} - {self.user.username}"
+    
+    def is_expired(self):
+        """بررسی انقضای کد"""
+        return timezone.now() > self.expires_at
+    
+    def can_resend(self):
+        """بررسی امکان ارسال مجدد"""
+        return self.attempts < 3 and not self.is_verified
+    
+    def generate_new_code(self):
+        """تولید کد جدید"""
+        import random
+        self.verification_code = str(random.randint(100000, 999999))
+        self.expires_at = timezone.now() + timedelta(minutes=10)  # 10 دقیقه
+        self.attempts = 0
+        self.save()
+        return self.verification_code
+
+
+class FAQCategory(TimestampedModel):
+    """دسته‌بندی سوالات متداول"""
+    name = models.CharField(max_length=100, verbose_name="نام دسته")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+    icon = models.CharField(max_length=50, default="fas fa-question-circle", verbose_name="آیکون")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    
+    class Meta:
+        verbose_name = 'دسته‌بندی سوالات متداول'
+        verbose_name_plural = 'دسته‌بندی‌های سوالات متداول'
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+
+class FAQ(TimestampedModel):
+    """سوالات متداول"""
+    category = models.ForeignKey(FAQCategory, on_delete=models.CASCADE, verbose_name="دسته‌بندی")
+    question = models.CharField(max_length=200, verbose_name="سوال")
+    answer = models.TextField(verbose_name="پاسخ")
+    keywords = models.TextField(blank=True, help_text="کلمات کلیدی جدا شده با کاما", verbose_name="کلمات کلیدی")
+    view_count = models.PositiveIntegerField(default=0, verbose_name="تعداد بازدید")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
+    
+    class Meta:
+        verbose_name = 'سوال متداول'
+        verbose_name_plural = 'سوالات متداول'
+        ordering = ['category__order', 'order', 'question']
+    
+    def __str__(self):
+        return f"{self.category.name} - {self.question}"
+    
+    def increment_view(self):
+        """افزایش تعداد بازدید"""
+        self.view_count += 1
+        self.save(update_fields=['view_count'])
+
+
+class SupportTicket(TimestampedModel):
+    """تیکت‌های پشتیبانی"""
+    PRIORITY_CHOICES = [
+        ('low', 'کم'),
+        ('medium', 'متوسط'),
+        ('high', 'بالا'),
+        ('urgent', 'فوری'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('open', 'باز'),
+        ('in_progress', 'در حال بررسی'),
+        ('waiting_user', 'در انتظار کاربر'),
+        ('resolved', 'حل شده'),
+        ('closed', 'بسته'),
+    ]
+    
+    CATEGORY_CHOICES = [
+        ('general', 'عمومی'),
+        ('technical', 'فنی'),
+        ('billing', 'پرداخت'),
+        ('feature_request', 'درخواست ویژگی'),
+        ('bug_report', 'گزارش باگ'),
+        ('account', 'حساب کاربری'),
+    ]
+    
+    ticket_id = models.CharField(max_length=20, unique=True, verbose_name="شناسه تیکت")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='general', verbose_name="دسته‌بندی")
+    subject = models.CharField(max_length=200, verbose_name="موضوع")
+    description = models.TextField(verbose_name="توضیحات")
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium', verbose_name="اولویت")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open', verbose_name="وضعیت")
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tickets', verbose_name="واگذار شده به")
+    attachments = models.JSONField(default=list, blank=True, verbose_name="پیوست‌ها")
+    tags = models.JSONField(default=list, blank=True, verbose_name="برچسب‌ها")
+    
+    class Meta:
+        verbose_name = 'تیکت پشتیبانی'
+        verbose_name_plural = 'تیکت‌های پشتیبانی'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"#{self.ticket_id} - {self.subject}"
+    
+    def save(self, *args, **kwargs):
+        if not self.ticket_id:
+            self.ticket_id = self.generate_ticket_id()
+        super().save(*args, **kwargs)
+    
+    def generate_ticket_id(self):
+        """تولید شناسه تیکت"""
+        import random
+        import string
+        while True:
+            ticket_id = f"TK{''.join(random.choices(string.digits, k=6))}"
+            if not SupportTicket.objects.filter(ticket_id=ticket_id).exists():
+                return ticket_id
+
+
+class TicketMessage(TimestampedModel):
+    """پیام‌های تیکت"""
+    MESSAGE_TYPE_CHOICES = [
+        ('user', 'کاربر'),
+        ('admin', 'مدیر'),
+        ('system', 'سیستم'),
+    ]
+    
+    ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE, related_name='messages', verbose_name="تیکت")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="فرستنده")
+    message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE_CHOICES, default='user', verbose_name="نوع پیام")
+    content = models.TextField(verbose_name="محتوا")
+    is_internal = models.BooleanField(default=False, verbose_name="داخلی")
+    attachments = models.JSONField(default=list, blank=True, verbose_name="پیوست‌ها")
+    
+    class Meta:
+        verbose_name = 'پیام تیکت'
+        verbose_name_plural = 'پیام‌های تیکت'
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"{self.ticket.ticket_id} - {self.sender.username}"
+
+
+class TicketTemplate(TimestampedModel):
+    """قالب‌های پاسخ تیکت"""
+    name = models.CharField(max_length=100, verbose_name="نام قالب")
+    category = models.CharField(max_length=20, choices=SupportTicket.CATEGORY_CHOICES, verbose_name="دسته‌بندی")
+    subject = models.CharField(max_length=200, verbose_name="موضوع")
+    content = models.TextField(verbose_name="محتوا")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    
+    class Meta:
+        verbose_name = 'قالب پاسخ'
+        verbose_name_plural = 'قالب‌های پاسخ'
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+
+# ==================== سیستم کیف پول ====================
+
+class Wallet(TimestampedModel):
+    """کیف پول کاربر"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    balance = models.DecimalField(
+        max_digits=12, 
+        decimal_places=0, 
+        default=0, 
+        validators=[MinValueValidator(0)],
+        verbose_name='موجودی (تومان)'
+    )
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    
+    class Meta:
+        verbose_name = 'کیف پول'
+        verbose_name_plural = 'کیف پول‌ها'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"کیف پول {self.user.username} - {self.balance:,} تومان"
+    
+    def get_balance_display(self):
+        """نمایش موجودی با فرمت مناسب"""
+        return f"{self.balance:,} تومان"
+    
+    def can_withdraw(self, amount):
+        """بررسی امکان برداشت"""
+        return self.balance >= amount and self.is_active
+    
+    def deposit(self, amount, description="واریز"):
+        """واریز به کیف پول"""
+        if amount <= 0:
+            raise ValueError("مبلغ باید مثبت باشد")
+        
+        self.balance += amount
+        self.save()
+        
+        # ایجاد تراکنش
+        Transaction.objects.create(
+            wallet=self,
+            transaction_type='deposit',
+            amount=amount,
+            description=description,
+            balance_after=self.balance
+        )
+        
+        return self.balance
+    
+    def withdraw(self, amount, description="برداشت"):
+        """برداشت از کیف پول"""
+        if amount <= 0:
+            raise ValueError("مبلغ باید مثبت باشد")
+        
+        if not self.can_withdraw(amount):
+            raise ValueError("موجودی کافی نیست")
+        
+        self.balance -= amount
+        self.save()
+        
+        # ایجاد تراکنش
+        Transaction.objects.create(
+            wallet=self,
+            transaction_type='withdraw',
+            amount=amount,
+            description=description,
+            balance_after=self.balance
+        )
+        
+        return self.balance
+
+
+class Transaction(TimestampedModel):
+    """تراکنش‌های کیف پول"""
+    
+    TRANSACTION_TYPES = [
+        ('deposit', 'واریز'),
+        ('withdraw', 'برداشت'),
+        ('payment', 'پرداخت'),
+        ('refund', 'بازگشت'),
+        ('bonus', 'پاداش'),
+        ('penalty', 'جریمه'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار'),
+        ('completed', 'تکمیل شده'),
+        ('failed', 'ناموفق'),
+        ('cancelled', 'لغو شده'),
+    ]
+    
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions', verbose_name='کیف پول')
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES, verbose_name='نوع تراکنش')
+    amount = models.DecimalField(
+        max_digits=12, 
+        decimal_places=0, 
+        validators=[MinValueValidator(0)],
+        verbose_name='مبلغ (تومان)'
+    )
+    description = models.CharField(max_length=200, verbose_name='توضیحات')
+    balance_after = models.DecimalField(
+        max_digits=12, 
+        decimal_places=0, 
+        verbose_name='موجودی پس از تراکنش'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed', verbose_name='وضعیت')
+    reference_id = models.CharField(max_length=100, blank=True, verbose_name='شناسه مرجع')
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='سفارش مرتبط')
+    
+    class Meta:
+        verbose_name = 'تراکنش'
+        verbose_name_plural = 'تراکنش‌ها'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - {self.amount:,} تومان - {self.wallet.user.username}"
+    
+    def get_amount_display(self):
+        """نمایش مبلغ با فرمت مناسب"""
+        return f"{self.amount:,} تومان"
+    
+    def get_balance_after_display(self):
+        """نمایش موجودی پس از تراکنش"""
+        return f"{self.balance_after:,} تومان"
+    
+    def is_positive(self):
+        """بررسی مثبت بودن تراکنش"""
+        return self.transaction_type in ['deposit', 'refund', 'bonus']
+    
+    def get_transaction_icon(self):
+        """آیکون مناسب برای نوع تراکنش"""
+        icons = {
+            'deposit': '💰',
+            'withdraw': '💸',
+            'payment': '💳',
+            'refund': '↩️',
+            'bonus': '🎁',
+            'penalty': '⚠️',
+        }
+        return icons.get(self.transaction_type, '💱')

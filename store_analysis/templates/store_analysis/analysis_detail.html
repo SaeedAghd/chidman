@@ -638,9 +638,14 @@
                     {% endif %}
                     
                     {% if analysis.analysis_data %}
-                    <a href="{% url 'store_analysis:reprocess_analysis_with_ollama' pk=analysis.pk %}" class="btn btn-warning" onclick="return confirm('آیا می‌خواهید تحلیل را با Ollama دوباره پردازش کنید؟')">
-                        <i class="fas fa-robot"></i>پردازش مجدد با Ollama
-                    </a>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'store_analysis:reprocess_analysis_with_ollama' pk=analysis.pk %}" class="btn btn-warning" onclick="return confirm('آیا می‌خواهید تحلیل را با Ollama دوباره پردازش کنید؟')">
+                            <i class="fas fa-robot"></i>پردازش با Ollama
+                        </a>
+                        <button onclick="reprocessWithAdvancedAI({{ analysis.pk }})" class="btn btn-success">
+                            <i class="fas fa-rocket"></i>تحلیل پیشرفته GPT-4.1
+                        </button>
+                    </div>
                     {% endif %}
                     
                     {% if analysis.status == 'pending' %}
@@ -836,6 +841,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 hidePdfLoading();
             }, 3000);
         });
+    }
+    
+    // تابع برای تحلیل پیشرفته با GPT-4.1
+    function reprocessWithAdvancedAI(analysisId) {
+        if (confirm('آیا می‌خواهید تحلیل پیشرفته با GPT-4.1 انجام دهید؟ این تحلیل کیفیت بالاتری دارد.')) {
+            // شروع پردازش پیشرفته
+            fetch(`/store/analysis/${analysisId}/start-advanced-ai-processing/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('تحلیل پیشرفته با GPT-4.1 شروع شد! لطفاً چند دقیقه صبر کنید.');
+                    // هدایت به صفحه پردازش
+                    window.location.href = `/store/analysis/${analysisId}/processing-status/`;
+                } else {
+                    alert('خطا در شروع تحلیل: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('خطا:', error);
+                alert('خطا در ارتباط با سرور');
+            });
+        }
     }
 });
 </script>

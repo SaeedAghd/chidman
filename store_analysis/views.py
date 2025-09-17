@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from django.core.paginator import Paginator
@@ -15,8 +15,15 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from .models import StoreAnalysis, StoreBasicInfo, DetailedAnalysis, StoreAnalysisResult, PricingPlan, DiscountCode, Order, AnalysisRequest, PromotionalBanner, Payment, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, AIConsultantSession, AIConsultantQuestion, AIConsultantPayment
+from .models import StoreAnalysis, StoreBasicInfo, DetailedAnalysis, StoreAnalysisResult, PricingPlan, DiscountCode, Order, AnalysisRequest, PromotionalBanner, Payment, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, AIConsultantSession, AIConsultantQuestion, AIConsultantPayment, FAQ, FAQCategory, SupportTicket, TicketMessage, TicketTemplate, Wallet, Transaction
+from .admin_views import pricing_management, discount_management, support_ticket_management, system_analytics
 from .ai_analysis import StoreAnalysisAI
+from .ai_services.advanced_ai_manager import AdvancedAIManager
+from .services.faq_service import FAQService
+from .admin_views import (
+    pricing_management, discount_management, support_ticket_management,
+    system_analytics, create_discount_code, toggle_discount_status, assign_ticket
+)
 # from .forms import StoreAnalysisForm, ProfessionalStoreAnalysisForm
 
 # Import های جدید برای PDF و تاریخ شمسی
@@ -2156,7 +2163,15 @@ def process_payment(request, order_id):
             order = get_object_or_404(Order, order_id=order_id, user=request.user)
             payment_method = request.POST.get('payment_method', 'online')
             
-            # شبیه‌سازی پرداخت موفق
+            # بررسی نوع پرداخت
+            if payment_method == 'wallet':
+                # هدایت به صفحه پرداخت کیف پول
+                return redirect('store_analysis:wallet_payment', order_id=order_id)
+            elif payment_method == 'online':
+                # هدایت به زرین‌پال
+                return redirect('store_analysis:zarinpal_payment', order_id=order_id)
+            
+            # شبیه‌سازی پرداخت موفق (برای سایر روش‌ها)
             # در واقعیت باید با درگاه پرداخت ارتباط برقرار شود
             
             # ایجاد رکورد پرداخت
@@ -2193,6 +2208,109 @@ def process_payment(request, order_id):
             messages.error(request, f'خطا در پردازش پرداخت: {str(e)}')
             return redirect('store_analysis:payment_page', order_id=order_id)
     
+    return redirect('store_analysis:payment_page', order_id=order_id)
+
+
+@login_required
+def zarinpal_payment(request, order_id):
+    """پرداخت از طریق زرین‌پال"""
+    try:
+        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        
+        # استفاده از درگاه زرین‌پال
+        from .payment_gateways import PaymentGatewayManager
+        
+        gateway_manager = PaymentGatewayManager()
+        zarinpal = gateway_manager.get_gateway('zarinpal')
+        
+        # ایجاد درخواست پرداخت
+        payment_request = zarinpal.create_payment_request(
+            amount=int(order.final_amount),
+            description=f'پرداخت سفارش {order.order_id} - تحلیل فروشگاه',
+            callback_url=request.build_absolute_uri(
+                reverse('store_analysis:zarinpal_callback', args=[order_id])
+            )
+        )
+        
+        if payment_request['status'] == 'success':
+            # ذخیره اطلاعات پرداخت
+            payment = Payment.objects.create(
+                order=order,
+                amount=order.final_amount,
+                payment_method='zarinpal',
+                status='pending',
+                transaction_id=payment_request['authority']
+            )
+            
+            # هدایت به صفحه پرداخت زرین‌پال
+            return redirect(payment_request['payment_url'])
+        else:
+            messages.error(request, f'خطا در ایجاد درخواست پرداخت: {payment_request.get("message", "خطای نامشخص")}')
+            return redirect('store_analysis:payment_page', order_id=order_id)
+            
+    except Exception as e:
+        messages.error(request, f'خطا در پردازش پرداخت: {str(e)}')
+        return redirect('store_analysis:payment_page', order_id=order_id)
+
+
+@login_required
+def zarinpal_callback(request, order_id):
+    """بازگشت از زرین‌پال"""
+    try:
+        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        authority = request.GET.get('Authority')
+        status = request.GET.get('Status')
+        
+        if status == 'OK' and authority:
+            # تایید پرداخت
+            from .payment_gateways import PaymentGatewayManager
+            
+            gateway_manager = PaymentGatewayManager()
+            zarinpal = gateway_manager.get_gateway('zarinpal')
+            
+            verification_result = zarinpal.verify_payment(
+                authority=authority,
+                amount=int(order.final_amount)
+            )
+            
+            if verification_result['status'] == 'success':
+                # پرداخت موفق
+                payment = Payment.objects.get(
+                    order=order,
+                    transaction_id=authority
+                )
+                payment.status = 'completed'
+                payment.save()
+                
+                # به‌روزرسانی وضعیت سفارش
+                order.status = 'paid'
+                order.payment_method = 'zarinpal'
+                order.transaction_id = authority
+                order.save()
+                
+                # واریز مبلغ به کیف پول کاربر (اختیاری)
+                try:
+                    wallet, created = Wallet.objects.get_or_create(
+                        user=request.user,
+                        defaults={'balance': 0, 'is_active': True}
+                    )
+                    # واریز 5% از مبلغ به عنوان پاداش
+                    bonus_amount = int(order.final_amount * 0.05)
+                    wallet.deposit(bonus_amount, f'پاداش پرداخت سفارش {order.order_id}')
+                except:
+                    pass  # اگر واریز پاداش ناموفق بود، ادامه بده
+                
+                messages.success(request, f'پرداخت سفارش {order.order_id} با موفقیت انجام شد!')
+                return redirect('store_analysis:order_analysis_results', order_id=order_id)
+            else:
+                messages.error(request, f'پرداخت ناموفق: {verification_result.get("message", "خطای نامشخص")}')
+        else:
+            messages.error(request, 'پرداخت لغو شد')
+            
+        return redirect('store_analysis:payment_page', order_id=order_id)
+        
+    except Exception as e:
+        messages.error(request, f'خطا در تایید پرداخت: {str(e)}')
     return redirect('store_analysis:payment_page', order_id=order_id)
 
 @login_required
@@ -2532,6 +2650,301 @@ def start_ollama_processing(request, pk):
     except Exception as e:
         logger.error(f"خطا در شروع پردازش: {e}")
         return JsonResponse({'status': 'error', 'message': f'خطا در شروع پردازش: {str(e)}'})
+
+@login_required
+def start_advanced_ai_processing(request, pk):
+    """شروع پردازش پیشرفته با GPT-4.1"""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Method not allowed'})
+    
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    try:
+        analysis_data = analysis.analysis_data
+        if not analysis_data:
+            return JsonResponse({'status': 'error', 'message': 'داده‌های تحلیل موجود نیست'})
+        
+        # تغییر وضعیت به در حال پردازش
+        analysis.status = 'processing'
+        analysis.save()
+        
+        # شروع پردازش پیشرفته در background
+        import threading
+        def process_advanced_analysis():
+            try:
+                # استفاده از Advanced AI Manager
+                ai_manager = AdvancedAIManager()
+                advanced_analysis = ai_manager.start_advanced_analysis(analysis_data)
+                
+                # به‌روزرسانی نتایج
+                analysis.results = advanced_analysis
+                analysis.status = 'completed'
+                analysis.preliminary_analysis = advanced_analysis.get('final_report', 'تحلیل پیشرفته با GPT-4.1 تولید شد.')
+                analysis.save()
+                
+                # به‌روزرسانی StoreAnalysisResult
+                from .models import StoreAnalysisResult
+                StoreAnalysisResult.objects.update_or_create(
+                    store_analysis=analysis,
+                    defaults={
+                        'overall_score': 85.0,  # امتیاز بالاتر برای تحلیل پیشرفته
+                        'layout_score': 85.0,
+                        'traffic_score': 85.0,
+                        'design_score': 85.0,
+                        'sales_score': 85.0,
+                        'layout_analysis': str(advanced_analysis.get('detailed_analyses', {})),
+                        'traffic_analysis': str(advanced_analysis.get('ai_provider', 'liara')),
+                        'design_analysis': str(advanced_analysis.get('models_used', [])),
+                        'sales_analysis': str(advanced_analysis.get('analysis_quality', 'premium')),
+                        'overall_analysis': str(advanced_analysis.get('final_report', '')),
+                    }
+                )
+            except Exception as e:
+                logger.error(f"خطا در پردازش تحلیل پیشرفته: {e}")
+                analysis.status = 'failed'
+                analysis.save()
+        
+        # شروع پردازش در thread جداگانه
+        thread = threading.Thread(target=process_advanced_analysis)
+        thread.daemon = True
+        thread.start()
+        
+        return JsonResponse({'status': 'success', 'message': f'پردازش پیشرفته "{analysis.store_name}" با GPT-4.1 شروع شد!'})
+    except Exception as e:
+        logger.error(f"خطا در شروع پردازش پیشرفته: {e}")
+        return JsonResponse({'status': 'error', 'message': f'خطا در شروع پردازش: {str(e)}'})
+
+
+# ==================== سیستم تیکت پشتیبانی ====================
+
+def support_center(request):
+    """مرکز پشتیبانی - صفحه اصلی"""
+    try:
+        faq_service = FAQService()
+        
+        # دریافت دسته‌بندی‌ها
+        categories = faq_service.get_faq_categories()
+        
+        # دریافت سوالات محبوب
+        popular_faqs = faq_service.get_popular_faqs(limit=6)
+        
+        # دریافت تیکت‌های کاربر (اگر وارد شده باشد)
+        user_tickets = []
+        if request.user.is_authenticated:
+            user_tickets = SupportTicket.objects.filter(user=request.user).order_by('-created_at')[:5]
+        
+        context = {
+            'categories': categories,
+            'popular_faqs': popular_faqs,
+            'user_tickets': user_tickets,
+        }
+        
+        return render(request, 'store_analysis/support_center.html', context)
+        
+    except Exception as e:
+        logger.error(f"خطا در support_center: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return render(request, 'store_analysis/support_center.html', {})
+
+
+def faq_search(request):
+    """جستجو در سوالات متداول"""
+    try:
+        query = request.GET.get('q', '').strip()
+        category_id = request.GET.get('category', None)
+        
+        faq_service = FAQService()
+        
+        if query:
+            results = faq_service.search_faqs(query, category_id, limit=20)
+        else:
+            results = []
+        
+        # دریافت دسته‌بندی‌ها برای فیلتر
+        categories = faq_service.get_faq_categories()
+        
+        context = {
+            'query': query,
+            'category_id': category_id,
+            'results': results,
+            'categories': categories,
+        }
+        
+        return render(request, 'store_analysis/faq_search.html', context)
+        
+    except Exception as e:
+        logger.error(f"خطا در faq_search: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return render(request, 'store_analysis/faq_search.html', {'results': []})
+
+
+def faq_detail(request, faq_id):
+    """جزئیات سوال متداول"""
+    try:
+        faq_service = FAQService()
+        
+        # دریافت FAQ
+        faq = faq_service.get_faq_by_id(faq_id)
+        if not faq:
+            messages.error(request, 'سوال مورد نظر یافت نشد.')
+            return redirect('store_analysis:support_center')
+        
+        # دریافت سوالات مرتبط
+        related_faqs = faq_service.get_related_faqs(faq_id, limit=3)
+        
+        context = {
+            'faq': faq,
+            'related_faqs': related_faqs,
+        }
+        
+        return render(request, 'store_analysis/faq_detail.html', context)
+        
+    except Exception as e:
+        logger.error(f"خطا در faq_detail: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return redirect('store_analysis:support_center')
+
+
+@login_required
+def create_ticket(request):
+    """ایجاد تیکت جدید"""
+    try:
+        if request.method == 'POST':
+            # دریافت داده‌ها
+            category = request.POST.get('category', 'general')
+            subject = request.POST.get('subject', '').strip()
+            description = request.POST.get('description', '').strip()
+            priority = request.POST.get('priority', 'medium')
+            
+            # اعتبارسنجی
+            if not subject or not description:
+                messages.error(request, 'لطفاً تمام فیلدهای ضروری را پر کنید.')
+                return render(request, 'store_analysis/create_ticket.html', {
+                    'categories': SupportTicket.CATEGORY_CHOICES,
+                    'priorities': SupportTicket.PRIORITY_CHOICES,
+                })
+            
+            # ایجاد تیکت
+            ticket = SupportTicket.objects.create(
+                user=request.user,
+                category=category,
+                subject=subject,
+                description=description,
+                priority=priority
+            )
+            
+            # ایجاد پیام اولیه
+            TicketMessage.objects.create(
+                ticket=ticket,
+                sender=request.user,
+                message_type='user',
+                content=description
+            )
+            
+            messages.success(request, f'تیکت شما با شناسه #{ticket.ticket_id} ایجاد شد.')
+            return redirect('store_analysis:ticket_detail', ticket_id=ticket.ticket_id)
+        
+        # نمایش فرم
+        context = {
+            'categories': SupportTicket.CATEGORY_CHOICES,
+            'priorities': SupportTicket.PRIORITY_CHOICES,
+        }
+        
+        return render(request, 'store_analysis/create_ticket.html', context)
+        
+    except Exception as e:
+        logger.error(f"خطا در create_ticket: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return render(request, 'store_analysis/create_ticket.html', {
+            'categories': SupportTicket.CATEGORY_CHOICES,
+            'priorities': SupportTicket.PRIORITY_CHOICES,
+        })
+
+
+@login_required
+def ticket_list(request):
+    """لیست تیکت‌های کاربر"""
+    try:
+        tickets = SupportTicket.objects.filter(user=request.user).order_by('-created_at')
+        
+        # فیلتر بر اساس وضعیت
+        status_filter = request.GET.get('status', '')
+        if status_filter:
+            tickets = tickets.filter(status=status_filter)
+        
+        # صفحه‌بندی
+        paginator = Paginator(tickets, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            'page_obj': page_obj,
+            'status_choices': SupportTicket.STATUS_CHOICES,
+            'current_status': status_filter,
+        }
+        
+        return render(request, 'store_analysis/ticket_list.html', context)
+        
+    except Exception as e:
+        logger.error(f"خطا در ticket_list: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return render(request, 'store_analysis/ticket_list.html', {})
+
+
+@login_required
+def ticket_detail(request, ticket_id):
+    """جزئیات تیکت"""
+    try:
+        ticket = get_object_or_404(SupportTicket, ticket_id=ticket_id, user=request.user)
+        messages_list = TicketMessage.objects.filter(ticket=ticket).order_by('created_at')
+        
+        if request.method == 'POST':
+            content = request.POST.get('content', '').strip()
+            if content:
+                # ایجاد پیام جدید
+                TicketMessage.objects.create(
+                    ticket=ticket,
+                    sender=request.user,
+                    message_type='user',
+                    content=content
+                )
+                
+                # به‌روزرسانی وضعیت تیکت
+                if ticket.status == 'waiting_user':
+                    ticket.status = 'open'
+                    ticket.save()
+                
+                messages.success(request, 'پیام شما ارسال شد.')
+                return redirect('store_analysis:ticket_detail', ticket_id=ticket_id)
+        
+        context = {
+            'ticket': ticket,
+            'messages': messages_list,
+        }
+        
+        return render(request, 'store_analysis/ticket_detail.html', context)
+        
+    except Exception as e:
+        logger.error(f"خطا در ticket_detail: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return redirect('store_analysis:ticket_list')
+
+
+def suggest_faqs_api(request):
+    """API پیشنهاد سوالات متداول"""
+    try:
+        query = request.GET.get('q', '').strip()
+        
+        if not query or len(query) < 2:
+            return JsonResponse({'suggestions': []})
+        
+        faq_service = FAQService()
+        suggestions = faq_service.suggest_faqs(query, limit=5)
+        
+        return JsonResponse({'suggestions': suggestions})
+        
+    except Exception as e:
+        logger.error(f"خطا در suggest_faqs_api: {e}")
+        return JsonResponse({'suggestions': []})
 
 @login_required
 def check_processing_status(request, pk):
@@ -3274,13 +3687,28 @@ def store_analysis_result(request):
 
 @login_required
 def admin_dashboard(request):
-    """داشبورد ادمین - هدایت به داشبورد حرفه‌ای"""
+    """داشبورد ادمین حرفه‌ای"""
     if not request.user.is_staff:
         messages.error(request, 'دسترسی غیرمجاز')
         return redirect('home')
     
-    # هدایت به داشبورد حرفه‌ای که برای ادمین‌ها مناسب است
-    return redirect('store_analysis:user_dashboard')
+    # آمار کلی سیستم
+    from .admin_dashboard import AdminDashboard
+    stats = AdminDashboard.get_dashboard_stats()
+    activities = AdminDashboard.get_recent_activities()
+    chart_data = AdminDashboard.get_chart_data()
+    
+    context = {
+        'stats': stats,
+        'recent_activities': activities,
+        'chart_labels': chart_data['days'],
+        'chart_users_data': chart_data['analyses'],
+        'chart_analyses_data': chart_data['tickets'],
+        'title': 'داشبورد ادمین',
+        'is_admin': True,
+    }
+    
+    return render(request, 'store_analysis/admin/admin_dashboard.html', context)
 
 
 @login_required
@@ -4516,5 +4944,314 @@ def consultant_payment_failed(request, session_id):
         logger.error(f"Error in consultant_payment_failed: {e}")
         messages.error(request, 'خطا در پردازش')
         return redirect('store_analysis:user_dashboard')
+
+
+# ==================== سیستم کیف پول ====================
+
+@login_required
+def wallet_dashboard(request):
+    """داشبورد کیف پول کاربر"""
+    try:
+        # دریافت یا ایجاد کیف پول
+        wallet, created = Wallet.objects.get_or_create(
+            user=request.user,
+            defaults={'balance': 0, 'is_active': True}
+        )
+        
+        # دریافت آخرین تراکنش‌ها
+        recent_transactions = Transaction.objects.filter(wallet=wallet)[:10]
+        
+        # آمار تراکنش‌ها
+        from django.db import models
+        total_deposits = Transaction.objects.filter(
+            wallet=wallet, 
+            transaction_type='deposit',
+            status='completed'
+        ).aggregate(total=models.Sum('amount'))['total'] or 0
+        
+        total_withdrawals = Transaction.objects.filter(
+            wallet=wallet, 
+            transaction_type__in=['withdraw', 'payment'],
+            status='completed'
+        ).aggregate(total=models.Sum('amount'))['total'] or 0
+        
+        context = {
+            'wallet': wallet,
+            'recent_transactions': recent_transactions,
+            'total_deposits': total_deposits,
+            'total_withdrawals': total_withdrawals,
+            'created': created
+        }
+        
+        return render(request, 'store_analysis/wallet_dashboard.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'خطا در بارگذاری کیف پول: {str(e)}')
+        return redirect('store_analysis:user_dashboard')
+
+
+@login_required
+def wallet_transactions(request):
+    """لیست تراکنش‌های کیف پول"""
+    try:
+        wallet = get_object_or_404(Wallet, user=request.user)
+        
+        # فیلترها
+        transaction_type = request.GET.get('type', '')
+        status = request.GET.get('status', '')
+        
+        # دریافت تراکنش‌ها
+        transactions = Transaction.objects.filter(wallet=wallet)
+        
+        if transaction_type:
+            transactions = transactions.filter(transaction_type=transaction_type)
+        
+        if status:
+            transactions = transactions.filter(status=status)
+        
+        # صفحه‌بندی
+        paginator = Paginator(transactions, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            'wallet': wallet,
+            'page_obj': page_obj,
+            'transaction_type': transaction_type,
+            'status': status,
+            'transaction_types': Transaction.TRANSACTION_TYPES,
+            'status_choices': Transaction.STATUS_CHOICES,
+        }
+        
+        return render(request, 'store_analysis/wallet_transactions.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'خطا در بارگذاری تراکنش‌ها: {str(e)}')
+        return redirect('store_analysis:wallet_dashboard')
+
+
+@login_required
+def deposit_to_wallet(request):
+    """واریز به کیف پول"""
+    if request.method == 'POST':
+        try:
+            amount = Decimal(request.POST.get('amount', 0))
+            description = request.POST.get('description', 'واریز دستی')
+            
+            if amount <= 0:
+                messages.error(request, 'مبلغ باید مثبت باشد')
+                return redirect('store_analysis:wallet_dashboard')
+            
+            # دریافت یا ایجاد کیف پول
+            wallet, created = Wallet.objects.get_or_create(
+                user=request.user,
+                defaults={'balance': 0, 'is_active': True}
+            )
+            
+            # واریز
+            new_balance = wallet.deposit(amount, description)
+            
+            messages.success(request, f'مبلغ {amount:,} تومان با موفقیت واریز شد. موجودی جدید: {new_balance:,} تومان')
+            return redirect('store_analysis:wallet_dashboard')
+            
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f'خطا در واریز: {str(e)}')
+    
+    return render(request, 'store_analysis/deposit_to_wallet.html')
+
+
+@login_required
+def withdraw_from_wallet(request):
+    """برداشت از کیف پول"""
+    if request.method == 'POST':
+        try:
+            amount = Decimal(request.POST.get('amount', 0))
+            description = request.POST.get('description', 'برداشت دستی')
+            
+            if amount <= 0:
+                messages.error(request, 'مبلغ باید مثبت باشد')
+                return redirect('store_analysis:wallet_dashboard')
+            
+            wallet = get_object_or_404(Wallet, user=request.user)
+            
+            # برداشت
+            new_balance = wallet.withdraw(amount, description)
+            
+            messages.success(request, f'مبلغ {amount:,} تومان با موفقیت برداشت شد. موجودی جدید: {new_balance:,} تومان')
+            return redirect('store_analysis:wallet_dashboard')
+            
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f'خطا در برداشت: {str(e)}')
+    
+    return render(request, 'store_analysis/withdraw_from_wallet.html')
+
+
+@login_required
+def wallet_payment(request, order_id):
+    """پرداخت از کیف پول"""
+    try:
+        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        wallet = get_object_or_404(Wallet, user=request.user)
+        
+        if request.method == 'POST':
+            # بررسی موجودی
+            if not wallet.can_withdraw(order.total_amount):
+                messages.error(request, 'موجودی کیف پول کافی نیست')
+                return redirect('store_analysis:order_detail', order_id=order_id)
+            
+            # برداشت از کیف پول
+            wallet.withdraw(order.total_amount, f'پرداخت سفارش {order.order_id}')
+            
+            # ایجاد پرداخت
+            payment = Payment.objects.create(
+                order=order,
+                amount=order.total_amount,
+                payment_method='wallet',
+                status='completed',
+                transaction_id=f'WALLET_{order.order_id}_{timezone.now().strftime("%Y%m%d%H%M%S")}'
+            )
+            
+            # تغییر وضعیت سفارش
+            order.status = 'paid'
+            order.save()
+            
+            messages.success(request, f'پرداخت سفارش {order.order_id} با موفقیت انجام شد')
+            return redirect('store_analysis:order_detail', order_id=order_id)
+        
+        context = {
+            'order': order,
+            'wallet': wallet,
+        }
+        
+        return render(request, 'store_analysis/wallet_payment.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'خطا در پرداخت: {str(e)}')
+        return redirect('store_analysis:user_dashboard')
+
+
+# ==================== مدیریت کیف پول برای ادمین ====================
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_wallet_management(request):
+    """مدیریت کیف پول‌ها برای ادمین"""
+    try:
+        # فیلترها
+        username = request.GET.get('username', '')
+        min_balance = request.GET.get('min_balance', '')
+        max_balance = request.GET.get('max_balance', '')
+        
+        # دریافت کیف پول‌ها
+        wallets = Wallet.objects.select_related('user').all()
+        
+        if username:
+            wallets = wallets.filter(user__username__icontains=username)
+        
+        if min_balance:
+            wallets = wallets.filter(balance__gte=min_balance)
+        
+        if max_balance:
+            wallets = wallets.filter(balance__lte=max_balance)
+        
+        # آمار کلی
+        from django.db import models
+        total_wallets = Wallet.objects.count()
+        total_balance = Wallet.objects.aggregate(total=models.Sum('balance'))['total'] or 0
+        active_wallets = Wallet.objects.filter(is_active=True).count()
+        
+        # صفحه‌بندی
+        paginator = Paginator(wallets, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            'page_obj': page_obj,
+            'username': username,
+            'min_balance': min_balance,
+            'max_balance': max_balance,
+            'total_wallets': total_wallets,
+            'total_balance': total_balance,
+            'active_wallets': active_wallets,
+        }
+        
+        return render(request, 'store_analysis/admin/wallet_management.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'خطا در بارگذاری مدیریت کیف پول: {str(e)}')
+        return redirect('store_analysis:admin_dashboard')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_wallet_detail(request, wallet_id):
+    """جزئیات کیف پول برای ادمین"""
+    try:
+        wallet = get_object_or_404(Wallet, id=wallet_id)
+        
+        # تراکنش‌های کیف پول
+        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at')
+        
+        # آمار تراکنش‌ها
+        from django.db import models
+        transaction_stats = {
+            'total_deposits': transactions.filter(transaction_type='deposit').aggregate(total=models.Sum('amount'))['total'] or 0,
+            'total_withdrawals': transactions.filter(transaction_type__in=['withdraw', 'payment']).aggregate(total=models.Sum('amount'))['total'] or 0,
+            'total_transactions': transactions.count(),
+        }
+        
+        context = {
+            'wallet': wallet,
+            'transactions': transactions[:50],  # آخرین 50 تراکنش
+            'transaction_stats': transaction_stats,
+        }
+        
+        return render(request, 'store_analysis/admin/wallet_detail.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'خطا در بارگذاری جزئیات کیف پول: {str(e)}')
+        return redirect('store_analysis:admin_wallet_management')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_adjust_wallet(request, wallet_id):
+    """تنظیم موجودی کیف پول توسط ادمین"""
+    if request.method == 'POST':
+        try:
+            wallet = get_object_or_404(Wallet, id=wallet_id)
+            action = request.POST.get('action')  # 'add' or 'subtract'
+            amount = Decimal(request.POST.get('amount', 0))
+            description = request.POST.get('description', '')
+            
+            if amount <= 0:
+                messages.error(request, 'مبلغ باید مثبت باشد')
+                return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
+            
+            if action == 'add':
+                new_balance = wallet.deposit(amount, f'تنظیم ادمین: {description}')
+                messages.success(request, f'مبلغ {amount:,} تومان اضافه شد. موجودی جدید: {new_balance:,} تومان')
+            elif action == 'subtract':
+                if not wallet.can_withdraw(amount):
+                    messages.error(request, 'موجودی کافی نیست')
+                    return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
+                
+                new_balance = wallet.withdraw(amount, f'تنظیم ادمین: {description}')
+                messages.success(request, f'مبلغ {amount:,} تومان کسر شد. موجودی جدید: {new_balance:,} تومان')
+            else:
+                messages.error(request, 'عملیات نامعتبر')
+            
+            return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
+            
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f'خطا در تنظیم موجودی: {str(e)}')
+    
+    return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
 
 

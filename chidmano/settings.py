@@ -218,8 +218,30 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1.0.0')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 
 # Payment Gateway Settings
-ZARINPAL_MERCHANT_ID = os.getenv('ZARINPAL_MERCHANT_ID', '')
+ZARINPAL_MERCHANT_ID = os.getenv('ZARINPAL_MERCHANT_ID', 'test-merchant-id')
 ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
+
+# Liara AI Settings
+LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', '')
+USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
+FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
+
+# AI Analysis Settings
+AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour
+AI_ANALYSIS_MAX_RETRIES = 3
+AI_ANALYSIS_TIMEOUT = 30
+
+# Email Settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@chidmano.com')
+
+# Site Settings
+SITE_URL = os.getenv('SITE_URL', 'https://chidmano.liara.app')
 
 # Authentication settings
 LOGIN_URL = '/accounts/login/'

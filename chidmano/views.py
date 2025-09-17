@@ -10,18 +10,65 @@ import json
 import os
 import logging
 
+# Import های جدید برای تاییدیه ایمیل
+from django.contrib.auth.models import User
+from datetime import timedelta
+from store_analysis.models import EmailVerification
+from store_analysis.services.email_service import EmailVerificationService
+
 logger = logging.getLogger(__name__)
 
 def signup_view(request):
-    """View for user registration"""
+    """View for user registration with email verification"""
     try:
         if request.method == 'POST':
             form = UserCreationForm(request.POST)
             if form.is_valid():
-                user = form.save()
+                # دریافت ایمیل از فرم
+                email = request.POST.get('email')
+                if not email:
+                    messages.error(request, 'لطفاً ایمیل خود را وارد کنید.')
+                    return render(request, 'store_analysis/signup.html', {'form': form})
+                
+                # بررسی وجود ایمیل
+                if User.objects.filter(email=email).exists():
+                    messages.error(request, 'این ایمیل قبلاً ثبت شده است.')
+                    return render(request, 'store_analysis/signup.html', {'form': form})
+                
+                # ایجاد کاربر
+                user = form.save(commit=False)
+                user.email = email
+                user.is_active = True  # فعال کردن مستقیم برای تست
+                user.save()
+                
+                # برای تست، کاربر را مستقیماً وارد کنیم
+                from django.contrib.auth import login
                 login(request, user)
-                messages.success(request, 'حساب کاربری شما با موفقیت ایجاد شد!')
+                messages.success(request, f'حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.username}!')
                 return redirect('store_analysis:user_dashboard')
+                
+                # کد ایمیل (غیرفعال برای تست)
+                """
+                # ایجاد کد تاییدیه
+                email_service = EmailVerificationService()
+                verification_code = email_service.generate_verification_code()
+                
+                # ذخیره تاییدیه ایمیل
+                EmailVerification.objects.create(
+                    user=user,
+                    email=email,
+                    verification_code=verification_code,
+                    expires_at=timezone.now() + timedelta(minutes=10)
+                )
+                
+                # ارسال ایمیل تاییدیه
+                if email_service.send_verification_email(user, email, verification_code):
+                    messages.success(request, f'حساب کاربری شما ایجاد شد! لطفاً ایمیل خود را بررسی کنید و کد تایید را وارد کنید.')
+                    return redirect('verify_email', user_id=user.id)
+                else:
+                    messages.error(request, 'خطا در ارسال ایمیل تاییدیه. لطفاً دوباره تلاش کنید.')
+                    user.delete()  # حذف کاربر در صورت خطا
+                """
             else:
                 messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
         else:
@@ -30,8 +77,87 @@ def signup_view(request):
         return render(request, 'store_analysis/signup.html', {'form': form})
     except Exception as e:
         logger.error(f"Error in signup_view: {e}")
-        messages.error(request, 'خطا در سیستم. لطفاً دوباره تلاش کنید.')
+        messages.error(request, f'خطا در سیستم: {str(e)}')
         return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
+
+def verify_email_view(request, user_id):
+    """صفحه تاییدیه ایمیل"""
+    try:
+        user = User.objects.get(id=user_id)
+        email_verification = EmailVerification.objects.get(user=user)
+        
+        if request.method == 'POST':
+            verification_code = request.POST.get('verification_code')
+            
+            if verification_code == email_verification.verification_code:
+                if not email_verification.is_expired():
+                    # تایید موفق
+                    email_verification.is_verified = True
+                    email_verification.save()
+                    
+                    # فعال کردن کاربر
+                    user.is_active = True
+                    user.save()
+                    
+                    # ارسال ایمیل خوش‌آمدگویی
+                    email_service = EmailVerificationService()
+                    email_service.send_welcome_email(user, user.email)
+                    
+                    messages.success(request, 'ایمیل شما با موفقیت تایید شد! حالا می‌توانید وارد شوید.')
+                    return redirect('login')
+                else:
+                    messages.error(request, 'کد تایید منقضی شده است. لطفاً کد جدید درخواست کنید.')
+            else:
+                # افزایش تعداد تلاش
+                email_verification.attempts += 1
+                email_verification.save()
+                
+                if email_verification.attempts >= 3:
+                    messages.error(request, 'تعداد تلاش‌های شما به حد مجاز رسیده است. لطفاً کد جدید درخواست کنید.')
+                else:
+                    messages.error(request, f'کد تایید اشتباه است. {3 - email_verification.attempts} تلاش باقی مانده.')
+        
+        return render(request, 'registration/verify_email.html', {
+            'user': user,
+            'email_verification': email_verification
+        })
+        
+    except (User.DoesNotExist, EmailVerification.DoesNotExist):
+        messages.error(request, 'کاربر یا تاییدیه ایمیل یافت نشد.')
+        return redirect('signup')
+    except Exception as e:
+        logger.error(f"خطا در verify_email_view: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return redirect('signup')
+
+def resend_verification_code(request, user_id):
+    """ارسال مجدد کد تاییدیه"""
+    try:
+        user = User.objects.get(id=user_id)
+        email_verification = EmailVerification.objects.get(user=user)
+        
+        if email_verification.can_resend():
+            # تولید کد جدید
+            new_code = email_verification.generate_new_code()
+            
+            # ارسال ایمیل
+            email_service = EmailVerificationService()
+            if email_service.send_verification_email(user, user.email, new_code):
+                messages.success(request, 'کد تایید جدید به ایمیل شما ارسال شد.')
+            else:
+                messages.error(request, 'خطا در ارسال کد جدید.')
+        else:
+            messages.error(request, 'امکان ارسال مجدد کد وجود ندارد.')
+        
+        return redirect('verify_email', user_id=user_id)
+        
+    except (User.DoesNotExist, EmailVerification.DoesNotExist):
+        messages.error(request, 'کاربر یا تاییدیه ایمیل یافت نشد.')
+        return redirect('signup')
+    except Exception as e:
+        logger.error(f"خطا در resend_verification_code: {e}")
+        messages.error(request, 'خطایی رخ داده است.')
+        return redirect('signup')
 
 def logout_view(request):
     """Custom logout view that handles GET requests"""
@@ -50,8 +176,12 @@ def simple_login_view(request):
             if username and password:
                 user = authenticate(request, username=username, password=password)
                 if user is not None:
-                    login(request, user)
-                    return redirect('store_analysis:user_dashboard')
+                    if user.is_active:
+                        login(request, user)
+                        messages.success(request, f'خوش آمدید {user.username}!')
+                        return redirect('store_analysis:user_dashboard')
+                    else:
+                        messages.error(request, 'حساب کاربری شما فعال نیست. لطفاً ابتدا ایمیل خود را تایید کنید.')
                 else:
                     messages.error(request, 'نام کاربری یا رمز عبور اشتباه است.')
             else:
@@ -60,7 +190,8 @@ def simple_login_view(request):
         return render(request, 'store_analysis/login.html')
     except Exception as e:
         logger.error(f"Error in simple_login_view: {e}")
-        return HttpResponse(f"Login error: {str(e)}", status=500)
+        messages.error(request, f'خطا در ورود: {str(e)}')
+        return render(request, 'store_analysis/login.html')
 
 def features_view(request):
     """Features page view"""

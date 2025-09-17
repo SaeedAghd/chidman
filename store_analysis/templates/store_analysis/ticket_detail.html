@@ -1,0 +1,220 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}تیکت #{{ ticket.ticket_id }} - چیدمانو{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- هدر تیکت -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="display-6 fw-bold text-primary mb-2">
+                                <i class="fas fa-ticket-alt me-3"></i>تیکت #{{ ticket.ticket_id }}
+                            </h1>
+                            <h4 class="text-dark mb-3">{{ ticket.subject }}</h4>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-{% if ticket.status == 'open' %}success{% elif ticket.status == 'in_progress' %}warning{% elif ticket.status == 'waiting_user' %}info{% elif ticket.status == 'resolved' %}primary{% else %}secondary{% endif %} fs-6">
+                                    {{ ticket.get_status_display }}
+                                </span>
+                                <span class="badge bg-{% if ticket.priority == 'urgent' %}danger{% elif ticket.priority == 'high' %}warning{% elif ticket.priority == 'medium' %}info{% else %}secondary{% endif %} fs-6">
+                                    {{ ticket.get_priority_display }}
+                                </span>
+                                <span class="badge bg-info fs-6">{{ ticket.get_category_display }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="text-muted">
+                                <small>ایجاد شده در:</small><br>
+                                <strong>{{ ticket.created_at|date:"Y/m/d H:i" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- پیام‌های تیکت -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-comments me-2"></i>مکالمه
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if messages %}
+                            <div class="p-4">
+                                {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <!-- لیست پیام‌ها -->
+                            <div class="p-4" style="max-height: 500px; overflow-y: auto;">
+                                {% for message in messages %}
+                                <div class="d-flex mb-4 {% if message.message_type == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+                                    <div class="card {% if message.message_type == 'user' %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 70%;">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-0">
+                                                    {% if message.message_type == 'user' %}
+                                                        <i class="fas fa-user me-1"></i>شما
+                                                    {% elif message.message_type == 'admin' %}
+                                                        <i class="fas fa-user-shield me-1"></i>پشتیبانی
+                                                    {% else %}
+                                                        <i class="fas fa-robot me-1"></i>سیستم
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="opacity-75">{{ message.created_at|date:"H:i" }}</small>
+                                            </div>
+                                            <p class="card-text mb-0">{{ message.content|linebreaks }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- فرم پاسخ -->
+                    {% if ticket.status != 'closed' %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-reply me-2"></i>ارسال پاسخ
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="content" class="form-label">پیام شما</label>
+                                    <textarea class="form-control" 
+                                              id="content" 
+                                              name="content" 
+                                              rows="4" 
+                                              placeholder="پیام خود را بنویسید..."
+                                              required></textarea>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>ارسال پیام
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- سایدبار اطلاعات -->
+                <div class="col-lg-4">
+                    <!-- اطلاعات تیکت -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>اطلاعات تیکت
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">شناسه تیکت</label>
+                                    <p class="mb-0">#{{ ticket.ticket_id }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">وضعیت</label>
+                                    <p class="mb-0">
+                                        <span class="badge bg-{% if ticket.status == 'open' %}success{% elif ticket.status == 'in_progress' %}warning{% elif ticket.status == 'waiting_user' %}info{% elif ticket.status == 'resolved' %}primary{% else %}secondary{% endif %}">
+                                            {{ ticket.get_status_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">اولویت</label>
+                                    <p class="mb-0">
+                                        <span class="badge bg-{% if ticket.priority == 'urgent' %}danger{% elif ticket.priority == 'high' %}warning{% elif ticket.priority == 'medium' %}info{% else %}secondary{% endif %}">
+                                            {{ ticket.get_priority_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">دسته‌بندی</label>
+                                    <p class="mb-0">{{ ticket.get_category_display }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">تاریخ ایجاد</label>
+                                    <p class="mb-0">{{ ticket.created_at|date:"Y/m/d H:i" }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">آخرین به‌روزرسانی</label>
+                                    <p class="mb-0">{{ ticket.updated_at|date:"Y/m/d H:i" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- توضیحات اولیه -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-file-alt me-2"></i>توضیحات اولیه
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0">{{ ticket.description|linebreaks }}</p>
+                        </div>
+                    </div>
+
+                    <!-- اقدامات -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-tools me-2"></i>اقدامات
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'store_analysis:ticket_list' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-list me-2"></i>لیست تیکت‌ها
+                                </a>
+                                <a href="{% url 'store_analysis:create_ticket' %}" class="btn btn-outline-success">
+                                    <i class="fas fa-plus me-2"></i>تیکت جدید
+                                </a>
+                                <a href="{% url 'store_analysis:support_center' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-headset me-2"></i>مرکز پشتیبانی
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // اسکرول به آخرین پیام
+    const messagesContainer = document.querySelector('.p-4[style*="overflow-y"]');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    // فوکوس روی textarea
+    const contentTextarea = document.getElementById('content');
+    if (contentTextarea) {
+        contentTextarea.focus();
+    }
+});
+</script>
+{% endblock %}

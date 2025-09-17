@@ -39,7 +39,6 @@ class StoreAnalysisTestCase(TestCase):
             store_name='فروشگاه تست',
             store_type='supermarket',
             store_size=500,
-            shelf_count=20,
             status='pending'
         )
 

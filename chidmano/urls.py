@@ -17,6 +17,8 @@ urlpatterns = [
     
     # مسیرهای احراز هویت
     path('accounts/signup/', views.signup_view, name='signup'),
+    path('accounts/verify-email/<int:user_id>/', views.verify_email_view, name='verify_email'),
+    path('accounts/resend-code/<int:user_id>/', views.resend_verification_code, name='resend_verification_code'),
     path('accounts/login/', views.simple_login_view, name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(

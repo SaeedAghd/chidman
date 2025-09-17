@@ -34,7 +34,26 @@ urlpatterns = [
     path('analysis/<int:pk>/reprocess-ollama/', views.reprocess_analysis_with_ollama, name='reprocess_analysis_with_ollama'),
     path('analysis/<int:pk>/processing-status/', views.processing_status, name='processing_status'),
     path('analysis/<int:pk>/start-ollama-processing/', views.start_ollama_processing, name='start_ollama_processing'),
+    path('analysis/<int:pk>/start-advanced-ai-processing/', views.start_advanced_ai_processing, name='start_advanced_ai_processing'),
     path('analysis/<int:pk>/check-processing-status/', views.check_processing_status, name='check_processing_status'),
+    
+    # سیستم تیکت پشتیبانی
+    path('support/', views.support_center, name='support_center'),
+    path('support/faq/search/', views.faq_search, name='faq_search'),
+    path('support/faq/<int:faq_id>/', views.faq_detail, name='faq_detail'),
+    path('support/ticket/create/', views.create_ticket, name='create_ticket'),
+    path('support/tickets/', views.ticket_list, name='ticket_list'),
+    path('support/ticket/<str:ticket_id>/', views.ticket_detail, name='ticket_detail'),
+    path('api/suggest-faqs/', views.suggest_faqs_api, name='suggest_faqs_api'),
+    
+    # Admin management URLs
+    path('admin/pricing/', views.pricing_management, name='admin_pricing'),
+    path('admin/discounts/', views.discount_management, name='admin_discounts'),
+    path('admin/support-tickets/', views.support_ticket_management, name='admin_support_tickets'),
+    path('admin/analytics/', views.system_analytics, name='admin_analytics'),
+    path('admin/api/create-discount/', views.create_discount_code, name='admin_create_discount'),
+    path('admin/api/toggle-discount/<int:discount_id>/', views.toggle_discount_status, name='admin_toggle_discount'),
+    path('admin/api/assign-ticket/<int:ticket_id>/', views.assign_ticket, name='admin_assign_ticket'),
     
     # Dashboard URLs
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
@@ -46,8 +65,10 @@ urlpatterns = [
     
     # Admin URLs
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('admin/pricing/', views.admin_pricing_management, name='admin_pricing_management'),
-    path('admin/discounts/', views.admin_discount_management, name='admin_discount_management'),
+    path('admin/pricing/', views.pricing_management, name='admin_pricing'),
+    path('admin/discounts/', views.discount_management, name='admin_discounts'),
+    path('admin/support-tickets/', views.support_ticket_management, name='admin_support_tickets'),
+    path('admin/analytics/', views.system_analytics, name='admin_analytics'),
     path('admin/banners/', views.admin_promotional_banner_management, name='admin_promotional_banner_management'),
     
     # Payment and Analysis URLs
@@ -81,4 +102,20 @@ urlpatterns = [
     path('consultant/process-payment/<uuid:session_id>/', views.process_consultant_payment, name='process_consultant_payment'),
     path('consultant/payment-success/<uuid:session_id>/', views.consultant_payment_success, name='consultant_payment_success'),
     path('consultant/payment-failed/<uuid:session_id>/', views.consultant_payment_failed, name='consultant_payment_failed'),
+    
+    # سیستم کیف پول
+    path('wallet/', views.wallet_dashboard, name='wallet_dashboard'),
+    path('wallet/transactions/', views.wallet_transactions, name='wallet_transactions'),
+    path('wallet/deposit/', views.deposit_to_wallet, name='deposit_to_wallet'),
+    path('wallet/withdraw/', views.withdraw_from_wallet, name='withdraw_from_wallet'),
+    path('wallet/payment/<str:order_id>/', views.wallet_payment, name='wallet_payment'),
+    
+    # مدیریت کیف پول برای ادمین
+    path('admin/wallets/', views.admin_wallet_management, name='admin_wallet_management'),
+    path('admin/wallet/<int:wallet_id>/', views.admin_wallet_detail, name='admin_wallet_detail'),
+    path('admin/wallet/<int:wallet_id>/adjust/', views.admin_adjust_wallet, name='admin_adjust_wallet'),
+    
+    # پرداخت زرین‌پال
+    path('payment/zarinpal/<str:order_id>/', views.zarinpal_payment, name='zarinpal_payment'),
+    path('payment/zarinpal/callback/<str:order_id>/', views.zarinpal_callback, name='zarinpal_callback'),
 ]

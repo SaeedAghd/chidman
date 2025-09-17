@@ -1,0 +1,402 @@
+{% extends "store_analysis/base.html" %}
+{% load static %}
+
+{% block title %}تراکنش‌های کیف پول - چیدمانو{% endblock %}
+
+{% block extra_css %}
+<style>
+    .transactions-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .transactions-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .transactions-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .transactions-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .filters-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .filters-title {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+    
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        align-items: end;
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #333;
+        font-size: 0.9rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn-filter {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+    }
+    
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-clear {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        font-weight: bold;
+    }
+    
+    .btn-clear:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    .transactions-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+    
+    .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.3s ease;
+    }
+    
+    .transaction-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px 15px;
+    }
+    
+    .transaction-item:last-child {
+        border-bottom: none;
+    }
+    
+    .transaction-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex: 1;
+    }
+    
+    .transaction-icon {
+        font-size: 2rem;
+        width: 60px;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 50%;
+        padding: 10px;
+    }
+    
+    .transaction-details h6 {
+        margin: 0 0 5px 0;
+        font-weight: bold;
+        color: #333;
+        font-size: 1.1rem;
+    }
+    
+    .transaction-details p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .transaction-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+    }
+    
+    .transaction-amount {
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .transaction-amount.positive {
+        color: #28a745;
+    }
+    
+    .transaction-amount.negative {
+        color: #dc3545;
+    }
+    
+    .transaction-date {
+        color: #666;
+        font-size: 0.8rem;
+    }
+    
+    .transaction-status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-failed {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .no-transactions {
+        text-align: center;
+        color: #666;
+        padding: 60px 20px;
+        font-style: italic;
+    }
+    
+    .no-transactions-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 10px 15px;
+        margin: 0 5px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+    }
+    
+    .pagination a:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .pagination .current {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .wallet-summary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .wallet-balance {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .wallet-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="transactions-container">
+    <!-- هدر تراکنش‌ها -->
+    <div class="transactions-header">
+        <h1 class="transactions-title">📊 تراکنش‌های کیف پول</h1>
+        <p class="transactions-subtitle">مشاهده تمام تراکنش‌های کیف پول شما</p>
+    </div>
+    
+    <!-- خلاصه کیف پول -->
+    <div class="wallet-summary">
+        <div class="wallet-balance">{{ wallet.get_balance_display }}</div>
+        <div class="wallet-label">موجودی فعلی کیف پول</div>
+    </div>
+    
+    <!-- فیلترها -->
+    <div class="filters-section">
+        <h3 class="filters-title">🔍 فیلترها</h3>
+        
+        <form method="get" class="filter-form">
+            <div class="form-group">
+                <label class="form-label">نوع تراکنش</label>
+                <select name="type" class="form-control">
+                    <option value="">همه انواع</option>
+                    {% for value, label in transaction_types %}
+                        <option value="{{ value }}" {% if transaction_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">وضعیت</label>
+                <select name="status" class="form-control">
+                    <option value="">همه وضعیت‌ها</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn-filter">🔍 فیلتر</button>
+                <a href="{% url 'store_analysis:wallet_transactions' %}" class="btn-clear">🔄 پاک کردن</a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- لیست تراکنش‌ها -->
+    <div class="transactions-section">
+        <h3 class="section-title">📋 لیست تراکنش‌ها</h3>
+        
+        {% if page_obj %}
+            {% for transaction in page_obj %}
+            <div class="transaction-item">
+                <div class="transaction-info">
+                    <div class="transaction-icon">{{ transaction.get_transaction_icon }}</div>
+                    <div class="transaction-details">
+                        <h6>{{ transaction.get_transaction_type_display }}</h6>
+                        <p>{{ transaction.description }}</p>
+                        {% if transaction.reference_id %}
+                            <small class="text-muted">شناسه مرجع: {{ transaction.reference_id }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="transaction-meta">
+                    <div class="transaction-amount {% if transaction.is_positive %}positive{% else %}negative{% endif %}">
+                        {% if transaction.is_positive %}+{% else %}-{% endif %}{{ transaction.get_amount_display }}
+                    </div>
+                    <div class="transaction-date">{{ transaction.created_at|date:"Y/m/d H:i" }}</div>
+                    <div class="transaction-status status-{{ transaction.status }}">
+                        {{ transaction.get_status_display }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- صفحه‌بندی -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if transaction_type %}&type={{ transaction_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">اول</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if transaction_type %}&type={{ transaction_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">قبلی</a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="current">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% if transaction_type %}&type={{ transaction_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if transaction_type %}&type={{ transaction_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">بعدی</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if transaction_type %}&type={{ transaction_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}">آخر</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="no-transactions">
+                <div class="no-transactions-icon">📭</div>
+                <h4>هیچ تراکنشی یافت نشد</h4>
+                <p>با فیلترهای انتخابی هیچ تراکنشی پیدا نشد.</p>
+                <a href="{% url 'store_analysis:wallet_dashboard' %}" class="btn-filter">بازگشت به کیف پول</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

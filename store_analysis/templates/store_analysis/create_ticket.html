@@ -1,0 +1,208 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}ایجاد تیکت پشتیبانی - چیدمانو{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- هدر -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center py-4">
+                    <h1 class="display-5 fw-bold text-primary mb-3">
+                        <i class="fas fa-ticket-alt me-3"></i>ایجاد تیکت پشتیبانی
+                    </h1>
+                    <p class="lead text-muted">
+                        مشکل یا سوال خود را با ما در میان بگذارید. تیم پشتیبانی در اسرع وقت پاسخ شما را خواهند داد.
+                    </p>
+                </div>
+            </div>
+
+            <!-- فرم ایجاد تیکت -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- دسته‌بندی -->
+                        <div class="mb-4">
+                            <label for="category" class="form-label fw-semibold">
+                                <i class="fas fa-tags me-2 text-primary"></i>دسته‌بندی
+                            </label>
+                            <select class="form-select form-select-lg" id="category" name="category" required>
+                                <option value="">انتخاب کنید...</option>
+                                {% for value, label in categories %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- اولویت -->
+                        <div class="mb-4">
+                            <label for="priority" class="form-label fw-semibold">
+                                <i class="fas fa-exclamation-triangle me-2 text-primary"></i>اولویت
+                            </label>
+                            <select class="form-select form-select-lg" id="priority" name="priority" required>
+                                {% for value, label in priorities %}
+                                <option value="{{ value }}" {% if value == 'medium' %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- موضوع -->
+                        <div class="mb-4">
+                            <label for="subject" class="form-label fw-semibold">
+                                <i class="fas fa-heading me-2 text-primary"></i>موضوع
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="subject" 
+                                   name="subject" 
+                                   placeholder="موضوع تیکت خود را بنویسید..."
+                                   required
+                                   maxlength="200">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                موضوع باید کوتاه و واضح باشد
+                            </div>
+                        </div>
+
+                        <!-- توضیحات -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">
+                                <i class="fas fa-align-right me-2 text-primary"></i>توضیحات
+                            </label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="8" 
+                                      placeholder="توضیحات کامل مشکل یا سوال خود را بنویسید..."
+                                      required></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                هرچه توضیحات دقیق‌تر باشد، پاسخ سریع‌تر دریافت خواهید کرد
+                            </div>
+                        </div>
+
+                        <!-- راهنمایی -->
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-lightbulb me-2"></i>راهنمایی
+                            </h6>
+                            <ul class="mb-0">
+                                <li>قبل از ایجاد تیکت، سوالات متداول را بررسی کنید</li>
+                                <li>توضیحات خود را کامل و دقیق بنویسید</li>
+                                <li>در صورت امکان، تصاویر یا فایل‌های مرتبط را ذکر کنید</li>
+                                <li>تیکت‌های فوری فقط برای مشکلات جدی استفاده شود</li>
+                            </ul>
+                        </div>
+
+                        <!-- دکمه‌ها -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'store_analysis:support_center' %}" class="btn btn-outline-secondary btn-lg me-md-2">
+                                <i class="fas fa-arrow-right me-2"></i>بازگشت
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>ارسال تیکت
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- راهنمای دسته‌بندی‌ها -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-light border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>راهنمای دسته‌بندی‌ها
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">عمومی</h6>
+                            <p class="small text-muted">سوالات کلی و عمومی</p>
+                            
+                            <h6 class="text-primary">فنی</h6>
+                            <p class="small text-muted">مشکلات فنی و تکنیکی</p>
+                            
+                            <h6 class="text-primary">پرداخت</h6>
+                            <p class="small text-muted">مشکلات مربوط به پرداخت</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">درخواست ویژگی</h6>
+                            <p class="small text-muted">پیشنهادات و درخواست‌های جدید</p>
+                            
+                            <h6 class="text-primary">گزارش باگ</h6>
+                            <p class="small text-muted">گزارش مشکلات و خطاها</p>
+                            
+                            <h6 class="text-primary">حساب کاربری</h6>
+                            <p class="small text-muted">مشکلات مربوط به حساب کاربری</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // اعتبارسنجی فرم
+    const form = document.querySelector('form');
+    const subjectInput = document.getElementById('subject');
+    const descriptionInput = document.getElementById('description');
+    
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // بررسی موضوع
+        if (subjectInput.value.trim().length < 5) {
+            alert('موضوع باید حداقل 5 کاراکتر باشد');
+            isValid = false;
+        }
+        
+        // بررسی توضیحات
+        if (descriptionInput.value.trim().length < 20) {
+            alert('توضیحات باید حداقل 20 کاراکتر باشد');
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+    
+    // شمارش کاراکترها
+    function updateCharCount(input, minLength) {
+        const currentLength = input.value.length;
+        const remaining = minLength - currentLength;
+        
+        if (remaining > 0) {
+            input.classList.add('is-invalid');
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    }
+    
+    subjectInput.addEventListener('input', function() {
+        updateCharCount(this, 5);
+    });
+    
+    descriptionInput.addEventListener('input', function() {
+        updateCharCount(this, 20);
+    });
+});
+</script>
+{% endblock %}

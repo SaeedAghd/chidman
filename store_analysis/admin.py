@@ -13,7 +13,9 @@ from .models import (
     StoreAnalysis, StoreAnalysisResult, DetailedAnalysis, Payment, 
     Article, ArticleCategory, StoreBasicInfo, StoreLayout, StoreTraffic, 
     StoreDesign, StoreSurveillance, StoreProducts, AIConsultantSession, 
-    AIConsultantQuestion, AIConsultantPayment
+    AIConsultantQuestion, AIConsultantPayment, DiscountCode, EmailVerification,
+    FAQCategory, FAQ, SupportTicket, TicketMessage, TicketTemplate,
+    Wallet, Transaction
 )
 
 # --- Custom Filters ---
@@ -665,6 +667,288 @@ class AIConsultantPaymentAdmin(admin.ModelAdmin):
         }),
     )
 
-admin.site.site_header = "مدیریت سیستم تحلیل فروشگاه"
-admin.site.site_title = "تحلیل فروشگاه"
-admin.site.index_title = "پنل مدیریت"
+# --- Discount Code Admin ---
+@admin.register(DiscountCode)
+class DiscountCodeAdmin(admin.ModelAdmin):
+    """مدیریت کدهای تخفیف"""
+    list_display = [
+        'code', 'discount_type', 'percentage', 'fixed_amount', 'event_type',
+        'max_usage', 'used_count', 'is_active', 'valid_from', 'valid_until'
+    ]
+    list_filter = ['discount_type', 'event_type', 'is_active', 'valid_from', 'valid_until']
+    search_fields = ['code', 'event_type']
+    list_editable = ['is_active']
+    readonly_fields = ['used_count', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('اطلاعات کد تخفیف', {
+            'fields': ('code', 'event_type')
+        }),
+        ('نوع تخفیف', {
+            'fields': ('discount_type', 'percentage', 'fixed_amount')
+        }),
+        ('محدودیت‌ها', {
+            'fields': ('max_usage', 'used_count')
+        }),
+        ('زمان‌بندی', {
+            'fields': ('valid_from', 'valid_until', 'is_active')
+        }),
+        ('زمان ایجاد', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+# --- Email Verification Admin ---
+@admin.register(EmailVerification)
+class EmailVerificationAdmin(admin.ModelAdmin):
+    """مدیریت تاییدیه‌های ایمیل"""
+    list_display = [
+        'user', 'email', 'verification_code', 'is_verified', 
+        'attempts', 'expires_at', 'created_at'
+    ]
+    list_filter = ['is_verified', 'created_at', 'expires_at']
+    search_fields = ['user__username', 'user__email', 'email']
+    readonly_fields = ['verification_code', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('اطلاعات کاربر', {
+            'fields': ('user', 'email')
+        }),
+        ('تاییدیه', {
+            'fields': ('verification_code', 'is_verified', 'attempts')
+        }),
+        ('زمان‌بندی', {
+            'fields': ('expires_at', 'created_at', 'updated_at')
+        }),
+    )
+
+# --- FAQ Category Admin ---
+@admin.register(FAQCategory)
+class FAQCategoryAdmin(admin.ModelAdmin):
+    """مدیریت دسته‌بندی‌های سوالات متداول"""
+    list_display = ['name', 'icon', 'order', 'is_active', 'get_faq_count']
+    list_filter = ['is_active']
+    search_fields = ['name', 'description']
+    list_editable = ['order', 'is_active']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def get_faq_count(self, obj):
+        return obj.faqs.count()
+    get_faq_count.short_description = 'تعداد سوالات'
+
+# --- FAQ Admin ---
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    """مدیریت سوالات متداول"""
+    list_display = [
+        'question_short', 'category', 'view_count', 'is_active', 
+        'order', 'created_at'
+    ]
+    list_filter = ['category', 'is_active', 'created_at']
+    search_fields = ['question', 'answer', 'keywords']
+    list_editable = ['is_active', 'order']
+    readonly_fields = ['view_count', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('اطلاعات سوال', {
+            'fields': ('category', 'question', 'order', 'is_active')
+        }),
+        ('پاسخ', {
+            'fields': ('answer',)
+        }),
+        ('کلمات کلیدی', {
+            'fields': ('keywords',)
+        }),
+        ('آمار', {
+            'fields': ('view_count',)
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def question_short(self, obj):
+        return obj.question[:50] + '...' if len(obj.question) > 50 else obj.question
+    question_short.short_description = 'سوال'
+
+# --- Support Ticket Admin ---
+@admin.register(SupportTicket)
+class SupportTicketAdmin(admin.ModelAdmin):
+    """مدیریت تیکت‌های پشتیبانی"""
+    list_display = [
+        'ticket_id', 'user', 'subject_short', 'category', 'priority', 
+        'status', 'assigned_to', 'created_at'
+    ]
+    list_filter = ['category', 'priority', 'status', 'assigned_to', 'created_at']
+    search_fields = ['ticket_id', 'subject', 'description', 'user__username']
+    list_editable = ['status', 'assigned_to']
+    readonly_fields = ['ticket_id', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('اطلاعات تیکت', {
+            'fields': ('ticket_id', 'user', 'category', 'subject')
+        }),
+        ('محتوا', {
+            'fields': ('description',)
+        }),
+        ('وضعیت', {
+            'fields': ('priority', 'status', 'assigned_to')
+        }),
+        ('پیوست‌ها و برچسب‌ها', {
+            'fields': ('attachments', 'tags'),
+            'classes': ('collapse',)
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def subject_short(self, obj):
+        return obj.subject[:30] + '...' if len(obj.subject) > 30 else obj.subject
+    subject_short.short_description = 'موضوع'
+
+# --- Ticket Message Admin ---
+@admin.register(TicketMessage)
+class TicketMessageAdmin(admin.ModelAdmin):
+    """مدیریت پیام‌های تیکت"""
+    list_display = [
+        'ticket', 'sender', 'message_type', 'content_short', 
+        'is_internal', 'created_at'
+    ]
+    list_filter = ['message_type', 'is_internal', 'created_at']
+    search_fields = ['content', 'ticket__ticket_id', 'sender__username']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('اطلاعات پیام', {
+            'fields': ('ticket', 'sender', 'message_type', 'is_internal')
+        }),
+        ('محتوا', {
+            'fields': ('content',)
+        }),
+        ('پیوست‌ها', {
+            'fields': ('attachments',),
+            'classes': ('collapse',)
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def content_short(self, obj):
+        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
+    content_short.short_description = 'محتوا'
+
+# --- Ticket Template Admin ---
+@admin.register(TicketTemplate)
+class TicketTemplateAdmin(admin.ModelAdmin):
+    """مدیریت قالب‌های پاسخ تیکت"""
+    list_display = [
+        'name', 'category', 'is_active', 'created_at'
+    ]
+    list_filter = ['category', 'is_active', 'created_at']
+    search_fields = ['name', 'content', 'keywords']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('اطلاعات قالب', {
+            'fields': ('name', 'category', 'is_active')
+        }),
+        ('محتوا', {
+            'fields': ('content',)
+        }),
+        ('کلمات کلیدی', {
+            'fields': ('keywords',)
+        }),
+        ('آمار', {
+            'fields': ()
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+# --- تنظیمات Admin Site ---
+admin.site.site_header = "مدیریت سیستم تحلیل فروشگاه چیدمانو"
+admin.site.site_title = "چیدمانو - پنل مدیریت"
+admin.site.index_title = "پنل مدیریت حرفه‌ای"
+
+# Import dashboard
+from .admin_dashboard import admin_dashboard_view
+
+
+# ==================== سیستم کیف پول ====================
+
+@admin.register(Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    list_display = [
+        'user', 'balance_display', 'is_active', 'created_at', 'updated_at'
+    ]
+    list_filter = ['is_active', 'created_at', 'updated_at']
+    search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('اطلاعات کیف پول', {
+            'fields': ('user', 'balance', 'is_active')
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def balance_display(self, obj):
+        return f"{obj.balance:,} تومان"
+    balance_display.short_description = 'موجودی'
+    balance_display.admin_order_field = 'balance'
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = [
+        'wallet_user', 'transaction_type', 'amount_display', 'status', 
+        'description', 'created_at'
+    ]
+    list_filter = ['transaction_type', 'status', 'created_at']
+    search_fields = [
+        'wallet__user__username', 'wallet__user__email', 
+        'description', 'reference_id'
+    ]
+    list_editable = ['status']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('اطلاعات تراکنش', {
+            'fields': ('wallet', 'transaction_type', 'amount', 'description')
+        }),
+        ('وضعیت و مرجع', {
+            'fields': ('status', 'reference_id', 'order')
+        }),
+        ('موجودی پس از تراکنش', {
+            'fields': ('balance_after',)
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def wallet_user(self, obj):
+        return obj.wallet.user.username
+    wallet_user.short_description = 'کاربر'
+    wallet_user.admin_order_field = 'wallet__user__username'
+    
+    def amount_display(self, obj):
+        return f"{obj.amount:,} تومان"
+    amount_display.short_description = 'مبلغ'
+    amount_display.admin_order_field = 'amount'

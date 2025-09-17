@@ -1,58 +1,657 @@
-{% extends 'admin/base_site.html' %}
-{% load static %}
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Dashboard ادمین - چیدمانو{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<!-- Modern UI Framework -->
+<link rel="stylesheet" href="{% static 'css/modern-ui.css' %}">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ApexCharts -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<style>
+    /* Admin Dashboard Specific Styles */
+    .admin-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        min-height: 100vh;
+        padding: 2rem;
+        font-family: var(--font-family-primary);
+    }
+
+    .dashboard-header {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-2xl);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: var(--shadow-soft);
+        color: white;
+    }
+
+    .dashboard-title {
+        font-size: var(--font-size-4xl);
+        font-weight: var(--font-weight-extrabold);
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, #fff, #f0f0f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .dashboard-subtitle {
+        font-size: var(--font-size-lg);
+        opacity: 0.9;
+        font-weight: var(--font-weight-light);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-2xl);
+        padding: 2rem;
+        box-shadow: var(--shadow-soft);
+        transition: var(--transition-bounce);
+        position: relative;
+        overflow: hidden;
+        color: white;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--success-gradient);
+        transform: scaleX(0);
+        transition: transform var(--transition-normal);
+    }
+
+    .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .stat-card.success::before { background: var(--success-gradient); }
+    .stat-card.warning::before { background: var(--warning-gradient); }
+    .stat-card.danger::before { background: var(--danger-gradient); }
+    .stat-card.info::before { background: var(--info-gradient); }
+
+    .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: var(--font-weight-extrabold);
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, #fff, #f0f0f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        font-size: var(--font-size-base);
+        opacity: 0.8;
+        font-weight: var(--font-weight-medium);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-change {
+        font-size: var(--font-size-sm);
+        opacity: 0.7;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-change.positive { color: #4ade80; }
+    .stat-change.negative { color: #f87171; }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .chart-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-2xl);
+        padding: 2rem;
+        box-shadow: var(--shadow-soft);
+        color: white;
+    }
+
+    .chart-title {
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 1.5rem;
+        background: linear-gradient(45deg, #fff, #f0f0f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .recent-activities {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-2xl);
+        padding: 2rem;
+        box-shadow: var(--shadow-soft);
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: var(--transition-normal);
+    }
+
+    .activity-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-radius: var(--radius-lg);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        font-size: 1.5rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--glass-bg);
+        border-radius: 50%;
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: var(--font-weight-semibold);
+        margin-bottom: 0.25rem;
+        color: white;
+    }
+
+    .activity-description {
+        font-size: var(--font-size-sm);
+        opacity: 0.7;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: var(--font-size-xs);
+        opacity: 0.6;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .quick-action {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-soft);
+        transition: var(--transition-bounce);
+        color: white;
+        text-decoration: none;
+    }
+
+    .quick-action:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: var(--shadow-hover);
+        color: white;
+        text-decoration: none;
+    }
+
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .quick-action-title {
+        font-weight: var(--font-weight-semibold);
+        font-size: var(--font-size-base);
+    }
+
+    .system-status {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-2xl);
+        padding: 2rem;
+        box-shadow: var(--shadow-soft);
+        color: white;
+    }
+
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .status-item:last-child {
+        border-bottom: none;
+    }
+
+    .status-label {
+        font-weight: var(--font-weight-medium);
+    }
+
+    .status-value {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-full);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    .status-value.online {
+        background: rgba(74, 222, 128, 0.2);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    .status-value.offline {
+        background: rgba(248, 113, 113, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .status-value.warning {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .admin-dashboard {
+            padding: 1rem;
+        }
+        
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Loading Animation */
+    .loading-shimmer {
+        background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4 text-primary">داشبورد مدیریتی چیدمانو</h1>
-    <div class="row g-4 mb-4">
-        <div class="col-md-2">
-            <div class="card text-center bg-primary text-white shadow">
-                <div class="card-body">
-                    <h5 class="card-title">کل تحلیل‌ها</h5>
-                    <p class="display-6 fw-bold">{{ total_analyses }}</p>
-                </div>
+<div class="admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">🎛️ Dashboard ادمین</h1>
+        <p class="dashboard-subtitle">مدیریت و مانیتورینگ سیستم چیدمانو</p>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card success">
+            <span class="stat-icon">👥</span>
+            <div class="stat-number">{{ stats.total_users }}</div>
+            <div class="stat-label">کل کاربران</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +{{ stats.new_users_today }} امروز
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card text-center bg-warning text-dark shadow">
-                <div class="card-body">
-                    <h5 class="card-title">در انتظار</h5>
-                    <p class="display-6 fw-bold">{{ pending }}</p>
-                </div>
+
+        <div class="stat-card info">
+            <span class="stat-icon">📊</span>
+            <div class="stat-number">{{ stats.total_analyses }}</div>
+            <div class="stat-label">کل تحلیل‌ها</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +{{ stats.analyses_today }} امروز
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card text-center bg-info text-white shadow">
-                <div class="card-body">
-                    <h5 class="card-title">در حال پردازش</h5>
-                    <p class="display-6 fw-bold">{{ processing }}</p>
-                </div>
+
+        <div class="stat-card warning">
+            <span class="stat-icon">🎫</span>
+            <div class="stat-number">{{ stats.open_tickets }}</div>
+            <div class="stat-label">تیکت‌های باز</div>
+            <div class="stat-change {% if stats.new_tickets_today > 0 %}negative{% else %}positive{% endif %}">
+                <i class="fas fa-arrow-{% if stats.new_tickets_today > 0 %}up{% else %}down{% endif %}"></i>
+                {{ stats.new_tickets_today }} جدید
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card text-center bg-success text-white shadow">
-                <div class="card-body">
-                    <h5 class="card-title">تکمیل شده</h5>
-                    <p class="display-6 fw-bold">{{ completed }}</p>
-                </div>
+
+        <div class="stat-card success">
+            <span class="stat-icon">💰</span>
+            <div class="stat-number">{{ stats.total_revenue|floatformat:0 }}</div>
+            <div class="stat-label">درآمد کل (تومان)</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +{{ stats.revenue_today|floatformat:0 }} امروز
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card text-center bg-danger text-white shadow">
-                <div class="card-body">
-                    <h5 class="card-title">ناموفق</h5>
-                    <p class="display-6 fw-bold">{{ failed }}</p>
-                </div>
+
+        <div class="stat-card info">
+            <span class="stat-icon">💳</span>
+            <div class="stat-number">{{ stats.total_wallets }}</div>
+            <div class="stat-label">کیف پول‌ها</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                {{ stats.active_wallets }} فعال
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card text-center bg-secondary text-white shadow">
-                <div class="card-body">
-                    <h5 class="card-title">کاربران فعال</h5>
-                    <p class="display-6 fw-bold">{{ users }}</p>
-                </div>
+
+        <div class="stat-card warning">
+            <span class="stat-icon">🔄</span>
+            <div class="stat-number">{{ stats.processing_analyses }}</div>
+            <div class="stat-label">در حال پردازش</div>
+            <div class="stat-change {% if stats.processing_analyses > 5 %}negative{% else %}positive{% endif %}">
+                <i class="fas fa-clock"></i>
+                {{ stats.avg_processing_time }} دقیقه
             </div>
         </div>
     </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3 class="chart-title">📈 آمار کاربران و تحلیل‌ها</h3>
+            <canvas id="analyticsChart" width="400" height="200"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3 class="chart-title">💰 درآمد ماهانه</h3>
+            <canvas id="revenueChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="recent-activities">
+        <h3 class="chart-title">🕒 فعالیت‌های اخیر</h3>
+        {% for activity in recent_activities %}
+        <div class="activity-item">
+            <div class="activity-icon">{{ activity.icon }}</div>
+            <div class="activity-content">
+                <div class="activity-title">{{ activity.title }}</div>
+                <div class="activity-description">{{ activity.description }}</div>
+                <div class="activity-time">{{ activity.time|timesince }} پیش</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'admin:store_analysis_user_changelist' %}" class="quick-action">
+            <span class="quick-action-icon">👥</span>
+            <div class="quick-action-title">مدیریت کاربران</div>
+        </a>
+
+        <a href="{% url 'admin:store_analysis_storeanalysis_changelist' %}" class="quick-action">
+            <span class="quick-action-icon">📊</span>
+            <div class="quick-action-title">مدیریت تحلیل‌ها</div>
+        </a>
+
+        <a href="{% url 'admin:store_analysis_supportticket_changelist' %}" class="quick-action">
+            <span class="quick-action-icon">🎫</span>
+            <div class="quick-action-title">تیکت‌های پشتیبانی</div>
+        </a>
+
+        <a href="{% url 'admin:store_analysis_wallet_changelist' %}" class="quick-action">
+            <span class="quick-action-icon">💳</span>
+            <div class="quick-action-title">مدیریت کیف پول‌ها</div>
+        </a>
+
+        <a href="{% url 'admin:store_analysis_discountcode_changelist' %}" class="quick-action">
+            <span class="quick-action-icon">🎟️</span>
+            <div class="quick-action-title">کدهای تخفیف</div>
+        </a>
+
+        <a href="{% url 'admin:store_analysis_payment_changelist' %}" class="quick-action">
+            <span class="quick-action-icon">💸</span>
+            <div class="quick-action-title">پرداخت‌ها</div>
+        </a>
+    </div>
+
+    <!-- System Status -->
+    <div class="system-status">
+        <h3 class="chart-title">⚙️ وضعیت سیستم</h3>
+        <div class="status-item">
+            <span class="status-label">سرور اصلی</span>
+            <span class="status-value online">آنلاین</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">پایگاه داده</span>
+            <span class="status-value online">آنلاین</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">هوش مصنوعی</span>
+            <span class="status-value online">آنلاین</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">درگاه پرداخت</span>
+            <span class="status-value online">آنلاین</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">ایمیل</span>
+            <span class="status-value warning">محدود</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">فضای ذخیره‌سازی</span>
+            <span class="status-value online">{{ stats.storage_usage }}%</span>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Analytics Chart
+    const analyticsCtx = document.getElementById('analyticsChart').getContext('2d');
+    new Chart(analyticsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'کاربران جدید',
+                data: {{ chart_users_data|safe }},
+                borderColor: '#4ade80',
+                backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'تحلیل‌های جدید',
+                data: {{ chart_analyses_data|safe }},
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'white'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['پرداخت‌های موفق', 'در انتظار', 'لغو شده'],
+            datasets: [{
+                data: [{{ stats.successful_payments }}, {{ stats.pending_payments }}, {{ stats.cancelled_payments }}],
+                backgroundColor: [
+                    'rgba(74, 222, 128, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(248, 113, 113, 0.8)'
+                ],
+                borderColor: [
+                    '#4ade80',
+                    '#ffc107',
+                    '#f87171'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'white'
+                    }
+                }
+            }
+        }
+    });
+
+    // Auto refresh every 30 seconds
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+
+    // Add click animations
+    document.querySelectorAll('.stat-card, .quick-action').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+});
+
+// Add CSS for ripple effect
+const style = document.createElement('style');
+style.textContent = `
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+    }
+    
+    @keyframes ripple-animation {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}جستجو در سوالات متداول - چیدمانو{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- هدر -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center py-4">
+                    <h1 class="display-5 fw-bold text-primary mb-3">
+                        <i class="fas fa-search me-3"></i>جستجو در سوالات متداول
+                    </h1>
+                    <p class="lead text-muted">
+                        سوال خود را جستجو کنید تا پاسخ مناسب را پیدا کنید
+                    </p>
+                </div>
+            </div>
+
+            <!-- فرم جستجو -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   name="q" 
+                                   value="{{ query }}"
+                                   placeholder="سوال خود را بنویسید...">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="category" class="form-select form-select-lg">
+                                <option value="">همه دسته‌ها</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category.id|stringformat:"s" == category_id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- نتایج جستجو -->
+            {% if query %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>نتایج جستجو برای "{{ query }}"
+                        <span class="badge bg-primary ms-2">{{ results|length }} نتیجه</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if results %}
+                    <div class="list-group list-group-flush">
+                        {% for result in results %}
+                        <div class="list-group-item border-0 px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2">
+                                        <a href="{% url 'store_analysis:faq_detail' result.id %}" 
+                                           class="text-decoration-none">
+                                            {{ result.question }}
+                                        </a>
+                                    </h6>
+                                    <p class="mb-2 text-muted">{{ result.answer|truncatewords:30 }}</p>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-info me-2">
+                                            <i class="{{ result.category.icon }} me-1"></i>
+                                            {{ result.category.name }}
+                                        </span>
+                                        <small class="text-muted">
+                                            <i class="fas fa-eye me-1"></i>{{ result.view_count }} بازدید
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <a href="{% url 'store_analysis:faq_detail' result.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>مشاهده
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted mb-3">نتیجه‌ای یافت نشد</h5>
+                        <p class="text-muted mb-4">
+                            متأسفانه برای جستجوی "{{ query }}" نتیجه‌ای پیدا نشد.
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'store_analysis:create_ticket' %}" class="btn btn-primary">
+                                <i class="fas fa-ticket-alt me-2"></i>ایجاد تیکت
+                            </a>
+                            <a href="{% url 'store_analysis:support_center' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-right me-2"></i>بازگشت
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- دسته‌بندی‌ها -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-th-large me-2"></i>دسته‌بندی‌ها
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if categories %}
+                    <div class="row">
+                        {% for category in categories %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="{{ category.icon }} text-primary mb-3" style="font-size: 2rem;"></i>
+                                    <h6 class="card-title">{{ category.name }}</h6>
+                                    <p class="card-text text-muted small">{{ category.description|truncatewords:10 }}</p>
+                                    <a href="{% url 'store_analysis:faq_search' %}?category={{ category.id }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>مشاهده ({{ category.faq_count }})
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle text-muted mb-3" style="font-size: 2rem;"></i>
+                        <p class="text-muted">هنوز دسته‌بندی‌ای اضافه نشده است.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
