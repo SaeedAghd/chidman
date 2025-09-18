@@ -46,15 +46,6 @@ urlpatterns = [
     path('support/ticket/<str:ticket_id>/', views.ticket_detail, name='ticket_detail'),
     path('api/suggest-faqs/', views.suggest_faqs_api, name='suggest_faqs_api'),
     
-    # Admin management URLs
-    path('admin/pricing/', views.pricing_management, name='admin_pricing'),
-    path('admin/discounts/', views.discount_management, name='admin_discounts'),
-    path('admin/support-tickets/', views.support_ticket_management, name='admin_support_tickets'),
-    path('admin/analytics/', views.system_analytics, name='admin_analytics'),
-    path('admin/api/create-discount/', views.create_discount_code, name='admin_create_discount'),
-    path('admin/api/toggle-discount/<int:discount_id>/', views.toggle_discount_status, name='admin_toggle_discount'),
-    path('admin/api/assign-ticket/<int:ticket_id>/', views.assign_ticket, name='admin_assign_ticket'),
-    
     # Dashboard URLs
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
     path('analysis/<int:pk>/download-detailed-pdf/', views.download_detailed_pdf, name='download_detailed_pdf'),
@@ -70,6 +61,9 @@ urlpatterns = [
     path('admin/support-tickets/', views.support_ticket_management, name='admin_support_tickets'),
     path('admin/analytics/', views.system_analytics, name='admin_analytics'),
     path('admin/banners/', views.admin_promotional_banner_management, name='admin_promotional_banner_management'),
+    path('admin/api/create-discount/', views.create_discount_code, name='admin_create_discount'),
+    path('admin/api/toggle-discount/<int:discount_id>/', views.toggle_discount_status, name='admin_toggle_discount'),
+    path('admin/api/assign-ticket/<int:ticket_id>/', views.assign_ticket, name='admin_assign_ticket'),
     
     # Payment and Analysis URLs
     path('submit-request/', views.submit_analysis_request, name='submit_analysis_request'),

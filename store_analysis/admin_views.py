@@ -3,7 +3,7 @@ Views مخصوص ادمین برای مدیریت قیمت‌گذاری و تخ�
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -13,9 +13,60 @@ from datetime import datetime, timedelta
 from .models import DiscountCode, Payment, StoreAnalysis
 import json
 
-@staff_member_required
 def pricing_management(request):
     """مدیریت قیمت‌گذاری"""
+    
+    # پردازش POST request برای ذخیره تنظیمات
+    if request.method == 'POST':
+        try:
+            # دریافت داده‌ها از فرم
+            simple_price = request.POST.get('simple_price')
+            medium_price = request.POST.get('medium_price')
+            complex_price = request.POST.get('complex_price')
+            opening_discount = request.POST.get('opening_discount')
+            seasonal_discount = request.POST.get('seasonal_discount')
+            newyear_discount = request.POST.get('newyear_discount')
+            
+            # اعتبارسنجی
+            if not all([simple_price, medium_price, complex_price]):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'لطفاً تمام فیلدهای الزامی را پر کنید'
+                })
+            
+            # ذخیره در settings یا database
+            # برای سادگی، از Django settings استفاده می‌کنیم
+            from django.conf import settings
+            
+            # ایجاد یا به‌روزرسانی تنظیمات قیمت‌گذاری
+            pricing_settings = {
+                'simple_price': int(simple_price),
+                'medium_price': int(medium_price),
+                'complex_price': int(complex_price),
+                'opening_discount': int(opening_discount) if opening_discount else 0,
+                'seasonal_discount': int(seasonal_discount) if seasonal_discount else 0,
+                'newyear_discount': int(newyear_discount) if newyear_discount else 0,
+            }
+            
+            # ذخیره در فایل JSON یا database
+            import os
+            import json
+            
+            settings_file = os.path.join(settings.BASE_DIR, 'pricing_settings.json')
+            with open(settings_file, 'w', encoding='utf-8') as f:
+                json.dump(pricing_settings, f, ensure_ascii=False, indent=2)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'تنظیمات با موفقیت ذخیره شد'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'خطا در ذخیره تنظیمات: {str(e)}'
+            })
+    
     # آمار قیمت‌گذاری
     pricing_stats = {
         'total_revenue': Payment.objects.filter(status='completed').aggregate(
@@ -36,15 +87,39 @@ def pricing_management(request):
         count=Count('id')
     ).order_by('-count')
     
+    # بارگذاری تنظیمات فعلی
+    current_settings = {
+        'simple_price': 200000,
+        'medium_price': 350000,
+        'complex_price': 500000,
+        'opening_discount': 80,
+        'seasonal_discount': 70,
+        'newyear_discount': 60,
+    }
+    
+    # تلاش برای بارگذاری تنظیمات ذخیره شده
+    try:
+        import os
+        import json
+        from django.conf import settings
+        
+        settings_file = os.path.join(settings.BASE_DIR, 'pricing_settings.json')
+        if os.path.exists(settings_file):
+            with open(settings_file, 'r', encoding='utf-8') as f:
+                current_settings = json.load(f)
+    except:
+        pass
+    
     context = {
         'pricing_stats': pricing_stats,
         'store_type_stats': store_type_stats,
+        'current_settings': current_settings,
         'title': 'مدیریت قیمت‌گذاری'
     }
     
     return render(request, 'store_analysis/admin/pricing_management.html', context)
 
-@staff_member_required
+@user_passes_test(lambda u: u.is_staff)
 def discount_management(request):
     """مدیریت تخفیف‌ها"""
     discounts = DiscountCode.objects.all().order_by('-created_at')
@@ -65,7 +140,7 @@ def discount_management(request):
     
     return render(request, 'store_analysis/admin/discount_management.html', context)
 
-@staff_member_required
+@user_passes_test(lambda u: u.is_staff)
 @require_http_methods(["POST"])
 def create_discount_code(request):
     """ایجاد کد تخفیف جدید"""
@@ -98,7 +173,7 @@ def create_discount_code(request):
             'message': f'خطا در ایجاد کد تخفیف: {str(e)}'
         })
 
-@staff_member_required
+@user_passes_test(lambda u: u.is_staff)
 @require_http_methods(["POST"])
 def toggle_discount_status(request, discount_id):
     """تغییر وضعیت کد تخفیف"""
@@ -119,7 +194,7 @@ def toggle_discount_status(request, discount_id):
             'message': f'خطا در تغییر وضعیت: {str(e)}'
         })
 
-@staff_member_required
+@user_passes_test(lambda u: u.is_staff)
 def support_ticket_management(request):
     """مدیریت تیکت‌های پشتیبانی"""
     from .models import SupportTicket, TicketMessage
@@ -158,7 +233,7 @@ def support_ticket_management(request):
     
     return render(request, 'store_analysis/admin/support_ticket_management.html', context)
 
-@staff_member_required
+@user_passes_test(lambda u: u.is_staff)
 @require_http_methods(["POST"])
 def assign_ticket(request, ticket_id):
     """واگذاری تیکت به ادمین"""
@@ -189,7 +264,7 @@ def assign_ticket(request, ticket_id):
             'message': f'خطا در به‌روزرسانی تیکت: {str(e)}'
         })
 
-@staff_member_required
+@user_passes_test(lambda u: u.is_staff)
 def system_analytics(request):
     """تحلیل‌های سیستم"""
     # آمار کلی

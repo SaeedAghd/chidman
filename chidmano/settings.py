@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan3h$&$esj')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'  # Default to False for production
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for development
 
 # Enable debug for Render if needed
 if os.getenv('RENDER'):

@@ -144,6 +144,29 @@
         border-color: #007bff;
         box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
     }
+    
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .alert {
+        padding: 12px 16px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
 </style>
 {% endblock %}
 
@@ -208,47 +231,50 @@
     <div class="pricing-form">
         <h3 class="section-title">⚙️ تنظیمات قیمت‌گذاری</h3>
         
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label">قیمت تحلیل ساده</label>
-                    <input type="number" class="form-control" value="200000" placeholder="قیمت به تومان">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">قیمت تحلیل متوسط</label>
-                    <input type="number" class="form-control" value="350000" placeholder="قیمت به تومان">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">قیمت تحلیل پیچیده</label>
-                    <input type="number" class="form-control" value="500000" placeholder="قیمت به تومان">
-                </div>
+        <form id="pricingForm" method="post" action="{% url 'store_analysis:admin_pricing' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">قیمت تحلیل ساده</label>
+                        <input type="number" name="simple_price" class="form-control" value="{{ current_settings.simple_price|default:200000 }}" placeholder="قیمت به تومان" required>
                     </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">قیمت تحلیل متوسط</label>
+                        <input type="number" name="medium_price" class="form-control" value="{{ current_settings.medium_price|default:350000 }}" placeholder="قیمت به تومان" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">قیمت تحلیل پیچیده</label>
+                        <input type="number" name="complex_price" class="form-control" value="{{ current_settings.complex_price|default:500000 }}" placeholder="قیمت به تومان" required>
+                    </div>
+                </div>
             
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label">تخفیف افتتاحیه (%)</label>
-                    <input type="number" class="form-control" value="80" placeholder="درصد تخفیف">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">تخفیف افتتاحیه (%)</label>
+                        <input type="number" name="opening_discount" class="form-control" value="{{ current_settings.opening_discount|default:80 }}" placeholder="درصد تخفیف" min="0" max="100">
                     </div>
-                
-                <div class="form-group">
-                    <label class="form-label">تخفیف فصلی (%)</label>
-                    <input type="number" class="form-control" value="70" placeholder="درصد تخفیف">
+                    
+                    <div class="form-group">
+                        <label class="form-label">تخفیف فصلی (%)</label>
+                        <input type="number" name="seasonal_discount" class="form-control" value="{{ current_settings.seasonal_discount|default:70 }}" placeholder="درصد تخفیف" min="0" max="100">
                     </div>
-                
-                <div class="form-group">
-                    <label class="form-label">تخفیف نوروزی (%)</label>
-                    <input type="number" class="form-control" value="60" placeholder="درصد تخفیف">
-                        </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">تخفیف نوروزی (%)</label>
+                        <input type="number" name="newyear_discount" class="form-control" value="{{ current_settings.newyear_discount|default:60 }}" placeholder="درصد تخفیف" min="0" max="100">
                     </div>
                 </div>
+            </div>
 
-        <div class="text-center">
-            <button class="btn btn-primary">💾 ذخیره تنظیمات</button>
-            <button class="btn btn-success">🔄 بازنشانی</button>
-                    </div>
-                    </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary" id="saveBtn">💾 ذخیره تنظیمات</button>
+                <button type="button" class="btn btn-success" id="resetBtn">🔄 بازنشانی</button>
+            </div>
+        </form>
+    </div>
     
     <!-- استراتژی‌های قیمت‌گذاری -->
     <div class="pricing-table">
@@ -287,4 +313,119 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('pricingForm');
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    // مقادیر پیش‌فرض برای بازنشانی
+    const defaultValues = {
+        'simple_price': parseInt('{{ current_settings.simple_price|default:200000 }}') || 200000,
+        'medium_price': parseInt('{{ current_settings.medium_price|default:350000 }}') || 350000,
+        'complex_price': parseInt('{{ current_settings.complex_price|default:500000 }}') || 500000,
+        'opening_discount': parseInt('{{ current_settings.opening_discount|default:80 }}') || 80,
+        'seasonal_discount': parseInt('{{ current_settings.seasonal_discount|default:70 }}') || 70,
+        'newyear_discount': parseInt('{{ current_settings.newyear_discount|default:60 }}') || 60
+    };
+    
+    // دکمه ذخیره
+    saveBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // اعتبارسنجی
+        const inputs = form.querySelectorAll('input[required]');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (!input.value || input.value <= 0) {
+                input.style.borderColor = '#dc3545';
+                isValid = false;
+            } else {
+                input.style.borderColor = '#ddd';
+            }
+        });
+        
+        if (!isValid) {
+            showAlert('لطفاً تمام فیلدهای الزامی را پر کنید', 'danger');
+            return;
+        }
+        
+        // نمایش لودینگ
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '⏳ در حال ذخیره...';
+        
+        // ارسال فرم
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('✅ تنظیمات با موفقیت ذخیره شد', 'success');
+            } else {
+                showAlert('❌ خطا در ذخیره تنظیمات: ' + (data.error || 'خطای نامشخص'), 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('❌ خطا در ارتباط با سرور', 'danger');
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 ذخیره تنظیمات';
+        });
+    });
+    
+    // دکمه بازنشانی
+    resetBtn.addEventListener('click', function() {
+        if (confirm('آیا مطمئن هستید که می‌خواهید تنظیمات را به حالت پیش‌فرض بازگردانید؟')) {
+            Object.keys(defaultValues).forEach(name => {
+                const input = form.querySelector(`[name="${name}"]`);
+                if (input) {
+                    input.value = defaultValues[name];
+                    input.style.borderColor = '#ddd';
+                }
+            });
+            showAlert('🔄 تنظیمات به حالت پیش‌فرض بازگردانده شد', 'success');
+        }
+    });
+    
+    // تابع نمایش پیام
+    function showAlert(message, type) {
+        // حذف پیام‌های قبلی
+        const existingAlerts = document.querySelectorAll('.alert');
+        existingAlerts.forEach(alert => alert.remove());
+        
+        // ایجاد پیام جدید
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        
+        // اضافه کردن به بالای فرم
+        form.insertBefore(alert, form.firstChild);
+        
+        // حذف خودکار بعد از 5 ثانیه
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+    
+    // اعتبارسنجی لحظه‌ای
+    form.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value && this.value > 0) {
+                this.style.borderColor = '#28a745';
+            } else {
+                this.style.borderColor = '#ddd';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
