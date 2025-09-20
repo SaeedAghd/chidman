@@ -362,7 +362,7 @@
     <div class="dashboard-header">
         <h1 class="dashboard-title">🎛️ Dashboard ادمین</h1>
         <p class="dashboard-subtitle">مدیریت و مانیتورینگ سیستم چیدمانو</p>
-    </div>
+                </div>
 
     <!-- Statistics Grid -->
     <div class="stats-grid">
@@ -383,7 +383,7 @@
             <div class="stat-change positive">
                 <i class="fas fa-arrow-up"></i>
                 +{{ stats.analyses_today }} امروز
-            </div>
+                </div>
         </div>
 
         <div class="stat-card warning">
@@ -403,7 +403,7 @@
             <div class="stat-change positive">
                 <i class="fas fa-arrow-up"></i>
                 +{{ stats.revenue_today|floatformat:0 }} امروز
-            </div>
+                </div>
         </div>
 
         <div class="stat-card info">
@@ -423,22 +423,22 @@
             <div class="stat-change {% if stats.processing_analyses > 5 %}negative{% else %}positive{% endif %}">
                 <i class="fas fa-clock"></i>
                 {{ stats.avg_processing_time }} دقیقه
+                </div>
             </div>
         </div>
-    </div>
 
     <!-- Charts Grid -->
     <div class="charts-grid">
         <div class="chart-card">
             <h3 class="chart-title">📈 آمار کاربران و تحلیل‌ها</h3>
             <canvas id="analyticsChart" width="400" height="200"></canvas>
-        </div>
+                </div>
 
         <div class="chart-card">
             <h3 class="chart-title">💰 درآمد ماهانه</h3>
             <canvas id="revenueChart" width="400" height="200"></canvas>
+            </div>
         </div>
-    </div>
 
     <!-- Recent Activities -->
     <div class="recent-activities">
@@ -450,8 +450,8 @@
                 <div class="activity-title">{{ activity.title }}</div>
                 <div class="activity-description">{{ activity.description }}</div>
                 <div class="activity-time">{{ activity.time|timesince }} پیش</div>
+                </div>
             </div>
-        </div>
         {% endfor %}
     </div>
 

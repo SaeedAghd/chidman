@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'corsheaders',
-    'django_extensions',
     'store_analysis.apps.StoreAnalysisConfig',
 ]
 

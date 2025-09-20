@@ -243,13 +243,13 @@
                     <div class="form-group">
                         <label class="form-label">قیمت تحلیل متوسط</label>
                         <input type="number" name="medium_price" class="form-control" value="{{ current_settings.medium_price|default:350000 }}" placeholder="قیمت به تومان" required>
-                    </div>
+                </div>
 
                     <div class="form-group">
                         <label class="form-label">قیمت تحلیل پیچیده</label>
                         <input type="number" name="complex_price" class="form-control" value="{{ current_settings.complex_price|default:500000 }}" placeholder="قیمت به تومان" required>
                     </div>
-                </div>
+                    </div>
             
                 <div class="col-md-6">
                     <div class="form-group">
@@ -265,16 +265,16 @@
                     <div class="form-group">
                         <label class="form-label">تخفیف نوروزی (%)</label>
                         <input type="number" name="newyear_discount" class="form-control" value="{{ current_settings.newyear_discount|default:60 }}" placeholder="درصد تخفیف" min="0" max="100">
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <div class="text-center">
                 <button type="submit" class="btn btn-primary" id="saveBtn">💾 ذخیره تنظیمات</button>
                 <button type="button" class="btn btn-success" id="resetBtn">🔄 بازنشانی</button>
-            </div>
+                    </div>
         </form>
-    </div>
+                    </div>
     
     <!-- استراتژی‌های قیمت‌گذاری -->
     <div class="pricing-table">
