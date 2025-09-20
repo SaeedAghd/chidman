@@ -1,0 +1,10 @@
+{
+  "port": 8000,
+  "healthCheck": {
+    "command": "CMD curl --fail http://localhost:$PORT/ || exit 1",
+    "interval": 30000, 
+    "timeout": 15000,
+    "retries": 3,
+    "startPeriod": 10000
+  }
+}
