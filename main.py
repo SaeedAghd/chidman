@@ -16,13 +16,20 @@ if __name__ == "__main__":
     # Setup Django
     django.setup()
     
-    # Check if we're running gunicorn or development server
-    if len(sys.argv) > 1 and sys.argv[1] == 'runserver':
-        # Development server
-        execute_from_command_line(['manage.py', 'runserver', '0.0.0.0:8000'])
-    else:
-        # Production server - this should be handled by gunicorn
-        print("Starting Django application...")
-        print("This should be run with gunicorn in production")
-        print("Use: gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120")
-        sys.exit(1)
+    # Run migrations
+    print("📊 Running database migrations...")
+    execute_from_command_line(['manage.py', 'migrate', '--noinput'])
+    
+    # Collect static files
+    print("📁 Collecting static files...")
+    execute_from_command_line(['manage.py', 'collectstatic', '--noinput'])
+    
+    # Start the application with gunicorn
+    print("🌐 Starting Gunicorn server...")
+    import subprocess
+    import shlex
+    
+    port = os.environ.get('PORT', '8000')
+    cmd = f"gunicorn chidmano.wsgi:application --bind 0.0.0.0:{port} --workers 3 --timeout 120 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile -"
+    
+    subprocess.run(shlex.split(cmd))
