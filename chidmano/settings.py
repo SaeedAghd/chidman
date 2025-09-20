@@ -313,8 +313,7 @@ LOGGING = {
     'handlers': {
         'file': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': logs_dir / 'django.log',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
         'console': {
@@ -324,8 +323,7 @@ LOGGING = {
         },
         'error_file': {
             'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': logs_dir / 'error.log',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
