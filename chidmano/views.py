@@ -198,24 +198,12 @@ def features_view(request):
     return render(request, 'store_analysis/features.html')
 
 def health_check(request):
-    """Health check endpoint for Render deployment"""
+    """Health check endpoint for Liara deployment"""
     try:
-        from django.db import connection
-        from django.core.cache import cache
-        
-        # Test database connection
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-        
-        # Test cache
-        cache.set('health_check', 'ok', 30)
-        cache_status = cache.get('health_check') == 'ok'
-        
+        # Simple health check without database dependency
         return JsonResponse({
             'status': 'healthy',
             'message': 'Chidemano is running',
-            'database': 'connected',
-            'cache': 'working' if cache_status else 'error',
             'timestamp': str(timezone.now())
         })
     except Exception as e:
