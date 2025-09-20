@@ -102,7 +102,7 @@ DATABASES = {
 # Only use PostgreSQL in production with explicit environment variables
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL and (os.getenv('RENDER') or os.getenv('LIARA') or os.getenv('PRODUCTION')):
+if DATABASE_URL and (os.getenv('RENDER') or os.getenv('LIARA') or os.getenv('PRODUCTION') or os.getenv('LIARA_AI_API_KEY')):
     # Production database configuration
     DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     # Add SSL mode for PostgreSQL
