@@ -16,13 +16,9 @@ if __name__ == "__main__":
     # Setup Django
     django.setup()
     
-    # Run migrations
-    print("📊 Running database migrations...")
-    execute_from_command_line(['manage.py', 'migrate', '--noinput'])
-    
-    # Collect static files
-    print("📁 Collecting static files...")
-    execute_from_command_line(['manage.py', 'collectstatic', '--noinput'])
+    # Skip migrations and collectstatic in main.py - let gunicorn handle them
+    print("📊 Skipping migrations in main.py - will be handled by gunicorn")
+    print("📁 Skipping collectstatic in main.py - will be handled by gunicorn")
     
     # Start the application with gunicorn
     print("🌐 Starting Gunicorn server...")

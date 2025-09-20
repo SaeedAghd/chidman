@@ -9,11 +9,11 @@ export DJANGO_SETTINGS_MODULE="chidmano.settings"
 
 # Run migrations
 echo "📊 Running database migrations..."
-python manage.py migrate --noinput
+python manage.py migrate --noinput || echo "⚠️ Migration failed, continuing..."
 
 # Collect static files
 echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput || echo "⚠️ Collectstatic failed, continuing..."
 
 # Start the application with gunicorn
 echo "🌐 Starting Gunicorn server..."

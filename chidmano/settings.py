@@ -91,12 +91,13 @@ WSGI_APPLICATION = 'chidmano.wsgi.application'
 
 import dj_database_url
 
-# Database configuration - Force SQLite for development
+# Database configuration
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 # Only use PostgreSQL in production with explicit environment variables
