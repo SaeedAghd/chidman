@@ -113,14 +113,25 @@ else:
         }
     }
     
-# For Liara, if no DATABASE_URL, use SQLite in memory
+# For Liara, use PostgreSQL if available, otherwise SQLite
 if os.getenv('LIARA'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',  # Use in-memory database for Liara
+    # Try to use PostgreSQL first
+    if os.getenv('DATABASE_URL'):
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=os.getenv('DATABASE_URL'),
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
         }
-    }
+    else:
+        # Fallback to SQLite in /tmp
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': '/tmp/db.sqlite3',
+            }
+        }
     
     # Cache configuration for sessions
     CACHES = {
@@ -130,9 +141,8 @@ if os.getenv('LIARA'):
         }
     }
     
-    # Use cache for sessions
-    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-    SESSION_CACHE_ALIAS = 'default'
+    # Use database for sessions (more reliable)
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
