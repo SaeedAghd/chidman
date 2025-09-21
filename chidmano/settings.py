@@ -161,17 +161,16 @@ STATICFILES_DIRS = [
     BASE_DIR / "store_analysis" / "static",
 ]
 
-# Add whitenoise for static files in production
+# Static files configuration for production
 if not DEBUG:
-    try:
-        import whitenoise
-        MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-        STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-        WHITENOISE_USE_FINDERS = True
-        WHITENOISE_AUTOREFRESH = True
-    except ImportError:
-        # Fallback if whitenoise is not available
-        pass
+    # Use whitenoise for static files in production
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = True
+    WHITENOISE_ROOT = BASE_DIR / 'staticfiles'
+else:
+    # Development static files
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
@@ -189,17 +188,18 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
-# Security settings for production
+# Security settings - optimized for Liara
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
-    SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True').lower() == 'true'
-    CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'True').lower() == 'true'
+    # Production security settings - disabled for Liara compatibility
+    SECURE_SSL_REDIRECT = False  # Liara handles SSL
+    SESSION_COOKIE_SECURE = False  # Liara handles SSL termination
+    CSRF_COOKIE_SECURE = False  # Liara handles SSL termination
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    X_FRAME_OPTIONS = 'SAMEORIGIN'  # More permissive for Liara
+    SECURE_HSTS_SECONDS = 0  # Disabled for Liara
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
 else:
     # Development security settings
     SECURE_SSL_REDIRECT = False
@@ -283,8 +283,7 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
         'check_same_thread': False,
     }
 
-# Static files optimization
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+# Static files optimization - handled above in production section
 
 # Template optimization
 if not DEBUG:
@@ -300,10 +299,7 @@ if not DEBUG:
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # SESSION_CACHE_ALIAS = 'default'
 
-# Logging configuration
-logs_dir = BASE_DIR / 'logs'
-logs_dir.mkdir(exist_ok=True)
-
+# Logging configuration - optimized for Liara
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -322,30 +318,20 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
         'console': {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'production' if not DEBUG else 'simple',
         },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'store_analysis': {
-            'handlers': ['file', 'console', 'error_file'],
+            'handlers': ['console'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
@@ -355,7 +341,7 @@ LOGGING = {
             'propagate': False,
         },
         'django.request': {
-            'handlers': ['error_file', 'console'],
+            'handlers': ['console'],
             'level': 'ERROR',
             'propagate': False,
         },
@@ -526,28 +512,4 @@ CHANNEL_LAYERS = {
     },
 }
 
-# HTTPS Settings for production
-if not DEBUG:
-    # Production settings - HTTPS disabled for Liara deployment
-    SECURE_SSL_REDIRECT = False
-    SECURE_PROXY_SSL_HEADER = None
-    SECURE_HSTS_SECONDS = 0
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-else:
-    # Development settings
-    SECURE_SSL_REDIRECT = False
-    SECURE_PROXY_SSL_HEADER = None
-    SECURE_HSTS_SECONDS = 0
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
-    SECURE_CONTENT_TYPE_NOSNIFF = False
-    SECURE_BROWSER_XSS_FILTER = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_HTTPONLY = False
-    SESSION_COOKIE_SAMESITE = 'Lax' 
+# HTTPS Settings - handled above in security section 
