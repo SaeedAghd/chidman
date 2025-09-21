@@ -178,16 +178,7 @@ def features_view(request):
 
 def health_check(request):
     """Health check endpoint for Liara deployment"""
-    try:
-        # Simple database check
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-        
-        return HttpResponse('OK')
-    except Exception as e:
-        # Return 200 even if database fails (for startup)
-        return HttpResponse('OK')
+    return HttpResponse('OK')
 
 def dashboard_view(request):
     """Dashboard view"""
