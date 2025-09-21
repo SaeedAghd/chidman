@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 def signup_view(request):
     """View for user registration with email verification"""
-    try:
-        if request.method == 'POST':
+    if request.method == 'POST':
+        try:
             form = UserCreationForm(request.POST)
             if form.is_valid():
                 # دریافت ایمیل از فرم
@@ -47,38 +47,17 @@ def signup_view(request):
                 messages.success(request, f'حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.username}!')
                 return redirect('store_analysis:user_dashboard')
                 
-                # کد ایمیل (غیرفعال برای تست)
-                """
-                # ایجاد کد تاییدیه
-                email_service = EmailVerificationService()
-                verification_code = email_service.generate_verification_code()
-                
-                # ذخیره تاییدیه ایمیل
-                EmailVerification.objects.create(
-                    user=user,
-                    email=email,
-                    verification_code=verification_code,
-                    expires_at=timezone.now() + timedelta(minutes=10)
-                )
-                
-                # ارسال ایمیل تاییدیه
-                if email_service.send_verification_email(user, email, verification_code):
-                    messages.success(request, f'حساب کاربری شما ایجاد شد! لطفاً ایمیل خود را بررسی کنید و کد تایید را وارد کنید.')
-                    return redirect('verify_email', user_id=user.id)
-                else:
-                    messages.error(request, 'خطا در ارسال ایمیل تاییدیه. لطفاً دوباره تلاش کنید.')
-                    user.delete()  # حذف کاربر در صورت خطا
-                """
             else:
                 messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
-        else:
-            form = UserCreationForm()
-        
+                return render(request, 'store_analysis/signup.html', {'form': form})
+                
+        except Exception as e:
+            logger.error(f"Error in signup_view: {e}")
+            messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
+            return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
+    else:
+        form = UserCreationForm()
         return render(request, 'store_analysis/signup.html', {'form': form})
-    except Exception as e:
-        logger.error(f"Error in signup_view: {e}")
-        messages.error(request, f'خطا در سیستم: {str(e)}')
-        return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
 
 def verify_email_view(request, user_id):
     """صفحه تاییدیه ایمیل"""
