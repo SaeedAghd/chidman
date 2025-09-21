@@ -9,7 +9,13 @@ export DJANGO_SETTINGS_MODULE="chidmano.settings"
 
 # Setup production database
 echo "🚀 Setting up production database..."
-python manage.py setup_production --username saeed --email saeed@chidmano.ir --password Saeed33124
+python manage.py setup_production --username saeed --email saeed@chidmano.ir --password Saeed33124 || {
+    echo "❌ Setup failed, trying manual setup..."
+    python manage.py makemigrations
+    python manage.py migrate --noinput
+    python manage.py create_superuser --username saeed --email saeed@chidmano.ir --password Saeed33124 || echo "⚠️ Superuser creation failed"
+    python manage.py collectstatic --noinput
+}
 
 # Start the application with gunicorn
 echo "🌐 Starting Gunicorn server..."
