@@ -25,7 +25,7 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for deve
 if os.getenv('RENDER'):
     DEBUG = True  # Enable debug on Render for troubleshooting
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.liara.ir,*.liara.app,chidmano.liara.app').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.liara.ir,*.liara.app,chidmano.liara.app,chidmano.ir,www.chidmano.ir').split(',')
 
 # Security settings for development
 SECURE_SSL_REDIRECT = False
@@ -476,14 +476,10 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://localhost:8443",
     "https://127.0.0.1:8443",
+    "https://chidmano.liara.run",
+    "https://chidmano.ir",
+    "https://www.chidmano.ir",
 ]
-
-# Add production domains
-if not DEBUG:
-    CSRF_TRUSTED_ORIGINS.extend([
-        "https://your-domain.com",
-        "https://www.your-domain.com",
-    ])
 
 CORS_ALLOW_METHODS = [
     'DELETE',
