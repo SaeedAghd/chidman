@@ -3081,10 +3081,9 @@ def ai_analysis_guide(request):
 def check_legal_agreement(request):
     """بررسی وضعیت تایید تعهدنامه حقوقی"""
     try:
-        # بررسی اینکه آیا کاربر قبلاً تایید کرده یا نه
-        # می‌توانید از UserProfile یا جدول جداگانه استفاده کنید
-        # فعلاً از session استفاده می‌کنیم
-        accepted = request.session.get('legal_agreement_accepted', False)
+        # برای حالا همیشه False برگردانیم تا modal نمایش داده شود
+        # بعداً می‌توانیم از دیتابیس بررسی کنیم
+        accepted = False
         
         return JsonResponse({
             'accepted': accepted,
@@ -3104,18 +3103,8 @@ def accept_legal_agreement(request):
             data = json.loads(request.body)
             
             if data.get('accepted'):
-                # ذخیره تایید در session
-                request.session['legal_agreement_accepted'] = True
-                request.session['legal_agreement_timestamp'] = data.get('timestamp')
-                
-                # می‌توانید در دیتابیس هم ذخیره کنید
-                # UserProfile.objects.update_or_create(
-                #     user=request.user,
-                #     defaults={
-                #         'legal_agreement_accepted': True,
-                #         'legal_agreement_timestamp': data.get('timestamp')
-                #     }
-                # )
+                # برای حالا فقط JSON response برگردانیم
+                # بعداً می‌توانیم در دیتابیس ذخیره کنیم
                 
                 return JsonResponse({
                     'success': True,

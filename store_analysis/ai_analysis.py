@@ -14,9 +14,10 @@ from django.core.cache import cache
 
 # Import Ollama
 try:
-    import ollama
+    import ollama  # type: ignore
     OLLAMA_AVAILABLE = True
 except ImportError:
+    ollama = None  # type: ignore
     OLLAMA_AVAILABLE = False
 
 # Import ML libraries
@@ -89,8 +90,11 @@ class StoreAnalysisAI:
         
         try:
             # بررسی دسترسی به Ollama با کتابخانه ollama
-            ollama.list()
-            return True
+            if OLLAMA_AVAILABLE:
+                ollama.list()
+                return True
+            else:
+                raise ImportError("Ollama not available")
         except:
             try:
                 # Fallback به API request

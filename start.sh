@@ -9,11 +9,15 @@ export DJANGO_SETTINGS_MODULE="chidmano.settings"
 
 # Run migrations
 echo "📊 Running database migrations..."
-python manage.py migrate --noinput || echo "⚠️ Migration failed, continuing..."
+python manage.py migrate --noinput
+
+# Create superuser if it doesn't exist
+echo "👤 Creating superuser..."
+python manage.py create_superuser --username saeed --email saeed@chidmano.ir --password Saeed33124
 
 # Collect static files
 echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput || echo "⚠️ Collectstatic failed, continuing..."
+python manage.py collectstatic --noinput
 
 # Start the application with gunicorn
 echo "🌐 Starting Gunicorn server..."
