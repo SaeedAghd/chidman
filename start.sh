@@ -13,14 +13,7 @@ python manage.py migrate --noinput
 
 # Create superuser
 echo "👤 Creating superuser..."
-python manage.py shell -c "
-from django.contrib.auth.models import User
-if not User.objects.filter(username='saeed').exists():
-    User.objects.create_superuser('saeed', 'saeed@chidmano.ir', 'Saeed33124')
-    print('✅ Superuser created')
-else:
-    print('⚠️ Superuser already exists')
-"
+python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_superuser('saeed', 'saeed@chidmano.ir', 'Saeed33124') if not User.objects.filter(username='saeed').exists() else print('Superuser exists')"
 
 # Collect static files
 echo "📁 Collecting static files..."
@@ -32,7 +25,5 @@ exec gunicorn chidmano.wsgi:application \
     --bind 0.0.0.0:$PORT \
     --workers 3 \
     --timeout 120 \
-    --max-requests 1000 \
-    --max-requests-jitter 100 \
     --access-logfile - \
     --error-logfile -
