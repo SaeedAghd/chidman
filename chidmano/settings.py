@@ -25,7 +25,7 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for deve
 if os.getenv('RENDER'):
     DEBUG = True  # Enable debug on Render for troubleshooting
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.liara.ir,*.liara.app,chidmano.liara.app,chidmano.ir,www.chidmano.ir').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.liara.ir,*.liara.app,*.liara.run,chidmano.liara.app,chidmano.liara.run,chidmano.ir,www.chidmano.ir').split(',')
 
 # Security settings for development
 SECURE_SSL_REDIRECT = False
