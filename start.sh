@@ -7,17 +7,9 @@ echo "🚀 Starting Chidmano application..."
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 export DJANGO_SETTINGS_MODULE="chidmano.settings"
 
-# Run migrations
-echo "📊 Running database migrations..."
-python manage.py migrate --noinput
-
-# Create superuser if it doesn't exist
-echo "👤 Creating superuser..."
-python manage.py create_superuser --username saeed --email saeed@chidmano.ir --password Saeed33124
-
-# Collect static files
-echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput
+# Setup production database
+echo "🚀 Setting up production database..."
+python manage.py setup_production --username saeed --email saeed@chidmano.ir --password Saeed33124
 
 # Start the application with gunicorn
 echo "🌐 Starting Gunicorn server..."

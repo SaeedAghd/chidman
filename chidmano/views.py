@@ -169,7 +169,7 @@ def simple_login_view(request):
         return render(request, 'store_analysis/login.html')
     except Exception as e:
         logger.error(f"Error in simple_login_view: {e}")
-        messages.error(request, f'خطا در ورود: {str(e)}')
+        messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
         return render(request, 'store_analysis/login.html')
 
 def features_view(request):
