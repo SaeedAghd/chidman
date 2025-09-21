@@ -105,13 +105,22 @@ if DATABASE_URL and (os.getenv('RENDER') or os.getenv('LIARA') or os.getenv('PRO
             'sslmode': 'require',
         }
 else:
-    # Development database configuration
+    # Development database configuration - using SQLite for now
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    
+    # For Liara, if no DATABASE_URL, use SQLite in /tmp
+    if os.getenv('LIARA'):
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': '/tmp/db.sqlite3',
+            }
+        }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
