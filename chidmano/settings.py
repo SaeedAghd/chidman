@@ -92,25 +92,26 @@ WSGI_APPLICATION = 'chidmano.wsgi.application'
 import dj_database_url
 
 # Database configuration
-DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
-
-# Only use PostgreSQL in production with explicit environment variables
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL and (os.getenv('RENDER') or os.getenv('LIARA') or os.getenv('PRODUCTION') or os.getenv('LIARA_AI_API_KEY')):
     # Production database configuration
-    DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
     # Add SSL mode for PostgreSQL
     if 'postgresql' in DATABASES['default']['ENGINE']:
         DATABASES['default']['OPTIONS'] = {
             'sslmode': 'require',
         }
+else:
+    # Development database configuration
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

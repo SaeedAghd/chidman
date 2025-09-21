@@ -200,16 +200,22 @@ def features_view(request):
 def health_check(request):
     """Health check endpoint for Liara deployment"""
     try:
-        # Simple health check without database dependency
+        # Test database connection
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        
         return JsonResponse({
             'status': 'healthy',
             'message': 'Chidemano is running',
+            'database': 'connected',
             'timestamp': str(timezone.now())
         })
     except Exception as e:
         return JsonResponse({
             'status': 'unhealthy',
             'message': f'Error: {str(e)}',
+            'database': 'disconnected',
             'timestamp': str(timezone.now())
         }, status=500)
 
