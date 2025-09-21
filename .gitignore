@@ -108,6 +108,10 @@ venv/
 .venv/
 env/
 ENV/
+venv*/
+.venv*/
+env*/
+ENV*/
 
 # IDE files
 .vscode/
@@ -149,4 +153,33 @@ logs/
 # Backup files
 backup_*/
 *.zip
-*.tar.gz 
+*.tar.gz
+
+# Large ML/AI files
+*.pyd
+*.dll
+*.lib
+*.so
+*.whl
+*.egg
+
+# TensorFlow/PyTorch files
+*_tensorflow*
+*torch*
+*opencv*
+*protobuf*
+*scipy*
+*blas*
+*ffmpeg*
+*clang*
+*kineto*
+*stablehlo*
+*xla*
+
+# Large data files
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.npy
+*.npz 
