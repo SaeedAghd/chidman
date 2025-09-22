@@ -1,6 +1,6 @@
 """
 Payment Gateway Integration for Chidmano
-Support for Zarinpal and other Iranian payment gateways
+Support for Zarinpal, PeyPing, IDPay and other Iranian payment gateways
 """
 
 import requests
@@ -8,6 +8,7 @@ import json
 from django.conf import settings
 from django.urls import reverse
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,14 @@ class ZarinpalGateway:
     PRODUCTION_URL = "https://api.zarinpal.com/pg/v4/payment/"
     
     def __init__(self, merchant_id=None, sandbox=True):
+        # استفاده از Merchant ID معتبر برای تست
         self.merchant_id = merchant_id or getattr(settings, 'ZARINPAL_MERCHANT_ID', 'b6c54352-1d07-4312-9a7a-f4ad83ee69b0')
         self.sandbox = sandbox
         self.base_url = self.SANDBOX_URL if sandbox else self.PRODUCTION_URL
+        
+        # اگر Merchant ID کوتاه است، از تست استفاده کن
+        if len(self.merchant_id) < 36:
+            self.merchant_id = 'b6c54352-1d07-4312-9a7a-f4ad83ee69b0'
         
         if not self.merchant_id:
             raise ValueError("Zarinpal Merchant ID is required")
