@@ -113,36 +113,23 @@ else:
         }
     }
     
-# For Liara, use PostgreSQL if available, otherwise SQLite
+# For Liara, use simple SQLite configuration
 if os.getenv('LIARA'):
-    # Try to use PostgreSQL first
-    if os.getenv('DATABASE_URL'):
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=os.getenv('DATABASE_URL'),
-                conn_max_age=600,
-                conn_health_checks=True,
-            )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/tmp/db.sqlite3',
         }
-    else:
-        # Fallback to SQLite in /tmp
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': '/tmp/db.sqlite3',
-            }
-        }
+    }
     
-    # Cache configuration for sessions
+    # Use cache for sessions
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
             'LOCATION': 'unique-snowflake',
         }
     }
-    
-    # Use database for sessions (more reliable)
-    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
