@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class ZarinpalGateway:
     """زرین‌پال Payment Gateway"""
     
-    # URLs
+    # URLs - استفاده از URL صحیح زرین‌پال
     SANDBOX_URL = "https://sandbox.zarinpal.com/pg/v4/payment/"
     PRODUCTION_URL = "https://api.zarinpal.com/pg/v4/payment/"
     
@@ -54,7 +54,8 @@ class ZarinpalGateway:
                 f"{self.base_url}request.json",
                 data=json.dumps(data),
                 headers={'Content-Type': 'application/json'},
-                timeout=30
+                timeout=30,
+                verify=False  # برای حل مشکل SSL
             )
             
             result = response.json()

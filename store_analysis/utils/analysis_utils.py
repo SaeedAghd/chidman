@@ -12,22 +12,9 @@ def calculate_analysis_cost(form_data):
     # قیمت پایه
     base_price = Decimal('500000')  # 500,000 تومان
     
-    # هزینه‌های اضافی بر اساس نوع گزارش
+    # هزینه گزارش PDF (تنها گزارش ارائه شده)
     report_costs = {
-        'comprehensive_pdf': Decimal('200000'),
-        'executive_summary': Decimal('100000'),
-        'detailed_analysis': Decimal('150000'),
-        'action_plan': Decimal('100000'),
-        'implementation_guide': Decimal('120000'),
-        'checklist': Decimal('50000'),
-        'visual_dashboard': Decimal('300000'),
-        'interactive_report': Decimal('250000'),
-        'presentation_slides': Decimal('150000'),
-        'excel_data': Decimal('80000'),
-        'csv_export': Decimal('50000'),
-        'heatmap_analysis': Decimal('200000'),
-        'traffic_flow_diagram': Decimal('180000'),
-        'space_optimization_plan': Decimal('220000'),
+        'comprehensive_pdf': Decimal('200000'),  # گزارش کامل PDF
     }
     
     # هزینه‌های اضافی بر اساس اهداف
@@ -63,7 +50,23 @@ def calculate_analysis_cost(form_data):
     }
     
     # هزینه‌های اضافی بر اساس اندازه فروشگاه
-    store_size = int(form_data.get('store_size', 0))
+    store_size_raw = form_data.get('store_size', 0)
+    try:
+        # اگر store_size رشته است، آن را به عدد تبدیل کن
+        if isinstance(store_size_raw, str):
+            # اگر شامل کلمات است، اندازه متوسط در نظر بگیر
+            if 'small' in store_size_raw.lower():
+                store_size = 100
+            elif 'medium' in store_size_raw.lower():
+                store_size = 500
+            elif 'large' in store_size_raw.lower():
+                store_size = 1000
+            else:
+                store_size = int(store_size_raw)
+        else:
+            store_size = int(store_size_raw)
+    except (ValueError, TypeError):
+        store_size = 500  # اندازه متوسط پیش‌فرض
     size_cost = Decimal('0')
     if store_size > 1000:
         size_cost = Decimal('100000')
@@ -72,15 +75,8 @@ def calculate_analysis_cost(form_data):
     elif store_size > 200:
         size_cost = Decimal('25000')
     
-    # محاسبه هزینه‌های گزارش
-    report_format = form_data.get('report_format', [])
-    if isinstance(report_format, str):
-        report_format = [report_format]
-    
-    report_total = Decimal('0')
-    for report_type in report_format:
-        if report_type in report_costs:
-            report_total += report_costs[report_type]
+    # محاسبه هزینه گزارش PDF (همیشه شامل می‌شود)
+    report_total = Decimal('200000')  # هزینه گزارش کامل PDF
     
     # محاسبه هزینه‌های اهداف
     optimization_goals = form_data.get('optimization_goals', [])
@@ -134,9 +130,9 @@ def calculate_analysis_cost(form_data):
             'description': f'تحلیل فروشگاه {store_size} متر مربع'
         },
         {
-            'item': 'گزارش‌های درخواستی',
+            'item': 'گزارش کامل PDF',
             'amount': report_total,
-            'description': f'{len(report_format)} نوع گزارش'
+            'description': 'گزارش تفصیلی و حرفه‌ای فروشگاه'
         },
         {
             'item': 'اهداف بهینه‌سازی',

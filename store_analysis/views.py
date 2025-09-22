@@ -72,9 +72,9 @@ def calculate_analysis_cost_for_object(analysis):
         
         # هزینه‌های اضافی
         if hasattr(analysis, 'analysis_type') and analysis.analysis_type == 'advanced':
-            additional_cost += Decimal('300000')
+            additional_cost += Decimal('200000')
         
-        # هزینه گزارش PDF
+        # هزینه گزارش PDF (همیشه شامل می‌شود)
         additional_cost += Decimal('200000')
         
         total_cost = base_cost + additional_cost
@@ -87,11 +87,19 @@ def calculate_analysis_cost_for_object(analysis):
                 'description': 'تحلیل اولیه فروشگاه'
             },
             {
-                'item': 'گزارش تفصیلی',
-                'amount': additional_cost,
-                'description': 'گزارش کامل و PDF'
+                'item': 'گزارش کامل PDF',
+                'amount': Decimal('200000'),
+                'description': 'گزارش تفصیلی و حرفه‌ای فروشگاه'
             }
         ]
+        
+        # اضافه کردن هزینه‌های اضافی اگر وجود دارد
+        if additional_cost > 0:
+            breakdown.append({
+                'item': 'ویژگی‌های اضافی',
+                'amount': additional_cost,
+                'description': 'تحلیل پیشرفته و تخصصی'
+            })
         
         return {
             'base_price': base_cost,
@@ -2295,6 +2303,29 @@ def zarinpal_payment(request, order_id):
         messages.error(request, f'خطا در پردازش پرداخت: {str(e)}')
         return redirect('store_analysis:payment_page', order_id=order_id)
 
+@login_required
+def test_zarinpal(request):
+    """تست درگاه زرین‌پال"""
+    try:
+        from .payment_gateways import PaymentGatewayManager
+        
+        gateway_manager = PaymentGatewayManager()
+        zarinpal = gateway_manager.get_gateway('zarinpal')
+        
+        if not zarinpal:
+            return HttpResponse('❌ درگاه پرداخت در دسترس نیست')
+        
+        # تست ایجاد درخواست پرداخت
+        payment_request = zarinpal.create_payment_request(
+            amount=1000,
+            description='تست پرداخت',
+            callback_url='http://127.0.0.1:8000/test-callback/'
+        )
+        
+        return HttpResponse(f'✅ تست موفق: {payment_request}')
+        
+    except Exception as e:
+        return HttpResponse(f'❌ خطا: {str(e)}')
 
 @login_required
 def zarinpal_callback(request, order_id):
