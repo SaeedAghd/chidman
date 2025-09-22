@@ -2156,18 +2156,31 @@ def payment_page(request, order_id):
                 store_analysis.preliminary_analysis = "تحلیل اولیه: فروشگاه شما نیاز به بررسی دقیق‌تر دارد. پس از پرداخت، تحلیل کامل انجام خواهد شد."
                 store_analysis.save()
         
-        # محاسبه هزینه‌ها از backend
-        if store_analysis.analysis_data:
-            try:
-                # استفاده از سیستم قیمت‌گذاری پویا
-                cost_breakdown = calculate_analysis_cost(store_analysis.analysis_data)
-            except Exception as e:
-                logger.error(f"Error calculating cost from analysis_data: {e}")
-                # fallback به محاسبه ساده
-                cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
-        else:
-            # محاسبه بر اساس object
+        # محاسبه هزینه‌ها - همیشه از object استفاده کن
+        try:
             cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
+        except Exception as e:
+            logger.error(f"Error calculating cost: {e}")
+            # fallback به محاسبه ساده
+            cost_breakdown = {
+                'base_price': Decimal('500000'),
+                'total': Decimal('700000'),
+                'final': Decimal('700000'),
+                'discount': Decimal('0'),
+                'discount_percentage': 0,
+                'breakdown': [
+                    {
+                        'item': 'تحلیل پایه',
+                        'amount': Decimal('500000'),
+                        'description': 'تحلیل اولیه فروشگاه'
+                    },
+                    {
+                        'item': 'گزارش کامل PDF',
+                        'amount': Decimal('200000'),
+                        'description': 'گزارش تفصیلی و حرفه‌ای فروشگاه'
+                    }
+                ]
+            }
         
         # اعمال تخفیف از session
         session_discount = request.session.get('discount_percentage', 0)
