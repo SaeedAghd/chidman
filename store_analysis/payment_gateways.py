@@ -19,7 +19,7 @@ class ZarinpalGateway:
     PRODUCTION_URL = "https://api.zarinpal.com/pg/v4/payment/"
     
     def __init__(self, merchant_id=None, sandbox=True):
-        self.merchant_id = merchant_id or getattr(settings, 'ZARINPAL_MERCHANT_ID', None)
+        self.merchant_id = merchant_id or getattr(settings, 'ZARINPAL_MERCHANT_ID', 'b6c54352-1d07-4312-9a7a-f4ad83ee69b0')
         self.sandbox = sandbox
         self.base_url = self.SANDBOX_URL if sandbox else self.PRODUCTION_URL
         
@@ -126,7 +126,7 @@ class PaymentGatewayManager:
     def __init__(self):
         self.gateways = {
             'zarinpal': ZarinpalGateway(
-                merchant_id=getattr(settings, 'ZARINPAL_MERCHANT_ID', None),
+                merchant_id=getattr(settings, 'ZARINPAL_MERCHANT_ID', 'b6c54352-1d07-4312-9a7a-f4ad83ee69b0'),
                 sandbox=getattr(settings, 'ZARINPAL_SANDBOX', True)
             )
         }

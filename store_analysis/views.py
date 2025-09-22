@@ -2256,6 +2256,10 @@ def zarinpal_payment(request, order_id):
         gateway_manager = PaymentGatewayManager()
         zarinpal = gateway_manager.get_gateway('zarinpal')
         
+        if not zarinpal:
+            messages.error(request, 'درگاه پرداخت در دسترس نیست')
+            return redirect('store_analysis:payment_page', order_id=order_id)
+        
         # ایجاد درخواست پرداخت
         payment_request = zarinpal.create_payment_request(
             amount=int(order.final_amount),
@@ -2265,10 +2269,13 @@ def zarinpal_payment(request, order_id):
             )
         )
         
-        if payment_request['status'] == 'success':
+        if payment_request.get('status') == 'success':
             # ذخیره اطلاعات پرداخت
+            store_analysis = StoreAnalysis.objects.filter(order=order).first()
             payment = Payment.objects.create(
+                user=request.user,
                 order=order,
+                store_analysis=store_analysis,
                 amount=order.final_amount,
                 payment_method='zarinpal',
                 status='pending',
@@ -2278,10 +2285,13 @@ def zarinpal_payment(request, order_id):
             # هدایت به صفحه پرداخت زرین‌پال
             return redirect(payment_request['payment_url'])
         else:
-            messages.error(request, f'خطا در ایجاد درخواست پرداخت: {payment_request.get("message", "خطای نامشخص")}')
+            error_msg = payment_request.get('message', 'خطای نامشخص در ایجاد درخواست پرداخت')
+            messages.error(request, f'خطا در ایجاد درخواست پرداخت: {error_msg}')
+            logger.error(f"Zarinpal payment error: {payment_request}")
             return redirect('store_analysis:payment_page', order_id=order_id)
             
     except Exception as e:
+        logger.error(f"Zarinpal payment exception: {e}")
         messages.error(request, f'خطا در پردازش پرداخت: {str(e)}')
         return redirect('store_analysis:payment_page', order_id=order_id)
 
