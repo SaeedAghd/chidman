@@ -49,6 +49,7 @@ urlpatterns = [
     # Dashboard URLs
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
     path('analysis/<int:pk>/download-detailed-pdf/', views.download_detailed_pdf, name='download_detailed_pdf'),
+    path('analysis/<int:pk>/pdf/', views.view_analysis_pdf_inline, name='view_analysis_pdf_inline'),
     path('store-comparison/', views.store_comparison, name='store_comparison'),
     
     # Result URLs
@@ -72,12 +73,15 @@ urlpatterns = [
     path('payment-success/<uuid:order_id>/', views.payment_success, name='payment_success'),
     path('payment-failed/<uuid:order_id>/', views.payment_failed, name='payment_failed'),
     path('order-results/<uuid:order_id>/', views.order_analysis_results, name='order_analysis_results'),
+    path('order-results/<uuid:order_id>/pdf/', views.view_order_pdf_inline, name='view_order_pdf_inline'),
     path('check-status/<uuid:order_id>/', views.check_analysis_status, name='check_analysis_status'),
     path('create-order/<int:plan_id>/', views.create_order, name='create_order'),
     path('checkout/<uuid:order_id>/', views.checkout, name='checkout'),
     path('apply-discount/', views.apply_discount, name='apply_discount'),
+    path('test-payping/', views.test_payping, name='test_payping'),
     path('test-zarinpal/', views.test_zarinpal, name='test_zarinpal'),
     path('test-liara-ai/', views.test_liara_ai, name='test_liara_ai'),
+    path('test-advanced-analysis/', views.test_advanced_analysis, name='test_advanced_analysis'),
 
     path('analysis-results/<int:pk>/', views.analysis_results, name='analysis_results'),
     path('analysis-results-session/', views.analysis_results_session, name='analysis_results_session'),
@@ -111,7 +115,7 @@ urlpatterns = [
     path('admin/wallet/<int:wallet_id>/', views.admin_wallet_detail, name='admin_wallet_detail'),
     path('admin/wallet/<int:wallet_id>/adjust/', views.admin_adjust_wallet, name='admin_adjust_wallet'),
     
-    # پرداخت زرین‌پال
-    path('payment/zarinpal/<str:order_id>/', views.zarinpal_payment, name='zarinpal_payment'),
-    path('payment/zarinpal/callback/<str:order_id>/', views.zarinpal_callback, name='zarinpal_callback'),
+    # پرداخت PayPing
+    path('payment/payping/<str:order_id>/', views.payping_payment, name='payping_payment'),
+    path('payment/payping/callback/<str:order_id>/', views.payping_callback, name='payping_callback'),
 ]

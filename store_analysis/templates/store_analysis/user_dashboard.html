@@ -505,8 +505,24 @@
                                     </div>
                                     <a href="{% url 'store_analysis:analysis_detail' analysis.pk %}" class="view-details-btn">
                                         <span>👁️</span>
-                                        <span>مشاهده</span>
+                                        <span>جزئیات</span>
                                     </a>
+                                    {% if analysis.preliminary_analysis %}
+                                    <a href="{% url 'store_analysis:analysis_detail' analysis.pk %}#preliminary" class="view-details-btn" style="background:#f3f4f6">
+                                        <span>📋</span>
+                                        <span>نمایش پیش‌تحلیل</span>
+                                    </a>
+                                    {% endif %}
+                                    {% if analysis.order and analysis.order.order_id %}
+                                    <a href="{% url 'store_analysis:order_analysis_results' order_id=analysis.order.order_id %}" class="view-details-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff;">
+                                        <span>🤖</span>
+                                        <span>تحلیل پیشرفته (GPT‑4)</span>
+                                    </a>
+                                    <a href="{% url 'store_analysis:view_analysis_pdf_inline' analysis.pk %}" target="_blank" rel="noopener" class="view-details-btn" style="background:#10b981;color:#fff;">
+                                        <span>📄</span>
+                                        <span>مشاهده PDF</span>
+                                    </a>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endfor %}

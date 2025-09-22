@@ -27,14 +27,26 @@ if os.getenv('RENDER'):
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.liara.ir,*.liara.app,*.liara.run,chidmano.liara.app,chidmano.liara.run,chidmano.ir,www.chidmano.ir').split(',')
 
-# Security settings for development
-SECURE_SSL_REDIRECT = False
-SECURE_PROXY_SSL_HEADER = None
-SECURE_HSTS_SECONDS = 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
-SECURE_CONTENT_TYPE_NOSNIFF = False
-SECURE_BROWSER_XSS_FILTER = False
+# Security settings for production
+if os.getenv('PRODUCTION', 'False').lower() == 'true':
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+else:
+    # Development settings
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    SECURE_BROWSER_XSS_FILTER = False
 
 # Application definition
 
@@ -244,6 +256,9 @@ ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
 LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2OGM3MjU1NjJlYTVmMGYxNTA3MWU5ZDgiLCJ0eXBlIjoiYXV0aCIsImlhdCI6MTc1ODE0NzM2Mn0._pcbp8DXGwSBCub-SFj5eRNmEYHgq15QyU4-wND-UPo')
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
+
+# Payment - PayPing
+PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', '17CDFDF0A740450AEFA8793D9D13A8616591F313878983911EDC2B7ADAEC325F-1')
 
 # AI Analysis Settings
 AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour
@@ -482,6 +497,9 @@ CSRF_TRUSTED_ORIGINS = [
     "https://localhost:8443",
     "https://127.0.0.1:8443",
     "https://chidmano.liara.run",
+    "https://chidmano.liara.app",
+    "https://*.liara.app",
+    "https://*.liara.run",
     "https://chidmano.ir",
     "https://www.chidmano.ir",
 ]

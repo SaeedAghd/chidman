@@ -11,6 +11,10 @@ export DJANGO_SETTINGS_MODULE="chidmano.settings"
 echo "📊 Running migrations..."
 python manage.py migrate --noinput
 
+# Collect static files (for Whitenoise/static serving)
+echo "🧱 Collecting static files..."
+python manage.py collectstatic --noinput
+
 # Start the application with gunicorn
 echo "🌐 Starting Gunicorn server..."
 exec gunicorn chidmano.wsgi:application \

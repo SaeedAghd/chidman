@@ -4,6 +4,10 @@
 
 {% block title %}نتایج تحلیل - چیدمانو{% endblock %}
 
+{% if is_advanced_analysis %}
+    {% extends 'store_analysis/advanced_analysis_results.html' %}
+{% endif %}
+
 {% block extra_css %}
 <style>
     :root {

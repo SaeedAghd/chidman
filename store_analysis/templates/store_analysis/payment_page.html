@@ -391,7 +391,7 @@
                 <h2 class="payment-title">روش پرداخت</h2>
             </div>
             
-            <form method="post" action="{% url 'store_analysis:process_payment' order.order_id %}">
+            <form id="paymentForm" method="post" action="{% url 'store_analysis:process_payment' order.order_id %}">
                 {% csrf_token %}
                 
                 <div class="payment-options">
@@ -420,6 +420,14 @@
                     <i class="fas fa-lock"></i>
                     پرداخت {{ cost_breakdown.final|floatformat:0 }} تومان
                 </button>
+
+                <div style="margin-top: 10px; text-align:center">
+                    <a href="{% url 'store_analysis:payping_payment' order.order_id %}"
+                       class="payment-button" style="display:inline-block; text-decoration:none;">
+                        <i class="fas fa-bolt"></i>
+                        پرداخت آنلاین مستقیم (PayPing)
+                    </a>
+                </div>
             </form>
         </div>
     </div>
@@ -440,10 +448,24 @@ function selectPaymentMethod(methodId) {
 }
 
 // Form submission handling
-document.querySelector('form').addEventListener('submit', function(e) {
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
     const paymentButton = document.getElementById('paymentButton');
     paymentButton.disabled = true;
     paymentButton.innerHTML = '<div class="loading-spinner"></div> در حال پردازش...';
+
+    // هدایت هوشمند بر اساس روش پرداخت انتخابی
+    const selected = document.querySelector('input[name="payment_method"]:checked');
+    const form = document.getElementById('paymentForm');
+    if (selected) {
+        if (selected.value === 'online') {
+            // برای اطمینان از ریدایرکت، مستقیم به PayPing برویم
+            form.action = "{% url 'store_analysis:payping_payment' order.order_id %}";
+            form.method = 'get';
+        } else if (selected.value === 'wallet') {
+            form.action = "{% url 'store_analysis:wallet_payment' order.order_id %}";
+            form.method = 'get';
+        }
+    }
 });
 
 // Auto-select first payment method
