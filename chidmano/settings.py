@@ -29,15 +29,16 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.lia
 
 # Security settings for production
 if os.getenv('PRODUCTION', 'False').lower() == 'true':
-    SECURE_SSL_REDIRECT = True
+    # Temporarily disable SSL redirect until SSL is properly configured
+    SECURE_SSL_REDIRECT = False
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_SECONDS = 0  # Disable HSTS for now
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False  # Allow HTTP for now
+    CSRF_COOKIE_SECURE = False     # Allow HTTP for now
 else:
     # Development settings
     SECURE_SSL_REDIRECT = False
