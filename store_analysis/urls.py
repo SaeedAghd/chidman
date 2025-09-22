@@ -67,7 +67,7 @@ urlpatterns = [
     
     # Payment and Analysis URLs
     path('submit-request/', views.submit_analysis_request, name='submit_analysis_request'),
-    path('payment/<uuid:order_id>/', views.payment_page, name='payment'),
+    path('payment/<uuid:order_id>/', views.payment_page, name='payment_page'),
     path('process-payment/<uuid:order_id>/', views.process_payment, name='process_payment'),
     path('payment-success/<uuid:order_id>/', views.payment_success, name='payment_success'),
     path('payment-failed/<uuid:order_id>/', views.payment_failed, name='payment_failed'),

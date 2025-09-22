@@ -44,47 +44,81 @@ def calculate_analysis_cost_for_object(analysis):
     """محاسبه هزینه تحلیل برای StoreAnalysis object"""
     try:
         # هزینه پایه
-        base_cost = Decimal('100000')  # 100,000 تومان
+        base_cost = Decimal('500000')  # 500,000 تومان
         
         # دریافت اطلاعات فروشگاه
         basic_info = StoreBasicInfo.objects.filter(analysis=analysis).first()
+        
+        additional_cost = Decimal('0')
         
         if basic_info:
             # هزینه بر اساس نوع فروشگاه
             store_type = basic_info.store_type or ''
             if 'پوشاک' in store_type:
-                base_cost += Decimal('50000')
+                additional_cost += Decimal('100000')
             elif 'مواد غذایی' in store_type:
-                base_cost += Decimal('30000')
+                additional_cost += Decimal('80000')
             elif 'الکترونیک' in store_type:
-                base_cost += Decimal('70000')
+                additional_cost += Decimal('150000')
             
             # هزینه بر اساس اندازه فروشگاه
             store_size = basic_info.store_size or 0
             if store_size > 1000:
-                base_cost += Decimal('100000')
+                additional_cost += Decimal('200000')
             elif store_size > 500:
-                base_cost += Decimal('50000')
+                additional_cost += Decimal('100000')
             elif store_size > 200:
-                base_cost += Decimal('25000')
+                additional_cost += Decimal('50000')
         
         # هزینه‌های اضافی
-        additional_cost = Decimal('0')
-        
-        # اگر تحلیل پیشرفته درخواست شده
         if hasattr(analysis, 'analysis_type') and analysis.analysis_type == 'advanced':
-            additional_cost += Decimal('200000')
+            additional_cost += Decimal('300000')
         
-        # اگر گزارش PDF درخواست شده
-        additional_cost += Decimal('50000')  # هزینه گزارش PDF
+        # هزینه گزارش PDF
+        additional_cost += Decimal('200000')
         
         total_cost = base_cost + additional_cost
         
-        return total_cost
+        # ساخت breakdown
+        breakdown = [
+            {
+                'item': 'تحلیل پایه',
+                'amount': base_cost,
+                'description': 'تحلیل اولیه فروشگاه'
+            },
+            {
+                'item': 'گزارش تفصیلی',
+                'amount': additional_cost,
+                'description': 'گزارش کامل و PDF'
+            }
+        ]
+        
+        return {
+            'base_price': base_cost,
+            'total': total_cost,
+            'final': total_cost,
+            'discount': Decimal('0'),
+            'discount_percentage': 0,
+            'breakdown': breakdown
+        }
         
     except Exception as e:
         logger.error(f"Error calculating analysis cost: {e}")
-        return Decimal('150000')  # هزینه پیش‌فرض
+        # هزینه پیش‌فرض
+        return {
+            'base_price': Decimal('500000'),
+            'total': Decimal('500000'),
+            'final': Decimal('500000'),
+            'discount': Decimal('0'),
+            'discount_percentage': 0,
+            'breakdown': [
+                {
+                    'item': 'تحلیل پایه',
+                    'amount': Decimal('500000'),
+                    'description': 'تحلیل فروشگاه'
+                }
+            ]
+        }
 
 def generate_free_initial_analysis(analysis):
     """تولید تحلیل اولیه رایگان"""
@@ -2114,28 +2148,27 @@ def payment_page(request, order_id):
                 store_analysis.preliminary_analysis = "تحلیل اولیه: فروشگاه شما نیاز به بررسی دقیق‌تر دارد. پس از پرداخت، تحلیل کامل انجام خواهد شد."
                 store_analysis.save()
         
-        # محاسبه مجدد هزینه‌ها
+        # محاسبه هزینه‌ها از backend
         if store_analysis.analysis_data:
-            # محاسبه ساده هزینه‌ها
-            cost_breakdown = {
-                'base_price': 500000,
-                'total': 500000,
-                'final': 500000,
-                'breakdown': [
-                    {'item': 'تحلیل پایه', 'price': 300000},
-                    {'item': 'گزارش تفصیلی', 'price': 200000}
-                ]
-            }
+            try:
+                # استفاده از سیستم قیمت‌گذاری پویا
+                cost_breakdown = calculate_analysis_cost(store_analysis.analysis_data)
+            except Exception as e:
+                logger.error(f"Error calculating cost from analysis_data: {e}")
+                # fallback به محاسبه ساده
+                cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
         else:
-            cost_breakdown = {
-                'base_price': 500000,
-                'total': 500000,
-                'final': 500000,
-                'breakdown': [
-                    {'item': 'تحلیل پایه', 'price': 300000},
-                    {'item': 'گزارش تفصیلی', 'price': 200000}
-                ]
-            }
+            # محاسبه بر اساس object
+            cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
+        
+        # اعمال تخفیف از session
+        session_discount = request.session.get('discount_percentage', 0)
+        if session_discount > 0:
+            # محاسبه تخفیف
+            discount_amount = (cost_breakdown['final'] * session_discount) / 100
+            cost_breakdown['discount'] = discount_amount
+            cost_breakdown['final'] = cost_breakdown['final'] - discount_amount
+            cost_breakdown['discount_percentage'] = session_discount
         
         context = {
             'order': order,
@@ -3486,7 +3519,7 @@ def apply_discount(request):
             )
             
             # بررسی تعداد استفاده به صورت جداگانه
-            if discount.used_count >= discount.max_uses:
+            if discount.used_count >= discount.max_usage:
                 return JsonResponse({
                     'success': False,
                     'message': 'کد تخفیف به حداکثر تعداد استفاده رسیده است.'
@@ -3494,11 +3527,11 @@ def apply_discount(request):
             
             # ذخیره کد تخفیف در session
             request.session['discount_code'] = discount_code
-            request.session['discount_percentage'] = discount.discount_percentage
+            request.session['discount_percentage'] = discount.percentage
             
             return JsonResponse({
                 'success': True,
-                'message': f'کد تخفیف {discount.discount_percentage}% با موفقیت اعمال شد!'
+                'message': f'کد تخفیف {discount.percentage}% با موفقیت اعمال شد!'
             })
             
         except DiscountCode.DoesNotExist:

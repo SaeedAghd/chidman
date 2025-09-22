@@ -61,21 +61,21 @@ class ZarinpalGateway:
             
             if result.get('data', {}).get('code') == 100:
                 return {
-                    'success': True,
+                    'status': 'success',
                     'authority': result['data']['authority'],
                     'payment_url': f"https://{'sandbox.' if self.sandbox else ''}zarinpal.com/pg/StartPay/{result['data']['authority']}"
                 }
             else:
                 return {
-                    'success': False,
-                    'error': result.get('errors', {}).get('message', 'خطا در ایجاد درخواست پرداخت')
+                    'status': 'error',
+                    'message': result.get('errors', {}).get('message', 'خطا در ایجاد درخواست پرداخت')
                 }
                 
         except Exception as e:
             logger.error(f"Zarinpal payment request error: {e}")
             return {
-                'success': False,
-                'error': 'خطا در ارتباط با درگاه پرداخت'
+                'status': 'error',
+                'message': 'خطا در ارتباط با درگاه پرداخت'
             }
     
     def verify_payment(self, authority, amount):
@@ -103,21 +103,21 @@ class ZarinpalGateway:
             
             if result.get('data', {}).get('code') == 100:
                 return {
-                    'success': True,
+                    'status': 'success',
                     'ref_id': result['data']['ref_id'],
                     'transaction_id': result['data']['ref_id']
                 }
             else:
                 return {
-                    'success': False,
-                    'error': result.get('errors', {}).get('message', 'خطا در تایید پرداخت')
+                    'status': 'error',
+                    'message': result.get('errors', {}).get('message', 'خطا در تایید پرداخت')
                 }
                 
         except Exception as e:
             logger.error(f"Zarinpal payment verification error: {e}")
             return {
-                'success': False,
-                'error': 'خطا در تایید پرداخت'
+                'status': 'error',
+                'message': 'خطا در تایید پرداخت'
             }
 
 class PaymentGatewayManager:
