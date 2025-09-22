@@ -2295,10 +2295,9 @@ def zarinpal_payment(request, order_id):
             store_analysis = StoreAnalysis.objects.filter(order=order).first()
             payment = Payment.objects.create(
                 user=request.user,
-                order=order,
                 store_analysis=store_analysis,
                 amount=order.final_amount,
-                payment_method='zarinpal',
+                payment_method='online',
                 status='pending',
                 transaction_id=payment_request['authority']
             )
@@ -2310,24 +2309,23 @@ def zarinpal_payment(request, order_id):
             messages.error(request, f'خطا در ایجاد درخواست پرداخت: {error_msg}')
             logger.error(f"Zarinpal payment error: {payment_request}")
             
-           # برای تست: اگر زرین‌پال کار نکرد، شبیه‌سازی پرداخت موفق
-           if 'خطا در ارتباط با درگاه پرداخت' in error_msg or 'merchant id must be at least 36 characters' in error_msg.lower():
-               messages.info(request, 'درگاه پرداخت موقتاً در دسترس نیست. پرداخت شبیه‌سازی شده است.')
-               # شبیه‌سازی پرداخت موفق
-               payment = Payment.objects.create(
-                   user=request.user,
-                   order=order,
-                   store_analysis=store_analysis,
-                   amount=order.final_amount,
-                   payment_method='zarinpal_test',
-                   status='completed',
-                   transaction_id=f'TXN_TEST_{uuid.uuid4().hex[:8].upper()}'
-               )
-               order.status = 'paid'
-               order.payment_method = 'zarinpal_test'
-               order.transaction_id = payment.transaction_id
-               order.save()
-               return redirect('store_analysis:order_analysis_results', order_id=order_id)
+            # برای تست: اگر زرین‌پال کار نکرد، شبیه‌سازی پرداخت موفق
+            if 'خطا در ارتباط با درگاه پرداخت' in error_msg or 'merchant id must be at least 36 characters' in error_msg.lower():
+                messages.info(request, 'درگاه پرداخت موقتاً در دسترس نیست. پرداخت شبیه‌سازی شده است.')
+                # شبیه‌سازی پرداخت موفق
+                payment = Payment.objects.create(
+                    user=request.user,
+                    store_analysis=store_analysis,
+                    amount=order.final_amount,
+                    payment_method='online',
+                    status='completed',
+                    transaction_id=f'TXN_TEST_{uuid.uuid4().hex[:8].upper()}'
+                )
+                order.status = 'paid'
+                order.payment_method = 'zarinpal_test'
+                order.transaction_id = payment.transaction_id
+                order.save()
+                return redirect('store_analysis:order_analysis_results', order_id=order_id)
             
             return redirect('store_analysis:payment_page', order_id=order_id)
             
