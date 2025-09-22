@@ -7,6 +7,10 @@ echo "🚀 Starting Chidmano application..."
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 export DJANGO_SETTINGS_MODULE="chidmano.settings"
 
+# Run migrations first
+echo "📊 Running migrations..."
+python manage.py migrate --noinput
+
 # Start the application with gunicorn
 echo "🌐 Starting Gunicorn server..."
 exec gunicorn chidmano.wsgi:application \

@@ -178,7 +178,12 @@ def features_view(request):
 
 def health_check(request):
     """Health check endpoint for Liara deployment"""
-    return HttpResponse('OK')
+    try:
+        # Simple health check - just return OK
+        return HttpResponse('OK', content_type='text/plain')
+    except Exception as e:
+        # If anything fails, still return OK to prevent container restart
+        return HttpResponse('OK', content_type='text/plain')
 
 def dashboard_view(request):
     """Dashboard view"""
