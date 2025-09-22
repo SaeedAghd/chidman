@@ -21,7 +21,9 @@ class LiaraAIService:
         self.api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
         self.headers = {
             'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'Chidmano-AI-Client/1.0'
         }
         
         # مدل‌های پیشرفته برای تحلیل‌های مختلف

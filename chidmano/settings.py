@@ -241,7 +241,7 @@ ZARINPAL_MERCHANT_ID = os.getenv('ZARINPAL_MERCHANT_ID', 'test-merchant-id')
 ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
 
 # Liara AI Settings
-LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', '')
+LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2OGM3MjU1NjJlYTVmMGYxNTA3MWU5ZDgiLCJ0eXBlIjoiYXV0aCIsImlhdCI6MTc1ODE0NzM2Mn0._pcbp8DXGwSBCub-SFj5eRNmEYHgq15QyU4-wND-UPo')
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 

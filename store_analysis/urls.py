@@ -77,6 +77,7 @@ urlpatterns = [
     path('checkout/<uuid:order_id>/', views.checkout, name='checkout'),
     path('apply-discount/', views.apply_discount, name='apply_discount'),
     path('test-zarinpal/', views.test_zarinpal, name='test_zarinpal'),
+    path('test-liara-ai/', views.test_liara_ai, name='test_liara_ai'),
 
     path('analysis-results/<int:pk>/', views.analysis_results, name='analysis_results'),
     path('analysis-results-session/', views.analysis_results_session, name='analysis_results_session'),

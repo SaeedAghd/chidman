@@ -2359,6 +2359,36 @@ def test_zarinpal(request):
         return HttpResponse(f'❌ خطا: {str(e)}')
 
 @login_required
+def test_liara_ai(request):
+    """تست Liara AI"""
+    try:
+        from .ai_services.liara_ai_service import LiaraAIService
+        
+        ai_service = LiaraAIService()
+        
+        # تست ساده
+        test_data = {
+            'store_name': 'تست فروشگاه',
+            'store_type': 'عمومی',
+            'store_size': '100',
+            'city': 'تهران'
+        }
+        
+        result = ai_service._make_request(
+            model='openai/gpt-4.1',
+            prompt='سلام، این یک تست است. لطفاً پاسخ دهید.',
+            max_tokens=100
+        )
+        
+        if result:
+            return HttpResponse(f'✅ تست Liara AI موفق: {result}')
+        else:
+            return HttpResponse('❌ تست Liara AI ناموفق')
+        
+    except Exception as e:
+        return HttpResponse(f'❌ خطا در تست Liara AI: {str(e)}')
+
+@login_required
 def zarinpal_callback(request, order_id):
     """بازگشت از زرین‌پال"""
     try:
