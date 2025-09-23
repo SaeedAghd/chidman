@@ -2902,6 +2902,24 @@ def order_analysis_results(request, order_id):
             'results': store_analysis.results or {}
         }
         
+        # تولید تحلیل دوستانه
+        try:
+            from .ai_services.friendly_analysis_generator import FriendlyAnalysisGenerator
+            friendly_generator = FriendlyAnalysisGenerator()
+            
+            # تبدیل نتایج به فرمت دوستانه
+            friendly_analysis = friendly_generator.generate_friendly_analysis(
+                store_analysis.analysis_data or {},
+                store_analysis.results or {}
+            )
+            
+            context['friendly_analysis'] = friendly_analysis
+            context['show_friendly'] = True
+            
+        except Exception as e:
+            logger.error(f"Error generating friendly analysis: {e}")
+            context['show_friendly'] = False
+        
         return render(request, 'store_analysis/analysis_results_enhanced.html', context)
         
     except Exception as e:

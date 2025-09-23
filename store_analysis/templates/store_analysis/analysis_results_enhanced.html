@@ -4,7 +4,9 @@
 
 {% block title %}نتایج تحلیل - چیدمانو{% endblock %}
 
-{% if is_advanced_analysis %}
+{% if show_friendly %}
+    {% extends 'store_analysis/friendly_analysis_results.html' %}
+{% elif is_advanced_analysis %}
     {% extends 'store_analysis/advanced_analysis_results.html' %}
 {% endif %}
 

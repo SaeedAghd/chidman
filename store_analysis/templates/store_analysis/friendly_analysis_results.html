@@ -1,0 +1,452 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}گزارش تحلیل دوستانه - {{ analysis.store_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .friendly-analysis {
+        font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+        line-height: 1.8;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .analysis-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .analysis-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        text-align: center;
+        position: relative;
+    }
+    
+    .analysis-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .analysis-header h1 {
+        font-size: 2.5rem;
+        margin: 0 0 10px 0;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .analysis-header .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .analysis-header .date {
+        font-size: 1rem;
+        opacity: 0.8;
+        margin-top: 10px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .analysis-content {
+        padding: 40px;
+    }
+    
+    .section {
+        margin-bottom: 40px;
+        padding: 30px;
+        background: #f8f9ff;
+        border-radius: 15px;
+        border-right: 5px solid #667eea;
+        position: relative;
+    }
+    
+    .section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 5px;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 0 15px 15px 0;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        color: #667eea;
+        margin-bottom: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+    
+    .score-display {
+        text-align: center;
+        padding: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        margin: 20px 0;
+    }
+    
+    .score-number {
+        font-size: 4rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .score-status {
+        font-size: 1.5rem;
+        margin: 10px 0;
+        font-weight: 600;
+    }
+    
+    .score-message {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .item-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .item-list li {
+        padding: 15px 20px;
+        margin: 10px 0;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-right: 4px solid #667eea;
+        font-size: 1.1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .item-list li:hover {
+        transform: translateX(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    
+    .phase {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin: 20px 0;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-right: 5px solid #667eea;
+    }
+    
+    .phase-title {
+        font-size: 1.4rem;
+        color: #667eea;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .phase-duration {
+        background: #667eea;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+    
+    .phase-message {
+        background: #e8f2ff;
+        color: #667eea;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .prediction-timeline {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .timeline-item {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-top: 4px solid #667eea;
+    }
+    
+    .timeline-item h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .conclusion {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        margin-top: 40px;
+    }
+    
+    .conclusion h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+    
+    .conclusion-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        text-align: right;
+        background: rgba(255,255,255,0.1);
+        padding: 30px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .signature {
+        margin-top: 30px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        opacity: 0.9;
+    }
+    
+    .emoji {
+        font-size: 1.2em;
+        margin-left: 5px;
+    }
+    
+    .highlight {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        color: #333;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin: 20px 0;
+        box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+    }
+    
+    @media (max-width: 768px) {
+        .analysis-container {
+            margin: 10px;
+            border-radius: 15px;
+        }
+        
+        .analysis-header {
+            padding: 30px 20px;
+        }
+        
+        .analysis-header h1 {
+            font-size: 2rem;
+        }
+        
+        .analysis-content {
+            padding: 20px;
+        }
+        
+        .section {
+            padding: 20px;
+        }
+        
+        .score-number {
+            font-size: 3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="friendly-analysis">
+    <div class="analysis-container">
+        <!-- Header -->
+        <div class="analysis-header">
+            <h1>{{ analysis.header.title }}</h1>
+            <div class="subtitle">{{ analysis.header.subtitle }}</div>
+            <div class="date">{{ analysis.header.date }}</div>
+        </div>
+        
+        <!-- Content -->
+        <div class="analysis-content">
+            <!-- Greeting -->
+            <div class="section">
+                <div class="highlight">
+                    {{ analysis.header.greeting }}
+                </div>
+            </div>
+            
+            <!-- Overview -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="emoji">📍</span>
+                    {{ analysis.overview.title }}
+                </h2>
+                <div class="section-content">
+                    {{ analysis.overview.content|linebreaks }}
+                </div>
+                <div class="highlight">
+                    {{ analysis.overview.highlight }}
+                </div>
+            </div>
+            
+            <!-- Scores -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="emoji">📊</span>
+                    {{ analysis.scores.title }}
+                </h2>
+                <div class="score-display">
+                    <div class="score-number">{{ analysis.scores.score }}</div>
+                    <div class="score-status">{{ analysis.scores.status }}</div>
+                    <div class="score-message">{{ analysis.scores.message }}</div>
+                </div>
+                <ul class="item-list">
+                    {% for detail in analysis.scores.details %}
+                    <li>{{ detail }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Strengths -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="emoji">⭐</span>
+                    {{ analysis.strengths.title }}
+                </h2>
+                <div class="section-subtitle">{{ analysis.strengths.subtitle }}</div>
+                <ul class="item-list">
+                    {% for item in analysis.strengths.items %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="highlight">
+                    {{ analysis.strengths.message }}
+                </div>
+            </div>
+            
+            <!-- Improvements -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="emoji">🚀</span>
+                    {{ analysis.improvements.title }}
+                </h2>
+                <div class="section-subtitle">{{ analysis.improvements.subtitle }}</div>
+                <ul class="item-list">
+                    {% for item in analysis.improvements.items %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="highlight">
+                    {{ analysis.improvements.message }}
+                </div>
+            </div>
+            
+            <!-- Action Plan -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="emoji">🎯</span>
+                    {{ analysis.action_plan.title }}
+                </h2>
+                {% for phase in analysis.action_plan.phases %}
+                <div class="phase">
+                    <h3 class="phase-title">{{ phase.title }}</h3>
+                    <div class="phase-duration">{{ phase.duration }}</div>
+                    <ul class="item-list">
+                        {% for item in phase.items %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="phase-message">{{ phase.message }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Predictions -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="emoji">🔮</span>
+                    {{ analysis.predictions.title }}
+                </h2>
+                <ul class="item-list">
+                    {% for prediction in analysis.predictions.predictions %}
+                    <li>{{ prediction }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="prediction-timeline">
+                    {% for key, value in analysis.predictions.timeline.items %}
+                    <div class="timeline-item">
+                        <h4>{{ value }}</h4>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="highlight">
+                    {{ analysis.predictions.message }}
+                </div>
+            </div>
+            
+            <!-- Tips -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="emoji">💎</span>
+                    {{ analysis.tips.title }}
+                </h2>
+                <div class="section-subtitle">{{ analysis.tips.subtitle }}</div>
+                <ul class="item-list">
+                    {% for tip in analysis.tips.items %}
+                    <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="highlight">
+                    {{ analysis.tips.message }}
+                </div>
+            </div>
+            
+            <!-- Conclusion -->
+            <div class="conclusion">
+                <h2>{{ analysis.conclusion.title }}</h2>
+                <div class="conclusion-content">
+                    {{ analysis.conclusion.content|linebreaks }}
+                </div>
+                <div class="signature">
+                    {{ analysis.conclusion.signature }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
