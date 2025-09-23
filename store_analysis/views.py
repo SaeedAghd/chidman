@@ -2078,9 +2078,29 @@ def view_analysis_pdf_inline(request, pk):
         # همسان با طراحی حرفه‌ای و فونت فارسی در download_detailed_pdf
         # آماده‌سازی محتوای گزارش (برنامه اجرایی/نتایج)
         if analysis.results and isinstance(analysis.results, dict):
-            implementation_plan = _convert_ollama_results_to_text(analysis.results)
+            if 'analysis_text' in analysis.results:
+                implementation_plan = analysis.results['analysis_text']
+            elif 'fallback_analysis' in analysis.results:
+                implementation_plan = analysis.results.get('analysis_text', 'تحلیل ساده انجام شد')
+            else:
+                implementation_plan = str(analysis.results)
         else:
-            implementation_plan = generate_comprehensive_implementation_plan(analysis.analysis_data)
+            implementation_plan = generate_comprehensive_implementation_plan(analysis.analysis_data or {})
+        
+        # اگر محتوا خالی است، حداقل یک پیام قرار بده
+        if not implementation_plan or implementation_plan.strip() == '':
+            implementation_plan = f"""
+گزارش تحلیل فروشگاه {analysis.store_name or 'نامشخص'}
+
+اطلاعات فروشگاه:
+- نام فروشگاه: {analysis.store_name or 'نامشخص'}
+- نوع فروشگاه: {analysis.store_type or 'عمومی'}
+- اندازه فروشگاه: {analysis.store_size or 'نامشخص'}
+
+متأسفانه تحلیل کامل انجام نشده است. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.
+
+تاریخ: {analysis.created_at.strftime('%Y/%m/%d') if analysis.created_at else 'نامشخص'}
+            """.strip()
 
         # ایجاد PDF در حافظه با سربرگ و RTL
         from reportlab.lib.pagesizes import A4
@@ -2804,15 +2824,7 @@ def order_analysis_results(request, order_id):
                 
                 # اجرای تحلیل پیشرفته
                 engine = IntelligentAnalysisEngine()
-                
-                async def run_analysis():
-                    return await engine.perform_comprehensive_analysis(store_info, images)
-                
-                # اجرای تحلیل در event loop
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                analysis_result = loop.run_until_complete(run_analysis())
-                loop.close()
+                analysis_result = engine.perform_comprehensive_analysis(store_info, images)
                 
                 # ذخیره نتایج تحلیل
                 store_analysis.results = {
@@ -2846,15 +2858,39 @@ def order_analysis_results(request, order_id):
                 
             except Exception as analysis_error:
                 logger.error(f"Error in advanced analysis: {analysis_error}")
-                # اگر تحلیل پیشرفته ناموفق بود، تحلیل ساده انجام بده
-                store_analysis.results = {
-                    'error': 'خطا در تحلیل پیشرفته',
-                    'fallback_analysis': True,
-                    'message': 'تحلیل ساده انجام شد'
-                }
-                store_analysis.status = 'completed'
-                store_analysis.save()
-                messages.warning(request, 'تحلیل ساده انجام شد (تحلیل پیشرفته ناموفق بود)')
+                # اگر تحلیل پیشرفته ناموفق بود، تحلیل ساده با Ollama انجام بده
+                try:
+                    from .ai_analysis import StoreAnalysisAI
+                    ai_analyzer = StoreAnalysisAI()
+                    
+                    # تحلیل ساده با Ollama
+                    simple_analysis = ai_analyzer.generate_detailed_analysis(store_analysis.analysis_data or {})
+                    
+                    store_analysis.results = {
+                        'fallback_analysis': True,
+                        'analysis_text': simple_analysis.get('analysis_text', 'تحلیل ساده انجام شد'),
+                        'overall_score': simple_analysis.get('overall_score', 75.0),
+                        'strengths': simple_analysis.get('strengths', []),
+                        'weaknesses': simple_analysis.get('weaknesses', []),
+                        'recommendations': simple_analysis.get('recommendations', []),
+                        'ai_provider': 'ollama_fallback'
+                    }
+                    store_analysis.status = 'completed'
+                    store_analysis.save()
+                    messages.warning(request, 'تحلیل ساده با Ollama انجام شد (تحلیل پیشرفته ناموفق بود)')
+                    
+                except Exception as fallback_error:
+                    logger.error(f"Fallback analysis also failed: {fallback_error}")
+                    # اگر حتی تحلیل ساده هم ناموفق بود، حداقل یک پیام ذخیره کن
+                    store_analysis.results = {
+                        'error': 'خطا در تحلیل',
+                        'fallback_analysis': True,
+                        'message': 'متأسفانه تحلیل انجام نشد. لطفاً دوباره تلاش کنید.',
+                        'analysis_text': 'خطا در تحلیل - لطفاً با پشتیبانی تماس بگیرید'
+                    }
+                    store_analysis.status = 'completed'
+                    store_analysis.save()
+                    messages.error(request, 'خطا در تحلیل - لطفاً دوباره تلاش کنید')
         
         context = {
             'order': order,
@@ -3614,9 +3650,23 @@ def ai_analysis_guide(request):
 def check_legal_agreement(request):
     """بررسی وضعیت تایید تعهدنامه حقوقی"""
     try:
-        # برای حالا همیشه False برگردانیم تا modal نمایش داده شود
-        # بعداً می‌توانیم از دیتابیس بررسی کنیم
-        accepted = False
+        # بررسی از session یا دیتابیس
+        if request.user.is_authenticated:
+            # بررسی از session
+            accepted = request.session.get('legal_agreement_accepted', False)
+            
+            # اگر در session نیست، از دیتابیس بررسی کن
+            if not accepted:
+                from .models import UserProfile
+                try:
+                    profile = UserProfile.objects.get(user=request.user)
+                    accepted = profile.legal_agreement_accepted
+                    # ذخیره در session برای دفعات بعد
+                    request.session['legal_agreement_accepted'] = accepted
+                except UserProfile.DoesNotExist:
+                    accepted = False
+        else:
+            accepted = False
         
         return JsonResponse({
             'accepted': accepted,
@@ -3635,9 +3685,19 @@ def accept_legal_agreement(request):
             import json
             data = json.loads(request.body)
             
-            if data.get('accepted'):
-                # برای حالا فقط JSON response برگردانیم
-                # بعداً می‌توانیم در دیتابیس ذخیره کنیم
+            if data.get('accepted') and request.user.is_authenticated:
+                # ذخیره در session
+                request.session['legal_agreement_accepted'] = True
+                
+                # ذخیره در دیتابیس
+                from .models import UserProfile
+                profile, created = UserProfile.objects.get_or_create(
+                    user=request.user,
+                    defaults={'legal_agreement_accepted': True}
+                )
+                if not created:
+                    profile.legal_agreement_accepted = True
+                    profile.save()
                 
                 return JsonResponse({
                     'success': True,

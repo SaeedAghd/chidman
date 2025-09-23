@@ -68,10 +68,10 @@ class IntelligentAnalysisEngine:
         self.liara_ai_service = LiaraAIService()
         self.analysis_cache = {}
         
-    async def perform_comprehensive_analysis(self, 
-                                           store_info: Dict[str, Any], 
-                                           images: List[str] = None,
-                                           market_data: Dict[str, Any] = None) -> ComprehensiveAnalysisResult:
+    def perform_comprehensive_analysis(self, 
+                                     store_info: Dict[str, Any], 
+                                     images: List[str] = None,
+                                     market_data: Dict[str, Any] = None) -> ComprehensiveAnalysisResult:
         """
         انجام تحلیل جامع و حرفه‌ای فروشگاه
         
@@ -86,26 +86,38 @@ class IntelligentAnalysisEngine:
         try:
             analysis_id = f"analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             
-            # اجرای موازی تحلیل‌های مختلف
-            tasks = [
-                self._analyze_images(images or [], store_info),
-                self._analyze_market(store_info, market_data),
-                self._analyze_financials(store_info),
-                self._analyze_customers(store_info),
-                self._analyze_operations(store_info),
-                self._analyze_digital_presence(store_info)
-            ]
+            # اجرای تحلیل‌های مختلف
+            try:
+                image_analysis = self._analyze_images(images or [], store_info)
+            except Exception as e:
+                image_analysis = self._create_fallback_image_analysis()
             
-            # اجرای همزمان تمام تحلیل‌ها
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+            try:
+                market_analysis = self._analyze_market(store_info, market_data)
+            except Exception as e:
+                market_analysis = self._create_fallback_market_analysis()
             
-            # پردازش نتایج
-            image_analysis = results[0] if not isinstance(results[0], Exception) else self._create_fallback_image_analysis()
-            market_analysis = results[1] if not isinstance(results[1], Exception) else self._create_fallback_market_analysis()
-            financial_analysis = results[2] if not isinstance(results[2], Exception) else self._create_fallback_financial_analysis()
-            customer_analysis = results[3] if not isinstance(results[3], Exception) else self._create_fallback_customer_analysis()
-            operational_analysis = results[4] if not isinstance(results[4], Exception) else self._create_fallback_operational_analysis()
-            digital_analysis = results[5] if not isinstance(results[5], Exception) else self._create_fallback_digital_analysis()
+            try:
+                financial_analysis = self._analyze_financials(store_info)
+            except Exception as e:
+                financial_analysis = self._create_fallback_financial_analysis()
+            
+            try:
+                customer_analysis = self._analyze_customers(store_info)
+            except Exception as e:
+                customer_analysis = self._create_fallback_customer_analysis()
+            
+            try:
+                operational_analysis = self._analyze_operations(store_info)
+            except Exception as e:
+                operational_analysis = self._create_fallback_operational_analysis()
+            
+            try:
+                digital_analysis = self._analyze_digital_presence(store_info)
+            except Exception as e:
+                digital_analysis = self._create_fallback_digital_analysis()
+            
+            # پردازش نتایج (قبلاً انجام شده)
             
             # محاسبه امتیاز کلی
             overall_score = self._calculate_overall_score(
