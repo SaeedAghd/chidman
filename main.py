@@ -25,12 +25,8 @@ if __name__ == "__main__":
         print(f"❌ Migration failed: {migrate_error}")
         sys.exit(1)
 
-    print("🧱 Collecting static files (main.py)...")
-    try:
-        call_command('collectstatic', interactive=False, verbosity=0, ignore_patterns=['*.psd', '*.ai'])
-    except Exception as collect_error:
-        print(f"❌ Collectstatic failed: {collect_error}")
-        sys.exit(1)
+    # Do NOT run collectstatic at runtime on Liara (read-only filesystem). Collectstatic occurs at build time.
+    print("📁 Skipping collectstatic in main.py - will be handled at build time")
 
     # Start the application with gunicorn
     print("🌐 Starting Gunicorn server...")
