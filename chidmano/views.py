@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 def signup_view(request):
     """View for user registration with email verification"""
-    if request.method == 'POST':
-        try:
+    try:
+        if request.method == 'POST':
             form = UserCreationForm(request.POST)
             if form.is_valid():
                 # دریافت ایمیل از فرم
@@ -29,35 +29,33 @@ def signup_view(request):
                 if not email:
                     messages.error(request, 'لطفاً ایمیل خود را وارد کنید.')
                     return render(request, 'store_analysis/signup.html', {'form': form})
-                
+
                 # بررسی وجود ایمیل
                 if User.objects.filter(email=email).exists():
                     messages.error(request, 'این ایمیل قبلاً ثبت شده است.')
                     return render(request, 'store_analysis/signup.html', {'form': form})
-                
+
                 # ایجاد کاربر
                 user = form.save(commit=False)
                 user.email = email
                 user.is_active = True  # فعال کردن مستقیم برای تست
                 user.save()
-                
+
                 # برای تست، کاربر را مستقیماً وارد کنیم
                 from django.contrib.auth import login
                 login(request, user)
                 messages.success(request, f'حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.username}!')
                 return redirect('store_analysis:user_dashboard')
-                
             else:
                 messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
                 return render(request, 'store_analysis/signup.html', {'form': form})
-                
-        except Exception as e:
-            logger.error(f"Error in signup_view: {e}")
-            messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
-            return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
-    else:
-        form = UserCreationForm()
-        return render(request, 'store_analysis/signup.html', {'form': form})
+        else:
+            form = UserCreationForm()
+            return render(request, 'store_analysis/signup.html', {'form': form})
+    except Exception as e:
+        logger.error(f"Error in signup_view: {e}")
+        messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
+        return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
 
 def verify_email_view(request, user_id):
     """صفحه تاییدیه ایمیل"""
@@ -151,7 +149,7 @@ def simple_login_view(request):
             from django.contrib.auth import authenticate, login
             username = request.POST.get('username')
             password = request.POST.get('password')
-            
+
             if username and password:
                 user = authenticate(request, username=username, password=password)
                 if user is not None:
@@ -165,7 +163,7 @@ def simple_login_view(request):
                     messages.error(request, 'نام کاربری یا رمز عبور اشتباه است.')
             else:
                 messages.error(request, 'لطفاً همه فیلدها را پر کنید.')
-        
+
         return render(request, 'store_analysis/login.html')
     except Exception as e:
         logger.error(f"Error in simple_login_view: {e}")
