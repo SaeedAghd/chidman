@@ -1700,21 +1700,16 @@ def user_dashboard(request):
     from django.utils import timezone
     from datetime import datetime
     
-    # آمار تحلیل‌ها
-    total_analyses = StoreAnalysis.objects.filter(user=request.user).count()
-    completed_analyses = StoreAnalysis.objects.filter(user=request.user, status__in=['completed', 'preliminary_completed']).count()
-    pending_analyses = StoreAnalysis.objects.filter(user=request.user, status='pending').count()
-    processing_analyses = StoreAnalysis.objects.filter(user=request.user, status='processing').count()
+    # آمار پرداخت‌ها و اشتراک‌ها
+    total_payments = Payment.objects.filter(user=request.user).count()
+    completed_payments = Payment.objects.filter(user=request.user, status='completed').count()
+    pending_payments = Payment.objects.filter(user=request.user, status='pending').count()
     
-    # آخرین تحلیل‌ها
-    recent_analyses = StoreAnalysis.objects.filter(user=request.user).order_by('-created_at')[:5]
+    # آخرین پرداخت‌ها
+    recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
     
-    # تولید تحلیل کامل برای نمایش در داشبورد
-    detailed_analysis = None
-    if recent_analyses.exists():
-        latest_analysis = recent_analyses.first()
-        if latest_analysis.analysis_data:
-            detailed_analysis = generate_detailed_analysis_for_dashboard(latest_analysis.analysis_data)
+    # اشتراک‌های فعال
+    active_subscriptions = UserSubscription.objects.filter(user=request.user, is_active=True)
     
     # تاریخ شمسی برای داشبورد
     try:
@@ -1725,25 +1720,21 @@ def user_dashboard(request):
     except:
         persian_date_str = timezone.now().strftime("%Y/%m/%d")
     
-    # تحلیل‌های قابل دانلود
-    downloadable_analyses = StoreAnalysis.objects.filter(
-        user=request.user, 
-        status__in=['preliminary_completed', 'completed']
-    ).order_by('-created_at')[:3]
+    # بسته‌های خدمات موجود
+    available_packages = ServicePackage.objects.filter(is_active=True).order_by('price')[:3]
     
-    # محاسبه درصد موفقیت
-    success_rate = (completed_analyses / total_analyses * 100) if total_analyses > 0 else 0
+    # محاسبه درصد موفقیت پرداخت
+    success_rate = (completed_payments / total_payments * 100) if total_payments > 0 else 0
     
     context = {
-        'total_analyses': total_analyses,
-        'completed_analyses': completed_analyses,
-        'pending_analyses': pending_analyses,
-        'processing_analyses': processing_analyses,
-        'recent_analyses': recent_analyses,
-        'downloadable_analyses': downloadable_analyses,
+        'total_payments': total_payments,
+        'completed_payments': completed_payments,
+        'pending_payments': pending_payments,
+        'recent_payments': recent_payments,
+        'active_subscriptions': active_subscriptions,
+        'available_packages': available_packages,
         'success_rate': round(success_rate, 1),
         'user': request.user,
-        'detailed_analysis': detailed_analysis,
         'persian_date': persian_date_str,
     }
     
