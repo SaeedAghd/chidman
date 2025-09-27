@@ -6550,14 +6550,10 @@ def deposit_to_wallet(request):
     # Debug: Check authentication status
     logger.info(f"Deposit view accessed - User: {request.user}, Authenticated: {request.user.is_authenticated}")
     
-    # Debug: Check PayPing token
-    payping_token = getattr(settings, 'PAYPING_TOKEN', 'NOT_SET')
-    logger.info(f"PayPing token: {payping_token[:20]}...")
-    
     if request.method == 'POST':
         try:
             amount = Decimal(request.POST.get('amount', 0))
-            payment_method = request.POST.get('payment_method', 'payping')
+            payment_method = request.POST.get('payment_method', 'ping_payment')
             
             # Debug logging
             logger.info(f"Deposit request - Amount: {amount}, Payment Method: {payment_method}")
@@ -6571,51 +6567,50 @@ def deposit_to_wallet(request):
                 messages.error(request, 'حداقل مبلغ واریز 10,000 تومان است')
                 return redirect('store_analysis:wallet_dashboard')
             
-            # دریافت یا ایجاد کیف پول
-            wallet, created = Wallet.objects.get_or_create(
+            # ایجاد پرداخت جدید
+            payment = Payment.objects.create(
                 user=request.user,
-                defaults={'balance': 0, 'is_active': True}
+                order_id=f"WALLET-{timezone.now().timestamp()}-{request.user.id}",
+                amount=amount,
+                currency='IRR',
+                description=f"واریز به کیف پول - {amount:,} تومان",
+                payment_method='ping_payment',
+                is_test=settings.PAYMENT_GATEWAY['PING_PAYMENT']['SANDBOX']
             )
             
-            # ایجاد سفارش واریز
-            from .models import Order
-            order = Order.objects.create(
-                user=request.user,
-                original_amount=amount,
-                final_amount=amount,
-                status='pending',
-                payment_method=payment_method
-            )
-            
-            # هدایت به PayPing
-            if payment_method == 'payping':
-                logger.info(f"Redirecting to PayPing for order {order.order_id}")
+            # هدایت به درگاه پرداخت
+            if payment_method == 'ping_payment':
+                logger.info(f"Redirecting to Ping Payment for payment {payment.order_id}")
                 try:
-                    # Debug: Check PayPing gateway
-                    from .payment_gateways import PaymentGatewayManager
-                    gateway_manager = PaymentGatewayManager()
-                    payping = gateway_manager.get_gateway('payping')
+                    # استفاده از PaymentManager
+                    from .payment_services import PaymentManager
+                    payment_manager = PaymentManager()
                     
-                    if not payping:
-                        logger.error("PayPing gateway not available")
-                        messages.error(request, 'درگاه PayPing در دسترس نیست')
+                    ping_response = payment_manager.initiate_payment(
+                        payment_method='ping_payment',
+                        amount=payment.amount,
+                        order_id=payment.order_id,
+                        description=payment.description,
+                        user=request.user
+                    )
+                    
+                    if ping_response and ping_response.get('success'):
+                        payment.payment_id = ping_response.get('payment_id')
+                        payment.gateway_response = ping_response
+                        payment.save()
+                        return redirect(ping_response['payment_url'])
+                    else:
+                        error_message = ping_response.get('message', 'خطا در شروع پرداخت از درگاه.')
+                        messages.error(request, f"خطا در شروع پرداخت: {error_message}")
                         return redirect('store_analysis:wallet_dashboard')
-                    
-                    redirect_url = reverse('store_analysis:payping_payment', args=[order.order_id])
-                    logger.info(f"PayPing redirect URL: {redirect_url}")
-                    return redirect(redirect_url)
                 except Exception as e:
-                    logger.error(f"Error creating PayPing redirect: {e}")
-                    messages.error(request, f'خطا در هدایت به PayPing: {str(e)}')
+                    logger.error(f"Error creating Ping Payment redirect: {e}")
+                    messages.error(request, f'خطا در هدایت به درگاه پرداخت: {str(e)}')
                     return redirect('store_analysis:wallet_dashboard')
-            elif payment_method == 'zarinpal':
-                # استفاده از زرین‌پال به عنوان fallback
-                return redirect('store_analysis:zarinpal_payment', order_id=order.order_id)
             else:
                 # برای واریز دستی، مستقیماً واریز کن
-                wallet.deposit(amount, f'واریز دستی - سفارش {order.order_id}')
-                order.status = 'paid'
-                order.save()
+                payment.status = 'completed'
+                payment.save()
                 messages.success(request, f'مبلغ {amount:,} تومان با موفقیت واریز شد.')
                 return redirect('store_analysis:wallet_dashboard')
             
@@ -6624,13 +6619,13 @@ def deposit_to_wallet(request):
         except Exception as e:
             messages.error(request, f'خطا در واریز: {str(e)}')
     
-    # دریافت کیف پول برای نمایش موجودی
-    try:
-        wallet = Wallet.objects.get(user=request.user)
-    except Wallet.DoesNotExist:
-        wallet = None
+    # دریافت آخرین پرداخت‌ها برای نمایش
+    recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
     
-    return render(request, 'store_analysis/deposit_to_wallet.html', {'wallet': wallet})
+    return render(request, 'store_analysis/deposit_to_wallet.html', {
+        'recent_payments': recent_payments,
+        'user': request.user
+    })
 
 
 @login_required
