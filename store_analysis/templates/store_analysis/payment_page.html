@@ -98,6 +98,152 @@
     margin-bottom: 2rem;
 }
 
+/* Analysis Package Summary */
+.analysis-package-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.package-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.package-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.package-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+}
+
+.package-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+}
+
+.package-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.feature-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.feature-content h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+}
+
+.feature-content p {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+    line-height: 1.5;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+}
+
+/* Delivery Timeline */
+.delivery-timeline {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.timeline-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+}
+
+.timeline-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.timeline-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.timeline-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+}
+
+.timeline-content p {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin: 0;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+}
+
 .cost-item {
     display: flex;
     justify-content: space-between;
@@ -382,6 +528,71 @@
             </div>
         </div>
         
+        <!-- Analysis Package Summary -->
+        <div class="analysis-package-summary">
+            <div class="package-header">
+                <div class="package-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h2 class="package-title">بسته تحلیل حرفه‌ای چیدمانو</h2>
+                <p class="package-subtitle">شما در حال خرید کامل‌ترین بسته تحلیل فروشگاه هستید</p>
+            </div>
+            
+            <div class="package-features">
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-content">
+                        <h4>تحلیل اولیه فوری</h4>
+                        <p>بلافاصله پس از پرداخت، تحلیل اولیه فروشگاه شما در پنل کاربر نمایش داده می‌شود</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-content">
+                        <h4>گزارش کامل PDF</h4>
+                        <p>گزارش مدیریتی تفصیلی و حرفه‌ای برای بهبود فروشگاه شما</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🏆</div>
+                    <div class="feature-content">
+                        <h4>گواهینامه AI</h4>
+                        <p>گواهینامه حرفه‌ای تحلیل فروشگاه با تکنولوژی هوش مصنوعی</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delivery Timeline -->
+            <div class="delivery-timeline">
+                <h3 class="timeline-title">زمان‌بندی تحویل</h3>
+                <div class="timeline-items">
+                    <div class="timeline-item">
+                        <div class="timeline-icon">⚡</div>
+                        <div class="timeline-content">
+                            <h4>فوری (0-5 دقیقه)</h4>
+                            <p>تحلیل اولیه در پنل کاربر</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon">📧</div>
+                        <div class="timeline-content">
+                            <h4>24 ساعت</h4>
+                            <p>گزارش PDF کامل به ایمیل</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon">🏆</div>
+                        <div class="timeline-content">
+                            <h4>48 ساعت</h4>
+                            <p>گواهینامه AI آماده</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Payment Methods -->
         <div class="payment-methods">
             <div class="payment-header-section">
@@ -422,11 +633,11 @@
                 </button>
 
                 <div style="margin-top: 10px; text-align:center">
-                    <a href="{% url 'store_analysis:payping_payment' order.order_id %}"
-                       class="payment-button" style="display:inline-block; text-decoration:none;">
+                    <button type="button" onclick="directPayPingPayment()" 
+                            class="payment-button" style="display:inline-block; background: #28a745;">
                         <i class="fas fa-bolt"></i>
                         پرداخت آنلاین مستقیم (PayPing)
-                    </a>
+                    </button>
                 </div>
             </form>
         </div>
@@ -447,32 +658,73 @@ function selectPaymentMethod(methodId) {
     document.getElementById('payment_' + methodId).checked = true;
 }
 
-// Form submission handling
-document.getElementById('paymentForm').addEventListener('submit', function(e) {
-    const paymentButton = document.getElementById('paymentButton');
-    paymentButton.disabled = true;
-    paymentButton.innerHTML = '<div class="loading-spinner"></div> در حال پردازش...';
 
-    // هدایت هوشمند بر اساس روش پرداخت انتخابی
-    const selected = document.querySelector('input[name="payment_method"]:checked');
-    const form = document.getElementById('paymentForm');
-    if (selected) {
-        if (selected.value === 'online') {
-            // برای اطمینان از ریدایرکت، مستقیم به PayPing برویم
-            form.action = "{% url 'store_analysis:payping_payment' order.order_id %}";
-            form.method = 'get';
-        } else if (selected.value === 'wallet') {
-            form.action = "{% url 'store_analysis:wallet_payment' order.order_id %}";
-            form.method = 'get';
-        }
-    }
-});
+// Direct PayPing payment function
+function directPayPingPayment() {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<div class="loading-spinner"></div> در حال هدایت به PayPing...';
+    
+    // Redirect to PayPing
+    window.location.href = "{% url 'store_analysis:payping_payment' order.order_id %}";
+}
 
-// Auto-select first payment method
+// Auto-select first payment method and animations
 document.addEventListener('DOMContentLoaded', function() {
     const firstPaymentMethod = document.querySelector('.payment-option');
     if (firstPaymentMethod) {
         firstPaymentMethod.click();
+    }
+    
+    // Add animation to package features
+    const featureItems = document.querySelectorAll('.feature-item');
+    featureItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.1}s`;
+        item.classList.add('fade-in-up');
+    });
+    
+    // Add animation to timeline items
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    timelineItems.forEach((item, index) => {
+        item.style.animationDelay = `${(index + 3) * 0.1}s`;
+        item.classList.add('fade-in-up');
+    });
+    
+    // Form submission handling
+    const paymentForm = document.getElementById('paymentForm');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const paymentButton = document.getElementById('paymentButton');
+            paymentButton.disabled = true;
+            paymentButton.innerHTML = '<div class="loading-spinner"></div> در حال پردازش...';
+
+            // هدایت هوشمند بر اساس روش پرداخت انتخابی
+            const selected = document.querySelector('input[name="payment_method"]:checked');
+            
+            if (selected) {
+                if (selected.value === 'online') {
+                    // هدایت مستقیم به PayPing
+                    window.location.href = "{% url 'store_analysis:payping_payment' order.order_id %}";
+                } else if (selected.value === 'wallet') {
+                    // هدایت به کیف پول
+                    window.location.href = "{% url 'store_analysis:wallet_payment' order.order_id %}";
+                } else {
+                    // روش پرداخت نامشخص
+                    paymentButton.disabled = false;
+                    paymentButton.innerHTML = '<i class="fas fa-lock"></i> پرداخت {{ cost_breakdown.final|floatformat:0 }} تومان';
+                    alert('لطفاً روش پرداخت را انتخاب کنید');
+                }
+            } else {
+                // هیچ روش پرداختی انتخاب نشده
+                paymentButton.disabled = false;
+                paymentButton.innerHTML = '<i class="fas fa-lock"></i> پرداخت {{ cost_breakdown.final|floatformat:0 }} تومان';
+                alert('لطفاً روش پرداخت را انتخاب کنید');
+            }
+        });
     }
 });
 </script>

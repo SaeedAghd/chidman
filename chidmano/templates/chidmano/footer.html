@@ -1,0 +1,67 @@
+{% load static %}
+<footer class="footer" style="background: #ffffff !important; color: #333333 !important; padding: 3rem 0 2rem !important; margin-top: auto !important; position: relative !important; width: 100% !important; clear: both !important; border-top: 2px solid #e5e7eb !important; box-shadow: 0 -5px 20px rgba(0,0,0,0.1) !important; z-index: 1 !important;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <h5 class="mb-3" style="color: #1f2937 !important; font-weight: 700 !important;">چیدمانو</h5>
+                <p style="color: #6b7280 !important; line-height: 1.6 !important;">اولین پلتفرم تحلیل هوشمند فروشگاه در ایران که با استفاده از هوش مصنوعی، انقلابی در صنعت خرده‌فروشی ایجاد کرده است.</p>
+                <div class="d-flex gap-3">
+                    <a href="#" style="color: #6b7280 !important; font-size: 1.2rem !important; transition: all 0.3s ease !important;"><i class="fab fa-telegram"></i></a>
+                    <a href="#" style="color: #6b7280 !important; font-size: 1.2rem !important; transition: all 0.3s ease !important;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="color: #6b7280 !important; font-size: 1.2rem !important; transition: all 0.3s ease !important;"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" style="color: #6b7280 !important; font-size: 1.2rem !important; transition: all 0.3s ease !important;"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="mb-3" style="color: #1f2937 !important; font-weight: 600 !important;">راهنماها</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'store_layout_pillar' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">راهنمای جامع</a></li>
+                    <li class="mb-2"><a href="{% url 'store_layout_guide' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">چیدمان فروشگاه</a></li>
+                    <li class="mb-2"><a href="{% url 'supermarket_layout_guide' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">چیدمان سوپرمارکت</a></li>
+                    <li class="mb-2"><a href="{% url 'storefront_lighting_guide' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">نورپردازی فروشگاه</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="mb-3" style="color: #1f2937 !important; font-weight: 600 !important;">خدمات</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'store_analysis:forms' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">تحلیل فروشگاه</a></li>
+                    <li class="mb-2"><a href="{% url 'case_studies' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">مطالعات موردی</a></li>
+                    <li class="mb-2"><a href="{% url 'store_analysis:support_center' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">پشتیبانی</a></li>
+                    <li class="mb-2"><a href="{% url 'store_analysis:wallet_dashboard' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">کیف پول</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="mb-3" style="color: #1f2937 !important; font-weight: 600 !important;">شرکت</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'partnership' %}" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">همکاری با ما</a></li>
+                    <li class="mb-2"><a href="#" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">درباره ما</a></li>
+                    <li class="mb-2"><a href="#" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">تماس با ما</a></li>
+                    <li class="mb-2"><a href="#" style="color: #6b7280 !important; text-decoration: none !important; transition: all 0.3s ease !important;">حریم خصوصی</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="mb-3" style="color: #1f2937 !important; font-weight: 600 !important;">تماس</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2" style="color: #6b7280 !important;"><i class="fas fa-phone me-2"></i> 021-12345678</li>
+                    <li class="mb-2" style="color: #6b7280 !important;"><i class="fas fa-envelope me-2"></i> info@chidmano.ir</li>
+                    <li class="mb-2" style="color: #6b7280 !important;"><i class="fas fa-map-marker-alt me-2"></i> تهران، ایران</li>
+                </ul>
+            </div>
+        </div>
+        
+        <hr class="my-4" style="border-color: #e5e7eb !important;">
+        
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-0" style="color: #6b7280 !important;">&copy; 2025 چیدمانو. تمامی حقوق محفوظ است.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0" style="color: #6b7280 !important;">طراحی شده با ❤️ در ایران</p>
+            </div>
+        </div>
+    </div>
+</footer>

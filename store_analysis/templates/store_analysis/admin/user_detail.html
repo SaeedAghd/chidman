@@ -1,0 +1,280 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-user"></i>
+        </div>
+        جزئیات کاربر: {{ user.username }}
+    </div>
+    <div class="admin-actions">
+        <a href="{% url 'store_analysis:admin_users' %}" class="btn-admin btn-primary">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت
+        </a>
+        <a href="#" class="btn-admin btn-warning">
+            <i class="fas fa-edit"></i>
+            ویرایش
+        </a>
+    </div>
+</div>
+
+<!-- User Info -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-info-circle"></i>
+            اطلاعات کاربر
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+        <div style="text-align: center;">
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: 800; margin: 0 auto 20px;">
+                {{ user.username|first|upper }}
+            </div>
+            <h3 style="color: white; margin-bottom: 10px;">{{ user.username }}</h3>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                {% if user.is_active %}
+                    <span class="status-badge status-active">فعال</span>
+                {% else %}
+                    <span class="status-badge status-inactive">غیرفعال</span>
+                {% endif %}
+                
+                {% if user.is_staff %}
+                    <span class="status-badge status-completed">ادمین</span>
+                {% else %}
+                    <span class="status-badge status-pending">کاربر عادی</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">نام کاربری</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ user.username }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">ایمیل</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ user.email }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">نام</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ user.first_name }} {{ user.last_name }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">تاریخ عضویت</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ user.date_joined|date:"Y/m/d H:i" }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">آخرین ورود</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ user.last_login|date:"Y/m/d H:i"|default:"هرگز" }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">وضعیت ایمیل</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">
+                        {% if user.is_active %}
+                            تایید شده
+                        {% else %}
+                            تایید نشده
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-chart-bar"></i>
+            آمار کاربر
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #4CAF50; margin-bottom: 5px;">{{ user_analyses.count }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">تحلیل‌های انجام شده</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #2196F3; margin-bottom: 5px;">{{ user_orders.count }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">سفارشات</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #FF9800; margin-bottom: 5px;">{{ user_tickets.count }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">تیکت‌های پشتیبانی</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #9C27B0; margin-bottom: 5px;">
+                {% if user.last_login %}
+                    {{ user.last_login|timesince }}
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">آخرین ورود</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-history"></i>
+            آخرین فعالیت‌ها
+        </div>
+    </div>
+    
+    <div style="max-height: 400px; overflow-y: auto;">
+        {% for activity in recent_activities %}
+        <div style="display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white; background: {% if activity.type == 'analysis' %}#2196F3{% elif activity.type == 'order' %}#4CAF50{% else %}#FF9800{% endif %};">
+                {% if activity.type == 'analysis' %}
+                    <i class="fas fa-chart-line"></i>
+                {% elif activity.type == 'order' %}
+                    <i class="fas fa-shopping-cart"></i>
+                {% else %}
+                    <i class="fas fa-ticket-alt"></i>
+                {% endif %}
+            </div>
+            
+            <div style="flex: 1;">
+                <div style="color: white; font-weight: 600; margin-bottom: 5px;">{{ activity.title }}</div>
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">{{ activity.time|timesince }} پیش</div>
+            </div>
+            
+            <div>
+                {% if activity.status == 'completed' %}
+                    <span class="status-badge status-completed">تکمیل شده</span>
+                {% elif activity.status == 'pending' %}
+                    <span class="status-badge status-pending">در انتظار</span>
+                {% elif activity.status == 'processing' %}
+                    <span class="status-badge status-active">در حال پردازش</span>
+                {% else %}
+                    <span class="status-badge status-pending">{{ activity.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">
+            <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+            هیچ فعالیتی یافت نشد
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- User Analyses -->
+{% if user_analyses %}
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-chart-line"></i>
+            تحلیل‌های کاربر
+        </div>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>نام فروشگاه</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ ایجاد</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for analysis in user_analyses|slice:":10" %}
+                <tr>
+                    <td>{{ analysis.store_name }}</td>
+                    <td>
+                        {% if analysis.status == 'completed' %}
+                            <span class="status-badge status-completed">تکمیل شده</span>
+                        {% elif analysis.status == 'pending' %}
+                            <span class="status-badge status-pending">در انتظار</span>
+                        {% elif analysis.status == 'processing' %}
+                            <span class="status-badge status-active">در حال پردازش</span>
+                        {% else %}
+                            <span class="status-badge status-pending">{{ analysis.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ analysis.created_at|date:"Y/m/d H:i" }}</td>
+                    <td>
+                        <a href="{% url 'store_analysis:admin_analysis_detail' analysis.id %}" class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- User Orders -->
+{% if user_orders %}
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-shopping-cart"></i>
+            سفارشات کاربر
+        </div>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>شماره سفارش</th>
+                    <th>مبلغ</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in user_orders|slice:":10" %}
+                <tr>
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.final_amount|floatformat:0 }} تومان</td>
+                    <td>
+                        {% if order.status == 'paid' %}
+                            <span class="status-badge status-completed">پرداخت شده</span>
+                        {% elif order.status == 'pending' %}
+                            <span class="status-badge status-pending">در انتظار</span>
+                        {% else %}
+                            <span class="status-badge status-inactive">{{ order.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.created_at|date:"Y/m/d H:i" }}</td>
+                    <td>
+                        <a href="{% url 'store_analysis:admin_order_detail' order.order_id %}" class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

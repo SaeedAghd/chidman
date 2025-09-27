@@ -1,0 +1,192 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}بسته‌های خدمات - چیدمانو{% endblock %}
+
+{% block extra_css %}
+<style>
+    .packages-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .package-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .package-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    
+    .package-card.popular {
+        border: 3px solid #ff6b6b;
+        transform: scale(1.05);
+    }
+    
+    .package-card.popular::before {
+        content: 'محبوب';
+        position: absolute;
+        top: 20px;
+        right: -30px;
+        background: #ff6b6b;
+        color: white;
+        padding: 5px 40px;
+        font-size: 12px;
+        font-weight: bold;
+        transform: rotate(45deg);
+        z-index: 10;
+    }
+    
+    .package-header {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .package-price {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 1rem 0;
+    }
+    
+    .package-currency {
+        font-size: 1.2rem;
+        opacity: 0.8;
+    }
+    
+    .package-features {
+        padding: 2rem;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.5rem 0;
+    }
+    
+    .feature-icon {
+        color: #28a745;
+        margin-left: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .package-button {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #5a6fd8, #6a4190);
+        transform: translateY(-2px);
+    }
+    
+    .btn-outline {
+        background: transparent;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+    
+    .btn-outline:hover {
+        background: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="packages-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">بسته‌های خدمات چیدمانو</h1>
+                <p class="lead mb-0">انتخاب بسته مناسب برای تحلیل فروشگاه شما</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        {% for package in packages %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="package-card {% if package.is_popular %}popular{% endif %}">
+                <div class="package-header">
+                    <h3 class="h4 mb-3">{{ package.name }}</h3>
+                    <div class="package-price">
+                        {{ package.price|floatformat:0|add:0|floatformat:0 }}
+                        <span class="package-currency">{{ package.currency }}</span>
+                    </div>
+                    <p class="mb-0">{{ package.description }}</p>
+                </div>
+                
+                <div class="package-features">
+                    <h6 class="mb-3">ویژگی‌های بسته:</h6>
+                    {% for feature in package.features %}
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle feature-icon"></i>
+                        <span>{{ feature }}</span>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line feature-icon"></i>
+                        <span>حداکثر {{ package.max_analyses }} تحلیل</span>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <i class="fas fa-calendar feature-icon"></i>
+                        <span>اعتبار {{ package.validity_days }} روزه</span>
+                    </div>
+                </div>
+                
+                <div class="p-3">
+                    <a href="{% url 'store_analysis:create_payment' package.id %}" 
+                       class="package-button {% if package.is_popular %}btn-primary{% else %}btn-outline{% endif %}">
+                        {% if package.is_popular %}
+                            <i class="fas fa-star me-2"></i>انتخاب بسته محبوب
+                        {% else %}
+                            <i class="fas fa-shopping-cart me-2"></i>خرید بسته
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">سوالی دارید؟</h5>
+                    <p class="card-text">تیم پشتیبانی ما آماده پاسخگویی به سوالات شما است.</p>
+                    <a href="{% url 'store_analysis:support_center' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-headset me-2"></i>تماس با پشتیبانی
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

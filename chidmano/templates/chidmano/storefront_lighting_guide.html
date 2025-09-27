@@ -1,0 +1,628 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6b35">
+    
+    <!-- SEO Meta Tags -->
+    <title>راهنمای نورپردازی و ویترین‌سازی فروشگاه - جذب مشتری و افزایش فروش | چیدمانو</title>
+    <meta name="description" content="راهنمای جامع نورپردازی و ویترین‌سازی فروشگاه برای جذب مشتری و افزایش فروش. شامل اصول طراحی، تکنیک‌های نورپردازی، و بهینه‌سازی ویترین">
+    <meta name="keywords" content="نورپردازی فروشگاه, ویترین‌سازی, طراحی ویترین, جذب مشتری, افزایش فروش, بهینه‌سازی فروشگاه">
+    <meta name="author" content="چیدمانو - تیم تحلیل فروشگاه">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="راهنمای نورپردازی و ویترین‌سازی فروشگاه - جذب مشتری و افزایش فروش">
+    <meta property="og:description" content="راهنمای جامع نورپردازی و ویترین‌سازی فروشگاه برای جذب مشتری و افزایش فروش">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/guide/storefront-lighting/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/guides/lighting-hero.jpg' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    <meta property="og:locale" content="fa_IR">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="راهنمای نورپردازی و ویترین‌سازی فروشگاه - جذب مشتری و افزایش فروش">
+    <meta name="twitter:description" content="راهنمای جامع نورپردازی و ویترین‌سازی فروشگاه برای جذب مشتری و افزایش فروش">
+    <meta name="twitter:image" content="https://chidmano.ir{% static 'images/guides/lighting-hero.jpg' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://chidmano.ir/guide/storefront-lighting/">
+    
+    <!-- Resource Hints -->
+    <link rel="preload" href="{% static 'fonts/Vazir.ttf' %}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{% static 'images/guides/lighting-hero.jpg' %}" as="image">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "راهنمای نورپردازی و ویترین‌سازی فروشگاه - جذب مشتری و افزایش فروش",
+        "description": "راهنمای جامع نورپردازی و ویترین‌سازی فروشگاه برای جذب مشتری و افزایش فروش. شامل اصول طراحی، تکنیک‌های نورپردازی، و بهینه‌سازی ویترین",
+        "image": "https://chidmano.ir{% static 'images/guides/lighting-hero.jpg' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-01-26",
+        "dateModified": "2025-01-26",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://chidmano.ir/guide/storefront-lighting/"
+        },
+        "articleSection": "راهنمای نورپردازی و ویترین‌سازی",
+        "keywords": ["نورپردازی فروشگاه", "ویترین‌سازی", "طراحی ویترین", "جذب مشتری", "افزایش فروش"]
+    }
+    </script>
+    
+    <!-- CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ff6b35;
+            --primary-dark: #e55a2b;
+            --secondary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --shadow-xl: 0 2rem 4rem rgba(0, 0, 0, 0.2);
+            
+            --border-radius: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+        }
+        
+        @font-face {
+            font-family: 'VazirLocal';
+            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'VazirLocal', Vazirmatn, sans-serif;
+            line-height: 1.7;
+            color: var(--gray-800);
+        }
+        
+        /* Header */
+        .guide-header {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #2980b9 100%);
+            color: white;
+            padding: 4rem 0 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .guide-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('{% static "images/guides/lighting-hero.jpg" %}') center/cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .guide-header .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .guide-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .guide-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .guide-meta {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-lg);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Content */
+        .guide-content {
+            padding: 4rem 0;
+        }
+        
+        .content-section {
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+        
+        .guide-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            margin: 2rem 0;
+            transition: transform var(--transition-normal);
+        }
+        
+        .guide-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .info-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 2rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .info-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+        
+        .info-card h4 {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-200);
+            position: relative;
+            padding-right: 2rem;
+        }
+        
+        .info-card li:last-child {
+            border-bottom: none;
+        }
+        
+        .info-card li::before {
+            content: '💡';
+            position: absolute;
+            right: 0;
+            top: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(52, 152, 219, 0.05) 100%);
+            border: 2px solid var(--accent-color);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: '🌟';
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: var(--white);
+            padding: 0.5rem;
+            border-radius: 50%;
+            font-size: 1.5rem;
+        }
+        
+        .highlight-box h4 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        
+        .lighting-type {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--accent-color);
+            margin-bottom: 1.5rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .lighting-type:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateX(-5px);
+        }
+        
+        .lighting-type h5 {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .lighting-type .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+            
+            .guide-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .guide-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="guide-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="guide-title">راهنمای نورپردازی و ویترین‌سازی فروشگاه</h1>
+                    <p class="guide-subtitle">جذب مشتری و افزایش فروش با نورپردازی حرفه‌ای</p>
+                    <div class="guide-meta">
+                        <div class="meta-item">
+                            <span>📅</span>
+                            <span>آخرین به‌روزرسانی: 26 دی 1403</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>⏱️</span>
+                            <span>زمان مطالعه: 18 دقیقه</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>👥</span>
+                            <span>مناسب برای: طراحان فروشگاه</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="guide-content">
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h2 class="section-title">مقدمه: اهمیت نورپردازی در فروشگاه</h2>
+                        <p class="lead">نورپردازی مناسب یکی از مهم‌ترین عوامل موفقیت در فروشگاه است. تحقیقات نشان می‌دهد که نورپردازی بهینه می‌تواند فروش را تا 25% افزایش دهد.</p>
+                        
+                        <img src="{% static 'images/guides/lighting-intro.jpg' %}" alt="نورپردازی فروشگاه - مقدمه" class="guide-image">
+                        
+                        <p>در این راهنمای جامع، شما با اصول نورپردازی، تکنیک‌های ویترین‌سازی، و استراتژی‌های جذب مشتری آشنا خواهید شد.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lighting Principles -->
+            <section class="content-section">
+                <h2 class="section-title">اصول اساسی نورپردازی فروشگاه</h2>
+                
+                <div class="highlight-box">
+                    <h4>قانون طلایی نورپردازی</h4>
+                    <p>نورپردازی باید محصولات را به بهترین شکل نمایش دهد و فضای فروشگاه را جذاب و راحت کند.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>1. اصل روشنایی کافی</h4>
+                            <p>فروشگاه باید به اندازه کافی روشن باشد</p>
+                            <ul>
+                                <li>حداقل 500 لوکس برای فضای عمومی</li>
+                                <li>حداقل 1000 لوکس برای ویترین</li>
+                                <li>حداقل 1500 لوکس برای قفسه‌های محصولات</li>
+                                <li>جلوگیری از سایه‌های مزاحم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>2. اصل رنگ‌بندی نور</h4>
+                            <p>رنگ نور باید با محصولات هماهنگ باشد</p>
+                            <ul>
+                                <li>نور سفید برای محصولات عمومی</li>
+                                <li>نور گرم برای محصولات غذایی</li>
+                                <li>نور سرد برای محصولات الکترونیکی</li>
+                                <li>نور رنگی برای محصولات خاص</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/lighting-principles.jpg' %}" alt="اصول نورپردازی فروشگاه" class="guide-image">
+            </section>
+
+            <!-- Types of Lighting -->
+            <section class="content-section">
+                <h2 class="section-title">انواع نورپردازی در فروشگاه</h2>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="lighting-type">
+                            <div class="icon">💡</div>
+                            <h5>نورپردازی عمومی (Ambient Lighting)</h5>
+                            <p>نورپردازی کلی فضای فروشگاه</p>
+                            <ul>
+                                <li>نورپردازی یکنواخت و ملایم</li>
+                                <li>جلوگیری از سایه‌های تند</li>
+                                <li>ایجاد فضای راحت و آرام</li>
+                                <li>استفاده از چراغ‌های سقفی</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="lighting-type">
+                            <div class="icon">🎯</div>
+                            <h5>نورپردازی متمرکز (Accent Lighting)</h5>
+                            <p>نورپردازی روی محصولات خاص</p>
+                            <ul>
+                                <li>جلب توجه به محصولات خاص</li>
+                                <li>ایجاد کنتراست و عمق</li>
+                                <li>استفاده از چراغ‌های نقطه‌ای</li>
+                                <li>نورپردازی روی ویترین</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="lighting-type">
+                            <div class="icon">🛍️</div>
+                            <h5>نورپردازی وظیفه‌ای (Task Lighting)</h5>
+                            <p>نورپردازی برای فعالیت‌های خاص</p>
+                            <ul>
+                                <li>نورپردازی روی صندوق‌های پرداخت</li>
+                                <li>نورپردازی روی میزهای خدمت</li>
+                                <li>نورپردازی روی قفسه‌های محصولات</li>
+                                <li>نورپردازی روی راهروها</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="lighting-type">
+                            <div class="icon">✨</div>
+                            <h5>نورپردازی تزئینی (Decorative Lighting)</h5>
+                            <p>نورپردازی برای زیبایی و جذابیت</p>
+                            <ul>
+                                <li>نورپردازی روی دیوارها</li>
+                                <li>نورپردازی روی سقف</li>
+                                <li>نورپردازی روی مبلمان</li>
+                                <li>نورپردازی روی آثار هنری</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/lighting-types.jpg' %}" alt="انواع نورپردازی در فروشگاه" class="guide-image">
+            </section>
+
+            <!-- Window Display -->
+            <section class="content-section">
+                <h2 class="section-title">اصول طراحی ویترین فروشگاه</h2>
+                
+                <div class="highlight-box">
+                    <h4>قانون 3 ثانیه</h4>
+                    <p>ویترین شما فقط 3 ثانیه فرصت دارد تا توجه مشتری را جلب کند. در این زمان کوتاه، مشتری باید متوجه شود که فروشگاه شما چه محصولاتی ارائه می‌دهد.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>1. اصل سادگی</h4>
+                            <p>ویترین باید ساده و قابل فهم باشد</p>
+                            <ul>
+                                <li>استفاده از حداکثر 3 رنگ</li>
+                                <li>جلوگیری از شلوغی</li>
+                                <li>تمرکز روی یک پیام اصلی</li>
+                                <li>استفاده از فضای خالی</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>2. اصل جذابیت</h4>
+                            <p>ویترین باید جذاب و چشم‌نواز باشد</p>
+                            <ul>
+                                <li>استفاده از رنگ‌های جذاب</li>
+                                <li>ایجاد کنتراست و عمق</li>
+                                <li>استفاده از نورپردازی مناسب</li>
+                                <li>ایجاد حرکت و پویایی</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/window-display.jpg' %}" alt="اصول طراحی ویترین فروشگاه" class="guide-image">
+            </section>
+
+            <!-- Color Psychology -->
+            <section class="content-section">
+                <h2 class="section-title">روانشناسی رنگ در نورپردازی</h2>
+                
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>رنگ سفید</h4>
+                            <p>ایجاد احساس تمیزی و پاکی</p>
+                            <ul>
+                                <li>مناسب برای محصولات بهداشتی</li>
+                                <li>ایجاد احساس اعتماد</li>
+                                <li>مناسب برای فضای عمومی</li>
+                                <li>ایجاد احساس آرامش</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>رنگ گرم</h4>
+                            <p>ایجاد احساس راحتی و آرامش</p>
+                            <ul>
+                                <li>مناسب برای محصولات غذایی</li>
+                                <li>ایجاد احساس گرما</li>
+                                <li>مناسب برای فضای استراحت</li>
+                                <li>ایجاد احساس صمیمیت</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>رنگ سرد</h4>
+                            <p>ایجاد احساس اعتماد و حرفه‌ای بودن</p>
+                            <ul>
+                                <li>مناسب برای محصولات الکترونیکی</li>
+                                <li>ایجاد احساس اعتماد</li>
+                                <li>مناسب برای فضای کار</li>
+                                <li>ایجاد احساس تخصص</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/color-psychology.jpg' %}" alt="روانشناسی رنگ در نورپردازی" class="guide-image">
+            </section>
+
+            <!-- Best Practices -->
+            <section class="content-section">
+                <h2 class="section-title">بهترین روش‌های نورپردازی فروشگاه</h2>
+                
+                <div class="highlight-box">
+                    <h4>نکته طلایی</h4>
+                    <p>همیشه نورپردازی را با محصولات هماهنگ کنید. نورپردازی نامناسب می‌تواند محصولات را ناخوشایند و غیرجذاب نشان دهد.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>نکات مهم نورپردازی</h4>
+                            <ul>
+                                <li>استفاده از نور طبیعی در صورت امکان</li>
+                                <li>جلوگیری از سایه‌های مزاحم</li>
+                                <li>تنظیم نورپردازی بر اساس زمان روز</li>
+                                <li>استفاده از نورپردازی قابل تنظیم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>اشتباهات رایج</h4>
+                            <ul>
+                                <li>نورپردازی بیش از حد یا کم</li>
+                                <li>استفاده از رنگ‌های نامناسب</li>
+                                <li>عدم توجه به سایه‌ها</li>
+                                <li>نورپردازی یکنواخت و خسته‌کننده</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="content-section">
+                <div class="highlight-box text-center">
+                    <h4>آماده بهینه‌سازی نورپردازی فروشگاه خود هستید؟</h4>
+                    <p>با استفاده از هوش مصنوعی چیدمانو، تحلیل کاملی از نورپردازی فروشگاه خود دریافت کنید و فروش خود را تا 25% افزایش دهید.</p>
+                    <a href="{% url 'store_analysis:forms' %}" class="btn btn-primary btn-lg">
+                        شروع تحلیل هوشمند نورپردازی
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>چیدمانو</h5>
+                    <p>پیشرو در تحلیل و بهینه‌سازی چیدمان فروشگاه با استفاده از هوش مصنوعی</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2025 چیدمانو. تمامی حقوق محفوظ است.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

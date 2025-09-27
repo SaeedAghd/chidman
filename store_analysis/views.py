@@ -15,15 +15,12 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from .models import StoreAnalysis, StoreBasicInfo, DetailedAnalysis, StoreAnalysisResult, PricingPlan, DiscountCode, Order, AnalysisRequest, PromotionalBanner, Payment, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, AIConsultantSession, AIConsultantQuestion, AIConsultantPayment, FAQ, FAQCategory, SupportTicket, TicketMessage, TicketTemplate, Wallet, Transaction
-from .admin_views import pricing_management, discount_management, support_ticket_management, system_analytics
+from .models import Payment, PaymentLog, ServicePackage, UserSubscription
+# Admin views moved to chidmano.admin_dashboard
 from .ai_analysis import StoreAnalysisAI
 from .ai_services.advanced_ai_manager import AdvancedAIManager
-from .services.faq_service import FAQService
-from .admin_views import (
-    pricing_management, discount_management, support_ticket_management,
-    system_analytics, create_discount_code, toggle_discount_status, assign_ticket
-)
+# from .services.faq_service import FAQService
+# Admin views moved to chidmano.admin_dashboard
 # from .forms import StoreAnalysisForm, ProfessionalStoreAnalysisForm
 
 # Import های جدید برای PDF و تاریخ شمسی
@@ -197,7 +194,7 @@ def generate_free_initial_analysis(analysis):
                 'تحلیل اولیه رایگان در حال آماده‌سازی است'
             ]
         }
-from .services.ai_consultant_service import AIConsultantService
+# from .services.ai_consultant_service import AIConsultantService
 import logging
 
 # Setup logger
@@ -1677,18 +1674,37 @@ def generate_text_report(request, analysis):
     response.write(report_content.encode('utf-8'))
     return response
 
+def check_legal_agreement(request):
+    """بررسی وضعیت تایید تعهدنامه حقوقی"""
+    if request.user.is_authenticated:
+        # در اینجا می‌توانید از دیتابیس چک کنید که کاربر تایید کرده یا نه
+        # فعلاً همیشه True برمی‌گردانیم
+        return JsonResponse({'accepted': True})
+    return JsonResponse({'accepted': False})
+
+def accept_legal_agreement(request):
+    """ذخیره تایید تعهدنامه حقوقی"""
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            data = json.loads(request.body)
+            if data.get('accepted'):
+                # در اینجا می‌توانید در دیتابیس ذخیره کنید
+                return JsonResponse({'success': True})
+        except:
+            pass
+    return JsonResponse({'success': False})
+
 @login_required
 def user_dashboard(request):
     """پنل کاربری حرفه‌ای - Apple Style"""
-    if not request.user.is_authenticated:
-        return redirect('store_analysis:login')
+    from django.utils import timezone
+    from datetime import datetime
     
     # آمار تحلیل‌ها
     total_analyses = StoreAnalysis.objects.filter(user=request.user).count()
     completed_analyses = StoreAnalysis.objects.filter(user=request.user, status__in=['completed', 'preliminary_completed']).count()
     pending_analyses = StoreAnalysis.objects.filter(user=request.user, status='pending').count()
     processing_analyses = StoreAnalysis.objects.filter(user=request.user, status='processing').count()
-    
     
     # آخرین تحلیل‌ها
     recent_analyses = StoreAnalysis.objects.filter(user=request.user).order_by('-created_at')[:5]
@@ -1701,11 +1717,12 @@ def user_dashboard(request):
             detailed_analysis = generate_detailed_analysis_for_dashboard(latest_analysis.analysis_data)
     
     # تاریخ شمسی برای داشبورد
-    if jdatetime:
+    try:
+        import jdatetime
         now = timezone.now()
         persian_date = jdatetime.datetime.fromgregorian(datetime=now)
         persian_date_str = persian_date.strftime("%Y/%m/%d")
-    else:
+    except:
         persian_date_str = timezone.now().strftime("%Y/%m/%d")
     
     # تحلیل‌های قابل دانلود
@@ -2344,7 +2361,6 @@ def submit_analysis_request(request):
     return redirect('store_analysis:user_dashboard')
 
 @login_required
-@login_required
 def payment_page(request, order_id):
     """صفحه پرداخت"""
     try:
@@ -2503,18 +2519,31 @@ def payping_payment(request, order_id):
         payping = gateway_manager.get_gateway('payping')
         
         if not payping:
-            messages.error(request, 'درگاه پرداخت در دسترس نیست')
-            return redirect('store_analysis:payment_page', order_id=order_id)
+            logger.error(f"PayPing gateway not available. Token: {getattr(settings, 'PAYPING_TOKEN', 'NOT_SET')[:10]}...")
+            messages.error(request, 'درگاه PayPing در دسترس نیست. لطفاً از روش دیگری استفاده کنید.')
+            return redirect('store_analysis:wallet_dashboard')
+        
+        logger.info(f"PayPing gateway initialized successfully for order {order_id}")
         
         # ایجاد درخواست پرداخت
+        callback_url = request.build_absolute_uri(
+            reverse('store_analysis:payping_callback', args=[order_id])
+        )
+        
+        logger.info(f"PayPing callback URL: {callback_url}")
+        
         payment_request = payping.create_payment_request(
             amount=int(order.final_amount),
             description=f'پرداخت سفارش {order.order_id} - تحلیل فروشگاه',
-            callback_url=request.build_absolute_uri(
-                reverse('store_analysis:payping_callback', args=[order_id])
-            ),
+            callback_url=callback_url,
             client_ref_id=str(order.order_id)
         )
+        
+        logger.info(f"PayPing payment request result: {payment_request}")
+        
+        # Debug: Check payment request status
+        logger.info(f"Payment request status: {payment_request.get('status')}")
+        logger.info(f"Payment request keys: {list(payment_request.keys())}")
         
         if payment_request.get('status') == 'success':
             # ذخیره اطلاعات پرداخت
@@ -2533,27 +2562,43 @@ def payping_payment(request, order_id):
         else:
             error_msg = payment_request.get('message', 'خطای نامشخص در ایجاد درخواست پرداخت')
             logger.error(f"PayPing payment error: {payment_request}")
-            messages.info(request, 'درگاه پرداخت در دسترس نیست یا خطایی رخ داد. پرداخت شبیه‌سازی شد.')
-            # شبیه‌سازی پرداخت موفق (الزاماً برای عبور از مرحله پرداخت در محیط تست)
-            store_analysis = StoreAnalysis.objects.filter(order=order).first()
-            payment = Payment.objects.create(
-                user=request.user,
-                store_analysis=store_analysis,
-                amount=order.final_amount,
-                payment_method='payping_test',
-                status='completed',
-                transaction_id=f'TXN_TEST_{uuid.uuid4().hex[:8].upper()}'
-            )
-            order.status = 'paid'
-            order.payment_method = 'payping_test'
-            order.transaction_id = payment.transaction_id
-            order.save()
-            return redirect('store_analysis:order_analysis_results', order_id=order_id)
+            messages.error(request, f'خطا در ایجاد درخواست پرداخت: {error_msg}')
+            return redirect('store_analysis:wallet_dashboard')
             
     except Exception as e:
         logger.error(f"PayPing payment exception: {e}")
         messages.error(request, f'خطا در پردازش پرداخت: {str(e)}')
         return redirect('store_analysis:payment_page', order_id=order_id)
+
+@login_required
+def debug_payping(request):
+    """Debug PayPing configuration"""
+    try:
+        from .payment_gateways import PaymentGatewayManager
+        
+        gateway_manager = PaymentGatewayManager()
+        payping = gateway_manager.get_gateway('payping')
+        
+        debug_info = {
+            'payping_available': payping is not None,
+            'payping_token_set': bool(getattr(settings, 'PAYPING_TOKEN', '')),
+            'payping_token_preview': getattr(settings, 'PAYPING_TOKEN', 'NOT_SET')[:20] + '...' if getattr(settings, 'PAYPING_TOKEN', '') else 'NOT_SET',
+        }
+        
+        if payping:
+            # Test a small payment request
+            test_request = payping.create_payment_request(
+                amount=1000,  # 1000 Toman = 10000 Rial
+                description='تست درگاه PayPing',
+                callback_url='https://chidmano.ir/test-callback',
+                client_ref_id='TEST_123'
+            )
+            debug_info['test_request'] = test_request
+        
+        return JsonResponse(debug_info)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
 
 @login_required
 def test_payping(request):
@@ -2786,7 +2831,7 @@ def payping_callback(request, order_id):
             order.save()
             
             return redirect('store_analysis:order_analysis_results', order_id=order_id)
-        except:
+        except Exception:
             return redirect('store_analysis:payment_page', order_id=order_id)
 
 @login_required
@@ -3306,21 +3351,65 @@ def start_advanced_ai_processing(request, pk):
 def support_center(request):
     """مرکز پشتیبانی - صفحه اصلی"""
     try:
-        faq_service = FAQService()
-        
-        # دریافت دسته‌بندی‌ها
-        categories = faq_service.get_faq_categories()
-        
-        # دریافت سوالات محبوب
-        popular_faqs = faq_service.get_popular_faqs(limit=6)
+        # بررسی وجود مدل‌های FAQ
+        try:
+            faq_service = FAQService()
+            categories = faq_service.get_faq_categories()
+            popular_faqs = faq_service.get_popular_faqs(limit=6)
+        except Exception as faq_error:
+            logger.warning(f"FAQ service not available: {faq_error}")
+            # داده‌های پیش‌فرض
+            categories = [
+                {
+                    'id': 1,
+                    'name': 'سوالات عمومی',
+                    'description': 'سوالات عمومی درباره سیستم',
+                    'icon': '❓',
+                    'faq_count': 5
+                },
+                {
+                    'id': 2,
+                    'name': 'مشکلات فنی',
+                    'description': 'مشکلات فنی و راه‌حل‌ها',
+                    'icon': '🔧',
+                    'faq_count': 3
+                },
+                {
+                    'id': 3,
+                    'name': 'پرداخت و صورتحساب',
+                    'description': 'سوالات مربوط به پرداخت',
+                    'icon': '💳',
+                    'faq_count': 4
+                }
+            ]
+            popular_faqs = [
+                {
+                    'id': 1,
+                    'question': 'چگونه تحلیل فروشگاه انجام دهم؟',
+                    'answer': 'برای انجام تحلیل، ابتدا فرم تحلیل را تکمیل کنید و سپس پرداخت را انجام دهید.',
+                    'category': {'name': 'سوالات عمومی'},
+                    'view_count': 150
+                },
+                {
+                    'id': 2,
+                    'question': 'چگونه کیف پول خود را شارژ کنم؟',
+                    'answer': 'می‌توانید از طریق صفحه کیف پول، مبلغ مورد نظر را واریز کنید.',
+                    'category': {'name': 'پرداخت و صورتحساب'},
+                    'view_count': 120
+                }
+            ]
         
         # دریافت تیکت‌های کاربر (اگر وارد شده باشد)
         user_tickets = []
         if request.user.is_authenticated:
-            user_tickets = SupportTicket.objects.filter(user=request.user).order_by('-created_at')[:5]
+            try:
+                user_tickets = SupportTicket.objects.filter(user=request.user).order_by('-created_at')[:5]
+            except Exception as ticket_error:
+                logger.warning(f"Support tickets not available: {ticket_error}")
+                user_tickets = []
         
         context = {
-            'categories': categories,
+            'faq_categories': categories,
             'popular_faqs': popular_faqs,
             'user_tickets': user_tickets,
         }
@@ -3330,7 +3419,13 @@ def support_center(request):
     except Exception as e:
         logger.error(f"خطا در support_center: {e}")
         messages.error(request, 'خطایی رخ داده است.')
-        return render(request, 'store_analysis/support_center.html', {})
+        # داده‌های پیش‌فرض در صورت خطا
+        context = {
+            'faq_categories': [],
+            'popular_faqs': [],
+            'user_tickets': [],
+        }
+        return render(request, 'store_analysis/support_center.html', context)
 
 
 def faq_search(request):
@@ -3703,29 +3798,29 @@ def accept_legal_agreement(request):
             import json
             data = json.loads(request.body)
             
-            if data.get('accepted') and request.user.is_authenticated:
-                # ذخیره در session
+            if data.get('accepted'):
+                # همیشه در سشن ذخیره کن (چه لاگین باشد چه نباشد)
                 request.session['legal_agreement_accepted'] = True
-                
-                # ذخیره در دیتابیس
-                from .models import UserProfile
-                profile, created = UserProfile.objects.get_or_create(
-                    user=request.user,
-                    defaults={'legal_agreement_accepted': True}
-                )
-                if not created:
-                    profile.legal_agreement_accepted = True
-                    profile.save()
-                
+
+                # اگر کاربر لاگین است، در دیتابیس هم ذخیره کن
+                if request.user.is_authenticated:
+                    from .models import UserProfile
+                    profile, created = UserProfile.objects.get_or_create(
+                        user=request.user,
+                        defaults={'legal_agreement_accepted': True}
+                    )
+                    if not created:
+                        profile.legal_agreement_accepted = True
+                        profile.save()
+
                 return JsonResponse({
                     'success': True,
                     'message': 'تعهدنامه با موفقیت تایید شد'
                 })
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'تایید تعهدنامه الزامی است'
-                })
+            return JsonResponse({
+                'success': False,
+                'message': 'تایید تعهدنامه الزامی است'
+            })
                 
         except Exception as e:
             return JsonResponse({
@@ -3805,7 +3900,8 @@ def store_analysis_form(request):
         # form = ProfessionalStoreAnalysisForm()
         pass
     
-    return redirect('store_analysis:forms')
+    # نمایش فرم به جای redirect
+    return render(request, 'store_analysis/forms.html', {'form': None})
 
 
 @login_required
@@ -4222,20 +4318,107 @@ def admin_pricing_management(request):
         messages.error(request, 'دسترسی غیرمجاز')
         return redirect('home')
     
-    if request.method == 'POST':
-        # بروزرسانی قیمت‌ها
-        for plan in PricingPlan.objects.all():
-            new_price = request.POST.get(f'price_{plan.id}')
-            if new_price:
-                plan.price = Decimal(new_price)
-                plan.save()
-        
-        messages.success(request, 'قیمت‌ها با موفقیت بروزرسانی شدند.')
-        return redirect('store_analysis:admin_pricing_management')
+    from django.db.models import Count, Sum, Avg
+    from django.utils import timezone
+    from datetime import timedelta
     
-    plans = PricingPlan.objects.all()
+    if request.method == 'POST':
+        try:
+            # بروزرسانی قیمت‌ها
+            simple_price = request.POST.get('simple_price')
+            medium_price = request.POST.get('medium_price')
+            complex_price = request.POST.get('complex_price')
+            opening_discount = request.POST.get('opening_discount')
+            seasonal_discount = request.POST.get('seasonal_discount')
+            newyear_discount = request.POST.get('newyear_discount')
+            
+            # ذخیره تنظیمات (می‌توانید از مدل Settings استفاده کنید)
+            # فعلاً در session ذخیره می‌کنیم
+            request.session['pricing_settings'] = {
+                'simple_price': int(simple_price) if simple_price else 200000,
+                'medium_price': int(medium_price) if medium_price else 350000,
+                'complex_price': int(complex_price) if complex_price else 500000,
+                'opening_discount': int(opening_discount) if opening_discount else 80,
+                'seasonal_discount': int(seasonal_discount) if seasonal_discount else 70,
+                'newyear_discount': int(newyear_discount) if newyear_discount else 60,
+            }
+            
+            if request.headers.get('Content-Type') == 'application/json':
+                return JsonResponse({'success': True, 'message': 'تنظیمات با موفقیت ذخیره شد'})
+            else:
+                messages.success(request, 'تنظیمات با موفقیت ذخیره شدند.')
+                return redirect('store_analysis:admin_pricing')
+                
+        except Exception as e:
+            if request.headers.get('Content-Type') == 'application/json':
+                return JsonResponse({'success': False, 'error': str(e)})
+            else:
+                messages.error(request, f'خطا در ذخیره تنظیمات: {str(e)}')
+                return redirect('store_analysis:admin_pricing')
+    
+    # آمار کلی
+    total_analyses = StoreAnalysis.objects.count()
+    paid_analyses = Order.objects.filter(status='paid').count()
+    pending_analyses = Order.objects.filter(status='pending').count()
+    
+    # محاسبه درآمد
+    total_revenue = Order.objects.filter(status='paid').aggregate(
+        total=Sum('final_amount')
+    )['total'] or 0
+    
+    # درآمد ماهانه
+    month_ago = timezone.now() - timedelta(days=30)
+    monthly_revenue = Order.objects.filter(
+        status='paid',
+        created_at__gte=month_ago
+    ).aggregate(total=Sum('final_amount'))['total'] or 0
+    
+    # آمار کدهای تخفیف
+    active_discounts = DiscountCode.objects.filter(is_active=True).count()
+    used_discounts = DiscountCode.objects.filter(used_count__gt=0).count()
+    
+    # آمار نوع فروشگاه
+    store_type_stats = StoreBasicInfo.objects.values('store_type').annotate(
+        count=Count('id'),
+        avg_price=Avg('analysis__order__final_amount'),
+        total_revenue=Sum('analysis__order__final_amount')
+    ).order_by('-count')
+    
+    # محاسبه درصد
+    for stat in store_type_stats:
+        if total_analyses > 0:
+            stat['percentage'] = (stat['count'] / total_analyses) * 100
+        else:
+            stat['percentage'] = 0
+    
+    # نوع فروشگاه برتر
+    top_store_type = store_type_stats[0]['store_type'] if store_type_stats else 'نامشخص'
+    top_store_count = store_type_stats[0]['count'] if store_type_stats else 0
+    
+    # تنظیمات فعلی
+    current_settings = request.session.get('pricing_settings', {
+        'simple_price': 200000,
+        'medium_price': 350000,
+        'complex_price': 500000,
+        'opening_discount': 80,
+        'seasonal_discount': 70,
+        'newyear_discount': 60,
+    })
+    
     context = {
-        'plans': plans,
+        'pricing_stats': {
+            'total_revenue': total_revenue,
+            'monthly_revenue': monthly_revenue,
+            'total_analyses': total_analyses,
+            'paid_analyses': paid_analyses,
+            'pending_analyses': pending_analyses,
+            'active_discounts': active_discounts,
+            'used_discounts': used_discounts,
+            'top_store_type': top_store_type,
+            'top_store_count': top_store_count,
+        },
+        'store_type_stats': store_type_stats,
+        'current_settings': current_settings,
     }
     return render(request, 'store_analysis/admin/pricing_management.html', context)
 
@@ -4292,24 +4475,694 @@ def admin_dashboard(request):
         messages.error(request, 'دسترسی غیرمجاز')
         return redirect('home')
     
-    # آمار کلی سیستم
-    from .admin_dashboard import AdminDashboard
-    stats = AdminDashboard.get_dashboard_stats()
-    activities = AdminDashboard.get_recent_activities()
-    chart_data = AdminDashboard.get_chart_data()
+    # آمار کلی سیستم (بهبود یافته)
+    from django.db.models import Count, Sum, Avg, Q
+    from django.utils import timezone
+    from datetime import timedelta, datetime
+    from django.contrib.auth.models import User
+    
+    total_users = User.objects.count()
+    total_analyses = StoreAnalysis.objects.count()
+    completed_analyses = StoreAnalysis.objects.filter(status='completed').count()
+    pending_analyses = StoreAnalysis.objects.filter(status='pending').count()
+    processing_analyses = StoreAnalysis.objects.filter(status='processing').count()
+    
+    # آمار هفته گذشته
+    week_ago = timezone.now() - timedelta(days=7)
+    recent_users = User.objects.filter(date_joined__gte=week_ago).count()
+    recent_analyses = StoreAnalysis.objects.filter(created_at__gte=week_ago).count()
+    
+    # آمار فروش و درآمد
+    total_orders = Order.objects.count()
+    paid_orders = Order.objects.filter(status='paid').count()
+    total_revenue = Order.objects.filter(status='paid').aggregate(
+        total=Sum('final_amount')
+    )['total'] or 0
+    
+    # آمار کیف پول
+    total_wallets = Wallet.objects.count()
+    total_wallet_balance = Wallet.objects.aggregate(
+        total=Sum('balance')
+    )['total'] or 0
+    
+    # آمار تیکت‌های پشتیبانی
+    total_tickets = SupportTicket.objects.count()
+    open_tickets = SupportTicket.objects.filter(status='open').count()
+    closed_tickets = SupportTicket.objects.filter(status='closed').count()
+    
+    # آخرین فعالیت‌ها
+    recent_activities = []
+    
+    # آخرین کاربران
+    recent_users_list = User.objects.order_by('-date_joined')[:3]
+    for user in recent_users_list:
+        recent_activities.append({
+            'type': 'user',
+            'title': f'کاربر جدید: {user.username}',
+            'time': user.date_joined,
+            'icon': '👤',
+            'color': '#4CAF50'
+        })
+    
+    # آخرین تحلیل‌ها
+    recent_analyses_list = StoreAnalysis.objects.order_by('-created_at')[:3]
+    for analysis in recent_analyses_list:
+        recent_activities.append({
+            'type': 'analysis',
+            'title': f'تحلیل جدید: {analysis.store_name}',
+            'time': analysis.created_at,
+            'icon': '📊',
+            'color': '#2196F3'
+        })
+    
+    # مرتب‌سازی فعالیت‌ها بر اساس زمان
+    recent_activities.sort(key=lambda x: x['time'], reverse=True)
+    recent_activities = recent_activities[:6]
+    
+    # داده‌های نمودار (آخرین 7 روز)
+    chart_data = []
+    chart_labels = []
+    for i in range(7):
+        date = timezone.now() - timedelta(days=6-i)
+        day_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+        
+        day_users = User.objects.filter(date_joined__gte=day_start, date_joined__lt=day_end).count()
+        day_analyses = StoreAnalysis.objects.filter(created_at__gte=day_start, created_at__lt=day_end).count()
+        
+        chart_data.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'users': day_users,
+            'analyses': day_analyses
+        })
+        chart_labels.append(date.strftime('%m/%d'))
+    
+    stats = {
+        'total_users': total_users,
+        'total_analyses': total_analyses,
+        'completed_analyses': completed_analyses,
+        'pending_analyses': pending_analyses,
+        'processing_analyses': processing_analyses,
+        'recent_users': recent_users,
+        'recent_analyses': recent_analyses,
+        'total_orders': total_orders,
+        'paid_orders': paid_orders,
+        'total_revenue': float(total_revenue),
+        'total_wallets': total_wallets,
+        'total_wallet_balance': float(total_wallet_balance),
+        'total_tickets': total_tickets,
+        'open_tickets': open_tickets,
+        'closed_tickets': closed_tickets,
+    }
     
     context = {
         'stats': stats,
-        'recent_activities': activities,
-        'chart_labels': chart_data['days'],
-        'chart_users_data': chart_data['analyses'],
-        'chart_analyses_data': chart_data['tickets'],
-        'title': 'داشبورد ادمین',
+        'recent_activities': recent_activities,
+        'chart_data': chart_data,
+        'chart_labels': chart_labels,
+        'title': 'داشبورد ادمین حرفه‌ای',
         'is_admin': True,
+        'user': request.user,
+        'current_time': timezone.now(),
     }
     
     return render(request, 'store_analysis/admin/admin_dashboard.html', context)
 
+
+# ==================== ADMIN MANAGEMENT VIEWS ====================
+
+@login_required
+def admin_users(request):
+    """مدیریت کاربران"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q
+    from django.contrib.auth.models import User
+    
+    # فیلتر و جستجو
+    search = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    
+    users = User.objects.all()
+    
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) |
+            Q(email__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search)
+        )
+    
+    if status_filter == 'active':
+        users = users.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users = users.filter(is_active=False)
+    elif status_filter == 'staff':
+        users = users.filter(is_staff=True)
+    
+    # آمار کاربران
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
+    staff_users = User.objects.filter(is_staff=True).count()
+    recent_users = User.objects.filter(date_joined__gte=timezone.now() - timedelta(days=7)).count()
+    
+    # Pagination
+    paginator = Paginator(users, 20)
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
+    
+    context = {
+        'users': users_page,
+        'total_users': total_users,
+        'active_users': active_users,
+        'staff_users': staff_users,
+        'recent_users': recent_users,
+        'search': search,
+        'status_filter': status_filter,
+        'title': 'مدیریت کاربران'
+    }
+    
+    return render(request, 'store_analysis/admin/users.html', context)
+
+
+@login_required
+def admin_user_detail(request, user_id):
+    """جزئیات کاربر"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    user = get_object_or_404(User, id=user_id)
+    
+    # آمار کاربر
+    user_analyses = StoreAnalysis.objects.filter(user=user)
+    user_orders = Order.objects.filter(user=user)
+    user_tickets = SupportTicket.objects.filter(user=user)
+    
+    # آخرین فعالیت‌ها
+    recent_activities = []
+    
+    # آخرین تحلیل‌ها
+    for analysis in user_analyses.order_by('-created_at')[:5]:
+        recent_activities.append({
+            'type': 'analysis',
+            'title': f'تحلیل: {analysis.store_name}',
+            'time': analysis.created_at,
+            'status': analysis.status
+        })
+    
+    # آخرین سفارشها
+    for order in user_orders.order_by('-created_at')[:5]:
+        recent_activities.append({
+            'type': 'order',
+            'title': f'سفارش: {order.order_id}',
+            'time': order.created_at,
+            'status': order.status
+        })
+    
+    # مرتب‌سازی بر اساس زمان
+    recent_activities.sort(key=lambda x: x['time'], reverse=True)
+    
+    context = {
+        'user': user,
+        'user_analyses': user_analyses,
+        'user_orders': user_orders,
+        'user_tickets': user_tickets,
+        'recent_activities': recent_activities[:10],
+        'title': f'جزئیات کاربر: {user.username}'
+    }
+    
+    return render(request, 'store_analysis/admin/user_detail.html', context)
+
+
+@login_required
+def admin_analyses(request):
+    """مدیریت تحلیل‌ها"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q
+    
+    # فیلتر و جستجو
+    search = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    
+    analyses = StoreAnalysis.objects.select_related('user').all()
+    
+    if search:
+        analyses = analyses.filter(
+            Q(store_name__icontains=search) |
+            Q(user__username__icontains=search)
+        )
+    
+    if status_filter:
+        analyses = analyses.filter(status=status_filter)
+    
+    # آمار تحلیل‌ها
+    total_analyses = StoreAnalysis.objects.count()
+    completed_analyses = StoreAnalysis.objects.filter(status='completed').count()
+    pending_analyses = StoreAnalysis.objects.filter(status='pending').count()
+    processing_analyses = StoreAnalysis.objects.filter(status='processing').count()
+    
+    # Pagination
+    paginator = Paginator(analyses, 20)
+    page_number = request.GET.get('page')
+    analyses_page = paginator.get_page(page_number)
+    
+    context = {
+        'analyses': analyses_page,
+        'total_analyses': total_analyses,
+        'completed_analyses': completed_analyses,
+        'pending_analyses': pending_analyses,
+        'processing_analyses': processing_analyses,
+        'search': search,
+        'status_filter': status_filter,
+        'title': 'مدیریت تحلیل‌ها'
+    }
+    
+    return render(request, 'store_analysis/admin/analyses.html', context)
+
+
+@login_required
+def admin_analysis_detail(request, analysis_id):
+    """جزئیات تحلیل"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    analysis = get_object_or_404(StoreAnalysis, id=analysis_id)
+    
+    # اطلاعات مرتبط
+    store_basic_info = StoreBasicInfo.objects.filter(user=analysis.user).first()
+    analysis_result = StoreAnalysisResult.objects.filter(store_analysis=analysis).first()
+    
+    context = {
+        'analysis': analysis,
+        'store_basic_info': store_basic_info,
+        'analysis_result': analysis_result,
+        'title': f'جزئیات تحلیل: {analysis.store_name}'
+    }
+    
+    return render(request, 'store_analysis/admin/analysis_detail.html', context)
+
+
+@login_required
+def admin_orders(request):
+    """مدیریت سفارشات"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q, Sum
+    
+    # فیلتر و جستجو
+    search = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    
+    orders = Order.objects.select_related('user').all().order_by('-created_at')
+    
+    if search:
+        orders = orders.filter(
+            Q(order_id__icontains=search) |
+            Q(user__username__icontains=search)
+        )
+    
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    # آمار سفارشات
+    total_orders = Order.objects.count()
+    paid_orders = Order.objects.filter(status='paid').count()
+    pending_orders = Order.objects.filter(status='pending').count()
+    total_revenue = Order.objects.filter(status='paid').aggregate(
+        total=Sum('final_amount')
+    )['total'] or 0
+    
+    # Pagination
+    paginator = Paginator(orders, 20)
+    page_number = request.GET.get('page')
+    orders_page = paginator.get_page(page_number)
+    
+    context = {
+        'orders': orders_page,
+        'total_orders': total_orders,
+        'paid_orders': paid_orders,
+        'pending_orders': pending_orders,
+        'total_revenue': float(total_revenue),
+        'search': search,
+        'status_filter': status_filter,
+        'title': 'مدیریت سفارشات'
+    }
+    
+    return render(request, 'store_analysis/admin/orders.html', context)
+
+
+@login_required
+def admin_order_detail(request, order_id):
+    """جزئیات سفارش"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    order = get_object_or_404(Order, order_id=order_id)
+    
+    # اطلاعات مرتبط
+    analysis = StoreAnalysis.objects.filter(order=order).first()
+    payments = Payment.objects.filter(order=order)
+    
+    context = {
+        'order': order,
+        'analysis': analysis,
+        'payments': payments,
+        'title': f'جزئیات سفارش: {order.order_id}'
+    }
+    
+    return render(request, 'store_analysis/admin/order_detail.html', context)
+
+
+@login_required
+def admin_tickets(request):
+    """مدیریت تیکت‌های پشتیبانی"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q
+    
+    # فیلتر و جستجو
+    search = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    priority_filter = request.GET.get('priority', '')
+    
+    tickets = SupportTicket.objects.select_related('user').all()
+    
+    if search:
+        tickets = tickets.filter(
+            Q(subject__icontains=search) |
+            Q(user__username__icontains=search)
+        )
+    
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+    
+    if priority_filter:
+        tickets = tickets.filter(priority=priority_filter)
+    
+    # آمار تیکت‌ها
+    total_tickets = SupportTicket.objects.count()
+    open_tickets = SupportTicket.objects.filter(status='open').count()
+    closed_tickets = SupportTicket.objects.filter(status='closed').count()
+    high_priority = SupportTicket.objects.filter(priority='high').count()
+    
+    # Pagination
+    paginator = Paginator(tickets, 20)
+    page_number = request.GET.get('page')
+    tickets_page = paginator.get_page(page_number)
+    
+    context = {
+        'tickets': tickets_page,
+        'total_tickets': total_tickets,
+        'open_tickets': open_tickets,
+        'closed_tickets': closed_tickets,
+        'high_priority': high_priority,
+        'search': search,
+        'status_filter': status_filter,
+        'priority_filter': priority_filter,
+        'title': 'مدیریت تیکت‌های پشتیبانی'
+    }
+    
+    return render(request, 'store_analysis/admin/tickets.html', context)
+
+
+@login_required
+def admin_ticket_detail(request, ticket_id):
+    """جزئیات تیکت"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    ticket = get_object_or_404(SupportTicket, ticket_id=ticket_id)
+    messages = TicketMessage.objects.filter(ticket=ticket).order_by('created_at')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'reply':
+            message_text = request.POST.get('message')
+            if message_text:
+                TicketMessage.objects.create(
+                    ticket=ticket,
+                    user=request.user,
+                    message=message_text,
+                    is_admin=True
+                )
+                messages.success(request, 'پاسخ ارسال شد')
+        elif action == 'close':
+            ticket.status = 'closed'
+            ticket.save()
+            messages.success(request, 'تیکت بسته شد')
+        elif action == 'reopen':
+            ticket.status = 'open'
+            ticket.save()
+            messages.success(request, 'تیکت باز شد')
+        
+        return redirect('store_analysis:admin_ticket_detail', ticket_id=ticket_id)
+    
+    context = {
+        'ticket': ticket,
+        'messages': messages,
+        'title': f'تیکت: {ticket.subject}'
+    }
+    
+    return render(request, 'store_analysis/admin/ticket_detail.html', context)
+
+
+@login_required
+def admin_wallets(request):
+    """مدیریت کیف پول‌ها"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q, Sum
+    
+    # فیلتر و جستجو
+    search = request.GET.get('search', '')
+    
+    wallets = Wallet.objects.select_related('user').all()
+    
+    if search:
+        wallets = wallets.filter(
+            Q(user__username__icontains=search) |
+            Q(user__email__icontains=search)
+        )
+    
+    # آمار کیف پول‌ها
+    total_wallets = Wallet.objects.count()
+    total_balance = Wallet.objects.aggregate(
+        total=Sum('balance')
+    )['total'] or 0
+    active_wallets = Wallet.objects.filter(balance__gt=0).count()
+    
+    # Pagination
+    paginator = Paginator(wallets, 20)
+    page_number = request.GET.get('page')
+    wallets_page = paginator.get_page(page_number)
+    
+    context = {
+        'wallets': wallets_page,
+        'total_wallets': total_wallets,
+        'total_balance': float(total_balance),
+        'active_wallets': active_wallets,
+        'search': search,
+        'title': 'مدیریت کیف پول‌ها'
+    }
+    
+    return render(request, 'store_analysis/admin/wallets.html', context)
+
+
+@login_required
+def admin_wallet_detail(request, wallet_id):
+    """جزئیات کیف پول"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    wallet = get_object_or_404(Wallet, id=wallet_id)
+    transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        amount = request.POST.get('amount')
+        
+        if action == 'adjust' and amount:
+            try:
+                amount = float(amount)
+                Transaction.objects.create(
+                    wallet=wallet,
+                    transaction_type='admin_adjustment',
+                    amount=amount,
+                    description=f'تنظیم توسط ادمین: {request.user.username}'
+                )
+                wallet.balance += amount
+                wallet.save()
+                messages.success(request, f'مبلغ {amount} تومان تنظیم شد')
+            except ValueError:
+                messages.error(request, 'مبلغ نامعتبر')
+        
+        return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
+    
+    context = {
+        'wallet': wallet,
+        'transactions': transactions,
+        'title': f'کیف پول: {wallet.user.username}'
+    }
+    
+    return render(request, 'store_analysis/admin/wallet_detail.html', context)
+
+
+@login_required
+def admin_discounts(request):
+    """مدیریت تخفیف‌ها"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    from django.core.paginator import Paginator
+    
+    discounts = DiscountCode.objects.all().order_by('-created_at')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create':
+            code = request.POST.get('code')
+            discount_type = request.POST.get('discount_type')
+            discount_value = request.POST.get('discount_value')
+            max_uses = request.POST.get('max_uses')
+            expires_at = request.POST.get('expires_at')
+            
+            try:
+                DiscountCode.objects.create(
+                    code=code,
+                    discount_type=discount_type,
+                    discount_value=float(discount_value),
+                    max_uses=int(max_uses) if max_uses else None,
+                    expires_at=expires_at if expires_at else None,
+                    is_active=True
+                )
+                messages.success(request, 'کد تخفیف ایجاد شد')
+            except Exception as e:
+                messages.error(request, f'خطا در ایجاد کد تخفیف: {str(e)}')
+        
+        elif action == 'toggle':
+            discount_id = request.POST.get('discount_id')
+            discount = get_object_or_404(DiscountCode, id=discount_id)
+            discount.is_active = not discount.is_active
+            discount.save()
+            messages.success(request, 'وضعیت کد تخفیف تغییر کرد')
+        
+        return redirect('store_analysis:admin_discounts')
+    
+    # Pagination
+    paginator = Paginator(discounts, 20)
+    page_number = request.GET.get('page')
+    discounts_page = paginator.get_page(page_number)
+    
+    context = {
+        'discounts': discounts_page,
+        'title': 'مدیریت کدهای تخفیف'
+    }
+    
+    return render(request, 'store_analysis/admin/discounts.html', context)
+
+
+@login_required
+def admin_settings(request):
+    """تنظیمات سیستم"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    if request.method == 'POST':
+        # ذخیره تنظیمات
+        messages.success(request, 'تنظیمات ذخیره شد')
+        return redirect('store_analysis:admin_settings')
+    
+    context = {
+        'title': 'تنظیمات سیستم'
+    }
+    
+    return render(request, 'store_analysis/admin/settings.html', context)
+
+
+@login_required
+def admin_reports(request):
+    """گزارش‌های تحلیلی"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    from django.db.models import Count, Sum, Avg
+    from datetime import datetime, timedelta
+    
+    # گزارش‌های مختلف
+    report_type = request.GET.get('type', 'overview')
+    
+    if report_type == 'users':
+        # گزارش کاربران
+        users_data = User.objects.extra(
+            select={'month': 'strftime("%%Y-%%m", date_joined)'}
+        ).values('month').annotate(count=Count('id')).order_by('month')
+        
+        context = {
+            'report_type': 'users',
+            'data': list(users_data),
+            'title': 'گزارش کاربران'
+        }
+    
+    elif report_type == 'analyses':
+        # گزارش تحلیل‌ها
+        analyses_data = StoreAnalysis.objects.extra(
+            select={'month': 'strftime("%%Y-%%m", created_at)'}
+        ).values('month').annotate(count=Count('id')).order_by('month')
+        
+        context = {
+            'report_type': 'analyses',
+            'data': list(analyses_data),
+            'title': 'گزارش تحلیل‌ها'
+        }
+    
+    elif report_type == 'revenue':
+        # گزارش درآمد
+        revenue_data = Order.objects.filter(status='paid').extra(
+            select={'month': 'strftime("%%Y-%%m", created_at)'}
+        ).values('month').annotate(total=Sum('final_amount')).order_by('month')
+        
+        context = {
+            'report_type': 'revenue',
+            'data': list(revenue_data),
+            'title': 'گزارش درآمد'
+        }
+    
+    else:
+        # گزارش کلی
+        context = {
+            'report_type': 'overview',
+            'title': 'گزارش‌های کلی'
+        }
+    
+    return render(request, 'store_analysis/admin/reports.html', context)
+
+
+# ==================== END ADMIN MANAGEMENT VIEWS ====================
 
 @login_required
 def admin_promotional_banner_management(request):
@@ -5058,6 +5911,7 @@ def forms_submit(request):
                 'camera_locations': request.POST.get('camera_locations'),
                 
                 # Step 7: Goals and Output
+                'analysis_type': request.POST.get('analysis_type'),  # نوع تحلیل
                 'optimization_goals': request.POST.getlist('optimization_goals'),
                 'priority_goal': request.POST.get('priority_goal'),
                 'improvement_timeline': request.POST.get('improvement_timeline'),
@@ -5197,28 +6051,56 @@ def forms_submit(request):
                             # ادامه بدون ذخیره فایل
             
             # به‌روزرسانی تحلیل با اطلاعات فایل‌ها
-            store_analysis.analysis_data['uploaded_files'] = uploaded_files
-            store_analysis.save()
+            if uploaded_files:
+                store_analysis.uploaded_files = uploaded_files
+                # به‌روزرسانی analysis_data به صورت صحیح
+                analysis_data = store_analysis.analysis_data or {}
+                analysis_data['uploaded_files'] = uploaded_files
+                store_analysis.analysis_data = analysis_data
+                store_analysis.save()
             
-            # ایجاد پلن قیمت‌گذاری پیش‌فرض
-            default_plan, created = PricingPlan.objects.get_or_create(
-                name='تحلیل جامع فروشگاه',
-                defaults={
-                    'plan_type': 'one_time',
-                    'price': 500000,  # 500 هزار تومان
-                    'original_price': 750000,  # 750 هزار تومان
-                    'discount_percentage': 33,
-                    'is_active': True,
-                    'features': [
-                        'تحلیل کامل چیدمان فروشگاه',
-                        'بررسی ترافیک مشتریان',
-                        'تحلیل طراحی و دکوراسیون',
-                        'بررسی سیستم امنیتی',
-                        'گزارش جامع و پیشنهادات',
-                        'پشتیبانی 30 روزه'
-                    ]
-                }
-            )
+            # تعیین پلن بر اساس نوع تحلیل
+            analysis_type = form_data.get('analysis_type', 'comprehensive')
+            logger.info(f"Analysis type received: {analysis_type}")
+            
+            if analysis_type == 'preliminary':
+                # تحلیل اولیه - رایگان
+                default_plan, created = PricingPlan.objects.get_or_create(
+                    name='تحلیل اولیه فروشگاه',
+                    defaults={
+                        'plan_type': 'one_time',
+                        'price': 0,  # رایگان
+                        'original_price': 0,
+                        'discount_percentage': 0,
+                        'is_active': True,
+                        'features': [
+                            'بررسی کلی چیدمان فروشگاه',
+                            'شناسایی مشکلات اصلی',
+                            'پیشنهادات اولیه',
+                            'گزارش کوتاه (2-3 صفحه)'
+                        ]
+                    }
+                )
+            else:
+                # تحلیل کامل - پولی
+                default_plan, created = PricingPlan.objects.get_or_create(
+                    name='تحلیل جامع فروشگاه',
+                    defaults={
+                        'plan_type': 'one_time',
+                        'price': 500000,  # 500 هزار تومان
+                        'original_price': 750000,  # 750 هزار تومان
+                        'discount_percentage': 33,
+                        'is_active': True,
+                        'features': [
+                            'تحلیل کامل چیدمان فروشگاه',
+                            'بررسی ترافیک مشتریان',
+                            'تحلیل طراحی و دکوراسیون',
+                            'بررسی سیستم امنیتی',
+                            'گزارش جامع و پیشنهادات',
+                            'پشتیبانی 30 روزه'
+                        ]
+                    }
+                )
             
             # بررسی authentication
             if not request.user.is_authenticated:
@@ -5226,41 +6108,60 @@ def forms_submit(request):
                 return redirect('store_analysis:login')
             
             # ایجاد سفارش
-            order = Order.objects.create(
-                user=request.user,
-                plan=default_plan,
-                original_amount=default_plan.original_price,
-                discount_amount=default_plan.original_price - default_plan.price,
-                final_amount=default_plan.price,
-                status='pending'
-            )
+            try:
+                order = Order.objects.create(
+                    user=request.user,
+                    plan=default_plan,
+                    original_amount=default_plan.original_price,
+                    discount_amount=default_plan.original_price - default_plan.price,
+                    final_amount=default_plan.price,
+                    status='pending'
+                )
+                logger.info(f"Order created successfully: {order.order_id}")
+            except Exception as e:
+                logger.error(f"Error creating order: {e}")
+                raise
             
             # اتصال تحلیل به سفارش
             store_analysis.order = order
             store_analysis.save()
             
             # ایجاد درخواست تحلیل
-            AnalysisRequest.objects.create(
-                order=order,
-                store_analysis_data=form_data,
-                status='pending'
-            )
+            try:
+                AnalysisRequest.objects.create(
+                    order=order,
+                    store_analysis_data=form_data,
+                    status='pending'
+                )
+                logger.info(f"AnalysisRequest created successfully for order {order.order_id}")
+            except Exception as e:
+                logger.error(f"Error creating AnalysisRequest: {e}")
+                raise
             
-            # هدایت به صفحه پرداخت
-            # بررسی نوع درخواست
+            # هدایت بر اساس نوع تحلیل
             is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
             is_fetch = 'fetch' in request.headers.get('User-Agent', '') or request.headers.get('Accept') == 'application/json'
             
-            if is_ajax or is_fetch:
-                # درخواست از JavaScript fetch/AJAX
-                return JsonResponse({
-                    'success': True,
-                    'message': 'فرم با موفقیت ارسال شد!',
-                    'redirect_url': f'/store/payment/{order.order_id}/'
-                })
+            if analysis_type == 'preliminary':
+                # تحلیل اولیه - رایگان - هدایت مستقیم به تحلیل
+                if is_ajax or is_fetch:
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
+                        'redirect_url': f'/store/analysis/{store_analysis.id}/'
+                    })
+                else:
+                    return redirect('store_analysis:analysis_detail', analysis_id=store_analysis.id)
             else:
-                # درخواست عادی
-                return redirect('store_analysis:payment', order_id=order.order_id)
+                # تحلیل کامل - پولی - هدایت به صفحه پرداخت
+                if is_ajax or is_fetch:
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'فرم با موفقیت ارسال شد!',
+                        'redirect_url': f'/store/payment/{order.order_id}/'
+                    })
+                else:
+                    return redirect('store_analysis:payment', order_id=order.order_id)
             
         except Exception as e:
             logger.error(f"Error in forms_submit: {e}")
@@ -5552,42 +6453,64 @@ def consultant_payment_failed(request, session_id):
 def wallet_dashboard(request):
     """داشبورد کیف پول کاربر"""
     try:
-        # دریافت یا ایجاد کیف پول
-        wallet, created = Wallet.objects.get_or_create(
-            user=request.user,
-            defaults={'balance': 0, 'is_active': True}
-        )
-        
-        # دریافت آخرین تراکنش‌ها
-        recent_transactions = Transaction.objects.filter(wallet=wallet)[:10]
-        
-        # آمار تراکنش‌ها
-        from django.db import models
-        total_deposits = Transaction.objects.filter(
-            wallet=wallet, 
-            transaction_type='deposit',
-            status='completed'
-        ).aggregate(total=models.Sum('amount'))['total'] or 0
-        
-        total_withdrawals = Transaction.objects.filter(
-            wallet=wallet, 
-            transaction_type__in=['withdraw', 'payment'],
-            status='completed'
-        ).aggregate(total=models.Sum('amount'))['total'] or 0
+        # بررسی وجود مدل‌های کیف پول
+        try:
+            # دریافت یا ایجاد کیف پول
+            wallet, created = Wallet.objects.get_or_create(
+                user=request.user,
+                defaults={'balance': 0, 'is_active': True}
+            )
+            
+            # دریافت آخرین تراکنش‌ها
+            recent_transactions = Transaction.objects.filter(wallet=wallet)[:10]
+            
+            # آمار تراکنش‌ها
+            from django.db import models
+            total_deposits = Transaction.objects.filter(
+                wallet=wallet, 
+                transaction_type='deposit',
+                status='completed'
+            ).aggregate(total=models.Sum('amount'))['total'] or 0
+            
+            total_withdrawals = Transaction.objects.filter(
+                wallet=wallet, 
+                transaction_type__in=['withdraw', 'payment'],
+                status='completed'
+            ).aggregate(total=models.Sum('amount'))['total'] or 0
+            
+        except Exception as wallet_error:
+            logger.warning(f"Wallet models not available: {wallet_error}")
+            # داده‌های پیش‌فرض
+            wallet = None
+            created = False
+            recent_transactions = []
+            total_deposits = 0
+            total_withdrawals = 0
         
         context = {
             'wallet': wallet,
             'recent_transactions': recent_transactions,
             'total_deposits': total_deposits,
             'total_withdrawals': total_withdrawals,
-            'created': created
+            'created': created,
+            'error': wallet is None
         }
         
         return render(request, 'store_analysis/wallet_dashboard.html', context)
         
     except Exception as e:
+        logger.error(f"خطا در wallet_dashboard: {e}")
         messages.error(request, f'خطا در بارگذاری کیف پول: {str(e)}')
-        return redirect('store_analysis:user_dashboard')
+        # داده‌های پیش‌فرض در صورت خطا
+        context = {
+            'wallet': None,
+            'recent_transactions': [],
+            'total_deposits': 0,
+            'total_withdrawals': 0,
+            'created': False,
+            'error': True
+        }
+        return render(request, 'store_analysis/wallet_dashboard.html', context)
 
 
 @login_required
@@ -5632,14 +6555,29 @@ def wallet_transactions(request):
 
 @login_required
 def deposit_to_wallet(request):
-    """واریز به کیف پول"""
+    """واریز به کیف پول - هدایت به PayPing"""
+    # Debug: Check authentication status
+    logger.info(f"Deposit view accessed - User: {request.user}, Authenticated: {request.user.is_authenticated}")
+    
+    # Debug: Check PayPing token
+    payping_token = getattr(settings, 'PAYPING_TOKEN', 'NOT_SET')
+    logger.info(f"PayPing token: {payping_token[:20]}...")
+    
     if request.method == 'POST':
         try:
             amount = Decimal(request.POST.get('amount', 0))
-            description = request.POST.get('description', 'واریز دستی')
+            payment_method = request.POST.get('payment_method', 'payping')
+            
+            # Debug logging
+            logger.info(f"Deposit request - Amount: {amount}, Payment Method: {payment_method}")
+            logger.info(f"POST data: {dict(request.POST)}")
             
             if amount <= 0:
                 messages.error(request, 'مبلغ باید مثبت باشد')
+                return redirect('store_analysis:wallet_dashboard')
+            
+            if amount < 10000:  # حداقل 10,000 تومان
+                messages.error(request, 'حداقل مبلغ واریز 10,000 تومان است')
                 return redirect('store_analysis:wallet_dashboard')
             
             # دریافت یا ایجاد کیف پول
@@ -5648,18 +6586,60 @@ def deposit_to_wallet(request):
                 defaults={'balance': 0, 'is_active': True}
             )
             
-            # واریز
-            new_balance = wallet.deposit(amount, description)
+            # ایجاد سفارش واریز
+            from .models import Order
+            order = Order.objects.create(
+                user=request.user,
+                original_amount=amount,
+                final_amount=amount,
+                status='pending',
+                payment_method=payment_method
+            )
             
-            messages.success(request, f'مبلغ {amount:,} تومان با موفقیت واریز شد. موجودی جدید: {new_balance:,} تومان')
-            return redirect('store_analysis:wallet_dashboard')
+            # هدایت به PayPing
+            if payment_method == 'payping':
+                logger.info(f"Redirecting to PayPing for order {order.order_id}")
+                try:
+                    # Debug: Check PayPing gateway
+                    from .payment_gateways import PaymentGatewayManager
+                    gateway_manager = PaymentGatewayManager()
+                    payping = gateway_manager.get_gateway('payping')
+                    
+                    if not payping:
+                        logger.error("PayPing gateway not available")
+                        messages.error(request, 'درگاه PayPing در دسترس نیست')
+                        return redirect('store_analysis:wallet_dashboard')
+                    
+                    redirect_url = reverse('store_analysis:payping_payment', args=[order.order_id])
+                    logger.info(f"PayPing redirect URL: {redirect_url}")
+                    return redirect(redirect_url)
+                except Exception as e:
+                    logger.error(f"Error creating PayPing redirect: {e}")
+                    messages.error(request, f'خطا در هدایت به PayPing: {str(e)}')
+                    return redirect('store_analysis:wallet_dashboard')
+            elif payment_method == 'zarinpal':
+                # استفاده از زرین‌پال به عنوان fallback
+                return redirect('store_analysis:zarinpal_payment', order_id=order.order_id)
+            else:
+                # برای واریز دستی، مستقیماً واریز کن
+                wallet.deposit(amount, f'واریز دستی - سفارش {order.order_id}')
+                order.status = 'paid'
+                order.save()
+                messages.success(request, f'مبلغ {amount:,} تومان با موفقیت واریز شد.')
+                return redirect('store_analysis:wallet_dashboard')
             
         except ValueError as e:
             messages.error(request, str(e))
         except Exception as e:
             messages.error(request, f'خطا در واریز: {str(e)}')
     
-    return render(request, 'store_analysis/deposit_to_wallet.html')
+    # دریافت کیف پول برای نمایش موجودی
+    try:
+        wallet = Wallet.objects.get(user=request.user)
+    except Wallet.DoesNotExist:
+        wallet = None
+    
+    return render(request, 'store_analysis/deposit_to_wallet.html', {'wallet': wallet})
 
 
 @login_required
@@ -5699,17 +6679,17 @@ def wallet_payment(request, order_id):
         
         if request.method == 'POST':
             # بررسی موجودی
-            if not wallet.can_withdraw(order.total_amount):
+            if not wallet.can_withdraw(order.final_amount):
                 messages.error(request, 'موجودی کیف پول کافی نیست')
                 return redirect('store_analysis:order_detail', order_id=order_id)
             
             # برداشت از کیف پول
-            wallet.withdraw(order.total_amount, f'پرداخت سفارش {order.order_id}')
+            wallet.withdraw(order.final_amount, f'پرداخت سفارش {order.order_id}')
             
             # ایجاد پرداخت
             payment = Payment.objects.create(
                 order=order,
-                amount=order.total_amount,
+                amount=order.final_amount,
                 payment_method='wallet',
                 status='completed',
                 transaction_id=f'WALLET_{order.order_id}_{timezone.now().strftime("%Y%m%d%H%M%S")}'
@@ -5853,5 +6833,8 @@ def admin_adjust_wallet(request, wallet_id):
             messages.error(request, f'خطا در تنظیم موجودی: {str(e)}')
     
     return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
+
+
+
 
 

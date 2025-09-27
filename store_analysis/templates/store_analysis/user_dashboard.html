@@ -7,6 +7,11 @@
 <!-- تعهدنامه حقوقی -->
 {% include 'store_analysis/legal_agreement_modal.html' %}
 <style>
+    /* Vazir Font for Dashboard */
+    .dashboard-container * {
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+    }
+    
     :root {
         --apple-white: #ffffff;
         --apple-gray-50: #f9fafb;
@@ -39,8 +44,15 @@
         max-width: 1200px;
         margin: 0 auto;
         padding: 2rem 1rem;
-        background: var(--apple-gray-50);
-        min-height: 100vh;
+        background: #ffffff;
+        min-height: auto;
+        position: relative;
+        z-index: 1;
+        margin-top: 0;
+        margin-bottom: 0;
+        width: 100%;
+        /* Force refresh */
+        transform: translateZ(0);
     }
 
     .dashboard-header {
@@ -531,10 +543,16 @@
                         <div class="cta-section">
                             <h3 class="cta-title">هنوز تحلیلی انجام نداده‌اید</h3>
                             <p class="cta-subtitle">اولین تحلیل فروشگاه خود را شروع کنید و ببینید چقدر می‌توانید فروش خود را افزایش دهید</p>
-                            <a href="{% url 'store_analysis:forms' %}" class="cta-button">
-                                <span>🚀</span>
-                                <span>شروع تحلیل جدید</span>
-                            </a>
+                            <div class="cta-buttons">
+                                <a href="{% url 'store_analysis:forms' %}" class="cta-button">
+                                    <span>🚀</span>
+                                    <span>شروع تحلیل جدید</span>
+                                </a>
+                                <a href="{% url 'store_analysis:payment_packages' %}" class="cta-button secondary">
+                                    <span>💳</span>
+                                    <span>بسته‌های خدمات</span>
+                                </a>
+                            </div>
                 </div>
                     {% endif %}
             </div>

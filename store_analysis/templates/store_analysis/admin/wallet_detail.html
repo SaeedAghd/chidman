@@ -1,440 +1,247 @@
-{% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
 
-{% block title %}جزئیات کیف پول - چیدمانو{% endblock %}
-
-{% block extrahead %}
-{{ block.super }}
-<style>
-    .wallet-detail-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    
-    .wallet-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 30px;
-        margin-bottom: 30px;
-        text-align: center;
-    }
-    
-    .wallet-title {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-    
-    .wallet-subtitle {
-        font-size: 1rem;
-        opacity: 0.9;
-    }
-    
-    .wallet-info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .info-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        border-left: 4px solid #667eea;
-    }
-    
-    .info-card.success { border-left-color: #28a745; }
-    .info-card.warning { border-left-color: #ffc107; }
-    .info-card.danger { border-left-color: #dc3545; }
-    
-    .info-title {
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .info-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    
-    .info-item:last-child {
-        border-bottom: none;
-    }
-    
-    .info-label {
-        color: #666;
-        font-size: 0.9rem;
-    }
-    
-    .info-value {
-        font-weight: bold;
-        color: #333;
-    }
-    
-    .balance-display {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #28a745;
-        text-align: center;
-        margin: 20px 0;
-    }
-    
-    .adjust-form {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-    }
-    
-    .form-title {
-        font-size: 1.3rem;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #667eea;
-    }
-    
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-        color: #333;
-        font-size: 0.9rem;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: border-color 0.3s ease;
-    }
-    
-    .form-control:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    .btn {
-        padding: 12px 25px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        margin: 5px;
-        font-size: 0.9rem;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-    }
-    
-    .btn-danger {
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
-    }
-    
-    .btn-secondary {
-        background: #6c757d;
-        color: white;
-    }
-    
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    
-    .transactions-section {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #667eea;
-    }
-    
-    .transaction-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .transaction-item:last-child {
-        border-bottom: none;
-    }
-    
-    .transaction-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        flex: 1;
-    }
-    
-    .transaction-icon {
-        font-size: 1.5rem;
-        width: 40px;
-        text-align: center;
-    }
-    
-    .transaction-details h6 {
-        margin: 0;
-        font-weight: bold;
-        color: #333;
-    }
-    
-    .transaction-details small {
-        color: #666;
-    }
-    
-    .transaction-amount {
-        font-weight: bold;
-        font-size: 1.1rem;
-    }
-    
-    .transaction-amount.positive {
-        color: #28a745;
-    }
-    
-    .transaction-amount.negative {
-        color: #dc3545;
-    }
-    
-    .no-transactions {
-        text-align: center;
-        color: #666;
-        padding: 40px;
-        font-style: italic;
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .stat-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        border-left: 4px solid #007bff;
-        text-align: center;
-    }
-    
-    .stat-card.success { border-left-color: #28a745; }
-    .stat-card.warning { border-left-color: #ffc107; }
-    .stat-card.info { border-left-color: #17a2b8; }
-    
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 5px;
-    }
-    
-    .stat-label {
-        color: #666;
-        font-size: 0.9rem;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="wallet-detail-container">
-    <!-- هدر کیف پول -->
-    <div class="wallet-header">
-        <h1 class="wallet-title">💰 کیف پول {{ wallet.user.username }}</h1>
-        <p class="wallet-subtitle">مدیریت و نظارت بر کیف پول کاربر</p>
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-wallet"></i>
+        </div>
+        کیف پول: {{ wallet.user.username }}
     </div>
-    
-    <!-- آمار تراکنش‌ها -->
-    <div class="stats-grid">
-        <div class="stat-card success">
-            <div class="stat-number">{{ transaction_stats.total_deposits|floatformat:0 }}</div>
-            <div class="stat-label">کل واریزها (تومان)</div>
-        </div>
-        
-        <div class="stat-card warning">
-            <div class="stat-number">{{ transaction_stats.total_withdrawals|floatformat:0 }}</div>
-            <div class="stat-label">کل برداشت‌ها (تومان)</div>
-        </div>
-        
-        <div class="stat-card info">
-            <div class="stat-number">{{ transaction_stats.total_transactions }}</div>
-            <div class="stat-label">کل تراکنش‌ها</div>
+    <div class="admin-actions">
+        <a href="{% url 'store_analysis:admin_wallets' %}" class="btn-admin btn-primary">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت
+        </a>
+        <a href="#" class="btn-admin btn-success">
+            <i class="fas fa-download"></i>
+            دانلود گزارش
+        </a>
+    </div>
+</div>
+
+<!-- Wallet Info -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-info-circle"></i>
+            اطلاعات کیف پول
         </div>
     </div>
     
-    <!-- اطلاعات کیف پول -->
-    <div class="wallet-info-grid">
-        <div class="info-card">
-            <h3 class="info-title">
-                <i class="fas fa-user"></i>
-                اطلاعات کاربر
-            </h3>
-            <div class="info-item">
-                <span class="info-label">نام کاربری:</span>
-                <span class="info-value">{{ wallet.user.username }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">ایمیل:</span>
-                <span class="info-value">{{ wallet.user.email }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">نام:</span>
-                <span class="info-value">{{ wallet.user.first_name }} {{ wallet.user.last_name }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">تاریخ عضویت:</span>
-                <span class="info-value">{{ wallet.user.date_joined|date:"Y/m/d" }}</span>
-            </div>
-        </div>
-        
-        <div class="info-card success">
-            <h3 class="info-title">
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+        <div style="text-align: center;">
+            <div style="width: 120px; height: 120px; border-radius: 20px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; margin: 0 auto 20px;">
                 <i class="fas fa-wallet"></i>
-                اطلاعات کیف پول
-            </h3>
-            <div class="balance-display">{{ wallet.get_balance_display }}</div>
-            <div class="info-item">
-                <span class="info-label">وضعیت:</span>
-                <span class="info-value">
-                    {% if wallet.is_active %}
-                        <span style="color: #28a745;">فعال</span>
-                    {% else %}
-                        <span style="color: #dc3545;">غیرفعال</span>
-                    {% endif %}
-                </span>
             </div>
-            <div class="info-item">
-                <span class="info-label">تاریخ ایجاد:</span>
-                <span class="info-value">{{ wallet.created_at|date:"Y/m/d H:i" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">آخرین بروزرسانی:</span>
-                <span class="info-value">{{ wallet.updated_at|date:"Y/m/d H:i" }}</span>
+            <h3 style="color: white; margin-bottom: 10px;">{{ wallet.user.username }}</h3>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                {% if wallet.balance > 0 %}
+                    <span class="status-badge status-completed">فعال</span>
+                {% else %}
+                    <span class="status-badge status-inactive">خالی</span>
+                {% endif %}
             </div>
         </div>
-    </div>
-    
-    <!-- فرم تنظیم موجودی -->
-    <div class="adjust-form">
-        <h3 class="form-title">⚙️ تنظیم موجودی کیف پول</h3>
         
-        <form method="post" action="{% url 'store_analysis:admin_adjust_wallet' wallet.id %}">
-            {% csrf_token %}
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">عملیات</label>
-                    <select name="action" class="form-control" required>
-                        <option value="">انتخاب کنید</option>
-                        <option value="add">اضافه کردن</option>
-                        <option value="subtract">کسر کردن</option>
-                    </select>
+        <div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">کاربر</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ wallet.user.username }}</div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">مبلغ (تومان)</label>
-                    <input type="number" 
-                           name="amount" 
-                           class="form-control" 
-                           placeholder="مبلغ را وارد کنید"
-                           min="1"
-                           step="1"
-                           required>
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">ایمیل</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ wallet.user.email }}</div>
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">توضیحات</label>
-                <input type="text" 
-                       name="description" 
-                       class="form-control" 
-                       placeholder="توضیحات عملیات"
-                       maxlength="200"
-                       required>
-            </div>
-            
-            <div class="text-center">
-                <button type="submit" class="btn btn-success" onclick="return confirm('آیا از انجام این عملیات اطمینان دارید؟')">
-                    <i class="fas fa-save me-2"></i>اعمال تغییرات
-                </button>
-                <a href="{% url 'store_analysis:admin_wallet_management' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-right me-2"></i>بازگشت
-                </a>
-            </div>
-        </form>
-    </div>
-    
-    <!-- آخرین تراکنش‌ها -->
-    <div class="transactions-section">
-        <h3 class="section-title">📊 آخرین تراکنش‌ها</h3>
-        
-        {% if transactions %}
-            {% for transaction in transactions %}
-            <div class="transaction-item">
-                <div class="transaction-info">
-                    <div class="transaction-icon">{{ transaction.get_transaction_icon }}</div>
-                    <div class="transaction-details">
-                        <h6>{{ transaction.get_transaction_type_display }}</h6>
-                        <small>{{ transaction.description }} - {{ transaction.created_at|date:"Y/m/d H:i" }}</small>
-                        {% if transaction.reference_id %}
-                            <br><small class="text-muted">شناسه: {{ transaction.reference_id }}</small>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">موجودی فعلی</label>
+                    <div style="color: {% if wallet.balance > 0 %}#4CAF50{% else %}#F44336{% endif %}; font-weight: 600; margin-top: 5px; font-size: 1.2rem;">
+                        {{ wallet.balance|floatformat:0 }} تومان
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">وضعیت</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">
+                        {% if wallet.balance > 0 %}
+                            فعال
+                        {% else %}
+                            خالی
                         {% endif %}
                     </div>
                 </div>
-                <div class="transaction-amount {% if transaction.is_positive %}positive{% else %}negative{% endif %}">
-                    {% if transaction.is_positive %}+{% else %}-{% endif %}{{ transaction.get_amount_display }}
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">تاریخ ایجاد</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ wallet.created_at|date:"Y/m/d H:i" }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">آخرین تراکنش</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">
+                        {% if wallet.last_transaction_at %}
+                            {{ wallet.last_transaction_at|date:"Y/m/d H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="no-transactions">
-                <p>هنوز تراکنشی انجام نشده است</p>
+        </div>
+    </div>
+</div>
+
+<!-- Balance Adjustment -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-adjust"></i>
+            تنظیم موجودی
+        </div>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="adjust">
+        
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: end;">
+            <div class="form-group">
+                <label class="form-label">مبلغ تنظیم (مثبت برای افزایش، منفی برای کاهش)</label>
+                <input type="number" name="amount" class="form-control" placeholder="مثال: 100000 یا -50000" step="1000" required>
             </div>
-        {% endif %}
+            
+            <button type="submit" class="btn-admin btn-warning">
+                <i class="fas fa-adjust"></i>
+                تنظیم موجودی
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Transactions -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-history"></i>
+            تاریخچه تراکنش‌ها
+        </div>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>نوع تراکنش</th>
+                    <th>مبلغ</th>
+                    <th>توضیحات</th>
+                    <th>تاریخ</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 8px; background: {% if transaction.amount > 0 %}var(--success-gradient){% else %}var(--danger-gradient){% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.8rem;">
+                                {% if transaction.transaction_type == 'deposit' %}
+                                    <i class="fas fa-plus"></i>
+                                {% elif transaction.transaction_type == 'withdrawal' %}
+                                    <i class="fas fa-minus"></i>
+                                {% elif transaction.transaction_type == 'admin_adjustment' %}
+                                    <i class="fas fa-adjust"></i>
+                                {% else %}
+                                    <i class="fas fa-exchange-alt"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if transaction.transaction_type == 'deposit' %}
+                                    واریز
+                                {% elif transaction.transaction_type == 'withdrawal' %}
+                                    برداشت
+                                {% elif transaction.transaction_type == 'admin_adjustment' %}
+                                    تنظیم ادمین
+                                {% else %}
+                                    {{ transaction.transaction_type }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="color: {% if transaction.amount > 0 %}#4CAF50{% else %}#F44336{% endif %}; font-weight: 600;">
+                            {% if transaction.amount > 0 %}+{% endif %}{{ transaction.amount|floatformat:0 }} تومان
+                        </div>
+                    </td>
+                    <td>
+                        <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ transaction.description|default:"-" }}
+                        </div>
+                    </td>
+                    <td>{{ transaction.created_at|date:"Y/m/d H:i" }}</td>
+                    <td>
+                        {% if transaction.status == 'success' %}
+                            <span class="status-badge status-completed">موفق</span>
+                        {% elif transaction.status == 'pending' %}
+                            <span class="status-badge status-pending">در انتظار</span>
+                        {% elif transaction.status == 'failed' %}
+                            <span class="status-badge status-inactive">ناموفق</span>
+                        {% else %}
+                            <span class="status-badge status-pending">{{ transaction.status|default:"موفق" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">
+                        <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        هیچ تراکنشی یافت نشد
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Wallet Actions -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-tools"></i>
+            عملیات کیف پول
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="#" class="btn-admin btn-primary">
+            <i class="fas fa-plus"></i>
+            واریز وجه
+        </a>
+        
+        <a href="#" class="btn-admin btn-warning">
+            <i class="fas fa-minus"></i>
+            برداشت وجه
+        </a>
+        
+        <a href="#" class="btn-admin btn-success">
+            <i class="fas fa-download"></i>
+            دانلود گزارش
+        </a>
+        
+        <a href="#" class="btn-admin btn-warning">
+            <i class="fas fa-edit"></i>
+            ویرایش کیف پول
+        </a>
+        
+        <a href="#" class="btn-admin btn-danger">
+            <i class="fas fa-trash"></i>
+            حذف کیف پول
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -3,7 +3,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; frame-src 'none';">
     <meta name="theme-color" content="#667eea">
     <!-- SEO Meta Tags -->
@@ -18,8 +18,8 @@
     <meta property="og:title" content="تحلیل هوشمند چیدمان فروشگاه - افزایش فروش تا 30%">
     <meta property="og:description" content="با هوش مصنوعی چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا 30% افزایش دهید. تحلیل حرفه‌ای ترافیک و طراحی فروشگاه">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://chidman-store-analysis.onrender.com">
-    <meta property="og:image" content="https://chidman-store-analysis.onrender.com/static/images/logo.png">
+    <meta property="og:url" content="https://chidmano.ir/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/logo.png' %}">
     <meta property="og:site_name" content="چیدمانو">
     <meta property="og:locale" content="fa_IR">
     
@@ -27,26 +27,168 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="تحلیل هوشمند چیدمان فروشگاه - افزایش فروش تا 30%">
     <meta name="twitter:description" content="با هوش مصنوعی چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا 30% افزایش دهید">
-    <meta name="twitter:image" content="https://chidman-store-analysis.onrender.com/static/images/logo.png">
+    <meta name="twitter:image" content="https://chidmano.ir{% static 'images/logo.png' %}">
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://chidman-store-analysis.onrender.com">
+    <!-- Canonical URL and hreflang -->
+    <link rel="canonical" href="https://chidmano.ir/">
+    <link rel="alternate" hreflang="fa-IR" href="https://chidmano.ir/">
+    
+    <!-- Resource Hints for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preload" href="{% static 'fonts/Vazir.ttf' %}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{% static 'images/logo.png' %}" as="image">
+    <link rel="preload" href="{% static 'images/slider/background.png' %}" as="image">
+    <link rel="preload" href="{% static 'css/bootstrap.min.css' %}" as="style">
+    <link rel="preload" href="{% static 'js/bootstrap.bundle.min.js' %}" as="script">
     
     <!-- Language and Region -->
+    
+    <!-- Advanced Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "چیدمانو - تحلیل هوشمند فروشگاه",
+        "description": "نرم‌افزار تحلیل و بهینه‌سازی چیدمان فروشگاه با استفاده از هوش مصنوعی",
+        "url": "https://chidmano.ir",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "50000",
+            "priceCurrency": "IRR",
+            "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "reviewCount": "127",
+            "bestRating": "5",
+            "worstRating": "1"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "url": "https://chidmano.ir"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "featureList": [
+            "تحلیل هوشمند چیدمان فروشگاه",
+            "بهینه‌سازی ترافیک مشتریان",
+            "طراحی حرفه‌ای فروشگاه",
+            "گزارش‌گیری تفصیلی",
+            "پشتیبانی 24 ساعته"
+        ]
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "تحلیل و بهینه‌سازی فروشگاه",
+        "description": "خدمات تحلیل و بهینه‌سازی چیدمان فروشگاه برای افزایش فروش",
+        "provider": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "url": "https://chidmano.ir"
+        },
+        "areaServed": {
+            "@type": "Country",
+            "name": "ایران"
+        },
+        "serviceType": "تحلیل فروشگاه",
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "خدمات تحلیل فروشگاه",
+            "itemListElement": [
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "تحلیل اولیه فروشگاه",
+                        "description": "تحلیل سریع و اولیه چیدمان فروشگاه"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "گزارش کامل PDF",
+                        "description": "گزارش تفصیلی و حرفه‌ای فروشگاه"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "گواهینامه AI",
+                        "description": "گواهینامه حرفه‌ای تحلیل فروشگاه"
+                    }
+                }
+            ]
+        }
+    }
+    </script>
+    
+    <style>
+      /* Local Vazir font */
+      @font-face{
+        font-family:'VazirLocal';
+        src:url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+        font-weight:400;
+        font-style:normal;
+        font-display:swap;
+      }
+      html{visibility:visible!important}
+      body{opacity:1!important;font-family:'VazirLocal', Vazirmatn, sans-serif}
+      .navbar, .nav-link, button, input, textarea{font-family:'VazirLocal', Vazirmatn, sans-serif}
+      .preloader,.loading-overlay{display:none!important}
+      /* Readability improvements for Vazir */
+      html,body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+      :root{--bs-body-font-family:'VazirLocal', Vazirmatn, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif}
+      body{font-family:var(--bs-body-font-family) !important}
+      /* Force Vazir everywhere on the homepage */
+      body:not(.allow-system-font),
+      body:not(.allow-system-font) * { font-family:'VazirLocal', Vazirmatn, sans-serif !important; }
+      .hero-title{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:800;line-height:1.2;letter-spacing:.1px;color:#0f172a;margin-bottom:.5rem;background:linear-gradient(135deg,#0f172a 0%,#ff6b35 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+      .hero-subtitle{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:500;line-height:1.7;letter-spacing:.1px;color:#334155}
+      /* Feature cards typography */
+      .features-section .card-title,
+      .features-grid .card h3{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:800;line-height:1.35;letter-spacing:.1px;color:#0f172a;margin:0 0 .5rem;transition:all 0.3s ease}
+      .features-section .card:hover .card-title,
+      .features-grid .card:hover h3{color:#ff6b35;transform:translateY(-2px)}
+      .features-section .card-text,
+      .features-grid .card p{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:400;line-height:1.9;color:#334155}
+      .features-grid .card,.features-grid .card *{font-family:'VazirLocal',Vazirmatn,sans-serif}
+      @media(max-width:480px){.hero-title{font-size:22px}.hero-subtitle{font-size:14px}}
+    </style>
     <meta name="language" content="Persian">
     <meta name="geo.region" content="IR">
     <meta name="geo.country" content="Iran">
     
     <title>تحلیل هوشمند چیدمان فروشگاه - افزایش فروش تا 30% | چیدمانو</title>
+    <link rel="preload" as="image" href="{% static 'images/slider/background.jpg' %}" fetchpriority="high">
+    <link rel="preload" as="image" href="{% static 'images/logo.png' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     
-    <!-- Schema.org Structured Data -->
+    <!-- Schema.org Structured Data: SoftwareApplication -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "چیدمانو - تحلیل هوشمند چیدمان فروشگاه",
         "description": "نرم‌افزار تحلیل هوشمند چیدمان فروشگاه با هوش مصنوعی - افزایش فروش تا 30%",
-        "url": "https://chidman-store-analysis.onrender.com",
+        "url": "https://chidmano.ir/",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "offers": {
@@ -55,56 +197,192 @@
             "priceCurrency": "IRR",
             "description": "تحلیل هوشمند چیدمان فروشگاه"
         },
-        "author": {
-            "@type": "Organization",
-            "name": "چیدمانو",
-            "url": "https://chidman-store-analysis.onrender.com"
-        },
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.8",
-            "ratingCount": "150"
-        },
-        "featureList": [
-            "تحلیل هوشمند چیدمان فروشگاه",
-            "افزایش فروش تا 30%",
-            "تحلیل ترافیک مشتریان",
-            "طراحی حرفه‌ای فروشگاه",
-            "گزارش‌های جامع"
-        ]
+        "author": {"@type": "Organization", "name": "چیدمانو", "url": "https://chidmano.ir/"}
     }
     </script>
     
+    <!-- Schema.org Structured Data: Organization & WebSite with SearchAction -->
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Organization","name":"چیدمانو","url":"https://chidmano.ir/","logo":"https://chidmano.ir{% static 'images/logo.png' %}"}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebSite","url":"https://chidmano.ir/","name":"چیدمانو","potentialAction":{"@type":"SearchAction","target":"https://chidmano.ir/?q={search_term_string}","query-input":"required name=search_term_string"}}
+    </script>
+    <!-- Schema.org Structured Data: FAQPage -->
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "چیدمانو",
-        "url": "https://chidman-store-analysis.onrender.com",
-        "logo": "https://chidman-store-analysis.onrender.com/static/images/logo.png",
-        "description": "نرم‌افزار تحلیل هوشمند چیدمان فروشگاه با هوش مصنوعی",
-        "address": {
-            "@type": "PostalAddress",
-            "addressCountry": "IR"
-        },
-        "contactPoint": {
-            "@type": "ContactPoint",
-            "contactType": "customer service",
-            "availableLanguage": "Persian"
-        }
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type": "Question","name": "چیدمان فروشگاه چیست؟","acceptedAnswer": {"@type": "Answer","text": "چیدمان فروشگاه یعنی نحوه قرارگیری قفسه‌ها، مسیر حرکت مشتری و نمایش محصولات برای افزایش فروش."}},
+        {"@type": "Question","name": "چطور فروش را تا ۳۰٪ افزایش می‌دهید؟","acceptedAnswer": {"@type": "Answer","text": "با تحلیل مسیر مشتری، بهینه‌سازی ویترین، نورپردازی و جایگذاری درست کالاها بر اساس داده و تجربه."}},
+        {"@type": "Question","name": "گزارش شما شامل چه چیزهایی است؟","acceptedAnswer": {"@type": "Answer","text": "نقشه مسیر مشتری، پیشنهاد چیدمان، اولویت اقدامات، و چک‌لیست اجرایی قدم‌به‌قدم."}}
+      ]
     }
     </script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Resource Hints -->
+    <!-- Removed external preconnects to avoid slow DNS/CDN paths -->
+
+    <!-- Critical CSS inline for above-the-fold content -->
+    <style>
+        /* Critical CSS for above-the-fold content */
+        .navbar { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding: 1rem 0; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; transition: all 0.3s ease; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+        .navbar-brand { font-weight: 700; font-size: 1.5rem; color: #ff6b35; text-decoration: none; transition: all 0.15s ease; }
+        .hero { background: transparent; min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden; padding-top: 80px; }
+        .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.2; color: #0f172a; margin-bottom: 0.5rem; }
+        body { font-family: 'VazirLocal', Vazirmatn, sans-serif; opacity: 0; transition: opacity 0.5s ease; }
+    </style>
+    
+    <!-- Async CSS loading to avoid render-blocking -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"></noscript>
+
     <!-- Modern Professional Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Removed Font Awesome and Google Fonts to avoid blocked/slow CDNs -->
+    <style>
+        @font-face {
+            font-family: 'VazirLocal';
+            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        html, body {
+            font-family: 'VazirLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+    </style>
     <style>
         :root {
-            --apple-blue: #007AFF;
-            --apple-green: #34C759;
+            /* Modern Color Palette - Inspired by Digikala, Snapp, etc. */
+            --primary-color: #ff6b35;
+            --primary-dark: #e55a2b;
+            --secondary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            /* Shadows */
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --shadow-xl: 0 2rem 4rem rgba(0, 0, 0, 0.2);
+            
+            /* Border Radius */
+            --border-radius-sm: 0.25rem;
+            --border-radius: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            
+        /* Transitions */
+        --transition-fast: 0.15s ease-in-out;
+        --transition-normal: 0.3s ease-in-out;
+        --transition-slow: 0.5s ease-in-out;
+        }
+        
+        /* Modern Card Styles - Inspired by Digikala */
+        .card {
+            border: none;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+            background: var(--white);
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border-radius: var(--border-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .card:hover .card-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .card-icon i {
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        /* Modern Button Styles */
+        .btn {
+            border-radius: var(--border-radius-lg);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all var(--transition-normal);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left var(--transition-slow);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #d44a1f 100%);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
         
         * {
@@ -136,7 +414,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-attachment: scroll;
             opacity: 1.0;
             z-index: -2;
             filter: brightness(1.0) contrast(1.0);
@@ -149,16 +427,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* تصویر پس‌زمینه حذف شد تا خطای manifest رفع شود */
-            /* background-image: url('{% static "images/slider/background.png" %}'); */
+            background-image: url('{% static "images/slider/background.jpg" %}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-attachment: scroll;
             opacity: 1.0;
             z-index: -2;
             filter: brightness(1.0) contrast(1.0);
-            animation: poeticFloat 30s ease-in-out infinite;
+            /* animation removed to avoid extra paints */
         }
 
         /* Poetic Overlay - Creating a dreamy atmosphere */
@@ -353,16 +630,17 @@
         
         /* Professional Header */
         .navbar {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             padding: 1rem 0;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-sm);
         }
         
         .navbar.scrolled {
@@ -374,34 +652,51 @@
             font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
             font-weight: 700;
             font-size: 1.5rem;
-            color: #1a1a1a;
+            color: var(--primary-color);
             text-decoration: none;
+            transition: all var(--transition-fast);
+        }
+        
+        .navbar-brand:hover {
+            color: var(--primary-dark);
+            transform: scale(1.05);
         }
         
         .navbar-nav .nav-link {
             font-weight: 500;
-            color: #4a5568;
+            color: var(--gray-700);
             margin: 0 0.5rem;
-            transition: color 0.3s ease;
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-fast);
+            position: relative;
         }
         
         .navbar-nav .nav-link:hover {
-            color: #667eea;
+            color: var(--primary-color);
+            background-color: rgba(255, 107, 53, 0.1);
+        }
+        
+        .navbar-nav .nav-link.active {
+            color: var(--primary-color);
+            background-color: rgba(255, 107, 53, 0.15);
         }
         
         .btn-nav {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius-lg);
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-sm);
         }
         
         .btn-nav:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #d44a1f 100%);
             color: white;
         }
 
@@ -714,17 +1009,107 @@
             opacity: 0.9;
         }
         
-        /* Footer */
+        /* Modern Footer - Inspired by Digikala */
         .footer {
-            background: #2c3e50;
+            background: linear-gradient(135deg, var(--dark-color) 0%, #34495e 100%);
             color: white;
-            padding: 50px 0 30px;
+            padding: 3rem 0 2rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
         }
         
         .footer p {
             margin-bottom: 0;
-            opacity: 0.8;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .footer-links {
+            margin-top: 1.5rem;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            margin: 0 1rem;
+            transition: all var(--transition-fast);
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .footer h5 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .footer .row {
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .footer .row {
+                text-align: center;
+            }
+            
+            .footer .col-md-6:first-child {
+                margin-bottom: 2rem;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+            
+            .footer-links a {
+                display: block;
+                margin: 0.5rem 0;
+            }
         }
         
         /* Professional Loading Animation */
@@ -846,19 +1231,106 @@
             left: 0;
             transform: none;
         }
+        
+        /* Guide Cards Styles */
+        .guide-icon {
+            transition: all var(--transition-normal);
+        }
+        
+        .card:hover .guide-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .card {
+            transition: all var(--transition-normal);
+            border: none;
+            border-radius: var(--border-radius-lg);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .card-title {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .card-text {
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+        
+        .guide-meta {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+            border-radius: var(--border-radius-lg);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-outline-success {
+            border: 2px solid var(--success-color);
+            color: var(--success-color);
+            background: transparent;
+            border-radius: var(--border-radius-lg);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+        }
+        
+        .btn-outline-success:hover {
+            background: var(--success-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-outline-info {
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            background: transparent;
+            border-radius: var(--border-radius-lg);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+        }
+        
+        .btn-outline-info:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
     </style>
 </head>
 <body>
     <!-- Artistic Background -->
-    <div class="artistic-bg"></div>
+    <img class="artistic-bg" src="{% static 'images/slider/background.jpg' %}" alt="" decoding="async" fetchpriority="high" loading="eager" width="1920" height="1080">
     
     <!-- Alternative Background Image removed to prevent missing static manifest error -->
     
     <!-- Professional Header -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}" class="combined-logo">
-                <img src="{% static 'images/logo.png' %}" alt="چیدمانو" class="logo-img">
+            <a class="navbar-brand combined-logo" href="{% url 'home' %}">
+                <img src="{% static 'images/logo.png' %}" alt="چیدمانو" class="logo-img" loading="eager" fetchpriority="high" decoding="async" width="128" height="128">
                 <span class="rainbow-text">چیدمانو</span>
             </a>
             
@@ -921,32 +1393,230 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
+    <!-- Modern Hero Section with Blur Effect -->
+    <section class="modern-hero">
+        <div class="hero-background">
+            <div class="hero-bg-image"></div>
+            <div class="hero-overlay"></div>
+        </div>
         <div class="container">
-            <div class="hero-content">
-                <!-- Updated: Hero title styling - v1.4 -->
-                <h1>
-                    <span style="color: var(--apple-blue); font-size: 1.2em;">تحلیل هوشمند چیدمان فروشگاه</span><br>
-                    <span style="color: var(--apple-green); font-weight: 600;">افزایش فروش تا 30%</span>
-                </h1>
-                <p>با هوش مصنوعی چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا 30% افزایش دهید. تحلیل حرفه‌ای ترافیک و طراحی فروشگاه</p>
-                <div class="cta-buttons">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom">
-                    {% else %}
-                        <a href="{% url 'login' %}" class="btn-primary-custom">
-                    {% endif %}
-                        <i class="fas fa-rocket me-2"></i>
-                        شروع تحلیل هوشمند
-                    </a>
-                    <a href="{% url 'store_analysis:ai_analysis_guide' %}" class="btn-secondary-custom">
-                        <i class="fas fa-info-circle me-2"></i>
-                        راهنمای AI
-                    </a>
+            <div class="hero-content-modern">
+                <div class="hero-card">
+                    <h1 class="hero-title-modern">
+                        <span class="hero-main-text">تحلیل هوشمند چیدمان فروشگاه</span>
+                        <span class="hero-sub-text">افزایش فروش تا 30%</span>
+                    </h1>
+                    <p class="hero-description-modern">با هوش مصنوعی چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا 30% افزایش دهید. تحلیل حرفه‌ای ترافیک و طراحی فروشگاه</p>
+                    <div class="hero-buttons-modern">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'store_analysis:forms' %}" class="btn-primary-modern">
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn-primary-modern">
+                        {% endif %}
+                            <i class="fas fa-rocket me-2"></i>
+                            شروع تحلیل هوشمند
+                        </a>
+                        <a href="{% url 'store_analysis:ai_analysis_guide' %}" class="btn-secondary-modern">
+                            <i class="fas fa-info-circle me-2"></i>
+                            راهنمای AI
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <style>
+            .modern-hero {
+                position: relative;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                overflow: hidden;
+            }
+
+            .hero-background {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+            }
+
+            .hero-bg-image {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: url('{% static "images/slider/background.jpg" %}');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                filter: blur(8px);
+                transform: scale(1.1);
+            }
+
+            .hero-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%);
+            }
+
+            .hero-content-modern {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                padding: 2rem 0;
+            }
+
+            .hero-card {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 24px;
+                padding: 4rem 3rem;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                max-width: 800px;
+                width: 100%;
+                margin: 0 auto;
+            }
+
+            .hero-title-modern {
+                margin-bottom: 2rem;
+                line-height: 1.2;
+            }
+
+            .hero-main-text {
+                display: block;
+                font-size: 3rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 0.5rem;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            }
+
+            .hero-sub-text {
+                display: block;
+                font-size: 2.2rem;
+                font-weight: 600;
+                color: #ff6b35;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            }
+
+            .hero-description-modern {
+                font-size: 1.2rem;
+                color: rgba(255, 255, 255, 0.9);
+                line-height: 1.6;
+                margin-bottom: 2.5rem;
+                text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+            }
+
+            .hero-buttons-modern {
+                display: flex;
+                gap: 1.5rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .btn-primary-modern {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 1rem 2.5rem;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 1.1rem;
+                transition: all 0.3s ease;
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+                border: none;
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .btn-primary-modern:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+                color: white;
+                text-decoration: none;
+            }
+
+            .btn-secondary-modern {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                padding: 1rem 2.5rem;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 1.1rem;
+                transition: all 0.3s ease;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                display: inline-flex;
+                align-items: center;
+                backdrop-filter: blur(10px);
+            }
+
+            .btn-secondary-modern:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.5);
+                transform: translateY(-3px);
+                color: white;
+                text-decoration: none;
+            }
+
+            @media (max-width: 768px) {
+                .hero-card {
+                    padding: 2.5rem 2rem;
+                    margin: 1rem;
+                }
+
+                .hero-main-text {
+                    font-size: 2.2rem;
+                }
+
+                .hero-sub-text {
+                    font-size: 1.8rem;
+                }
+
+                .hero-description-modern {
+                    font-size: 1.1rem;
+                }
+
+                .hero-buttons-modern {
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .btn-primary-modern,
+                .btn-secondary-modern {
+                    width: 100%;
+                    max-width: 300px;
+                    justify-content: center;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .hero-main-text {
+                    font-size: 1.8rem;
+                }
+
+                .hero-sub-text {
+                    font-size: 1.5rem;
+                }
+
+                .hero-card {
+                    padding: 2rem 1.5rem;
+                }
+            }
+        </style>
     </section>
 
     <!-- Features Section -->
@@ -972,48 +1642,113 @@
         </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="stats">
+    <!-- Compact Stats & Testimonials Section -->
+    <section class="compact-stats-testimonials py-4" id="stats-testimonials">
         <div class="container">
+            <!-- Compact Stats Row -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="compact-stat text-center">
+                        <div class="stat-number-compact">24/7</div>
+                        <div class="stat-label-compact">پشتیبانی</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="compact-stat text-center">
+                        <div class="stat-number-compact">50%</div>
+                        <div class="stat-label-compact">افزایش فروش</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="compact-stat text-center">
+                        <div class="stat-number-compact">95%</div>
+                        <div class="stat-label-compact">رضایت مشتریان</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="compact-stat text-center">
+                        <div class="stat-number-compact">+1000</div>
+                        <div class="stat-label-compact">فروشگاه تحلیل شده</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compact Testimonials -->
             <div class="row">
-                {% for stat in stats %}
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item fade-in">
-                        <span class="stat-number">{{ stat.number }}</span>
-                        <div class="stat-label">{{ stat.label }}</div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonials">
-        <div class="container">
-            <div class="row text-center mb-5">
                 <div class="col-12">
-                    <h2 class="display-4 fw-bold text-dark mb-4">نظرات مشتریان</h2>
-                    <p class="lead text-muted">مشتریان ما از نتایج فوق‌العاده راضی هستند</p>
-                </div>
-            </div>
-            <div class="row g-4">
-                {% for testimonial in testimonials %}
-                <div class="col-lg-6">
-                    <div class="testimonial-card fade-in">
-                        <div class="stars">
-                            {% for i in "12345" %}
-                                <i class="fas fa-star"></i>
-                            {% endfor %}
+                    <h4 class="text-center mb-3">نظرات مشتریان</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="compact-testimonial">
+                                <p class="testimonial-quote">"توصیه‌هایشان واقعاً عملی و مؤثر بود."</p>
+                                <div class="testimonial-author-compact">
+                                    <strong>فاطمه احمدی</strong> - صاحب فروشگاه
+                                </div>
+                            </div>
                         </div>
-                        <p class="testimonial-text">"{{ testimonial.text }}"</p>
-                        <div class="testimonial-author">{{ testimonial.name }}</div>
-                        <div class="testimonial-role">{{ testimonial.role }}</div>
+                        <div class="col-md-6 mb-3">
+                            <div class="compact-testimonial">
+                                <p class="testimonial-quote">"بعد از تحلیل، فروش ما 60% افزایش یافت!"</p>
+                                <div class="testimonial-author-compact">
+                                    <strong>احمد محمدی</strong> - مدیر فروشگاه
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
             </div>
         </div>
+        
+        <style>
+            .compact-stats-testimonials {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            }
+            
+            .compact-stat {
+                padding: 1rem;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+                transition: transform 0.3s ease;
+            }
+            
+            .compact-stat:hover {
+                transform: translateY(-3px);
+            }
+            
+            .stat-number-compact {
+                font-size: 2rem;
+                font-weight: bold;
+                color: #ff6b35;
+                margin-bottom: 0.5rem;
+            }
+            
+            .stat-label-compact {
+                font-size: 0.9rem;
+                color: #6c757d;
+                font-weight: 500;
+            }
+            
+            .compact-testimonial {
+                background: white;
+                padding: 1.5rem;
+                border-radius: 12px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+                border-left: 4px solid #ff6b35;
+            }
+            
+            .testimonial-quote {
+                font-style: italic;
+                color: #495057;
+                margin-bottom: 1rem;
+                font-size: 1rem;
+            }
+            
+            .testimonial-author-compact {
+                font-size: 0.9rem;
+                color: #6c757d;
+            }
+        </style>
     </section>
 
     <!-- Quick Access Section -->
@@ -1076,28 +1811,524 @@
         </div>
     </section>
 
-    <!-- SEO Content Section -->
-    <section class="seo-content-section py-5" style="background: #f8fafc;">
+    <!-- SEO Guide Articles Section -->
+    <section class="content-section">
         <div class="container">
+                <div class="row">
+                    <div class="col-lg-12 text-center mb-5">
+                        <h2 class="section-title">راهنماهای کاربردی چیدمان</h2>
+                        <p class="lead">مجموعه‌ای از راهنماهای تخصصی برای بهینه‌سازی فروشگاه شما</p>
+                        
+                        <!-- Navigation to Pillar Page -->
+                        <div class="pillar-navigation" style="background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%); padding: 2rem; border-radius: 20px; margin: 2rem 0; color: white; box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);">
+                            <div class="row align-items-center">
+                                <div class="col-md-8 text-md-start text-center">
+                                    <h3 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">
+                                        🎯 راهنمای جامع چیدمان فروشگاه
+                                    </h3>
+                                    <p style="font-size: 1.1rem; margin-bottom: 1rem; opacity: 0.95;">
+                                        راهنمای کامل 3500+ کلمه‌ای با 8 تکنیک حرفه‌ای، مطالعات موردی واقعی و چک‌لیست عملی
+                                    </p>
+                                    
+                                    <!-- Stats -->
+                                    <div class="row text-center" style="margin-top: 1rem;">
+                                        <div class="col-3">
+                                            <div style="background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                                                <div style="font-size: 1.5rem; font-weight: 700;">3500+</div>
+                                                <div style="font-size: 0.8rem; opacity: 0.9;">کلمه</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div style="background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                                                <div style="font-size: 1.5rem; font-weight: 700;">8</div>
+                                                <div style="font-size: 0.8rem; opacity: 0.9;">تکنیک</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div style="background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                                                <div style="font-size: 1.5rem; font-weight: 700;">15</div>
+                                                <div style="font-size: 0.8rem; opacity: 0.9;">مطالعه موردی</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div style="background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                                                <div style="font-size: 1.5rem; font-weight: 700;">30%</div>
+                                                <div style="font-size: 0.8rem; opacity: 0.9;">افزایش فروش</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
+                                    <a href="{% url 'store_layout_pillar' %}" class="btn btn-light btn-lg" style="border-radius: 50px; padding: 0.8rem 2rem; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;">
+                                        📖 مطالعه راهنمای جامع
+                                    </a>
+                                    <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">
+                                        ⭐ رایگان و بدون نیاز به ثبت‌نام
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
             <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <h2>چرا تحلیل چیدمان فروشگاه مهم است؟</h2>
-                    <p class="lead">تحقیقات نشان می‌دهد که <strong>چیدمان فروشگاه</strong> تأثیر مستقیمی بر رفتار مشتریان و میزان فروش دارد. با <strong>بهینه‌سازی چیدمان فروشگاه</strong> می‌توانید فروش خود را تا 30% افزایش دهید.</p>
-                    
-                    <h3>مزایای تحلیل هوشمند فروشگاه</h3>
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-check text-success me-2"></i> <strong>افزایش فروش</strong> تا 30% با چیدمان بهینه</li>
-                        <li><i class="fas fa-check text-success me-2"></i> <strong>بهبود تجربه مشتری</strong> و افزایش رضایت</li>
-                        <li><i class="fas fa-check text-success me-2"></i> <strong>تحلیل ترافیک مشتریان</strong> و نقاط قوت و ضعف</li>
-                        <li><i class="fas fa-check text-success me-2"></i> <strong>طراحی حرفه‌ای فروشگاه</strong> با هوش مصنوعی</li>
-                        <li><i class="fas fa-check text-success me-2"></i> <strong>گزارش‌های جامع</strong> و راهکارهای عملی</li>
-                    </ul>
-                    
-                    <h3>نرم‌افزار تحلیل فروشگاه چیدمانو</h3>
-                    <p>چیدمانو اولین <strong>نرم‌افزار تحلیل چیدمان فروشگاه</strong> در ایران است که با استفاده از <strong>هوش مصنوعی</strong> و الگوریتم‌های پیشرفته، بهترین راهکارهای <strong>بهینه‌سازی فروشگاه</strong> را ارائه می‌دهد.</p>
+                <!-- Store Layout Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-store text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">راهنمای کامل چیدمان فروشگاه</h4>
+                            <p class="card-text">افزایش فروش تا 30% با بهینه‌سازی چیدمان فروشگاه. شامل اصول طراحی، مسیر مشتری، نورپردازی و بهینه‌سازی فضای فروشگاه</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>15 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>صاحبان فروشگاه
+                                </small>
+                            </div>
+                                <div class="text-center">
+                                    <a href="{% url 'store_layout_pillar' %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-book-open me-2"></i>
+                                        مطالعه راهنمای جامع
+                                    </a>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Supermarket Layout Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-shopping-cart text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">راهنمای چیدمان سوپرمارکت</h4>
+                            <p class="card-text">افزایش فروش و رضایت مشتری با بهینه‌سازی فضای فروش. شامل اصول طراحی، مدیریت موجودی، و بهینه‌سازی فضای فروش</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>20 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>مدیران سوپرمارکت
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'supermarket_layout_guide' %}" class="btn btn-outline-success">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lighting Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-lightbulb text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">نورپردازی و ویترین‌سازی فروشگاه</h4>
+                            <p class="card-text">جذب مشتری و افزایش فروش با نورپردازی حرفه‌ای. شامل اصول طراحی، تکنیک‌های نورپردازی، و بهینه‌سازی ویترین</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>18 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>طراحان فروشگاه
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'storefront_lighting_guide' %}" class="btn btn-outline-info">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Guide Cards -->
+            <div class="row mt-4">
+                <!-- Color Psychology Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-palette text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">روانشناسی رنگ در فروشگاه</h4>
+                            <p class="card-text">تأثیر رنگ‌ها بر رفتار مشتری و فروش. شامل اصول روانشناسی رنگ، ترکیبات رنگی موفق و راهکارهای عملی</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>12 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>طراحان و مدیران
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'color_psychology_guide' %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Journey Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-route text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">مسیر مشتری در فروشگاه</h4>
+                            <p class="card-text">بهینه‌سازی Customer Journey برای افزایش فروش. شامل تحلیل رفتار مشتری، نقاط درد و راهکارهای بهبود</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>16 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>مدیران فروشگاه
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'customer_journey_guide' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lighting Design Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-lightbulb text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">طراحی نورپردازی فروشگاه</h4>
+                            <p class="card-text">راهنمای حرفه‌ای نورپردازی برای جذب مشتری. شامل انواع نورپردازی، اصول طراحی و تکنیک‌های پیشرفته</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>14 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>طراحان نورپردازی
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'lighting_design_guide' %}" class="btn btn-outline-warning">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-lg-12 text-center">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-star me-2"></i>راهنماهای تخصصی چیدمانو</h5>
+                        <p class="mb-0">این راهنماها بر اساس تجربه و تحقیقات علمی تهیه شده‌اند و به شما کمک می‌کنند تا فروشگاه خود را به بهترین شکل بهینه‌سازی کنید.</p>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
+
+
+    <!-- Modern SEO Content Section -->
+    <section class="modern-seo-section py-5">
+        <div class="container">
+            <!-- Hero Question -->
+            <div class="row mb-5">
+                <div class="col-lg-10 mx-auto text-center">
+                    <div class="seo-hero-card">
+                        <h1 class="seo-main-title">چرا تحلیل چیدمان فروشگاه مهم است؟</h1>
+                        <p class="seo-hero-text">تحقیقات نشان می‌دهد که <strong>چیدمان فروشگاه</strong> تأثیر مستقیمی بر رفتار مشتریان و میزان فروش دارد. با <strong>بهینه‌سازی چیدمان فروشگاه</strong> می‌توانید فروش خود را تا <span class="highlight-number">30%</span> افزایش دهید.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benefits Grid -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h2 class="section-title-modern text-center mb-5">مزایای تحلیل هوشمند فروشگاه</h2>
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="benefit-card">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h4>افزایش فروش تا 30%</h4>
+                                <p>با چیدمان بهینه و تحلیل هوشمند، فروش خود را به طور قابل توجهی افزایش دهید</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="benefit-card">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h4>بهبود تجربه مشتری</h4>
+                                <p>رضایت مشتریان و تجربه خرید بهتر با طراحی حرفه‌ای فروشگاه</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="benefit-card">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-route"></i>
+                                </div>
+                                <h4>تحلیل ترافیک مشتریان</h4>
+                                <p>شناسایی نقاط قوت و ضعف و بهینه‌سازی مسیر حرکت مشتریان</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="benefit-card">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <h4>طراحی با هوش مصنوعی</h4>
+                                <p>استفاده از الگوریتم‌های پیشرفته برای طراحی حرفه‌ای فروشگاه</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="benefit-card">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <h4>گزارش‌های جامع</h4>
+                                <p>گزارش‌های کامل و راهکارهای عملی برای بهبود عملکرد فروشگاه</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="benefit-card">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <h4>تحلیل فوری</h4>
+                                <p>دریافت نتایج تحلیل در کمترین زمان ممکن با دقت بالا</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Software Introduction -->
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="software-intro-card">
+                        <div class="row align-items-center">
+                            <div class="col-lg-8">
+                                <h2 class="software-title">نرم‌افزار تحلیل فروشگاه چیدمانو</h2>
+                                <p class="software-description">چیدمانو اولین <strong>نرم‌افزار تحلیل چیدمان فروشگاه</strong> در ایران است که با استفاده از <strong>هوش مصنوعی</strong> و الگوریتم‌های پیشرفته، بهترین راهکارهای <strong>بهینه‌سازی فروشگاه</strong> را ارائه می‌دهد.</p>
+                                <div class="software-features">
+                                    <div class="feature-item">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <span>تحلیل هوشمند با AI</span>
+                                    </div>
+                                    <div class="feature-item">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <span>گزارش‌های جامع و عملی</span>
+                                    </div>
+                                    <div class="feature-item">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <span>پشتیبانی 24/7</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 text-center">
+                                <div class="software-visual">
+                                    <i class="fas fa-store fa-5x text-primary mb-3"></i>
+                                    <div class="ai-badge">
+                                        <i class="fas fa-brain"></i>
+                                        <span>Powered by AI</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .modern-seo-section {
+                background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            }
+
+            .seo-hero-card {
+                background: white;
+                padding: 3rem;
+                border-radius: 20px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+                border: 1px solid rgba(255,107,53,0.1);
+            }
+
+            .seo-main-title {
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: #1a202c;
+                margin-bottom: 1.5rem;
+                line-height: 1.2;
+            }
+
+            .seo-hero-text {
+                font-size: 1.2rem;
+                color: #4a5568;
+                line-height: 1.6;
+                margin-bottom: 0;
+            }
+
+            .highlight-number {
+                color: #ff6b35;
+                font-weight: 700;
+                font-size: 1.3em;
+            }
+
+            .section-title-modern {
+                font-size: 2rem;
+                font-weight: 600;
+                color: #2d3748;
+                position: relative;
+            }
+
+            .section-title-modern::after {
+                content: '';
+                position: absolute;
+                bottom: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 4px;
+                background: linear-gradient(90deg, #ff6b35, #f7931e);
+                border-radius: 2px;
+            }
+
+            .benefit-card {
+                background: white;
+                padding: 2rem;
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                transition: all 0.3s ease;
+                height: 100%;
+                border: 1px solid rgba(255,107,53,0.1);
+            }
+
+            .benefit-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+                border-color: #ff6b35;
+            }
+
+            .benefit-icon {
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, #ff6b35, #f7931e);
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 1.5rem;
+                color: white;
+                font-size: 1.5rem;
+            }
+
+            .benefit-card h4 {
+                font-size: 1.3rem;
+                font-weight: 600;
+                color: #2d3748;
+                margin-bottom: 1rem;
+            }
+
+            .benefit-card p {
+                color: #718096;
+                line-height: 1.6;
+                margin-bottom: 0;
+            }
+
+            .software-intro-card {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 3rem;
+                border-radius: 20px;
+                color: white;
+                box-shadow: 0 15px 50px rgba(102, 126, 234, 0.3);
+            }
+
+            .software-title {
+                font-size: 2rem;
+                font-weight: 700;
+                margin-bottom: 1.5rem;
+                color: white;
+            }
+
+            .software-description {
+                font-size: 1.1rem;
+                line-height: 1.6;
+                margin-bottom: 2rem;
+                opacity: 0.95;
+            }
+
+            .software-features {
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .feature-item {
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+                font-size: 1rem;
+            }
+
+            .software-visual {
+                position: relative;
+            }
+
+            .ai-badge {
+                background: rgba(255,255,255,0.2);
+                padding: 0.8rem 1.5rem;
+                border-radius: 25px;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.9rem;
+                font-weight: 500;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.3);
+            }
+
+            @media (max-width: 768px) {
+                .seo-main-title {
+                    font-size: 2rem;
+                }
+                
+                .seo-hero-card {
+                    padding: 2rem;
+                }
+                
+                .software-intro-card {
+                    padding: 2rem;
+                }
+                
+                .software-features {
+                    margin-top: 1.5rem;
+                }
+            }
+        </style>
     </section>
 
     <!-- CTA Section -->
@@ -1116,14 +2347,48 @@
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- Modern Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2025 تحلیل هوشمند فروشگاه - چیدمان. تمامی حقوق محفوظ است.</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">چیدمانو</h5>
+                    <p class="mb-3">پیشرو در تحلیل و بهینه‌سازی چیدمان فروشگاه با استفاده از هوش مصنوعی</p>
+                    <div class="footer-links">
+                        <a href="{% url 'home' %}">خانه</a>
+                        <a href="{% url 'store_analysis:ai_analysis_guide' %}">راهنما</a>
+                        <a href="{% url 'store_analysis:support_center' %}">پشتیبانی</a>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="mb-3">
+                        <a referrerpolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=4447419&Code=1W5N8K8akuho2iRV1FQ1hkvTpSTLzJEz" aria-label="eNAMAD" rel="nofollow noopener">
+                            <img src="{% static 'images/enamad-placeholder.svg' %}" alt="eNAMAD" width="80" height="80" loading="lazy" decoding="async" style="opacity:0.9;border-radius:8px">
+                        </a>
+                    </div>
+                    <p class="mb-0">&copy; 2025 چیدمانو. تمامی حقوق محفوظ است.</p>
+                </div>
+            </div>
+            <script defer>
+              (function(){
+                try{
+                  var img=new Image();
+                  img.referrerPolicy='origin';
+                  img.alt='eNAMAD';
+                  img.width=80; img.height=80;
+                  img.onload=function(){
+                    var a=document.querySelector('a[aria-label="eNAMAD"]');
+                    if(a) a.querySelector('img').src=img.src;
+                  };
+                  img.src='https://trustseal.enamad.ir/logo.aspx?id=4447419&Code=1W5N8K8akuho2iRV1FQ1hkvTpSTLzJEz';
+                  setTimeout(function(){img.src='';}, 8000); // fail fast
+                }catch(e){}
+              })();
+            </script>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}" defer></script>
     <script>
         // Navbar scroll effect
         window.addEventListener('scroll', function() {
@@ -1193,6 +2458,27 @@
                 if (!navbar.contains(event.target)) {
                     navbarCollapse.classList.remove('show');
                 }
+            }
+        });
+        
+        // Service Worker Registration for Performance
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+        
+        // Performance Monitoring
+        window.addEventListener('load', function() {
+            if ('performance' in window) {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                console.log('Page Load Time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
             }
         });
     </script>

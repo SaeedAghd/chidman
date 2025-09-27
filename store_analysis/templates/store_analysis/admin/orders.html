@@ -1,0 +1,204 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        مدیریت سفارشات
+    </div>
+    <div class="admin-actions">
+        <a href="#" class="btn-admin btn-primary">
+            <i class="fas fa-plus"></i>
+            سفارش جدید
+        </a>
+        <a href="#" class="btn-admin btn-success">
+            <i class="fas fa-download"></i>
+            خروجی Excel
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-chart-pie"></i>
+            آمار سفارشات
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #4CAF50; margin-bottom: 5px;">{{ total_orders }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">کل سفارشات</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #2196F3; margin-bottom: 5px;">{{ paid_orders }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">پرداخت شده</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #FF9800; margin-bottom: 5px;">{{ pending_orders }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">در انتظار</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #9C27B0; margin-bottom: 5px;">{{ total_revenue|floatformat:0 }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">کل درآمد (تومان)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-filter"></i>
+            فیلتر و جستجو
+        </div>
+    </div>
+    
+    <form method="GET" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: end;">
+        <div class="form-group">
+            <label class="form-label">جستجو</label>
+            <input type="text" name="search" class="form-control" placeholder="شماره سفارش یا نام کاربر..." value="{{ search }}">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">وضعیت</label>
+            <select name="status" class="form-control">
+                <option value="">همه</option>
+                <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>پرداخت شده</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>لغو شده</option>
+                <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>برگشت شده</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn-admin btn-primary">
+            <i class="fas fa-search"></i>
+            جستجو
+        </button>
+    </form>
+</div>
+
+<!-- Orders Table -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-list"></i>
+            لیست سفارشات
+        </div>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>شماره سفارش</th>
+                    <th>کاربر</th>
+                    <th>مبلغ اصلی</th>
+                    <th>مبلغ نهایی</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 8px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.8rem;">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            {{ order.order_id }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--success-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 600;">
+                                {{ order.user.username|first|upper }}
+                            </div>
+                            {{ order.user.username }}
+                        </div>
+                    </td>
+                    <td>{{ order.original_amount|floatformat:0 }} تومان</td>
+                    <td>{{ order.final_amount|floatformat:0 }} تومان</td>
+                    <td>
+                        {% if order.status == 'paid' %}
+                            <span class="status-badge status-completed">پرداخت شده</span>
+                        {% elif order.status == 'pending' %}
+                            <span class="status-badge status-pending">در انتظار</span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="status-badge status-inactive">لغو شده</span>
+                        {% elif order.status == 'refunded' %}
+                            <span class="status-badge status-inactive">برگشت شده</span>
+                        {% else %}
+                            <span class="status-badge status-pending">{{ order.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.created_at|date:"Y/m/d H:i" }}</td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'store_analysis:admin_order_detail' order.order_id %}" class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn-admin btn-warning" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="#" class="btn-admin btn-danger" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">
+                        <i class="fas fa-shopping-cart" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        هیچ سفارشی یافت نشد
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if orders.has_other_pages %}
+    <div class="pagination">
+        {% if orders.has_previous %}
+            <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            <a href="?page={{ orders.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-right"></i>
+            </a>
+        {% endif %}
+        
+        {% for num in orders.paginator.page_range %}
+            {% if orders.number == num %}
+                <span class="page-link active">{{ num }}</span>
+            {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if orders.has_next %}
+            <a href="?page={{ orders.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            <a href="?page={{ orders.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

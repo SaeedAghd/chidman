@@ -1,0 +1,267 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-ticket-alt"></i>
+        </div>
+        تیکت: {{ ticket.subject }}
+    </div>
+    <div class="admin-actions">
+        <a href="{% url 'store_analysis:admin_tickets' %}" class="btn-admin btn-primary">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت
+        </a>
+        <a href="#" class="btn-admin btn-success">
+            <i class="fas fa-download"></i>
+            دانلود تیکت
+        </a>
+    </div>
+</div>
+
+<!-- Ticket Info -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-info-circle"></i>
+            اطلاعات تیکت
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+        <div style="text-align: center;">
+            <div style="width: 120px; height: 120px; border-radius: 20px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; margin: 0 auto 20px;">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <h3 style="color: white; margin-bottom: 10px;">{{ ticket.ticket_id }}</h3>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                {% if ticket.status == 'open' %}
+                    <span class="status-badge status-completed">باز</span>
+                {% elif ticket.status == 'closed' %}
+                    <span class="status-badge status-inactive">بسته شده</span>
+                {% elif ticket.status == 'pending' %}
+                    <span class="status-badge status-pending">در انتظار</span>
+                {% else %}
+                    <span class="status-badge status-pending">{{ ticket.status }}</span>
+                {% endif %}
+                
+                {% if ticket.priority == 'high' %}
+                    <span class="status-badge status-inactive">اولویت بالا</span>
+                {% elif ticket.priority == 'medium' %}
+                    <span class="status-badge status-pending">اولویت متوسط</span>
+                {% elif ticket.priority == 'low' %}
+                    <span class="status-badge status-completed">اولویت پایین</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">شماره تیکت</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ ticket.ticket_id }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">کاربر</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ ticket.user.username }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">موضوع</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ ticket.subject }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">اولویت</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">
+                        {% if ticket.priority == 'high' %}
+                            بالا
+                        {% elif ticket.priority == 'medium' %}
+                            متوسط
+                        {% elif ticket.priority == 'low' %}
+                            پایین
+                        {% else %}
+                            {{ ticket.priority }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">وضعیت</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">
+                        {% if ticket.status == 'open' %}
+                            باز
+                        {% elif ticket.status == 'closed' %}
+                            بسته شده
+                        {% elif ticket.status == 'pending' %}
+                            در انتظار
+                        {% else %}
+                            {{ ticket.status }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">تاریخ ایجاد</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">{{ ticket.created_at|date:"Y/m/d H:i" }}</div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">آخرین پاسخ</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">
+                        {% if ticket.last_reply_at %}
+                            {{ ticket.last_reply_at|date:"Y/m/d H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">تاریخ بسته شدن</label>
+                    <div style="color: white; font-weight: 600; margin-top: 5px;">
+                        {% if ticket.closed_at %}
+                            {{ ticket.closed_at|date:"Y/m/d H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Description -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-align-right"></i>
+            توضیحات تیکت
+        </div>
+    </div>
+    
+    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px;">
+        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line;">{{ ticket.description }}</div>
+    </div>
+</div>
+
+<!-- Messages -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-comments"></i>
+            مکالمه تیکت
+        </div>
+    </div>
+    
+    <div style="max-height: 500px; overflow-y: auto;">
+        {% for message in messages %}
+        <div style="margin-bottom: 20px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; {% if message.is_admin %}border-right: 4px solid #2196F3;{% else %}border-right: 4px solid #4CAF50;{% endif %}">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: {% if message.is_admin %}var(--primary-gradient){% else %}var(--success-gradient){% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                        {{ message.user.username|first|upper }}
+                    </div>
+                    <div>
+                        <div style="color: white; font-weight: 600;">{{ message.user.username }}</div>
+                        {% if message.is_admin %}
+                            <div style="color: #2196F3; font-size: 0.8rem;">ادمین</div>
+                        {% else %}
+                            <div style="color: #4CAF50; font-size: 0.8rem;">کاربر</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">{{ message.created_at|date:"Y/m/d H:i" }}</div>
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.6; white-space: pre-line;">{{ message.message }}</div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">
+            <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+            هیچ پیامی یافت نشد
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Reply Form -->
+{% if ticket.status == 'open' %}
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-reply"></i>
+            پاسخ به تیکت
+        </div>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reply">
+        
+        <div class="form-group">
+            <label class="form-label">پاسخ شما</label>
+            <textarea name="message" class="form-control" rows="5" placeholder="پاسخ خود را بنویسید..." required></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+            <button type="submit" class="btn-admin btn-primary">
+                <i class="fas fa-paper-plane"></i>
+                ارسال پاسخ
+            </button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Ticket Actions -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-tools"></i>
+            عملیات تیکت
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        {% if ticket.status == 'open' %}
+        <form method="POST" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="close">
+            <button type="submit" class="btn-admin btn-warning">
+                <i class="fas fa-lock"></i>
+                بستن تیکت
+            </button>
+        </form>
+        {% elif ticket.status == 'closed' %}
+        <form method="POST" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reopen">
+            <button type="submit" class="btn-admin btn-success">
+                <i class="fas fa-unlock"></i>
+                باز کردن تیکت
+            </button>
+        </form>
+        {% endif %}
+        
+        <a href="#" class="btn-admin btn-primary">
+            <i class="fas fa-download"></i>
+            دانلود تیکت
+        </a>
+        
+        <a href="#" class="btn-admin btn-warning">
+            <i class="fas fa-edit"></i>
+            ویرایش تیکت
+        </a>
+        
+        <a href="#" class="btn-admin btn-danger">
+            <i class="fas fa-trash"></i>
+            حذف تیکت
+        </a>
+    </div>
+</div>
+{% endblock %}

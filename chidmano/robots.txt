@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://chidmano.ir/sitemap.xml
+
+# Disallow private areas
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /store/dashboard/
+Disallow: /store/analysis/
+Disallow: /api/
+
+# Allow important pages
+Allow: /guide/
+Allow: /static/
+Allow: /media/

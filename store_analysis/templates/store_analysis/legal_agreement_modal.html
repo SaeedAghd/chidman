@@ -1,4 +1,4 @@
-<!-- تعهدنامه حقوقی - پاپ‌آپ حرفه‌ای -->
+<!-- تعهدنامه حقوقی -->
 <div id="legalAgreementModal" class="legal-modal-overlay" style="display: none;">
     <div class="legal-modal-container">
         <div class="legal-modal-header">
@@ -7,7 +7,7 @@
                 <p>سیستم تحلیل فروشگاه هوشمند</p>
             </div>
             <div class="legal-modal-close" onclick="closeLegalModal()">
-                <span>&times;</span>
+                <span>×</span>
             </div>
         </div>
         
@@ -372,8 +372,6 @@ function acceptLegalAgreement() {
         if (data.success) {
             // بستن مودال
             document.getElementById('legalAgreementModal').style.display = 'none';
-            // هدایت به صفحه signup برای تکمیل ثبت نام
-            // window.location.href = '/store/dashboard/';
         } else {
             alert('خطا در ذخیره تایید. لطفاً دوباره تلاش کنید.');
         }

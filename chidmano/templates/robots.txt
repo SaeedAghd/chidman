@@ -2,20 +2,101 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://chidman-store-analysis.onrender.com/sitemap.xml
+Sitemap: https://chidmano.ir/sitemap.xml
 
-# Disallow admin and private areas
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin areas
 Disallow: /admin/
-Disallow: /accounts/
+Disallow: /store/admin/
+Disallow: /accounts/login/
+Disallow: /accounts/logout/
+Disallow: /accounts/signup/
+
+# Disallow private areas
 Disallow: /store/dashboard/
 Disallow: /store/analysis/
-Disallow: /media/
-Disallow: /static/admin/
+Disallow: /store/payment/
+Disallow: /store/checkout/
+
+# Disallow API endpoints
+Disallow: /api/
+Disallow: /store/api/
+
+# Disallow temporary files
+Disallow: /tmp/
+Disallow: /temp/
+Disallow: /*.log
+Disallow: /*.sql
 
 # Allow important pages
-Allow: /
-Allow: /store/forms/
-Allow: /store/ai-guide/
+Allow: /store/
+Allow: /guide/
+Allow: /case-studies/
+Allow: /partnership/
+Allow: /seo-dashboard/
+Allow: /about/
+Allow: /contact/
+Allow: /privacy-policy/
+Allow: /terms-of-service/
 
-# Crawl delay
+# Allow static files
+Allow: /static/
+Allow: /media/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+Allow: /*.woff
+Allow: /*.woff2
+Allow: /*.ttf
+Allow: /*.eot
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
 Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 2
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsSiteAudit
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /

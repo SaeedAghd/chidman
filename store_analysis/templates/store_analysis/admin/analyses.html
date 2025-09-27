@@ -1,0 +1,208 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        مدیریت تحلیل‌ها
+    </div>
+    <div class="admin-actions">
+        <a href="#" class="btn-admin btn-primary">
+            <i class="fas fa-plus"></i>
+            تحلیل جدید
+        </a>
+        <a href="#" class="btn-admin btn-success">
+            <i class="fas fa-download"></i>
+            خروجی Excel
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-chart-pie"></i>
+            آمار تحلیل‌ها
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #4CAF50; margin-bottom: 5px;">{{ total_analyses }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">کل تحلیل‌ها</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #2196F3; margin-bottom: 5px;">{{ completed_analyses }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">تکمیل شده</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #FF9800; margin-bottom: 5px;">{{ pending_analyses }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">در انتظار</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #9C27B0; margin-bottom: 5px;">{{ processing_analyses }}</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">در حال پردازش</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-filter"></i>
+            فیلتر و جستجو
+        </div>
+    </div>
+    
+    <form method="GET" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: end;">
+        <div class="form-group">
+            <label class="form-label">جستجو</label>
+            <input type="text" name="search" class="form-control" placeholder="نام فروشگاه یا کاربر..." value="{{ search }}">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">وضعیت</label>
+            <select name="status" class="form-control">
+                <option value="">همه</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>تکمیل شده</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار</option>
+                <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>در حال پردازش</option>
+                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>ناموفق</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn-admin btn-primary">
+            <i class="fas fa-search"></i>
+            جستجو
+        </button>
+    </form>
+</div>
+
+<!-- Analyses Table -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-list"></i>
+            لیست تحلیل‌ها
+        </div>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>نام فروشگاه</th>
+                    <th>کاربر</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ ایجاد</th>
+                    <th>تاریخ تکمیل</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for analysis in analyses %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 8px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            {{ analysis.store_name }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--success-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 600;">
+                                {{ analysis.user.username|first|upper }}
+                            </div>
+                            {{ analysis.user.username }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if analysis.status == 'completed' %}
+                            <span class="status-badge status-completed">تکمیل شده</span>
+                        {% elif analysis.status == 'pending' %}
+                            <span class="status-badge status-pending">در انتظار</span>
+                        {% elif analysis.status == 'processing' %}
+                            <span class="status-badge status-active">در حال پردازش</span>
+                        {% elif analysis.status == 'failed' %}
+                            <span class="status-badge status-inactive">ناموفق</span>
+                        {% else %}
+                            <span class="status-badge status-pending">{{ analysis.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ analysis.created_at|date:"Y/m/d H:i" }}</td>
+                    <td>
+                        {% if analysis.completed_at %}
+                            {{ analysis.completed_at|date:"Y/m/d H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'store_analysis:admin_analysis_detail' analysis.id %}" class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn-admin btn-warning" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="#" class="btn-admin btn-danger" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        هیچ تحلیلی یافت نشد
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if analyses.has_other_pages %}
+    <div class="pagination">
+        {% if analyses.has_previous %}
+            <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            <a href="?page={{ analyses.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-right"></i>
+            </a>
+        {% endif %}
+        
+        {% for num in analyses.paginator.page_range %}
+            {% if analyses.number == num %}
+                <span class="page-link active">{{ num }}</span>
+            {% elif num > analyses.number|add:'-3' and num < analyses.number|add:'3' %}
+                <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if analyses.has_next %}
+            <a href="?page={{ analyses.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            <a href="?page={{ analyses.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

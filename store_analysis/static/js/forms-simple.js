@@ -205,7 +205,8 @@ class SimpleFormManager {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
-                }
+                },
+                redirect: 'manual' // برای کنترل redirect
             });
 
             if (response.ok) {
@@ -223,7 +224,7 @@ class SimpleFormManager {
                             const redirectUrl = data.redirect_url || '/store/dashboard/';
                             console.log('Redirecting to:', redirectUrl);
                             window.location.href = redirectUrl;
-                        }, 2000);
+                        }, 1000);
                     } else {
                         this.showMessage(data.message || 'خطا در ارسال فرم', 'error');
                     }
@@ -242,8 +243,15 @@ class SimpleFormManager {
                             console.log('No payment URL found, redirecting to dashboard');
                             window.location.href = '/store/dashboard/';
                         }
-                    }, 2000);
+                    }, 1000);
                 }
+            } else if (response.type === 'opaqueredirect') {
+                // Redirect response
+                this.showMessage('🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
+                setTimeout(() => {
+                    // تلاش برای هدایت به صفحه پرداخت
+                    window.location.href = '/store/dashboard/';
+                }, 1000);
             } else {
                 throw new Error(`خطا در سرور: ${response.status}`);
             }
@@ -353,13 +361,24 @@ class SimpleFormManager {
         `;
 
         const img = document.createElement('img');
-        img.src = URL.createObjectURL(file);
         img.style.cssText = `
             width: 120px;
             height: 120px;
             object-fit: cover;
             display: block;
         `;
+        
+        // استفاده از FileReader برای نمایش بهتر تصاویر
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        
+        // Fallback در صورت خطا
+        img.onerror = function() {
+            img.src = URL.createObjectURL(file);
+        };
 
         const overlay = document.createElement('div');
         overlay.style.cssText = `
@@ -419,12 +438,28 @@ class SimpleFormManager {
         const video = document.createElement('video');
         video.src = URL.createObjectURL(file);
         video.controls = true;
+        video.preload = 'metadata';
         video.style.cssText = `
             width: 120px;
             height: 120px;
             object-fit: cover;
             display: block;
         `;
+        
+        // اضافه کردن poster برای ویدیو
+        video.onloadedmetadata = function() {
+            // ایجاد thumbnail از ویدیو
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 120;
+            canvas.height = 120;
+            
+            video.currentTime = 1; // گرفتن فریم در ثانیه 1
+            video.onseeked = function() {
+                ctx.drawImage(video, 0, 0, 120, 120);
+                video.poster = canvas.toDataURL();
+            };
+        };
 
         const overlay = document.createElement('div');
         overlay.style.cssText = `

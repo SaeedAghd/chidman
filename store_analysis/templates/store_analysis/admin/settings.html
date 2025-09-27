@@ -1,0 +1,389 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-cog"></i>
+        </div>
+        تنظیمات سیستم
+    </div>
+    <div class="admin-actions">
+        <a href="#" class="btn-admin btn-success" onclick="saveSettings()">
+            <i class="fas fa-save"></i>
+            ذخیره تنظیمات
+        </a>
+        <a href="#" class="btn-admin btn-primary" onclick="resetSettings()">
+            <i class="fas fa-undo"></i>
+            بازنشانی
+        </a>
+    </div>
+</div>
+
+<!-- General Settings -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-sliders-h"></i>
+            تنظیمات عمومی
+        </div>
+    </div>
+    
+    <form method="POST" id="settingsForm">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">نام سایت</label>
+                <input type="text" name="site_name" class="form-control" value="چیدمانو" placeholder="نام سایت">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">ایمیل پشتیبانی</label>
+                <input type="email" name="support_email" class="form-control" value="support@chidmano.ir" placeholder="ایمیل پشتیبانی">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">شماره تماس</label>
+                <input type="tel" name="contact_phone" class="form-control" value="021-12345678" placeholder="شماره تماس">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">آدرس</label>
+                <input type="text" name="address" class="form-control" value="تهران، ایران" placeholder="آدرس">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">توضیحات سایت</label>
+            <textarea name="site_description" class="form-control" rows="3" placeholder="توضیحات سایت...">پلتفرم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه‌ها</textarea>
+        </div>
+    </form>
+</div>
+
+<!-- Payment Settings -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-credit-card"></i>
+            تنظیمات پرداخت
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+            <label class="form-label">درگاه پرداخت پیش‌فرض</label>
+            <select name="default_payment_gateway" class="form-control">
+                <option value="payping">پی‌پینگ</option>
+                <option value="zarinpal">زرین‌پال</option>
+                <option value="idpay">آیدی‌پی</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">وضعیت پرداخت</label>
+            <select name="payment_status" class="form-control">
+                <option value="active">فعال</option>
+                <option value="inactive">غیرفعال</option>
+                <option value="maintenance">تعمیرات</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">حداقل مبلغ پرداخت (تومان)</label>
+            <input type="number" name="min_payment_amount" class="form-control" value="10000" placeholder="حداقل مبلغ">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">حداکثر مبلغ پرداخت (تومان)</label>
+            <input type="number" name="max_payment_amount" class="form-control" value="10000000" placeholder="حداکثر مبلغ">
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Settings -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-chart-line"></i>
+            تنظیمات تحلیل
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+            <label class="form-label">حداکثر تحلیل همزمان</label>
+            <input type="number" name="max_concurrent_analyses" class="form-control" value="5" placeholder="تعداد">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">زمان انتظار تحلیل (دقیقه)</label>
+            <input type="number" name="analysis_timeout" class="form-control" value="30" placeholder="دقیقه">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">ذخیره نتایج (روز)</label>
+            <input type="number" name="results_retention_days" class="form-control" value="365" placeholder="روز">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">وضعیت تحلیل</label>
+            <select name="analysis_status" class="form-control">
+                <option value="active">فعال</option>
+                <option value="inactive">غیرفعال</option>
+                <option value="maintenance">تعمیرات</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Email Settings -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-envelope"></i>
+            تنظیمات ایمیل
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+            <label class="form-label">SMTP سرور</label>
+            <input type="text" name="smtp_server" class="form-control" value="smtp.gmail.com" placeholder="SMTP سرور">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">پورت SMTP</label>
+            <input type="number" name="smtp_port" class="form-control" value="587" placeholder="پورت">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">ایمیل فرستنده</label>
+            <input type="email" name="sender_email" class="form-control" value="noreply@chidmano.ir" placeholder="ایمیل فرستنده">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">وضعیت ایمیل</label>
+            <select name="email_status" class="form-control">
+                <option value="active">فعال</option>
+                <option value="inactive">غیرفعال</option>
+                <option value="test">حالت تست</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Security Settings -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-shield-alt"></i>
+            تنظیمات امنیتی
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+            <label class="form-label">حداکثر تلاش ورود</label>
+            <input type="number" name="max_login_attempts" class="form-control" value="5" placeholder="تعداد">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">زمان قفل حساب (دقیقه)</label>
+            <input type="number" name="account_lockout_time" class="form-control" value="15" placeholder="دقیقه">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">مدت اعتبار جلسه (ساعت)</label>
+            <input type="number" name="session_timeout" class="form-control" value="24" placeholder="ساعت">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">وضعیت امنیت</label>
+            <select name="security_status" class="form-control">
+                <option value="high">بالا</option>
+                <option value="medium">متوسط</option>
+                <option value="low">پایین</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-server"></i>
+            وضعیت سیستم
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #4CAF50; margin-bottom: 5px;">آنلاین</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">وضعیت سرور</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #2196F3; margin-bottom: 5px;">85%</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">استفاده از CPU</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #FF9800; margin-bottom: 5px;">2.1GB</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">استفاده از RAM</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #9C27B0; margin-bottom: 5px;">99.9%</div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">آپتایم</div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Actions -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-tools"></i>
+            عملیات نگهداری
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="#" class="btn-admin btn-primary" onclick="clearCache()">
+            <i class="fas fa-broom"></i>
+            پاک کردن کش
+        </a>
+        
+        <a href="#" class="btn-admin btn-warning" onclick="optimizeDatabase()">
+            <i class="fas fa-database"></i>
+            بهینه‌سازی دیتابیس
+        </a>
+        
+        <a href="#" class="btn-admin btn-success" onclick="backupDatabase()">
+            <i class="fas fa-save"></i>
+            پشتیبان‌گیری
+        </a>
+        
+        <a href="#" class="btn-admin btn-danger" onclick="restartServices()">
+            <i class="fas fa-redo"></i>
+            راه‌اندازی مجدد سرویس‌ها
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function saveSettings() {
+    const form = document.getElementById('settingsForm');
+    const formData = new FormData(form);
+    
+    // Add all form data
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => {
+        if (input.name && !formData.has(input.name)) {
+            formData.append(input.name, input.value);
+        }
+    });
+    
+    // Show loading
+    const saveBtn = document.querySelector('[onclick="saveSettings()"]');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ذخیره...';
+    saveBtn.disabled = true;
+    
+    // Simulate save
+    setTimeout(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        
+        // Show success message
+        showNotification('تنظیمات با موفقیت ذخیره شد', 'success');
+    }, 2000);
+}
+
+function resetSettings() {
+    if (confirm('آیا مطمئن هستید که می‌خواهید تنظیمات را به حالت پیش‌فرض بازنشانی کنید؟')) {
+        // Reset all form inputs
+        const allInputs = document.querySelectorAll('input, select, textarea');
+        allInputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+        
+        showNotification('تنظیمات بازنشانی شد', 'info');
+    }
+}
+
+function clearCache() {
+    if (confirm('آیا مطمئن هستید که می‌خواهید کش را پاک کنید؟')) {
+        showNotification('کش با موفقیت پاک شد', 'success');
+    }
+}
+
+function optimizeDatabase() {
+    if (confirm('آیا مطمئن هستید که می‌خواهید دیتابیس را بهینه‌سازی کنید؟')) {
+        showNotification('دیتابیس در حال بهینه‌سازی...', 'info');
+    }
+}
+
+function backupDatabase() {
+    if (confirm('آیا مطمئن هستید که می‌خواهید از دیتابیس پشتیبان‌گیری کنید؟')) {
+        showNotification('پشتیبان‌گیری شروع شد', 'info');
+    }
+}
+
+function restartServices() {
+    if (confirm('آیا مطمئن هستید که می‌خواهید سرویس‌ها را راه‌اندازی مجدد کنید؟')) {
+        showNotification('سرویس‌ها در حال راه‌اندازی مجدد...', 'warning');
+    }
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+        background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : type === 'error' ? '#F44336' : '#2196F3'};
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

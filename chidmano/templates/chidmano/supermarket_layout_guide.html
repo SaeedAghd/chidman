@@ -1,0 +1,613 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6b35">
+    
+    <!-- SEO Meta Tags -->
+    <title>راهنمای چیدمان سوپرمارکت - افزایش فروش و رضایت مشتری | چیدمانو</title>
+    <meta name="description" content="راهنمای تخصصی چیدمان سوپرمارکت برای افزایش فروش و بهبود تجربه مشتری. شامل اصول طراحی، مدیریت موجودی، و بهینه‌سازی فضای فروش">
+    <meta name="keywords" content="راهنمای چیدمان سوپرمارکت, طراحی سوپرمارکت, مدیریت موجودی, افزایش فروش سوپرمارکت, بهینه‌سازی فضای فروش">
+    <meta name="author" content="چیدمانو - تیم تحلیل فروشگاه">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="راهنمای چیدمان سوپرمارکت - افزایش فروش و رضایت مشتری">
+    <meta property="og:description" content="راهنمای تخصصی چیدمان سوپرمارکت برای افزایش فروش و بهبود تجربه مشتری">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/guide/supermarket-layout/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/guides/supermarket-hero.jpg' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    <meta property="og:locale" content="fa_IR">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="راهنمای چیدمان سوپرمارکت - افزایش فروش و رضایت مشتری">
+    <meta name="twitter:description" content="راهنمای تخصصی چیدمان سوپرمارکت برای افزایش فروش و بهبود تجربه مشتری">
+    <meta name="twitter:image" content="https://chidmano.ir{% static 'images/guides/supermarket-hero.jpg' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://chidmano.ir/guide/supermarket-layout/">
+    
+    <!-- Resource Hints -->
+    <link rel="preload" href="{% static 'fonts/Vazir.ttf' %}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{% static 'images/guides/supermarket-hero.jpg' %}" as="image">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "راهنمای چیدمان سوپرمارکت - افزایش فروش و رضایت مشتری",
+        "description": "راهنمای تخصصی چیدمان سوپرمارکت برای افزایش فروش و بهبود تجربه مشتری. شامل اصول طراحی، مدیریت موجودی، و بهینه‌سازی فضای فروش",
+        "image": "https://chidmano.ir{% static 'images/guides/supermarket-hero.jpg' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-01-26",
+        "dateModified": "2025-01-26",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://chidmano.ir/guide/supermarket-layout/"
+        },
+        "articleSection": "راهنمای چیدمان سوپرمارکت",
+        "keywords": ["راهنمای چیدمان سوپرمارکت", "طراحی سوپرمارکت", "مدیریت موجودی", "افزایش فروش سوپرمارکت"]
+    }
+    </script>
+    
+    <!-- CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ff6b35;
+            --primary-dark: #e55a2b;
+            --secondary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --shadow-xl: 0 2rem 4rem rgba(0, 0, 0, 0.2);
+            
+            --border-radius: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+        }
+        
+        @font-face {
+            font-family: 'VazirLocal';
+            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'VazirLocal', Vazirmatn, sans-serif;
+            line-height: 1.7;
+            color: var(--gray-800);
+        }
+        
+        /* Header */
+        .guide-header {
+            background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+            color: white;
+            padding: 4rem 0 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .guide-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('{% static "images/guides/supermarket-hero.jpg" %}') center/cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .guide-header .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .guide-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .guide-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .guide-meta {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-lg);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Content */
+        .guide-content {
+            padding: 4rem 0;
+        }
+        
+        .content-section {
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success-color);
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--success-color);
+            border-radius: 2px;
+        }
+        
+        .guide-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            margin: 2rem 0;
+            transition: transform var(--transition-normal);
+        }
+        
+        .guide-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .info-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 2rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .info-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+        
+        .info-card h4 {
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-200);
+            position: relative;
+            padding-right: 2rem;
+        }
+        
+        .info-card li:last-child {
+            border-bottom: none;
+        }
+        
+        .info-card li::before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            top: 0.5rem;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(39, 174, 96, 0.05) 100%);
+            border: 2px solid var(--success-color);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: '🛒';
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: var(--white);
+            padding: 0.5rem;
+            border-radius: 50%;
+            font-size: 1.5rem;
+        }
+        
+        .highlight-box h4 {
+            color: var(--success-color);
+            margin-bottom: 1rem;
+        }
+        
+        .department-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--success-color);
+            margin-bottom: 1.5rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .department-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateX(-5px);
+        }
+        
+        .department-card h5 {
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+            
+            .guide-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .guide-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="guide-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="guide-title">راهنمای چیدمان سوپرمارکت</h1>
+                    <p class="guide-subtitle">افزایش فروش و رضایت مشتری با بهینه‌سازی فضای فروش</p>
+                    <div class="guide-meta">
+                        <div class="meta-item">
+                            <span>📅</span>
+                            <span>آخرین به‌روزرسانی: 26 دی 1403</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>⏱️</span>
+                            <span>زمان مطالعه: 20 دقیقه</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>👥</span>
+                            <span>مناسب برای: مدیران سوپرمارکت</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="guide-content">
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h2 class="section-title">مقدمه: چیدمان سوپرمارکت چیست؟</h2>
+                        <p class="lead">چیدمان سوپرمارکت شامل طراحی و سازماندهی فضای فروش، قفسه‌ها، و محصولات برای بهینه‌سازی تجربه خرید مشتری و افزایش فروش است.</p>
+                        
+                        <img src="{% static 'images/guides/supermarket-intro.jpg' %}" alt="چیدمان سوپرمارکت - مقدمه" class="guide-image">
+                        
+                        <p>در این راهنمای تخصصی، شما با اصول طراحی سوپرمارکت، مدیریت موجودی، و استراتژی‌های افزایش فروش آشنا خواهید شد.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Layout Principles -->
+            <section class="content-section">
+                <h2 class="section-title">اصول طراحی چیدمان سوپرمارکت</h2>
+                
+                <div class="highlight-box">
+                    <h4>قانون طلایی سوپرمارکت</h4>
+                    <p>مشتریان باید بتوانند در کمترین زمان ممکن، تمام محصولات مورد نیاز خود را پیدا کنند و خرید کنند.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>1. اصل جریان ترافیک</h4>
+                            <p>طراحی مسیرهای منطقی برای حرکت مشتریان</p>
+                            <ul>
+                                <li>ورودی و خروجی مشخص</li>
+                                <li>مسیرهای یکطرفه</li>
+                                <li>جلوگیری از ترافیک معکوس</li>
+                                <li>فضای کافی برای عبور</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>2. اصل دسترسی آسان</h4>
+                            <p>محصولات باید در دسترس و قابل مشاهده باشند</p>
+                            <ul>
+                                <li>ارتفاع مناسب قفسه‌ها</li>
+                                <li>فاصله مناسب بین قفسه‌ها</li>
+                                <li>نورپردازی کافی</li>
+                                <li>علائم راهنما واضح</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/supermarket-layout.jpg' %}" alt="اصول طراحی سوپرمارکت" class="guide-image">
+            </section>
+
+            <!-- Department Layout -->
+            <section class="content-section">
+                <h2 class="section-title">چیدمان بخش‌های مختلف سوپرمارکت</h2>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="department-card">
+                            <h5>🥬 بخش میوه و سبزیجات</h5>
+                            <p>معمولاً در ورودی فروشگاه قرار می‌گیرد تا اولین تأثیر مثبت را بر مشتری بگذارد.</p>
+                            <ul>
+                                <li>نمایش تازه‌ترین محصولات</li>
+                                <li>رنگ‌بندی طبیعی و جذاب</li>
+                                <li>دسترسی آسان و راحت</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="department-card">
+                            <h5>🥛 بخش لبنیات</h5>
+                            <p>در نزدیکی ورودی و در مسیر اصلی مشتری قرار می‌گیرد.</p>
+                            <ul>
+                                <li>یخچال‌های مناسب</li>
+                                <li>نمایش تاریخ انقضا</li>
+                                <li>دسترسی آسان</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="department-card">
+                            <h5>🍞 بخش نان و شیرینی</h5>
+                            <p>در انتهای فروشگاه و نزدیک صندوق‌های پرداخت قرار می‌گیرد.</p>
+                            <ul>
+                                <li>بوی خوش و جذاب</li>
+                                <li>نمایش تازه‌ترین محصولات</li>
+                                <li>دسترسی آسان</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="department-card">
+                            <h5>🥩 بخش گوشت و پروتئین</h5>
+                            <p>در انتهای فروشگاه و در مسیر اصلی مشتری قرار می‌گیرد.</p>
+                            <ul>
+                                <li>یخچال‌های مناسب</li>
+                                <li>نمایش تازه‌ترین محصولات</li>
+                                <li>دسترسی آسان</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/supermarket-departments.jpg' %}" alt="بخش‌های مختلف سوپرمارکت" class="guide-image">
+            </section>
+
+            <!-- Product Placement -->
+            <section class="content-section">
+                <h2 class="section-title">استراتژی‌های قرارگیری محصولات</h2>
+                
+                <div class="highlight-box">
+                    <h4>قانون چشم‌انداز</h4>
+                    <p>محصولات پرفروش را در سطح چشم مشتری قرار دهید. این سطح معمولاً بین 1.2 تا 1.8 متر از زمین است.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>سطح چشم (Eye Level)</h4>
+                            <p>محصولات پرفروش و با حاشیه سود بالا</p>
+                            <ul>
+                                <li>محصولات برند خودی</li>
+                                <li>محصولات با حاشیه سود بالا</li>
+                                <li>محصولات جدید</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>سطح بالا (Top Shelf)</h4>
+                            <p>محصولات کم‌فروش و با حاشیه سود پایین</p>
+                            <ul>
+                                <li>محصولات برند رقیب</li>
+                                <li>محصولات با حاشیه سود پایین</li>
+                                <li>محصولات قدیمی</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>سطح پایین (Bottom Shelf)</h4>
+                            <p>محصولات عمده و با حجم بالا</p>
+                            <ul>
+                                <li>محصولات عمده</li>
+                                <li>محصولات با حجم بالا</li>
+                                <li>محصولات ارزان</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/product-placement.jpg' %}" alt="استراتژی‌های قرارگیری محصولات" class="guide-image">
+            </section>
+
+            <!-- Customer Psychology -->
+            <section class="content-section">
+                <h2 class="section-title">روانشناسی مشتری در سوپرمارکت</h2>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>رفتار خرید مشتری</h4>
+                            <p>درک رفتار مشتری برای بهینه‌سازی چیدمان</p>
+                            <ul>
+                                <li>مشتریان معمولاً از سمت راست شروع می‌کنند</li>
+                                <li>در جهت عقربه‌های ساعت حرکت می‌کنند</li>
+                                <li>به دنبال محصولات آشنا می‌گردند</li>
+                                <li>از تخفیف‌ها و پیشنهادات استقبال می‌کنند</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>تأثیر رنگ‌ها</h4>
+                            <p>رنگ‌ها می‌توانند بر رفتار خرید تأثیر بگذارند</p>
+                            <ul>
+                                <li>رنگ قرمز: ایجاد احساس فوریت</li>
+                                <li>رنگ سبز: ایجاد احساس آرامش</li>
+                                <li>رنگ آبی: ایجاد احساس اعتماد</li>
+                                <li>رنگ زرد: جلب توجه</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/customer-psychology.jpg' %}" alt="روانشناسی مشتری در سوپرمارکت" class="guide-image">
+            </section>
+
+            <!-- Best Practices -->
+            <section class="content-section">
+                <h2 class="section-title">بهترین روش‌های مدیریت سوپرمارکت</h2>
+                
+                <div class="highlight-box">
+                    <h4>نکته طلایی</h4>
+                    <p>همیشه قفسه‌ها را پر نگه دارید. قفسه‌های خالی باعث کاهش فروش و تأثیر منفی بر مشتری می‌شود.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>مدیریت موجودی</h4>
+                            <ul>
+                                <li>کنترل مداوم موجودی</li>
+                                <li>جلوگیری از کمبود محصولات</li>
+                                <li>مدیریت تاریخ انقضا</li>
+                                <li>بهینه‌سازی فضای انبار</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>بهینه‌سازی فضای فروش</h4>
+                            <ul>
+                                <li>استفاده بهینه از فضای موجود</li>
+                                <li>تنظیم ارتفاع قفسه‌ها</li>
+                                <li>بهینه‌سازی مسیرهای عبور</li>
+                                <li>استفاده از فضای عمودی</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="content-section">
+                <div class="highlight-box text-center">
+                    <h4>آماده بهینه‌سازی سوپرمارکت خود هستید؟</h4>
+                    <p>با استفاده از هوش مصنوعی چیدمانو، تحلیل کاملی از سوپرمارکت خود دریافت کنید و فروش خود را تا 30% افزایش دهید.</p>
+                    <a href="{% url 'store_analysis:forms' %}" class="btn btn-success btn-lg">
+                        شروع تحلیل هوشمند سوپرمارکت
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>چیدمانو</h5>
+                    <p>پیشرو در تحلیل و بهینه‌سازی چیدمان فروشگاه با استفاده از هوش مصنوعی</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2025 چیدمانو. تمامی حقوق محفوظ است.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

@@ -274,28 +274,34 @@
             </div>
             <div class="summary-details">
                 <span class="summary-label">مبلغ سفارش:</span>
-                <span class="summary-amount">{{ order.total_amount|floatformat:0 }} تومان</span>
+                <span class="summary-amount">{{ order.final_amount|floatformat:0 }} تومان</span>
             </div>
             <div class="summary-details">
                 <span class="summary-label">موجودی پس از پرداخت:</span>
-                <span class="summary-amount">{{ wallet.balance|add:order.total_amount|floatformat:0 }} تومان</span>
+                <span class="summary-amount">{{ wallet.balance|add:order.final_amount|add:0|floatformat:0 }} تومان</span>
             </div>
         </div>
         
         <!-- بررسی موجودی -->
-        {% if wallet.can_withdraw order.total_amount %}
+        {% if wallet.can_withdraw order.final_amount %}
             <!-- هشدار امنیتی -->
             <div class="security-notice">
                 <i class="fas fa-shield-alt security-icon"></i>
                 <strong>اطلاعات امنیتی:</strong> این پرداخت از کیف پول شما کسر خواهد شد و غیرقابل بازگشت است.
             </div>
             
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn-pay" onclick="return confirm('آیا از پرداخت این سفارش از کیف پول اطمینان دارید؟')">
-                    <i class="fas fa-credit-card me-2"></i>پرداخت از کیف پول
-                </button>
-            </form>
+            <div class="payment-options">
+                <a href="{% url 'store_analysis:payping_payment' order_id=order.order_id %}" class="btn-pay">
+                    <i class="fas fa-credit-card me-2"></i>پرداخت آنلاین (PayPing)
+                </a>
+                
+                <form method="post" style="margin-top: 15px;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-pay-wallet" onclick="return confirm('آیا از پرداخت این سفارش از کیف پول اطمینان دارید؟')">
+                        <i class="fas fa-wallet me-2"></i>پرداخت از کیف پول
+                    </button>
+                </form>
+            </div>
         {% else %}
             <!-- موجودی ناکافی -->
             <div class="insufficient-funds">
@@ -306,11 +312,11 @@
                 <div class="insufficient-message">
                     موجودی کیف پول شما برای پرداخت این سفارش کافی نیست.
                     <br>
-                    <strong>مبلغ مورد نیاز:</strong> {{ order.total_amount|floatformat:0 }} تومان
+                    <strong>مبلغ مورد نیاز:</strong> {{ order.final_amount|floatformat:0 }} تومان
                     <br>
                     <strong>موجودی فعلی:</strong> {{ wallet.get_balance_display }}
                     <br>
-                    <strong>کمبود:</strong> {{ order.total_amount|add:wallet.balance|floatformat:0 }} تومان
+                    <strong>کمبود:</strong> {{ order.final_amount|add:wallet.balance|floatformat:0 }} تومان
                 </div>
                 <a href="{% url 'store_analysis:deposit_to_wallet' %}" class="btn-deposit">
                     <i class="fas fa-plus me-2"></i>واریز به کیف پول

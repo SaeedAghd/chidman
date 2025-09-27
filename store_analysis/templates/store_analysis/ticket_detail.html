@@ -3,6 +3,19 @@
 
 {% block title %}تیکت #{{ ticket.ticket_id }} - چیدمانو{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Vazir Font for Ticket Detail */
+    .container * {
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+    }
+    
+    body {
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     <div class="row">

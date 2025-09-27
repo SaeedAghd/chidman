@@ -8,6 +8,12 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+# Force-disable PostgreSQL SSL at libpq level to avoid "SSL was required" on Liara private DB
+os.environ['PGSSLMODE'] = 'disable'
+# Remove any env vars that force SSL unintentionally
+for _var in ('PGSSLCERT', 'PGSSLKEY', 'PGSSLROOTCERT', 'PGREQUIRESSL', 'DATABASE_SSLMODE'):
+    if _var in os.environ:
+        os.environ.pop(_var, None)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,8 +24,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan3h$&$esj')
 
+# Payment Gateway Settings
+PAYMENT_GATEWAY = {
+    'PING_PAYMENT': {
+        'MERCHANT_ID': '17D62CFE490EA7C6BF20090BEA12A49FEB4482B02F8534696215A6DE23DF684A-1',
+        'API_KEY': os.getenv('PING_API_KEY', ''),
+        'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'http://localhost:8000/payment/callback/'),
+        'RETURN_URL': os.getenv('PING_RETURN_URL', 'http://localhost:8000/payment/return/'),
+        'SANDBOX': os.getenv('PING_SANDBOX', 'True').lower() == 'true',
+        'API_URL': 'https://api.pingpayment.ir' if os.getenv('PING_SANDBOX', 'True').lower() == 'false' else 'https://api-sandbox.pingpayment.ir'
+    }
+}
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for development
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to False for production
 
 # Enable debug for Render if needed
 if os.getenv('RENDER'):
@@ -62,18 +80,26 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'store_analysis.apps.StoreAnalysisConfig',
+    'chidmano',
 ]
 
 MIDDLEWARE = [
+    'chidmano.middleware.UltraLightHealthMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # برای static files در production
+    'django.middleware.gzip.GZipMiddleware',  # Compression middleware
+    # Remove per-site cache middlewares if any were added later (safety)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'chidmano.middleware.CanonicalHostRedirectMiddleware',
+    'chidmano.middleware.NoIndexPrivatePathsMiddleware',
+    'chidmano.middleware.CSPMiddleware',  # برای حل مشکل CSP ویدیوها
+    'chidmano.middleware.CacheAndTimingMiddleware',
 ]
 
 ROOT_URLCONF = 'chidmano.urls'
@@ -104,43 +130,23 @@ WSGI_APPLICATION = 'chidmano.wsgi.application'
 
 import dj_database_url
 
-# Database configuration
+# Database configuration - قطعی برای رفع مشکل SSL
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL and (os.getenv('RENDER') or os.getenv('LIARA') or os.getenv('PRODUCTION') or os.getenv('LIARA_AI_API_KEY')):
-    # Production database configuration
+if DATABASE_URL:
+    # استفاده از PostgreSQL با SSL غیرفعال - راه‌حل قطعی
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
     }
-    # Add SSL mode for PostgreSQL
+    # این override را با set نه setdefault انجام می‌دهیم تا مطمئن باشیم sslmode غیرفعال است
     if 'postgresql' in DATABASES['default']['ENGINE']:
-        DATABASES['default']['OPTIONS'] = {
-            'sslmode': 'require',
-        }
+        DATABASES['default']['OPTIONS'] = {'sslmode': 'disable'}
 else:
-    # Development database configuration - using SQLite for now
+    # Development database configuration - using SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-    
-# For Liara, use simple SQLite configuration
-if os.getenv('LIARA'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/db.sqlite3',
-        }
-    }
-    
-    # Use cache for sessions
-    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
         }
     }
 
@@ -181,14 +187,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
     BASE_DIR / "store_analysis" / "static",
+    BASE_DIR / "chidmano" / "static",
 ]
 
 # Static files configuration for production
 if not DEBUG:
-    # Use whitenoise for static files in production
+    # Use WhiteNoise with compression (no manifest to avoid hard failures on missing entries)
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-    WHITENOISE_USE_FINDERS = True
-    WHITENOISE_AUTOREFRESH = True
+    WHITENOISE_USE_FINDERS = False  # Disable for better performance
+    WHITENOISE_AUTOREFRESH = False
+    WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
     WHITENOISE_ROOT = BASE_DIR / 'staticfiles'
 else:
     # Development static files
@@ -196,6 +204,20 @@ else:
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
+
+# تنظیمات آپلود فایل برای Liara (read-only filesystem)
+if os.getenv('LIARA') == 'true':
+    # استفاده از memory storage برای آپلود فایل‌ها
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.MemoryStorage'
+    FILE_UPLOAD_HANDLERS = [
+        'django.core.files.uploadhandler.MemoryFileUploadHandler',
+    ]
+    FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+
+# Media files configuration for production
+if not DEBUG:
+    # In production, serve media files through WhiteNoise
+    WHITENOISE_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -292,21 +314,36 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
 # Performance Optimization Settings
-# Cache settings
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': 300,  # 5 minutes default
+# Cache settings - optimized for production
+if DEBUG:
+    # Development cache
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+            'TIMEOUT': 300,  # 5 minutes default
+        }
     }
-}
+else:
+    # Production cache - use in-memory to avoid missing DB cache table in PaaS
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'prod-locmem',
+            'TIMEOUT': 900,  # 15 minutes
+        }
+    }
 
-# Database optimization - only for SQLite
+# Database optimization
 if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    # SQLite optimization
     DATABASES['default']['OPTIONS'] = {
         'timeout': 20,
         'check_same_thread': False,
     }
+else:
+    # PostgreSQL optimization
+    DATABASES['default']['CONN_MAX_AGE'] = 600  # 10 minutes connection pooling
 
 # Static files optimization - handled above in production section
 
@@ -324,50 +361,36 @@ if not DEBUG:
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # SESSION_CACHE_ALIAS = 'default'
 
-# Logging configuration - optimized for Liara
+# Logging configuration - simplified for Liara read-only filesystem
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
         'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-        'production': {
             'format': '{asctime} {levelname} {name} {message}',
             'style': '{',
         },
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG' if DEBUG else 'INFO',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'production' if not DEBUG else 'simple',
+            'formatter': 'simple',
         },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'store_analysis': {
             'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': True,
-        },
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'WARNING',
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'INFO',
             'propagate': False,
         },
     },
@@ -540,4 +563,4 @@ CHANNEL_LAYERS = {
     },
 }
 
-# HTTPS Settings - handled above in security section 
+# HTTPS Settings - handled above in security section

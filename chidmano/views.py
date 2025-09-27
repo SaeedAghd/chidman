@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout
@@ -13,8 +14,8 @@ import logging
 # Import های جدید برای تاییدیه ایمیل
 from django.contrib.auth.models import User
 from datetime import timedelta
-from store_analysis.models import EmailVerification
-from store_analysis.services.email_service import EmailVerificationService
+# from store_analysis.models import EmailVerification
+# from store_analysis.services.email_service import EmailVerificationService
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +42,7 @@ def signup_view(request):
                 user.is_active = True  # فعال کردن مستقیم برای تست
                 user.save()
 
-                # برای تست، کاربر را مستقیماً وارد کنیم
-                from django.contrib.auth import login
+                # ورود مستقیم برای تست
                 login(request, user)
                 messages.success(request, f'حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.username}!')
                 return redirect('store_analysis:user_dashboard')
@@ -155,6 +155,19 @@ def simple_login_view(request):
                 if user is not None:
                     if user.is_active:
                         login(request, user)
+                        # اگر قبلا در سشن تعهدنامه تایید شده بود، آن را به DB منتقل کن
+                        try:
+                            if request.session.get('legal_agreement_accepted', False):
+                                from store_analysis.models import UserProfile
+                                profile, created = UserProfile.objects.get_or_create(
+                                    user=user,
+                                    defaults={'legal_agreement_accepted': True}
+                                )
+                                if not created and not profile.legal_agreement_accepted:
+                                    profile.legal_agreement_accepted = True
+                                    profile.save()
+                        except Exception:
+                            pass
                         messages.success(request, f'خوش آمدید {user.username}!')
                         return redirect('store_analysis:user_dashboard')
                     else:
@@ -174,14 +187,43 @@ def features_view(request):
     """Features page view"""
     return render(request, 'store_analysis/features.html')
 
-def health_check(request):
-    """Health check endpoint for Liara deployment"""
+# --- Diagnostics & Bootstrap (temporary, token-protected) ---
+def debug_db_status(request):
+    """Return minimal DB status for diagnostics."""
     try:
-        # Simple health check - just return OK
-        return HttpResponse('OK', content_type='text/plain')
+        from django.contrib.auth.models import User
+        total_users = User.objects.count()
+        engine = settings.DATABASES['default']['ENGINE']
+        return JsonResponse({
+            'ok': True,
+            'engine': engine,
+            'users': total_users,
+            'session_key': request.session.session_key,
+        })
     except Exception as e:
-        # If anything fails, still return OK to prevent container restart
-        return HttpResponse('OK', content_type='text/plain')
+        return JsonResponse({'ok': False, 'error': str(e)})
+
+def bootstrap_admin(request, token: str):
+    """Create/reset admin user securely using a one-time token from env."""
+    expected = os.getenv('SETUP_TOKEN')
+    if not expected or token != expected:
+        return JsonResponse({'ok': False, 'error': 'unauthorized'}, status=401)
+    from django.contrib.auth.models import User
+    username = os.getenv('SETUP_USERNAME', 'saeed')
+    password = os.getenv('SETUP_PASSWORD', '123456')
+    email = os.getenv('SETUP_EMAIL', 'admin@example.com')
+    user, created = User.objects.get_or_create(username=username, defaults={'email': email, 'is_staff': True, 'is_superuser': True, 'is_active': True})
+    user.is_staff = True
+    user.is_superuser = True
+    user.is_active = True
+    user.email = email
+    user.set_password(password)
+    user.save()
+    return JsonResponse({'ok': True, 'created': created, 'username': username})
+
+def health_check(request):
+    """Health check endpoint for Liara deployment - Ultra lightweight"""
+    return HttpResponse('OK', content_type='text/plain')
 
 def dashboard_view(request):
     """Dashboard view"""
@@ -278,4 +320,122 @@ def safe_home(request):
 
 def store_analysis_page(request):
     """Store analysis page - redirect to main store analysis form"""
-    return redirect('store_analysis:forms') 
+    return redirect('store_analysis:forms')
+
+def store_layout_guide(request):
+    """Store layout guide page"""
+    return render(request, 'chidmano/store_layout_guide.html')
+
+def supermarket_layout_guide(request):
+    """Supermarket layout guide page"""
+    return render(request, 'chidmano/supermarket_layout_guide.html')
+
+def storefront_lighting_guide(request):
+    """Storefront lighting guide page"""
+    return render(request, 'chidmano/storefront_lighting_guide.html')
+
+def store_layout_pillar(request):
+    """Main pillar page for store layout - comprehensive guide"""
+    return render(request, 'chidmano/store_layout_pillar.html')
+
+def color_psychology_guide(request):
+    """Color psychology guide page"""
+    return render(request, 'chidmano/color_psychology_guide.html')
+
+def customer_journey_guide(request):
+    """Customer journey guide page"""
+    return render(request, 'chidmano/customer_journey_guide.html')
+
+def lighting_design_guide(request):
+    """Lighting design guide page"""
+    return render(request, 'chidmano/lighting_design_guide.html')
+
+def case_studies(request):
+    """Case studies page"""
+    return render(request, 'chidmano/case_studies.html')
+
+def partnership(request):
+    """Partnership page"""
+    return render(request, 'chidmano/partnership.html')
+
+def admin_dashboard(request):
+    """داشبورد یکپارچه و حرفه‌ای ادمین"""
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return redirect('admin:login')
+    
+    from .models import BlogPost, SEOKeyword, SEOMetrics
+    from django.db.models import Count, Sum, Avg
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # تعیین تب فعال
+    active_tab = request.GET.get('tab', 'overview')
+    
+    # آمار کلی
+    total_posts = BlogPost.objects.filter(published=True).count()
+    total_keywords = SEOKeyword.objects.filter(is_active=True).count()
+    
+    # آمار هفته گذشته
+    week_ago = timezone.now() - timedelta(days=7)
+    recent_posts = BlogPost.objects.filter(
+        published=True, 
+        created_at__gte=week_ago
+    ).count()
+    
+    # آخرین متریک‌ها
+    latest_metrics = SEOMetrics.objects.order_by('-date').first()
+    
+    # متریک‌های SEO
+    avg_metrics = SEOMetrics.objects.aggregate(
+        avg_traffic=Avg('organic_traffic'),
+        avg_keywords=Avg('keyword_rankings'),
+        avg_speed=Avg('page_speed_score'),
+        avg_backlinks=Avg('backlinks_count'),
+        avg_authority=Avg('domain_authority')
+    )
+    
+    # کلمات کلیدی برتر
+    top_keywords = SEOKeyword.objects.filter(
+        is_active=True
+    ).order_by('-search_volume')[:10]
+    
+    # مقالات اخیر
+    recent_blog_posts = BlogPost.objects.filter(
+        published=True
+    ).order_by('-created_at')[:5]
+    
+    # گزارش هفته گذشته
+    weekly_metrics = SEOMetrics.objects.filter(
+        date__gte=week_ago
+    ).aggregate(
+        total_traffic=Sum('organic_traffic'),
+        avg_speed=Avg('page_speed_score'),
+        avg_keywords=Avg('keyword_rankings')
+    )
+    
+    # گزارش ماه گذشته
+    month_ago = timezone.now() - timedelta(days=30)
+    monthly_metrics = SEOMetrics.objects.filter(
+        date__gte=month_ago
+    ).aggregate(
+        total_traffic=Sum('organic_traffic'),
+        avg_speed=Avg('page_speed_score'),
+        avg_keywords=Avg('keyword_rankings')
+    )
+    
+    context = {
+        'active_tab': active_tab,
+        'total_posts': total_posts,
+        'total_keywords': total_keywords,
+        'recent_posts': recent_posts,
+        'latest_metrics': latest_metrics,
+        'avg_metrics': avg_metrics,
+        'top_keywords': top_keywords,
+        'recent_blog_posts': recent_blog_posts,
+        'weekly_metrics': weekly_metrics,
+        'monthly_metrics': monthly_metrics,
+        'user': request.user,
+    }
+    
+    return render(request, 'chidmano/admin/dashboard.html', context)
+

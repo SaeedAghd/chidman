@@ -1,0 +1,24 @@
+{
+  "date": "2025-09-25",
+  "type": "daily",
+  "metrics": {
+    "organic_traffic": 1390,
+    "keyword_rankings": 46,
+    "backlinks_count": 146,
+    "domain_authority": 64,
+    "page_speed_score": 75
+  },
+  "keywords_summary": {
+    "total_keywords": 3,
+    "high_volume_keywords": 2,
+    "average_difficulty": 47.0
+  },
+  "content_summary": {
+    "total_posts": 3,
+    "recent_posts": 3,
+    "total_views": 0
+  },
+  "recommendations": [
+    "بهبود سرعت صفحه"
+  ]
+}

@@ -1,0 +1,402 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6b35">
+    
+    <!-- SEO Meta Tags -->
+    <title>طراحی نورپردازی فروشگاه — راهنمای حرفه‌ای نورپردازی | چیدمانو</title>
+    <meta name="description" content="راهنمای کامل طراحی نورپردازی فروشگاه: انواع نورپردازی، اصول طراحی، تکنیک‌های حرفه‌ای و تأثیر نور بر فروش.">
+    <meta name="keywords" content="نورپردازی فروشگاه, طراحی نور, نورپردازی حرفه‌ای, نورپردازی فروشگاهی, طراحی فروشگاه">
+    <link rel="canonical" href="https://chidmano.ir/guide/lighting-design/">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="طراحی نورپردازی فروشگاه — راهنمای حرفه‌ای نورپردازی">
+    <meta property="og:description" content="راهنمای کامل طراحی نورپردازی فروشگاه: انواع نورپردازی، اصول طراحی، تکنیک‌های حرفه‌ای و تأثیر نور بر فروش.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/guide/lighting-design/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/guides/lighting-hero.jpg' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "طراحی نورپردازی فروشگاه — راهنمای حرفه‌ای نورپردازی",
+        "description": "راهنمای کامل طراحی نورپردازی فروشگاه: انواع نورپردازی، اصول طراحی، تکنیک‌های حرفه‌ای و تأثیر نور بر فروش.",
+        "image": "https://chidmano.ir{% static 'images/guides/lighting-hero.jpg' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-09-26",
+        "mainEntityOfPage": "https://chidmano.ir/guide/lighting-design/"
+    }
+    </script>
+    
+    <!-- CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/landing-page.css' %}" rel="stylesheet">
+    
+    <style>
+        @font-face {
+            font-family: 'VazirLocal';
+            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'VazirLocal', Vazirmatn, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .guide-header {
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 100px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .guide-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('{% static "images/guides/lighting-hero.jpg" %}') center/cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .guide-header .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .guide-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .guide-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content-section {
+            padding: 60px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b35, #e55a2b);
+            border-radius: 2px;
+        }
+        
+        .lighting-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        .lighting-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .lighting-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+            border-radius: 2px;
+        }
+        
+        .lighting-icon {
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .guide-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            margin: 1.5rem 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            border-radius: 20px;
+            margin: 3rem 0;
+        }
+        
+        .btn-cta {
+            background: linear-gradient(90deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+        
+        .lighting-type {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 1px solid #2196f3;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .lighting-type h4 {
+            color: #1976d2;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    {% include 'chidmano/navbar.html' %}
+
+    <header class="guide-header text-center">
+        <div class="container">
+            <h1 class="guide-title">طراحی نورپردازی فروشگاه</h1>
+            <p class="guide-subtitle">راهنمای حرفه‌ای نورپردازی برای افزایش فروش و جذب مشتری</p>
+        </div>
+    </header>
+
+    <main>
+        <section class="content-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <h2 class="section-title">مقدمه: قدرت نور در فروشگاه</h2>
+                        <p class="lead">نورپردازی مناسب می‌تواند فروش را تا 30% افزایش دهد. نور نه تنها برای دیدن محصولات ضروری است، بلکه بر احساسات و رفتار مشتریان تأثیر مستقیم دارد.</p>
+                        
+                        <img src="{% static 'images/guides/lighting-hero.jpg' %}" alt="نورپردازی فروشگاه" class="guide-image">
+                        
+                        <h3 class="section-title">انواع نورپردازی فروشگاه</h3>
+                        
+                        <div class="lighting-type">
+                            <h4>💡 نورپردازی عمومی (Ambient Lighting)</h4>
+                            <p><strong>هدف:</strong> تأمین نور کلی فضای فروشگاه</p>
+                            <p><strong>کاربرد:</strong> نور سقفی، چراغ‌های دیواری</p>
+                            <p><strong>نکته:</strong> باید به اندازه کافی روشن باشد تا مشتری احساس راحتی کند</p>
+                        </div>
+                        
+                        <div class="lighting-type">
+                            <h4>🎯 نورپردازی تاکیدی (Accent Lighting)</h4>
+                            <p><strong>هدف:</strong> جلب توجه به محصولات خاص</p>
+                            <p><strong>کاربرد:</strong> نورپردازی ویترین، محصولات ویژه</p>
+                            <p><strong>نکته:</strong> باید 3-5 برابر روشن‌تر از نور عمومی باشد</p>
+                        </div>
+                        
+                        <div class="lighting-type">
+                            <h4>📦 نورپردازی وظیفه‌ای (Task Lighting)</h4>
+                            <p><strong>هدف:</strong> تأمین نور برای فعالیت‌های خاص</p>
+                            <p><strong>کاربرد:</strong> صندوق، میز مشاوره، بخش خواندن</p>
+                            <p><strong>نکته:</strong> باید بدون سایه و خیره‌کننده باشد</p>
+                        </div>
+                        
+                        <h3 class="section-title">اصول طراحی نورپردازی</h3>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <div class="lighting-icon">🌅</div>
+                                    <h4>نور طبیعی</h4>
+                                    <p><strong>مزایا:</strong> کاهش هزینه انرژی، بهبود روحیه مشتری</p>
+                                    <p><strong>راهکار:</strong> استفاده از پنجره‌ها و نورگیرها</p>
+                                    <p><strong>نکته:</strong> باید قابل کنترل باشد تا از خیره شدن جلوگیری شود</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <div class="lighting-icon">⚡</div>
+                                    <h4>نور مصنوعی</h4>
+                                    <p><strong>مزایا:</strong> کنترل کامل، قابلیت تنظیم</p>
+                                    <p><strong>راهکار:</strong> استفاده از LED و لامپ‌های کم مصرف</p>
+                                    <p><strong>نکته:</strong> باید رنگ طبیعی داشته باشد</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <div class="lighting-icon">🎨</div>
+                                    <h4>دمای رنگ</h4>
+                                    <p><strong>گرم (2700-3000K):</strong> فضای صمیمی و راحت</p>
+                                    <p><strong>خنثی (4000-5000K):</strong> فضای حرفه‌ای و روشن</p>
+                                    <p><strong>سرد (6000K+):</strong> فضای مدرن و تمیز</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <div class="lighting-icon">💡</div>
+                                    <h4>شدت نور</h4>
+                                    <p><strong>فروشگاه عمومی:</strong> 300-500 لوکس</p>
+                                    <p><strong>ویترین:</strong> 1000-1500 لوکس</p>
+                                    <p><strong>صندوق:</strong> 500-750 لوکس</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="section-title">نورپردازی بخش‌های مختلف فروشگاه</h3>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <div class="lighting-card">
+                                    <h4>🚪 ورودی فروشگاه</h4>
+                                    <p><strong>هدف:</strong> جذب مشتری و ایجاد اولین تأثیر</p>
+                                    <p><strong>راهکار:</strong> نورپردازی جذاب و دعوت‌کننده</p>
+                                    <p><strong>نکته:</strong> باید از بیرون قابل مشاهده باشد</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-4">
+                                <div class="lighting-card">
+                                    <h4>🛍️ بخش فروش</h4>
+                                    <p><strong>هدف:</strong> نمایش بهتر محصولات</p>
+                                    <p><strong>راهکار:</strong> نورپردازی یکنواخت و بدون سایه</p>
+                                    <p><strong>نکته:</strong> باید رنگ محصولات را طبیعی نشان دهد</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-4">
+                                <div class="lighting-card">
+                                    <h4>💳 صندوق</h4>
+                                    <p><strong>هدف:</strong> تسهیل فرآیند پرداخت</p>
+                                    <p><strong>راهکار:</strong> نورپردازی روشن و بدون خیره‌کنندگی</p>
+                                    <p><strong>نکته:</strong> باید امنیت را تأمین کند</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="section-title">تکنیک‌های پیشرفته نورپردازی</h3>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <h4>🌟 نورپردازی لایه‌ای</h4>
+                                    <p>ترکیب نور عمومی، تاکیدی و وظیفه‌ای برای ایجاد عمق و جذابیت</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <h4>🎭 نورپردازی نمایشی</h4>
+                                    <p>استفاده از نور برای ایجاد نمایش و جلب توجه</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <h4>🌈 نورپردازی رنگی</h4>
+                                    <p>استفاده از رنگ‌های مختلف برای ایجاد فضای خاص</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="lighting-card">
+                                    <h4>⏰ نورپردازی هوشمند</h4>
+                                    <p>تنظیم خودکار نور بر اساس زمان و شرایط</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="section-title">نکات مهم نورپردازی</h3>
+                        
+                        <div class="lighting-type">
+                            <h4>✅ نکات مثبت</h4>
+                            <ul>
+                                <li>استفاده از نور طبیعی تا حد امکان</li>
+                                <li>تنظیم نور بر اساس نوع محصولات</li>
+                                <li>ایجاد تعادل بین نور عمومی و تاکیدی</li>
+                                <li>استفاده از لامپ‌های کم مصرف</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="lighting-type">
+                            <h4>❌ نکات منفی</h4>
+                            <ul>
+                                <li>نورپردازی خیلی روشن یا خیلی کم</li>
+                                <li>ایجاد سایه‌های نامطلوب</li>
+                                <li>استفاده از نور خیره‌کننده</li>
+                                <li>عدم توجه به دمای رنگ</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="cta-section">
+                            <h3>آیا می‌خواهید نورپردازی فروشگاه خود را بهینه کنید؟</h3>
+                            <p>با تحلیل هوشمند چیدمانو، بهترین نورپردازی برای فروشگاه خود را طراحی کنید.</p>
+                            <a href="/store/forms/submit/" class="btn-cta">🚀 شروع تحلیل رایگان</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% include 'chidmano/footer.html' %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

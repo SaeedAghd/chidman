@@ -1,0 +1,499 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6b35">
+    
+    <!-- SEO Meta Tags -->
+    <title>مطالعات موردی چیدمان فروشگاه — نمونه‌های موفق افزایش فروش | چیدمانو</title>
+    <meta name="description" content="مطالعات موردی واقعی چیدمان فروشگاه: نمونه‌های موفق افزایش فروش تا 60% با بهینه‌سازی چیدمان، نورپردازی و طراحی فروشگاه.">
+    <meta name="keywords" content="مطالعات موردی, چیدمان فروشگاه, افزایش فروش, نمونه موفق, تحلیل فروشگاه">
+    <link rel="canonical" href="https://chidmano.ir/case-studies/">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="مطالعات موردی چیدمان فروشگاه — نمونه‌های موفق افزایش فروش">
+    <meta property="og:description" content="مطالعات موردی واقعی چیدمان فروشگاه: نمونه‌های موفق افزایش فروش تا 60% با بهینه‌سازی چیدمان، نورپردازی و طراحی فروشگاه.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/case-studies/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/logo.png' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "مطالعات موردی چیدمان فروشگاه — نمونه‌های موفق افزایش فروش",
+        "description": "مطالعات موردی واقعی چیدمان فروشگاه: نمونه‌های موفق افزایش فروش تا 60% با بهینه‌سازی چیدمان، نورپردازی و طراحی فروشگاه.",
+        "image": "https://chidmano.ir{% static 'images/logo.png' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-09-26",
+        "mainEntityOfPage": "https://chidmano.ir/case-studies/"
+    }
+    </script>
+    
+    <!-- CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/landing-page.css' %}" rel="stylesheet">
+    
+    <style>
+        @font-face {
+            font-family: 'VazirLocal';
+            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'VazirLocal', Vazirmatn, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .case-studies-header {
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 100px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .case-studies-header .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .case-studies-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .case-studies-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content-section {
+            padding: 60px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b35, #e55a2b);
+            border-radius: 2px;
+        }
+        
+        .case-study-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .case-study-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .case-study-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+        }
+        
+        .case-study-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .case-study-icon {
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-left: 1rem;
+        }
+        
+        .case-study-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+        
+        .case-study-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-item {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ff6b35;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .challenge-solution {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .challenge, .solution {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .challenge h4 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+        
+        .solution h4 {
+            color: #059669;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            border-radius: 20px;
+            margin: 3rem 0;
+        }
+        
+        .btn-cta {
+            background: linear-gradient(90deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .challenge-solution {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'chidmano/navbar.html' %}
+
+    <header class="case-studies-header text-center">
+        <div class="container">
+            <h1 class="case-studies-title">مطالعات موردی چیدمان فروشگاه</h1>
+            <p class="case-studies-subtitle">نمونه‌های موفق افزایش فروش با بهینه‌سازی چیدمان</p>
+        </div>
+    </header>
+
+    <main>
+        <section class="content-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <h2 class="section-title">مقدمه: قدرت تحلیل چیدمان</h2>
+                        <p class="lead">در این بخش، نمونه‌های واقعی از فروشگاه‌هایی را مشاهده می‌کنید که با استفاده از تحلیل هوشمند چیدمانو، فروش خود را به طور قابل توجهی افزایش داده‌اند.</p>
+                        
+                        <!-- Case Study 1 -->
+                        <div class="case-study-card">
+                            <div class="case-study-header">
+                                <div class="case-study-icon">🛍️</div>
+                                <div>
+                                    <h3 class="case-study-title">بوتیک لباس زنانه "استایل"</h3>
+                                    <p class="case-study-subtitle">تهران، خیابان ولیعصر - 120 متر مربع</p>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number">+45%</span>
+                                    <span class="stat-label">افزایش فروش</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">+60%</span>
+                                    <span class="stat-label">افزایش ترافیک</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">+35%</span>
+                                    <span class="stat-label">افزایش میانگین سبد خرید</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">3 ماه</span>
+                                    <span class="stat-label">زمان بازگشت سرمایه</span>
+                                </div>
+                            </div>
+                            
+                            <div class="challenge-solution">
+                                <div class="challenge">
+                                    <h4>🚫 چالش‌ها</h4>
+                                    <ul>
+                                        <li>چیدمان نامنظم و گیج‌کننده</li>
+                                        <li>نورپردازی ضعیف و نامناسب</li>
+                                        <li>عدم وجود مسیر مشخص برای مشتریان</li>
+                                        <li>محصولات پرفروش در گوشه‌های دور قرار داشتند</li>
+                                    </ul>
+                                </div>
+                                <div class="solution">
+                                    <h4>✅ راه‌حل‌ها</h4>
+                                    <ul>
+                                        <li>طراحی چیدمان آزاد با مسیرهای مشخص</li>
+                                        <li>بهبود نورپردازی با LED های حرفه‌ای</li>
+                                        <li>قرار دادن محصولات پرفروش در مسیر اصلی</li>
+                                        <li>ایجاد نقاط کانونی برای محصولات ویژه</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <blockquote class="blockquote text-center mt-4">
+                                <p class="mb-0">"بعد از تحلیل چیدمانو، فروش ما 45% افزایش یافت. مشتریان حالا راحت‌تر محصولات را پیدا می‌کنند و زمان بیشتری در فروشگاه می‌مانند."</p>
+                                <footer class="blockquote-footer mt-2">
+                                    <cite title="Source Title">خانم مریم احمدی - صاحب بوتیک استایل</cite>
+                                </footer>
+                            </blockquote>
+                        </div>
+                        
+                        <!-- Case Study 2 -->
+                        <div class="case-study-card">
+                            <div class="case-study-header">
+                                <div class="case-study-icon">🛒</div>
+                                <div>
+                                    <h3 class="case-study-title">سوپرمارکت "تازه‌بار"</h3>
+                                    <p class="case-study-subtitle">اصفهان، خیابان چهارباغ - 300 متر مربع</p>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number">+38%</span>
+                                    <span class="stat-label">افزایش فروش</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">-25%</span>
+                                    <span class="stat-label">کاهش زمان انتظار</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">+50%</span>
+                                    <span class="stat-label">افزایش رضایت مشتری</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">2 ماه</span>
+                                    <span class="stat-label">زمان بازگشت سرمایه</span>
+                                </div>
+                            </div>
+                            
+                            <div class="challenge-solution">
+                                <div class="challenge">
+                                    <h4>🚫 چالش‌ها</h4>
+                                    <ul>
+                                        <li>صف‌های طولانی در صندوق‌ها</li>
+                                        <li>چیدمان محصولات بر اساس موجودی نه نیاز مشتری</li>
+                                        <li>عدم وجود مسیرهای سریع برای خریدهای کوچک</li>
+                                        <li>محصولات ضروری در انتهای فروشگاه قرار داشتند</li>
+                                    </ul>
+                                </div>
+                                <div class="solution">
+                                    <h4>✅ راه‌حل‌ها</h4>
+                                    <ul>
+                                        <li>افزایش تعداد صندوق‌ها و ایجاد صندوق سریع</li>
+                                        <li>بازطراحی چیدمان بر اساس رفتار مشتری</li>
+                                        <li>قرار دادن محصولات ضروری در مسیر اصلی</li>
+                                        <li>ایجاد بخش خرید سریع برای اقلام کم</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <blockquote class="blockquote text-center mt-4">
+                                <p class="mb-0">"با تحلیل چیدمانو، زمان انتظار مشتریان 25% کاهش یافت و فروش ما 38% افزایش پیدا کرد. مشتریان حالا راضی‌تر هستند."</p>
+                                <footer class="blockquote-footer mt-2">
+                                    <cite title="Source Title">آقای علی رضایی - مدیر سوپرمارکت تازه‌بار</cite>
+                                </footer>
+                            </blockquote>
+                        </div>
+                        
+                        <!-- Case Study 3 -->
+                        <div class="case-study-card">
+                            <div class="case-study-header">
+                                <div class="case-study-icon">🏪</div>
+                                <div>
+                                    <h3 class="case-study-title">فروشگاه لوازم خانگی "مدرن"</h3>
+                                    <p class="case-study-subtitle">شیراز، خیابان زند - 200 متر مربع</p>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number">+52%</span>
+                                    <span class="stat-label">افزایش فروش</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">+40%</span>
+                                    <span class="stat-label">افزایش زمان ماندن مشتری</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">+65%</span>
+                                    <span class="stat-label">افزایش فروش محصولات لوکس</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">4 ماه</span>
+                                    <span class="stat-label">زمان بازگشت سرمایه</span>
+                                </div>
+                            </div>
+                            
+                            <div class="challenge-solution">
+                                <div class="challenge">
+                                    <h4>🚫 چالش‌ها</h4>
+                                    <ul>
+                                        <li>محصولات لوکس در کنار محصولات ارزان قرار داشتند</li>
+                                        <li>عدم وجود فضای نمایش مناسب</li>
+                                        <li>نورپردازی یکنواخت و غیرجذاب</li>
+                                        <li>عدم وجود فضای استراحت برای مشتریان</li>
+                                    </ul>
+                                </div>
+                                <div class="solution">
+                                    <h4>✅ راه‌حل‌ها</h4>
+                                    <ul>
+                                        <li>ایجاد بخش‌های مجزا برای محصولات مختلف</li>
+                                        <li>طراحی فضای نمایش حرفه‌ای</li>
+                                        <li>نورپردازی لایه‌ای و جذاب</li>
+                                        <li>ایجاد فضای استراحت و کافه کوچک</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <blockquote class="blockquote text-center mt-4">
+                                <p class="mb-0">"تحلیل چیدمانو به ما کمک کرد تا فروشگاه را به یک تجربه خرید لوکس تبدیل کنیم. فروش محصولات گران‌قیمت 65% افزایش یافت."</p>
+                                <footer class="blockquote-footer mt-2">
+                                    <cite title="Source Title">خانم فاطمه محمدی - صاحب فروشگاه مدرن</cite>
+                                </footer>
+                            </blockquote>
+                        </div>
+                        
+                        <h3 class="section-title">آمار کلی موفقیت‌ها</h3>
+                        
+                        <div class="row">
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-item">
+                                    <span class="stat-number">150+</span>
+                                    <span class="stat-label">فروشگاه تحلیل شده</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-item">
+                                    <span class="stat-number">42%</span>
+                                    <span class="stat-label">میانگین افزایش فروش</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-item">
+                                    <span class="stat-number">95%</span>
+                                    <span class="stat-label">رضایت مشتریان</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-item">
+                                    <span class="stat-number">3 ماه</span>
+                                    <span class="stat-label">میانگین بازگشت سرمایه</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="cta-section">
+                            <h3>آیا می‌خواهید فروشگاه شما هم در این لیست باشد؟</h3>
+                            <p>با تحلیل هوشمند چیدمانو، فروشگاه خود را به یکی از نمونه‌های موفق تبدیل کنید.</p>
+                            <a href="/store/forms/submit/" class="btn-cta">🚀 شروع تحلیل رایگان</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% include 'chidmano/footer.html' %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

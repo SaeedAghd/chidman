@@ -5,445 +5,294 @@
 
 {% block extra_css %}
 <style>
-    /* Wallet Dashboard Specific Styles */
-
+    /* Modern Wallet Dashboard Design */
     .wallet-container {
-        max-width: 1400px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
-        position: relative;
+        background: #f8fafc;
+        min-height: 100vh;
     }
 
-    /* Animated Background Elements */
-    .wallet-container::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-        opacity: 0.3;
-        z-index: -1;
-        animation: float 20s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(1deg); }
-    }
-
-    /* Glass Morphism Header */
-    .wallet-header {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 30px;
-        padding: 3rem;
-        margin-bottom: 3rem;
+    /* Welcome Message */
+    .welcome-message {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
         text-align: center;
-        box-shadow: var(--shadow-soft);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .welcome-message h4 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+    }
+
+    .welcome-message p {
+        margin: 0;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+    }
+
+    /* Wallet Header */
+    .wallet-header {
+        background: white;
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
         position: relative;
         overflow: hidden;
-        color: white;
     }
 
     .wallet-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: var(--primary-gradient);
-        opacity: 0.1;
-        animation: rotate 30s linear infinite;
-        z-index: -1;
-    }
-
-    @keyframes rotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .wallet-title {
-        font-size: 3rem;
-        font-weight: 800;
-        margin-bottom: 1rem;
-        background: linear-gradient(45deg, #fff, #f0f0f0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
-
-    .balance-display {
-        font-size: 4rem;
-        font-weight: 900;
-        margin: 2rem 0;
-        background: linear-gradient(45deg, #fff, #e8f4fd);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 6px 12px rgba(0,0,0,0.4);
-        position: relative;
-        display: inline-block;
-    }
-
-    .balance-display::after {
-        content: '💰';
-        position: absolute;
-        top: -10px;
-        right: -50px;
-        font-size: 2rem;
-        animation: bounce 2s ease-in-out infinite;
-    }
-
-    @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-10px); }
-        60% { transform: translateY(-5px); }
-    }
-
-    .balance-subtitle {
-        font-size: 1.2rem;
-        opacity: 0.9;
-        font-weight: 300;
-    }
-
-    /* Modern Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
-
-    .stat-card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 25px;
-        padding: 2rem;
-        box-shadow: var(--shadow-soft);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-        color: white;
-    }
-
-    .stat-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         height: 4px;
-        background: var(--success-gradient);
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
+        background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
     }
 
-    .stat-card:hover::before {
-        transform: scaleX(1);
+    .wallet-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+    }
+
+    .balance-display {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+    }
+
+    .balance-subtitle {
+        font-size: 1.125rem;
+        color: #64748b;
+        margin-bottom: 2rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+    }
+
+    /* Payment Button */
+    .payment-section {
+        margin-top: 2rem;
+    }
+
+    .payment-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .payment-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        text-decoration: none;
+        color: white;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
     }
 
     .stat-card:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: var(--shadow-hover);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
     }
-
-    .stat-card.success::before { background: var(--success-gradient); }
-    .stat-card.warning::before { background: var(--warning-gradient); }
-    .stat-card.info::before { background: var(--info-gradient); }
 
     .stat-icon {
-        font-size: 3rem;
+        font-size: 2.5rem;
         margin-bottom: 1rem;
         display: block;
-        animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
     }
 
     .stat-number {
-        font-size: 2.5rem;
-        font-weight: 800;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
         margin-bottom: 0.5rem;
-        background: linear-gradient(45deg, #fff, #f0f0f0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
     .stat-label {
-        font-size: 1rem;
-        opacity: 0.8;
-        font-weight: 300;
+        font-size: 0.875rem;
+        color: #64748b;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
-    /* Modern Action Cards */
+    /* Wallet Actions */
     .wallet-actions {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
 
     .action-card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 25px;
-        padding: 2.5rem;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
         text-align: center;
-        box-shadow: var(--shadow-soft);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-        color: white;
-    }
-
-    .action-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--primary-gradient);
-        opacity: 0.1;
-        transform: scale(0);
-        transition: transform 0.3s ease;
-        z-index: -1;
-    }
-
-    .action-card:hover::before {
-        transform: scale(1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
     }
 
     .action-card:hover {
-        transform: translateY(-15px) scale(1.05);
-        box-shadow: var(--shadow-hover);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
     }
 
     .action-icon {
-        font-size: 4rem;
-        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
         display: block;
-        animation: floatIcon 3s ease-in-out infinite;
-    }
-
-    @keyframes floatIcon {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
     }
 
     .action-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        background: linear-gradient(45deg, #fff, #f0f0f0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
     .action-description {
-        font-size: 1rem;
-        opacity: 0.8;
-        margin-bottom: 2rem;
-        font-weight: 300;
+        color: #64748b;
+        margin-bottom: 1.5rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
-    .btn-action {
-        background: var(--primary-gradient);
+    .action-btn {
+        background: #3b82f6;
         color: white;
         border: none;
-        padding: 1rem 2rem;
-        border-radius: 50px;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
         text-decoration: none;
         display: inline-block;
-        font-weight: 600;
-        font-size: 1.1rem;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        position: relative;
-        overflow: hidden;
     }
 
-    .btn-action::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s;
-    }
-
-    .btn-action:hover::before {
-        left: 100%;
-    }
-
-    .btn-action:hover {
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-        color: white;
+    .action-btn:hover {
+        background: #2563eb;
         text-decoration: none;
+        color: white;
     }
 
-    /* Modern Transactions Section */
+    /* Transactions Section */
     .transactions-section {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 25px;
-        padding: 2.5rem;
-        box-shadow: var(--shadow-soft);
-        color: white;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
     }
 
     .section-title {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 2rem;
-        background: linear-gradient(45deg, #fff, #f0f0f0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        position: relative;
-        padding-bottom: 1rem;
-    }
-
-    .section-title::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 60px;
-        height: 3px;
-        background: var(--success-gradient);
-        border-radius: 2px;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
     .transaction-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1.5rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
-        border-radius: 15px;
-        margin-bottom: 0.5rem;
-    }
-
-    .transaction-item:hover {
-        background: rgba(255, 255, 255, 0.05);
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f1f5f9;
     }
 
     .transaction-item:last-child {
         border-bottom: none;
     }
 
-    .transaction-info {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
+    .transaction-details {
+        flex: 1;
     }
 
-    .transaction-icon {
-        font-size: 2rem;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--glass-bg);
-        border-radius: 50%;
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
+    .transaction-type {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
-    .transaction-details h6 {
-        margin: 0;
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: white;
-    }
-
-    .transaction-details small {
-        opacity: 0.7;
-        font-size: 0.9rem;
+    .transaction-description {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
     .transaction-amount {
-        font-weight: 700;
-        font-size: 1.3rem;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
     .transaction-amount.positive {
-        color: #4ade80;
-        background: rgba(74, 222, 128, 0.1);
+        color: #10b981;
     }
 
     .transaction-amount.negative {
-        color: #f87171;
-        background: rgba(248, 113, 113, 0.1);
+        color: #ef4444;
     }
 
     .no-transactions {
         text-align: center;
-        padding: 4rem 2rem;
-        opacity: 0.8;
-    }
-
-    .no-transactions p {
-        font-size: 1.2rem;
-        margin-bottom: 2rem;
-    }
-
-    .welcome-message {
-        background: var(--success-gradient);
-        color: white;
-        border-radius: 20px;
+        color: #64748b;
         padding: 2rem;
-        margin-bottom: 2rem;
-        text-align: center;
-        box-shadow: var(--shadow-soft);
-        animation: slideInDown 0.8s ease-out;
-    }
-
-    @keyframes slideInDown {
-        0% {
-            transform: translateY(-100px);
-            opacity: 0;
-        }
-        100% {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .welcome-message h4 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        font-weight: 700;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
     /* Responsive Design */
@@ -460,27 +309,17 @@
             font-size: 2.5rem;
         }
         
-        .stats-grid,
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
         .wallet-actions {
             grid-template-columns: 1fr;
         }
         
-        .action-card,
         .stat-card {
             padding: 1.5rem;
         }
-    }
-
-    /* Loading Animation */
-    .loading-shimmer {
-        background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
-        background-size: 200% 100%;
-        animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
     }
 </style>
 {% endblock %}
@@ -494,169 +333,96 @@
     </div>
     {% endif %}
     
-    <!-- هدر کیف پول -->
-    <div class="glass-header">
-        <h1 class="text-gradient">💎 کیف پول من</h1>
-        <div class="balance-display text-gradient">{{ wallet.get_balance_display }}</div>
-        <p class="balance-subtitle">موجودی فعلی شما</p>
+    <!-- Wallet Header -->
+    <div class="wallet-header">
+        <h1 class="wallet-title">💎 کیف پول من</h1>
+        {% if error %}
+            <div class="balance-display" style="color: #ef4444;">خطا در بارگذاری</div>
+            <p class="balance-subtitle">سیستم کیف پول در حال راه‌اندازی است</p>
+        {% else %}
+            <div class="balance-display">{{ wallet.get_balance_display }}</div>
+            <p class="balance-subtitle">موجودی فعلی شما</p>
+        {% endif %}
+        
+        <!-- Payment Button -->
+        <div class="payment-section">
+            {% if not error %}
+                <a href="{% url 'store_analysis:deposit_to_wallet' %}" class="payment-btn">
+                    💳 شارژ کیف پول
+                </a>
+            {% else %}
+                <button class="payment-btn" disabled style="opacity: 0.5;">
+                    💳 شارژ کیف پول (غیرفعال)
+                </button>
+            {% endif %}
+        </div>
     </div>
     
-    <!-- آمار کلی -->
+    <!-- Stats Grid -->
     <div class="stats-grid">
-        <div class="card-modern">
-            <span class="icon-modern icon-pulse">📈</span>
-            <div class="stat-number text-gradient">{{ total_deposits|floatformat:0|add:0|floatformat:0 }}</div>
+        <div class="stat-card">
+            <span class="stat-icon">📈</span>
+            <div class="stat-number">{{ total_deposits|floatformat:0|add:0|floatformat:0 }}</div>
             <div class="stat-label">کل واریزها (تومان)</div>
         </div>
-        
-        <div class="card-modern">
-            <span class="icon-modern icon-pulse">📉</span>
-            <div class="stat-number text-gradient">{{ total_withdrawals|floatformat:0|add:0|floatformat:0 }}</div>
+        <div class="stat-card">
+            <span class="stat-icon">📉</span>
+            <div class="stat-number">{{ total_withdrawals|floatformat:0|add:0|floatformat:0 }}</div>
             <div class="stat-label">کل برداشت‌ها (تومان)</div>
         </div>
-        
-        <div class="card-modern">
-            <span class="icon-modern icon-pulse">🔄</span>
-            <div class="stat-number text-gradient">{{ recent_transactions|length }}</div>
+        <div class="stat-card">
+            <span class="stat-icon">🔄</span>
+            <div class="stat-number">{{ recent_transactions|length }}</div>
             <div class="stat-label">آخرین تراکنش‌ها</div>
         </div>
     </div>
     
-    <!-- عملیات کیف پول -->
+    <!-- Wallet Actions -->
     <div class="wallet-actions">
-        <div class="card-modern">
-            <span class="icon-modern">💳</span>
-            <div class="action-title text-gradient">واریز</div>
+        <a href="{% url 'store_analysis:deposit_to_wallet' %}" class="action-card">
+            <span class="action-icon">💳</span>
+            <div class="action-title">واریز</div>
             <div class="action-description">واریز مبلغ به کیف پول</div>
-            <a href="{% url 'store_analysis:deposit_to_wallet' %}" class="btn-modern btn-success">واریز</a>
-        </div>
-        
-        <div class="card-modern">
-            <span class="icon-modern">💸</span>
-            <div class="action-title text-gradient">برداشت</div>
+            <span class="action-btn">واریز</span>
+        </a>
+        <a href="{% url 'store_analysis:withdraw_from_wallet' %}" class="action-card">
+            <span class="action-icon">💸</span>
+            <div class="action-title">برداشت</div>
             <div class="action-description">برداشت مبلغ از کیف پول</div>
-            <a href="{% url 'store_analysis:withdraw_from_wallet' %}" class="btn-modern btn-warning">برداشت</a>
-        </div>
-        
-        <div class="card-modern">
-            <span class="icon-modern">📋</span>
-            <div class="action-title text-gradient">تراکنش‌ها</div>
+            <span class="action-btn">برداشت</span>
+        </a>
+        <a href="{% url 'store_analysis:wallet_transactions' %}" class="action-card">
+            <span class="action-icon">📋</span>
+            <div class="action-title">تراکنش‌ها</div>
             <div class="action-description">مشاهده تمام تراکنش‌ها</div>
-            <a href="{% url 'store_analysis:wallet_transactions' %}" class="btn-modern btn-primary">مشاهده</a>
-        </div>
+            <span class="action-btn">مشاهده</span>
+        </a>
     </div>
     
-    <!-- آخرین تراکنش‌ها -->
-    <div class="card-modern">
-        <h3 class="section-title text-gradient">📊 آخرین تراکنش‌ها</h3>
-        
+    <!-- Recent Transactions -->
+    <div class="transactions-section">
+        <h3 class="section-title">📊 آخرین تراکنش‌ها</h3>
         {% if recent_transactions %}
             {% for transaction in recent_transactions %}
             <div class="transaction-item">
-                <div class="transaction-info">
-                    <div class="transaction-icon">{{ transaction.get_transaction_icon }}</div>
-                    <div class="transaction-details">
-                        <h6>{{ transaction.get_transaction_type_display }}</h6>
-                        <small>{{ transaction.description }} - {{ transaction.created_at|date:"Y/m/d H:i" }}</small>
-                    </div>
+                <div class="transaction-details">
+                    <div class="transaction-type">{{ transaction.get_transaction_type_display }}</div>
+                    <div class="transaction-description">{{ transaction.description }} - {{ transaction.created_at|date:"Y/m/d H:i" }}</div>
                 </div>
                 <div class="transaction-amount {% if transaction.is_positive %}positive{% else %}negative{% endif %}">
                     {% if transaction.is_positive %}+{% else %}-{% endif %}{{ transaction.get_amount_display }}
                 </div>
             </div>
             {% endfor %}
-            
             <div class="text-center mt-4">
-                <a href="{% url 'store_analysis:wallet_transactions' %}" class="btn-action">مشاهده همه تراکنش‌ها</a>
+                <a href="{% url 'store_analysis:wallet_transactions' %}" class="action-btn">مشاهده همه تراکنش‌ها</a>
             </div>
         {% else %}
             <div class="no-transactions">
                 <p>هنوز تراکنشی انجام نداده‌اید</p>
-                <a href="{% url 'store_analysis:deposit_to_wallet' %}" class="btn-action">اولین واریز را انجام دهید</a>
+                <a href="{% url 'store_analysis:deposit_to_wallet' %}" class="action-btn">اولین واریز را انجام دهید</a>
             </div>
         {% endif %}
     </div>
 </div>
-
-<script>
-// Add some interactive animations
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate stat cards on scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animation = 'slideInUp 0.6s ease-out forwards';
-            }
-        });
-    }, observerOptions);
-
-    document.querySelectorAll('.stat-card, .action-card').forEach(card => {
-        observer.observe(card);
-    });
-
-    // Add click ripple effect
-    document.querySelectorAll('.btn-action').forEach(button => {
-        button.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            ripple.classList.add('ripple');
-            
-            this.appendChild(ripple);
-            
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-    });
-});
-
-// Add CSS for ripple effect
-const style = document.createElement('style');
-style.textContent = `
-    .btn-action {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .ripple {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(0);
-        animation: ripple-animation 0.6s linear;
-        pointer-events: none;
-    }
-    
-    @keyframes ripple-animation {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-    
-    @keyframes slideInUp {
-        from {
-            transform: translateY(30px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(style);
-</script>
 {% endblock %}

@@ -1,0 +1,436 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6b35">
+    
+    <!-- SEO Meta Tags -->
+    <title>همکاری با چیدمانو — شراکت و همکاری در تحلیل فروشگاه | چیدمانو</title>
+    <meta name="description" content="فرصت‌های همکاری با چیدمانو: شراکت تجاری، نمایندگی، همکاری در تولید محتوا و توسعه فناوری تحلیل فروشگاه.">
+    <meta name="keywords" content="همکاری با چیدمانو, شراکت تجاری, نمایندگی, همکاری محتوا, توسعه فناوری">
+    <link rel="canonical" href="https://chidmano.ir/partnership/">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="همکاری با چیدمانو — شراکت و همکاری در تحلیل فروشگاه">
+    <meta property="og:description" content="فرصت‌های همکاری با چیدمانو: شراکت تجاری، نمایندگی، همکاری در تولید محتوا و توسعه فناوری تحلیل فروشگاه.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/partnership/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/logo.png' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "همکاری با چیدمانو — شراکت و همکاری در تحلیل فروشگاه",
+        "description": "فرصت‌های همکاری با چیدمانو: شراکت تجاری، نمایندگی، همکاری در تولید محتوا و توسعه فناوری تحلیل فروشگاه.",
+        "image": "https://chidmano.ir{% static 'images/logo.png' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-09-26",
+        "mainEntityOfPage": "https://chidmano.ir/partnership/"
+    }
+    </script>
+    
+    <!-- CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/landing-page.css' %}" rel="stylesheet">
+    
+    <style>
+        @font-face {
+            font-family: 'VazirLocal';
+            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'VazirLocal', Vazirmatn, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .partnership-header {
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 100px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .partnership-header .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .partnership-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .partnership-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content-section {
+            padding: 60px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b35, #e55a2b);
+            border-radius: 2px;
+        }
+        
+        .partnership-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .partnership-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .partnership-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+        }
+        
+        .partnership-icon {
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .benefits-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .benefits-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .benefits-list li::before {
+            content: '✅';
+            margin-left: 0.5rem;
+        }
+        
+        .contact-form {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(90deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-item {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ff6b35;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    {% include 'chidmano/navbar.html' %}
+
+    <header class="partnership-header text-center">
+        <div class="container">
+            <h1 class="partnership-title">همکاری با چیدمانو</h1>
+            <p class="partnership-subtitle">فرصت‌های شراکت و همکاری در انقلاب تحلیل فروشگاه</p>
+        </div>
+    </header>
+
+    <main>
+        <section class="content-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <h2 class="section-title">چرا با چیدمانو همکاری کنید؟</h2>
+                        <p class="lead">چیدمانو اولین پلتفرم تحلیل هوشمند فروشگاه در ایران است که با استفاده از هوش مصنوعی، انقلابی در صنعت خرده‌فروشی ایجاد کرده است.</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-number">150+</span>
+                                <span class="stat-label">فروشگاه تحلیل شده</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">42%</span>
+                                <span class="stat-label">میانگین افزایش فروش</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">95%</span>
+                                <span class="stat-label">رضایت مشتریان</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">24/7</span>
+                                <span class="stat-label">پشتیبانی</span>
+                            </div>
+                        </div>
+                        
+                        <h3 class="section-title">فرصت‌های همکاری</h3>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="partnership-card">
+                                    <div class="partnership-icon">🤝</div>
+                                    <h4>شراکت تجاری</h4>
+                                    <p>همکاری در توسعه و عرضه خدمات تحلیل فروشگاه به بازارهای جدید</p>
+                                    <ul class="benefits-list">
+                                        <li>سهم از درآمد</li>
+                                        <li>پشتیبانی فنی کامل</li>
+                                        <li>آموزش و راهنمایی</li>
+                                        <li>ابزارهای بازاریابی</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="partnership-card">
+                                    <div class="partnership-icon">🏢</div>
+                                    <h4>نمایندگی</h4>
+                                    <p>نمایندگی انحصاری چیدمانو در شهرها و استان‌های مختلف</p>
+                                    <ul class="benefits-list">
+                                        <li>حق نمایندگی انحصاری</li>
+                                        <li>کمک‌های مالی اولیه</li>
+                                        <li>آموزش تخصصی</li>
+                                        <li>پشتیبانی بازاریابی</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="partnership-card">
+                                    <div class="partnership-icon">📝</div>
+                                    <h4>همکاری محتوا</h4>
+                                    <p>تولید محتوای تخصصی و راهنماهای کاربردی</p>
+                                    <ul class="benefits-list">
+                                        <li>حق‌الزحمه مناسب</li>
+                                        <li>شناسایی نام نویسنده</li>
+                                        <li>دسترسی به منابع تخصصی</li>
+                                        <li>همکاری در پروژه‌های بزرگ</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="partnership-card">
+                                    <div class="partnership-icon">💻</div>
+                                    <h4>توسعه فناوری</h4>
+                                    <p>همکاری در توسعه الگوریتم‌ها و فناوری‌های جدید</p>
+                                    <ul class="benefits-list">
+                                        <li>پروژه‌های تحقیقاتی</li>
+                                        <li>همکاری با دانشگاه‌ها</li>
+                                        <li>توسعه محصولات جدید</li>
+                                        <li>انتشار مقالات علمی</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="section-title">شرایط همکاری</h3>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="partnership-card">
+                                    <h4>📋 الزامات عمومی</h4>
+                                    <ul class="benefits-list">
+                                        <li>تجربه در حوزه خرده‌فروشی یا فناوری</li>
+                                        <li>تعهد به کیفیت و رضایت مشتری</li>
+                                        <li>توانایی کار تیمی و ارتباط مؤثر</li>
+                                        <li>آشنایی با بازار ایران</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="partnership-card">
+                                    <h4>🎯 مزایای همکاری</h4>
+                                    <ul class="benefits-list">
+                                        <li>دسترسی به فناوری پیشرفته</li>
+                                        <li>پشتیبانی فنی 24/7</li>
+                                        <li>آموزش و توسعه مهارت</li>
+                                        <li>شبکه ارتباطات گسترده</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="section-title">درخواست همکاری</h3>
+                        
+                        <div class="contact-form">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">نام و نام خانوادگی *</label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">ایمیل *</label>
+                                        <input type="email" class="form-control" id="email" name="email" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">شماره تماس *</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="company" class="form-label">نام شرکت/سازمان</label>
+                                        <input type="text" class="form-control" id="company" name="company">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="partnership_type" class="form-label">نوع همکاری مورد نظر *</label>
+                                    <select class="form-control" id="partnership_type" name="partnership_type" required>
+                                        <option value="">انتخاب کنید</option>
+                                        <option value="business">شراکت تجاری</option>
+                                        <option value="agency">نمایندگی</option>
+                                        <option value="content">همکاری محتوا</option>
+                                        <option value="tech">توسعه فناوری</option>
+                                        <option value="other">سایر</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="experience" class="form-label">تجربه و سوابق کاری *</label>
+                                    <textarea class="form-control" id="experience" name="experience" rows="4" required placeholder="لطفاً تجربه و سوابق کاری خود را شرح دهید..."></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">پیام اضافی</label>
+                                    <textarea class="form-control" id="message" name="message" rows="3" placeholder="هر پیام یا سوال دیگری دارید..."></textarea>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button type="submit" class="btn-submit">ارسال درخواست همکاری</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="text-center mt-5">
+                            <h4>📞 تماس مستقیم</h4>
+                            <p>برای اطلاعات بیشتر می‌توانید با ما تماس بگیرید:</p>
+                            <p><strong>ایمیل:</strong> partnership@chidmano.ir</p>
+                            <p><strong>تلفن:</strong> 021-12345678</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% include 'chidmano/footer.html' %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

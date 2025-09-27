@@ -1,6 +1,15 @@
 /* Modern UI Framework - Professional Standards */
 /* Version: 1.0.0 */
 
+/* ===== GLOBAL FONT ===== */
+* {
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+}
+
+body {
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+}
+
 /* ===== CSS VARIABLES ===== */
 :root {
     /* Primary Colors */
@@ -107,7 +116,7 @@ body {
     font-size: var(--font-size-base);
     line-height: var(--line-height-normal);
     color: #1a1a1a;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: #f8fafc;
     min-height: 100vh;
     direction: rtl;
     text-align: right;
@@ -521,6 +530,92 @@ textarea.form-control {
         transform: scale(4);
         opacity: 0;
     }
+}
+
+/* ===== FOOTER WHITE STYLING ===== */
+.footer {
+    background: #ffffff !important;
+    color: #333333 !important;
+    padding: 3rem 0 2rem !important;
+    margin-top: auto !important;
+    position: relative !important;
+    width: 100% !important;
+    clear: both !important;
+    border-top: 2px solid #e5e7eb !important;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1) !important;
+}
+
+.footer h5, .footer h6 {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+}
+
+.footer a {
+    color: #6b7280 !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.footer a:hover {
+    color: #1f2937 !important;
+    transform: translateY(-2px) !important;
+}
+
+.footer .text-muted {
+    color: #6b7280 !important;
+}
+
+/* ===== FORCE WHITE FOOTER - HIGHEST SPECIFICITY ===== */
+html body .footer,
+html body footer.footer,
+html body .bg-dark.footer,
+html body .bg-dark,
+html body footer {
+    background: #ffffff !important;
+    color: #333333 !important;
+    border-top: 2px solid #e5e7eb !important;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1) !important;
+    position: relative !important;
+    width: 100% !important;
+    clear: both !important;
+    margin-top: auto !important;
+}
+
+html body .footer h5,
+html body .footer h6,
+html body footer.footer h5,
+html body footer.footer h6,
+html body .bg-dark h5,
+html body .bg-dark h6 {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+}
+
+html body .footer a,
+html body footer.footer a,
+html body .bg-dark a {
+    color: #6b7280 !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+}
+
+html body .footer a:hover,
+html body footer.footer a:hover,
+html body .bg-dark a:hover {
+    color: #1f2937 !important;
+    transform: translateY(-2px) !important;
+}
+
+html body .footer .text-muted,
+html body footer.footer .text-muted,
+html body .bg-dark .text-muted {
+    color: #6b7280 !important;
+}
+
+html body .footer p,
+html body footer.footer p,
+html body .bg-dark p {
+    color: #6b7280 !important;
 }
 
 /* ===== ACCESSIBILITY ===== */

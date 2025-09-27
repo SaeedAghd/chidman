@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block extra_css %}
+<!-- Bootstrap RTL -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css?v=1.3">
 <style>
     .education-hero {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1765,7 +1767,7 @@
                     <h2 class="mb-3">آماده بهینه‌سازی فروشگاه خود هستید؟</h2>
                     <p class="lead mb-4">با استفاده از ابزارهای پیشرفته تحلیل ما، فروشگاه خود را به سطح بعدی ببرید</p>
                     <div class="cta-buttons">
-                        <a href="{% url 'store_analysis:store_analysis' %}" class="btn btn-light btn-lg">
+                        <a href="{% url 'store_analysis:forms' %}" class="btn btn-light btn-lg">
                             <i class="fas fa-chart-bar me-2"></i>
                             شروع تحلیل هوشمند
                         </a>
@@ -1834,5 +1836,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 {% endblock %}

@@ -1,0 +1,66 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'landing' %}">
+            <img src="{% static 'images/logo.png' %}" alt="چیدمانو" height="40">
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'landing' %}">خانه</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store_layout_pillar' %}">راهنمای جامع</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        راهنماها
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'store_layout_guide' %}">راهنمای چیدمان فروشگاه</a></li>
+                        <li><a class="dropdown-item" href="{% url 'supermarket_layout_guide' %}">راهنمای چیدمان سوپرمارکت</a></li>
+                        <li><a class="dropdown-item" href="{% url 'storefront_lighting_guide' %}">نورپردازی فروشگاه</a></li>
+                        <li><a class="dropdown-item" href="{% url 'color_psychology_guide' %}">روانشناسی رنگ</a></li>
+                        <li><a class="dropdown-item" href="{% url 'customer_journey_guide' %}">مسیر مشتری</a></li>
+                        <li><a class="dropdown-item" href="{% url 'lighting_design_guide' %}">طراحی نورپردازی</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'case_studies' %}">مطالعات موردی</a>
+                </li>
+            </ul>
+            
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store_analysis:forms_submit' %}">شروع تحلیل</a>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'store_analysis:user_dashboard' %}">داشبورد</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store_analysis:wallet_dashboard' %}">کیف پول</a></li>
+                            <li><a class="dropdown-item" href="{% url 'store_analysis:support_center' %}">پشتیبانی</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">خروج</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">ورود</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'signup' %}">ثبت‌نام</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

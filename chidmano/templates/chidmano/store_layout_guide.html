@@ -1,0 +1,549 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6b35">
+    
+    <!-- SEO Meta Tags -->
+    <title>راهنمای کامل چیدمان فروشگاه - افزایش فروش تا 30% | چیدمانو</title>
+    <meta name="description" content="راهنمای جامع و حرفه‌ای چیدمان فروشگاه برای افزایش فروش. شامل اصول طراحی، مسیر مشتری، نورپردازی و بهینه‌سازی فضای فروشگاه">
+    <meta name="keywords" content="راهنمای چیدمان فروشگاه, طراحی فروشگاه, افزایش فروش, مسیر مشتری, نورپردازی فروشگاه, بهینه‌سازی فروشگاه">
+    <meta name="author" content="چیدمانو - تیم تحلیل فروشگاه">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="راهنمای کامل چیدمان فروشگاه - افزایش فروش تا 30%">
+    <meta property="og:description" content="راهنمای جامع و حرفه‌ای چیدمان فروشگاه برای افزایش فروش. شامل اصول طراحی، مسیر مشتری، نورپردازی و بهینه‌سازی فضای فروشگاه">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/guide/store-layout/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/guides/store-layout-hero.jpg' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    <meta property="og:locale" content="fa_IR">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="راهنمای کامل چیدمان فروشگاه - افزایش فروش تا 30%">
+    <meta name="twitter:description" content="راهنمای جامع و حرفه‌ای چیدمان فروشگاه برای افزایش فروش">
+    <meta name="twitter:image" content="https://chidmano.ir{% static 'images/guides/store-layout-hero.jpg' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://chidmano.ir/guide/store-layout/">
+    
+    <!-- Resource Hints -->
+    <link rel="preload" href="{% static 'fonts/Vazir.ttf' %}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{% static 'images/guides/store-layout-hero.jpg' %}" as="image">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "راهنمای کامل چیدمان فروشگاه - افزایش فروش تا 30%",
+        "description": "راهنمای جامع و حرفه‌ای چیدمان فروشگاه برای افزایش فروش. شامل اصول طراحی، مسیر مشتری، نورپردازی و بهینه‌سازی فضای فروشگاه",
+        "image": "https://chidmano.ir{% static 'images/guides/store-layout-hero.jpg' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-01-26",
+        "dateModified": "2025-01-26",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://chidmano.ir/guide/store-layout/"
+        },
+        "articleSection": "راهنمای چیدمان فروشگاه",
+        "keywords": ["راهنمای چیدمان فروشگاه", "طراحی فروشگاه", "افزایش فروش", "مسیر مشتری", "نورپردازی فروشگاه"]
+    }
+    </script>
+    
+    <!-- CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ff6b35;
+            --primary-dark: #e55a2b;
+            --secondary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --shadow-xl: 0 2rem 4rem rgba(0, 0, 0, 0.2);
+            
+            --border-radius: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+        }
+        
+        @font-face {
+            font-family: 'VazirLocal';
+            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'VazirLocal', Vazirmatn, sans-serif;
+            line-height: 1.7;
+            color: var(--gray-800);
+        }
+        
+        /* Header */
+        .guide-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 0 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .guide-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('{% static "images/guides/store-layout-hero.jpg" %}') center/cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .guide-header .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .guide-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .guide-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .guide-meta {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-lg);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Content */
+        .guide-content {
+            padding: 4rem 0;
+        }
+        
+        .content-section {
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .guide-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            margin: 2rem 0;
+            transition: transform var(--transition-normal);
+        }
+        
+        .guide-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .info-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 2rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .info-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+        
+        .info-card h4 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-200);
+            position: relative;
+            padding-right: 2rem;
+        }
+        
+        .info-card li:last-child {
+            border-bottom: none;
+        }
+        
+        .info-card li::before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            top: 0.5rem;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: '💡';
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: var(--white);
+            padding: 0.5rem;
+            border-radius: 50%;
+            font-size: 1.5rem;
+        }
+        
+        .highlight-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+            
+            .guide-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .guide-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="guide-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="guide-title">راهنمای کامل چیدمان فروشگاه</h1>
+                    <p class="guide-subtitle">افزایش فروش تا 30% با بهینه‌سازی چیدمان فروشگاه</p>
+                    <div class="guide-meta">
+                        <div class="meta-item">
+                            <span>📅</span>
+                            <span>آخرین به‌روزرسانی: 26 دی 1403</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>⏱️</span>
+                            <span>زمان مطالعه: 15 دقیقه</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>👥</span>
+                            <span>مناسب برای: صاحبان فروشگاه</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="guide-content">
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h2 class="section-title">مقدمه: چرا چیدمان فروشگاه مهم است؟</h2>
+                        <p class="lead">چیدمان فروشگاه یکی از مهم‌ترین عوامل موفقیت در کسب‌وکار خرده‌فروشی است. تحقیقات نشان می‌دهد که یک چیدمان بهینه می‌تواند فروش را تا 30% افزایش دهد.</p>
+                        
+                        <img src="{% static 'images/guides/store-layout-intro.jpg' %}" alt="چیدمان فروشگاه - مقدمه" class="guide-image">
+                        
+                        <p>در این راهنمای جامع، شما با اصول اساسی چیدمان فروشگاه، تکنیک‌های بهینه‌سازی مسیر مشتری، و استراتژی‌های افزایش فروش آشنا خواهید شد.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Principles -->
+            <section class="content-section">
+                <h2 class="section-title">اصول اساسی چیدمان فروشگاه</h2>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>1. اصل جریان مشتری</h4>
+                            <p>مشتریان باید بتوانند به راحتی در فروشگاه حرکت کنند و محصولات را پیدا کنند.</p>
+                            <ul>
+                                <li>مسیرهای واضح و منطقی</li>
+                                <li>جلوگیری از ترافیک و ازدحام</li>
+                                <li>دسترسی آسان به تمام بخش‌ها</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>2. اصل نمایش محصولات</h4>
+                            <p>محصولات باید به گونه‌ای نمایش داده شوند که توجه مشتری را جلب کنند.</p>
+                            <ul>
+                                <li>ارتفاع مناسب قفسه‌ها</li>
+                                <li>فاصله مناسب بین محصولات</li>
+                                <li>استفاده از رنگ‌های جذاب</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/store-layout-principles.jpg' %}" alt="اصول چیدمان فروشگاه" class="guide-image">
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>3. اصل نورپردازی</h4>
+                            <p>نورپردازی مناسب می‌تواند فضای فروشگاه را جذاب‌تر کند.</p>
+                            <ul>
+                                <li>نور طبیعی و مصنوعی متعادل</li>
+                                <li>نورپردازی متمرکز روی محصولات</li>
+                                <li>جلوگیری از سایه‌های مزاحم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>4. اصل رنگ‌بندی</h4>
+                            <p>رنگ‌ها می‌توانند بر رفتار مشتری تأثیر بگذارند.</p>
+                            <ul>
+                                <li>رنگ‌های گرم برای ایجاد احساس راحتی</li>
+                                <li>رنگ‌های سرد برای ایجاد احساس اعتماد</li>
+                                <li>کنتراست مناسب برای خوانایی</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Customer Journey -->
+            <section class="content-section">
+                <h2 class="section-title">بهینه‌سازی مسیر مشتری</h2>
+                
+                <div class="highlight-box">
+                    <h4>نکته مهم</h4>
+                    <p>مشتریان معمولاً از سمت راست فروشگاه وارد می‌شوند و در جهت عقربه‌های ساعت حرکت می‌کنند. این الگو را در طراحی خود در نظر بگیرید.</p>
+                </div>
+                
+                <img src="{% static 'images/guides/customer-journey.jpg' %}" alt="مسیر مشتری در فروشگاه" class="guide-image">
+                
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>مرحله 1: ورود</h4>
+                            <p>اولین تأثیر بر مشتری در لحظه ورود ایجاد می‌شود.</p>
+                            <ul>
+                                <li>ویترین جذاب و تمیز</li>
+                                <li>نورپردازی مناسب</li>
+                                <li>فضای باز و راحت</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>مرحله 2: جستجو</h4>
+                            <p>مشتری به دنبال محصولات مورد نیاز خود می‌گردد.</p>
+                            <ul>
+                                <li>علائم راهنما واضح</li>
+                                <li>دسته‌بندی منطقی محصولات</li>
+                                <li>دسترسی آسان به قفسه‌ها</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="info-card">
+                            <h4>مرحله 3: خرید</h4>
+                            <p>مشتری تصمیم نهایی را می‌گیرد و خرید می‌کند.</p>
+                            <ul>
+                                <li>صندوق‌های پرداخت در دسترس</li>
+                                <li>محصولات تکمیلی در نزدیکی صندوق</li>
+                                <li>تجربه خرید راحت و سریع</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Layout Types -->
+            <section class="content-section">
+                <h2 class="section-title">انواع چیدمان فروشگاه</h2>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>چیدمان خطی (Grid Layout)</h4>
+                            <p>مناسب برای فروشگاه‌های بزرگ و سوپرمارکت‌ها</p>
+                            <ul>
+                                <li>قفسه‌های موازی و منظم</li>
+                                <li>مسیرهای مستقیم و واضح</li>
+                                <li>کنترل بهتر ترافیک مشتری</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>چیدمان آزاد (Free Flow)</h4>
+                            <p>مناسب برای فروشگاه‌های کوچک و بوتیک‌ها</p>
+                            <ul>
+                                <li>انعطاف‌پذیری بیشتر</li>
+                                <li>فضای خلاقانه‌تر</li>
+                                <li>تجربه خرید منحصر به فرد</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <img src="{% static 'images/guides/layout-types.jpg' %}" alt="انواع چیدمان فروشگاه" class="guide-image">
+            </section>
+
+            <!-- Best Practices -->
+            <section class="content-section">
+                <h2 class="section-title">بهترین روش‌های چیدمان فروشگاه</h2>
+                
+                <div class="highlight-box">
+                    <h4>قانون 80/20</h4>
+                    <p>80% از فروش شما از 20% از محصولات شما می‌آید. این محصولات را در مکان‌های پرترافیک قرار دهید.</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>استراتژی‌های افزایش فروش</h4>
+                            <ul>
+                                <li>محصولات پرفروش در انتهای فروشگاه</li>
+                                <li>محصولات تکمیلی در کنار هم</li>
+                                <li>نمایش محصولات جدید در ورودی</li>
+                                <li>استفاده از تخفیف‌ها برای جذب توجه</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <h4>اشتباهات رایج</h4>
+                            <ul>
+                                <li>قفسه‌های خالی و نامرتب</li>
+                                <li>مسیرهای باریک و شلوغ</li>
+                                <li>نورپردازی نامناسب</li>
+                                <li>عدم توجه به نیازهای مشتری</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="content-section">
+                <div class="highlight-box text-center">
+                    <h4>آماده بهینه‌سازی فروشگاه خود هستید؟</h4>
+                    <p>با استفاده از هوش مصنوعی چیدمانو، تحلیل کاملی از فروشگاه خود دریافت کنید و فروش خود را تا 30% افزایش دهید.</p>
+                    <a href="{% url 'store_analysis:forms' %}" class="btn btn-primary btn-lg">
+                        شروع تحلیل هوشمند فروشگاه
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>چیدمانو</h5>
+                    <p>پیشرو در تحلیل و بهینه‌سازی چیدمان فروشگاه با استفاده از هوش مصنوعی</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2025 چیدمانو. تمامی حقوق محفوظ است.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

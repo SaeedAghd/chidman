@@ -1,0 +1,256 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-gift"></i>
+        </div>
+        مدیریت کدهای تخفیف
+    </div>
+    <div class="admin-actions">
+        <a href="#" class="btn-admin btn-primary" onclick="showCreateForm()">
+            <i class="fas fa-plus"></i>
+            کد تخفیف جدید
+        </a>
+        <a href="#" class="btn-admin btn-success">
+            <i class="fas fa-download"></i>
+            خروجی Excel
+        </a>
+    </div>
+</div>
+
+<!-- Create Discount Form -->
+<div class="content-card" id="createForm" style="display: none;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-plus-circle"></i>
+            ایجاد کد تخفیف جدید
+        </div>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">کد تخفیف</label>
+                <input type="text" name="code" class="form-control" placeholder="مثال: WELCOME20" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">نوع تخفیف</label>
+                <select name="discount_type" class="form-control" required>
+                    <option value="">انتخاب کنید</option>
+                    <option value="percentage">درصدی</option>
+                    <option value="fixed">مبلغ ثابت</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">مقدار تخفیف</label>
+                <input type="number" name="discount_value" class="form-control" placeholder="مثال: 20 یا 50000" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">حداکثر استفاده</label>
+                <input type="number" name="max_uses" class="form-control" placeholder="خالی = نامحدود" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">تاریخ انقضا</label>
+                <input type="datetime-local" name="expires_at" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">توضیحات</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="توضیحات اختیاری..."></textarea>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button type="submit" class="btn-admin btn-success">
+                <i class="fas fa-save"></i>
+                ایجاد کد تخفیف
+            </button>
+            <button type="button" class="btn-admin btn-primary" onclick="hideCreateForm()">
+                <i class="fas fa-times"></i>
+                لغو
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Discounts Table -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-list"></i>
+            لیست کدهای تخفیف
+        </div>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>کد تخفیف</th>
+                    <th>نوع</th>
+                    <th>مقدار</th>
+                    <th>استفاده شده</th>
+                    <th>حداکثر</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ انقضا</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for discount in discounts %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 8px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.8rem;">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div>
+                                <div style="color: white; font-weight: 600;">{{ discount.code }}</div>
+                                {% if discount.description %}
+                                    <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.8rem;">{{ discount.description }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if discount.discount_type == 'percentage' %}
+                            <span class="status-badge status-completed">درصدی</span>
+                        {% elif discount.discount_type == 'fixed' %}
+                            <span class="status-badge status-pending">مبلغ ثابت</span>
+                        {% else %}
+                            <span class="status-badge status-pending">{{ discount.discount_type }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="color: white; font-weight: 600;">
+                            {% if discount.discount_type == 'percentage' %}
+                                {{ discount.discount_value }}%
+                            {% else %}
+                                {{ discount.discount_value|floatformat:0 }} تومان
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="color: white; font-weight: 600;">{{ discount.used_count|default:0 }}</div>
+                    </td>
+                    <td>
+                        <div style="color: white; font-weight: 600;">
+                            {% if discount.max_uses %}
+                                {{ discount.max_uses }}
+                            {% else %}
+                                نامحدود
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if discount.is_active %}
+                            <span class="status-badge status-completed">فعال</span>
+                        {% else %}
+                            <span class="status-badge status-inactive">غیرفعال</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if discount.expires_at %}
+                            {{ discount.expires_at|date:"Y/m/d H:i" }}
+                        {% else %}
+                            نامحدود
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="discount_id" value="{{ discount.id }}">
+                                <button type="submit" class="btn-admin {% if discount.is_active %}btn-warning{% else %}btn-success{% endif %}" style="padding: 5px 10px; font-size: 0.8rem;">
+                                    <i class="fas fa-{% if discount.is_active %}pause{% else %}play{% endif %}"></i>
+                                </button>
+                            </form>
+                            <a href="#" class="btn-admin btn-warning" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="#" class="btn-admin btn-danger" style="padding: 5px 10px; font-size: 0.8rem;">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">
+                        <i class="fas fa-gift" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        هیچ کد تخفیفی یافت نشد
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if discounts.has_other_pages %}
+    <div class="pagination">
+        {% if discounts.has_previous %}
+            <a href="?page=1" class="page-link">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            <a href="?page={{ discounts.previous_page_number }}" class="page-link">
+                <i class="fas fa-angle-right"></i>
+            </a>
+        {% endif %}
+        
+        {% for num in discounts.paginator.page_range %}
+            {% if discounts.number == num %}
+                <span class="page-link active">{{ num }}</span>
+            {% elif num > discounts.number|add:'-3' and num < discounts.number|add:'3' %}
+                <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if discounts.has_next %}
+            <a href="?page={{ discounts.next_page_number }}" class="page-link">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            <a href="?page={{ discounts.paginator.num_pages }}" class="page-link">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showCreateForm() {
+    document.getElementById('createForm').style.display = 'block';
+    document.getElementById('createForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideCreateForm() {
+    document.getElementById('createForm').style.display = 'none';
+}
+
+// Auto-hide form after successful submission
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            setTimeout(function() {
+                hideCreateForm();
+            }, 2000);
+        {% endif %}
+    {% endfor %}
+{% endif %}
+</script>
+{% endblock %}
