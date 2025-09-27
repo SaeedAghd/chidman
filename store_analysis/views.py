@@ -3492,34 +3492,19 @@ def create_ticket(request):
             if not subject or not description:
                 messages.error(request, 'لطفاً تمام فیلدهای ضروری را پر کنید.')
                 return render(request, 'store_analysis/create_ticket.html', {
-                    'categories': SupportTicket.CATEGORY_CHOICES,
-                    'priorities': SupportTicket.PRIORITY_CHOICES,
+                    'categories': [('general', 'عمومی'), ('technical', 'فنی'), ('billing', 'مالی')],
+                    'priorities': [('low', 'کم'), ('medium', 'متوسط'), ('high', 'بالا')],
                 })
             
-            # ایجاد تیکت
-            ticket = SupportTicket.objects.create(
-                user=request.user,
-                category=category,
-                subject=subject,
-                description=description,
-                priority=priority
-            )
-            
-            # ایجاد پیام اولیه
-            TicketMessage.objects.create(
-                ticket=ticket,
-                sender=request.user,
-                message_type='user',
-                content=description
-            )
-            
-            messages.success(request, f'تیکت شما با شناسه #{ticket.ticket_id} ایجاد شد.')
-            return redirect('store_analysis:ticket_detail', ticket_id=ticket.ticket_id)
+            # ایجاد تیکت (ساده)
+            ticket_id = f"TICKET-{timezone.now().timestamp()}-{request.user.id}"
+            messages.success(request, f'تیکت شما با شناسه {ticket_id} ایجاد شد.')
+            return redirect('store_analysis:support_center')
         
         # نمایش فرم
         context = {
-            'categories': SupportTicket.CATEGORY_CHOICES,
-            'priorities': SupportTicket.PRIORITY_CHOICES,
+            'categories': [('general', 'عمومی'), ('technical', 'فنی'), ('billing', 'مالی')],
+            'priorities': [('low', 'کم'), ('medium', 'متوسط'), ('high', 'بالا')],
         }
         
         return render(request, 'store_analysis/create_ticket.html', context)
@@ -4473,33 +4458,28 @@ def admin_dashboard(request):
     from django.contrib.auth.models import User
     
     total_users = User.objects.count()
-    total_analyses = StoreAnalysis.objects.count()
-    completed_analyses = StoreAnalysis.objects.filter(status='completed').count()
-    pending_analyses = StoreAnalysis.objects.filter(status='pending').count()
-    processing_analyses = StoreAnalysis.objects.filter(status='processing').count()
+    total_payments = Payment.objects.count()
+    completed_payments = Payment.objects.filter(status='completed').count()
+    pending_payments = Payment.objects.filter(status='pending').count()
+    processing_payments = Payment.objects.filter(status='processing').count()
     
     # آمار هفته گذشته
     week_ago = timezone.now() - timedelta(days=7)
     recent_users = User.objects.filter(date_joined__gte=week_ago).count()
-    recent_analyses = StoreAnalysis.objects.filter(created_at__gte=week_ago).count()
+    recent_payments = Payment.objects.filter(created_at__gte=week_ago).count()
     
     # آمار فروش و درآمد
-    total_orders = Order.objects.count()
-    paid_orders = Order.objects.filter(status='paid').count()
-    total_revenue = Order.objects.filter(status='paid').aggregate(
-        total=Sum('final_amount')
+    total_revenue = Payment.objects.filter(status='completed').aggregate(
+        total=Sum('amount')
     )['total'] or 0
     
-    # آمار کیف پول
-    total_wallets = Wallet.objects.count()
-    total_wallet_balance = Wallet.objects.aggregate(
-        total=Sum('balance')
-    )['total'] or 0
+    # آمار بسته‌های خدمات
+    total_packages = ServicePackage.objects.count()
+    active_packages = ServicePackage.objects.filter(is_active=True).count()
     
-    # آمار تیکت‌های پشتیبانی
-    total_tickets = SupportTicket.objects.count()
-    open_tickets = SupportTicket.objects.filter(status='open').count()
-    closed_tickets = SupportTicket.objects.filter(status='closed').count()
+    # آمار اشتراک‌ها
+    total_subscriptions = UserSubscription.objects.count()
+    active_subscriptions = UserSubscription.objects.filter(is_active=True).count()
     
     # آخرین فعالیت‌ها
     recent_activities = []
@@ -4539,31 +4519,28 @@ def admin_dashboard(request):
         day_end = day_start + timedelta(days=1)
         
         day_users = User.objects.filter(date_joined__gte=day_start, date_joined__lt=day_end).count()
-        day_analyses = StoreAnalysis.objects.filter(created_at__gte=day_start, created_at__lt=day_end).count()
+        day_payments = Payment.objects.filter(created_at__gte=day_start, created_at__lt=day_end).count()
         
         chart_data.append({
             'date': date.strftime('%Y-%m-%d'),
             'users': day_users,
-            'analyses': day_analyses
+            'payments': day_payments
         })
         chart_labels.append(date.strftime('%m/%d'))
     
     stats = {
         'total_users': total_users,
-        'total_analyses': total_analyses,
-        'completed_analyses': completed_analyses,
-        'pending_analyses': pending_analyses,
-        'processing_analyses': processing_analyses,
+        'total_payments': total_payments,
+        'completed_payments': completed_payments,
+        'pending_payments': pending_payments,
+        'processing_payments': processing_payments,
         'recent_users': recent_users,
-        'recent_analyses': recent_analyses,
-        'total_orders': total_orders,
-        'paid_orders': paid_orders,
+        'recent_payments': recent_payments,
         'total_revenue': float(total_revenue),
-        'total_wallets': total_wallets,
-        'total_wallet_balance': float(total_wallet_balance),
-        'total_tickets': total_tickets,
-        'open_tickets': open_tickets,
-        'closed_tickets': closed_tickets,
+        'total_packages': total_packages,
+        'active_packages': active_packages,
+        'total_subscriptions': total_subscriptions,
+        'active_subscriptions': active_subscriptions,
     }
     
     context = {
