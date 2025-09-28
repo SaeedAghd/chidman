@@ -16,6 +16,7 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, Wallet, WalletTransaction, SupportTicket, FAQService, Order, SystemSettings, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile
+from django.contrib.auth.models import User
 # Admin views moved to chidmano.admin_dashboard
 from .ai_analysis import StoreAnalysisAI
 from .ai_services.advanced_ai_manager import AdvancedAIManager
@@ -2336,12 +2337,16 @@ def submit_analysis_request(request):
                 status='pending'
             )
             
-            # ایجاد درخواست تحلیل
-            analysis_request = AnalysisRequest.objects.create(
-                order=order,
-                store_analysis_data=form_data,
-                status='pending'
-            )
+            # ایجاد درخواست تحلیل (اگر مدل موجود باشد)
+            try:
+                from .models import AnalysisRequest
+                analysis_request = AnalysisRequest.objects.create(
+                    order=order,
+                    store_analysis_data=form_data,
+                    status='pending'
+                )
+            except ImportError:
+                analysis_request = None
             
             # اتصال تحلیل به سفارش
             store_analysis.order = order
