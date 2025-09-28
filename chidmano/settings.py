@@ -186,24 +186,32 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
     BASE_DIR / "store_analysis" / "static",
     BASE_DIR / "chidmano" / "static",
 ]
 
-# Static files configuration for production
-if not DEBUG:
-    # Use WhiteNoise with compression
+# Static files configuration for Liara (read-only filesystem)
+if os.getenv('LIARA') == 'true':
+    # Use WhiteNoise without collectstatic for Liara
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-    WHITENOISE_USE_FINDERS = True  # Enable for better compatibility
+    WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
-    WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
+    WHITENOISE_MAX_AGE = 31536000
+    # Don't set STATIC_ROOT for Liara to avoid read-only filesystem issues
+elif not DEBUG:
+    # Use WhiteNoise for serving static files in production
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = True
+    WHITENOISE_MAX_AGE = 31536000
     WHITENOISE_ROOT = BASE_DIR / 'staticfiles'
     WHITENOISE_INDEX_FILE = True
 else:
     # Development static files
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
