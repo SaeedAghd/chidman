@@ -28,11 +28,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan
 PAYMENT_GATEWAY = {
     'PING_PAYMENT': {
         'MERCHANT_ID': '17D62CFE490EA7C6BF20090BEA12A49FEB4482B02F8534696215A6DE23DF684A-1',
-        'API_KEY': os.getenv('PING_API_KEY', 'test-api-key-for-development'),
+        'API_KEY': os.getenv('PING_API_KEY', '73FD876658226A6A5C40A4B00A605CE5F9CC2C9C92ACFA1AEFF3350C9637C831-1'),
         'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'https://chidmano.ir/payment/callback/'),
         'RETURN_URL': os.getenv('PING_RETURN_URL', 'https://chidmano.ir/payment/return/'),
-        'SANDBOX': os.getenv('PING_SANDBOX', 'True').lower() == 'true',
-        'API_URL': 'https://api.pingpayment.ir' if os.getenv('PING_SANDBOX', 'True').lower() == 'false' else 'https://api-sandbox.pingpayment.ir'
+        'SANDBOX': os.getenv('PING_SANDBOX', 'False').lower() == 'true',
+        'API_URL': 'https://api.pingpayment.ir' if os.getenv('PING_SANDBOX', 'False').lower() == 'false' else 'https://api-sandbox.pingpayment.ir'
     }
 }
 
