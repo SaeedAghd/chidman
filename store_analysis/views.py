@@ -5390,9 +5390,10 @@ def admin_promotional_banner_management(request):
     
     try:
         from .models import PromotionalBanner
-    banners = PromotionalBanner.objects.all().order_by('-created_at')
+        banners = PromotionalBanner.objects.all().order_by('-created_at')
     except ImportError:
         banners = []
+    
     context = {
         'banners': banners,
         'page_title': 'مدیریت بنرهای تبلیغاتی'
