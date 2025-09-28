@@ -5163,13 +5163,13 @@ def admin_settings(request):
         
         for key in settings_keys:
             current_settings[key] = SystemSettings.get_setting(key, '')
-    
-    context = {
-            'title': 'تنظیمات سیستم',
-            'settings': current_settings
-    }
-    
-    return render(request, 'store_analysis/admin/settings.html', context)
+        
+        context = {
+                'title': 'تنظیمات سیستم',
+                'settings': current_settings
+        }
+        
+        return render(request, 'store_analysis/admin/settings.html', context)
         
     except Exception as e:
         logger.error(f"Error in admin_settings view: {e}")
