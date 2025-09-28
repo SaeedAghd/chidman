@@ -253,3 +253,674 @@ class UserSubscription(models.Model):
             self.save()
             return True
         return False
+
+
+class StoreAnalysis(models.Model):
+    """
+    Store analysis model for tracking store analysis requests
+    """
+    
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار'),
+        ('processing', 'در حال پردازش'),
+        ('completed', 'تکمیل شده'),
+        ('failed', 'ناموفق'),
+        ('cancelled', 'لغو شده'),
+    ]
+    
+    ANALYSIS_TYPE_CHOICES = [
+        ('basic', 'پایه'),
+        ('professional', 'حرفه‌ای'),
+        ('advanced', 'پیشرفته'),
+        ('custom', 'سفارشی'),
+    ]
+    
+    # Primary fields
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    
+    # Store information
+    store_name = models.CharField(max_length=200, verbose_name='نام فروشگاه')
+    store_url = models.URLField(verbose_name='آدرس فروشگاه')
+    store_description = models.TextField(blank=True, verbose_name='توضیحات فروشگاه')
+    
+    # Analysis details
+    analysis_type = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES, default='basic', verbose_name='نوع تحلیل')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
+    
+    # Results
+    analysis_result = models.JSONField(blank=True, null=True, verbose_name='نتیجه تحلیل')
+    ai_insights = models.TextField(blank=True, verbose_name='بینش‌های هوش مصنوعی')
+    recommendations = models.TextField(blank=True, verbose_name='توصیه‌ها')
+    
+    # Files
+    store_images = models.JSONField(default=list, verbose_name='تصاویر فروشگاه')
+    analysis_files = models.JSONField(default=list, verbose_name='فایل‌های تحلیل')
+    
+    # Pricing
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='قیمت')
+    currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    completed_at = models.DateTimeField(blank=True, null=True, verbose_name='تاریخ تکمیل')
+    
+    class Meta:
+        verbose_name = 'تحلیل فروشگاه'
+        verbose_name_plural = 'تحلیل‌های فروشگاه'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['status']),
+            models.Index(fields=['analysis_type']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.store_name} - {self.get_status_display()}"
+    
+    def mark_completed(self):
+        """Mark analysis as completed"""
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        self.save()
+    
+    def mark_failed(self):
+        """Mark analysis as failed"""
+        self.status = 'failed'
+        self.save()
+
+
+class Wallet(models.Model):
+    """
+    User wallet for managing credits and transactions
+    """
+    
+    TRANSACTION_TYPE_CHOICES = [
+        ('deposit', 'واریز'),
+        ('withdrawal', 'برداشت'),
+        ('payment', 'پرداخت'),
+        ('refund', 'برگشت'),
+        ('bonus', 'پاداش'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='موجودی')
+    currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'کیف پول'
+        verbose_name_plural = 'کیف‌های پول'
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.balance} {self.currency}"
+    
+    def add_balance(self, amount, transaction_type='deposit', description=''):
+        """Add balance to wallet"""
+        self.balance += amount
+        self.save()
+        
+        # Create transaction record
+        WalletTransaction.objects.create(
+            wallet=self,
+            amount=amount,
+            transaction_type=transaction_type,
+            description=description,
+            balance_after=self.balance
+        )
+    
+    def deduct_balance(self, amount, transaction_type='payment', description=''):
+        """Deduct balance from wallet"""
+        if self.balance >= amount:
+            self.balance -= amount
+            self.save()
+            
+            # Create transaction record
+            WalletTransaction.objects.create(
+                wallet=self,
+                amount=-amount,
+                transaction_type=transaction_type,
+                description=description,
+                balance_after=self.balance
+            )
+            return True
+        return False
+
+
+class WalletTransaction(models.Model):
+    """
+    Wallet transaction history
+    """
+    
+    TRANSACTION_TYPE_CHOICES = [
+        ('deposit', 'واریز'),
+        ('withdrawal', 'برداشت'),
+        ('payment', 'پرداخت'),
+        ('refund', 'برگشت'),
+        ('bonus', 'پاداش'),
+    ]
+    
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions', verbose_name='کیف پول')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ')
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES, verbose_name='نوع تراکنش')
+    description = models.TextField(blank=True, verbose_name='توضیحات')
+    balance_after = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='موجودی پس از تراکنش')
+    
+    # Reference to related objects
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='پرداخت')
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'تراکنش کیف پول'
+        verbose_name_plural = 'تراکنش‌های کیف پول'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['wallet']),
+            models.Index(fields=['transaction_type']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.wallet.user.username} - {self.amount} {self.transaction_type}"
+
+
+class SupportTicket(models.Model):
+    """
+    Support ticket model for customer support
+    """
+    
+    STATUS_CHOICES = [
+        ('open', 'باز'),
+        ('in_progress', 'در حال بررسی'),
+        ('resolved', 'حل شده'),
+        ('closed', 'بسته'),
+    ]
+    
+    PRIORITY_CHOICES = [
+        ('low', 'کم'),
+        ('medium', 'متوسط'),
+        ('high', 'بالا'),
+        ('urgent', 'فوری'),
+    ]
+    
+    CATEGORY_CHOICES = [
+        ('technical', 'فنی'),
+        ('billing', 'صورت‌حساب'),
+        ('general', 'عمومی'),
+        ('feature_request', 'درخواست ویژگی'),
+        ('bug_report', 'گزارش باگ'),
+    ]
+    
+    # Primary fields
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket_id = models.CharField(max_length=50, unique=True, default='TEMP-TICKET', verbose_name='شناسه تیکت')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    
+    # Ticket details
+    subject = models.CharField(max_length=200, verbose_name='موضوع')
+    description = models.TextField(verbose_name='توضیحات')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name='دسته‌بندی')
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium', verbose_name='اولویت')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open', verbose_name='وضعیت')
+    
+    # Attachments
+    attachments = models.JSONField(default=list, verbose_name='پیوست‌ها')
+    
+    # Assignment
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, 
+                                   related_name='assigned_tickets', verbose_name='واگذار شده به')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    resolved_at = models.DateTimeField(blank=True, null=True, verbose_name='تاریخ حل')
+    
+    class Meta:
+        verbose_name = 'تیکت پشتیبانی'
+        verbose_name_plural = 'تیکت‌های پشتیبانی'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['status']),
+            models.Index(fields=['category']),
+            models.Index(fields=['priority']),
+            models.Index(fields=['assigned_to']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"#{self.id} - {self.subject}"
+    
+    def mark_resolved(self):
+        """Mark ticket as resolved"""
+        self.status = 'resolved'
+        self.resolved_at = timezone.now()
+        self.save()
+    
+    def close_ticket(self):
+        """Close ticket"""
+        self.status = 'closed'
+        self.save()
+
+
+class FAQService(models.Model):
+    """
+    FAQ service model for frequently asked questions
+    """
+    
+    CATEGORY_CHOICES = [
+        ('general', 'عمومی'),
+        ('technical', 'فنی'),
+        ('billing', 'صورت‌حساب'),
+        ('features', 'ویژگی‌ها'),
+        ('troubleshooting', 'عیب‌یابی'),
+    ]
+    
+    question = models.CharField(max_length=500, verbose_name='سوال')
+    answer = models.TextField(verbose_name='پاسخ')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name='دسته‌بندی')
+    
+    # SEO and display
+    keywords = models.TextField(blank=True, verbose_name='کلمات کلیدی')
+    is_featured = models.BooleanField(default=False, verbose_name='ویژه')
+    sort_order = models.PositiveIntegerField(default=0, verbose_name='ترتیب')
+    
+    # Status
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'سوال متداول'
+        verbose_name_plural = 'سوالات متداول'
+        ordering = ['sort_order', 'category', 'question']
+        indexes = [
+            models.Index(fields=['category']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['is_featured']),
+        ]
+    
+    def __str__(self):
+        return self.question
+
+
+class Order(models.Model):
+    """
+    Order model for tracking store analysis orders
+    """
+    
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار'),
+        ('paid', 'پرداخت شده'),
+        ('processing', 'در حال پردازش'),
+        ('completed', 'تکمیل شده'),
+        ('cancelled', 'لغو شده'),
+        ('refunded', 'برگشت شده'),
+    ]
+    
+    # Primary fields
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    
+    # Order details
+    order_number = models.CharField(max_length=50, unique=True, verbose_name='شماره سفارش')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
+    
+    # Pricing
+    base_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ پایه')
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ تخفیف')
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ نهایی')
+    currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
+    
+    # Payment reference
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='پرداخت')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'سفارش'
+        verbose_name_plural = 'سفارش‌ها'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['status']),
+            models.Index(fields=['order_number']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"Order {self.order_number} - {self.final_amount} {self.currency}"
+    
+    def mark_paid(self):
+        """Mark order as paid"""
+        self.status = 'paid'
+        self.save()
+    
+    def mark_completed(self):
+        """Mark order as completed"""
+        self.status = 'completed'
+        self.save()
+
+
+class SystemSettings(models.Model):
+    """مدل تنظیمات سیستم"""
+    key = models.CharField(max_length=100, unique=True, verbose_name='کلید')
+    value = models.TextField(verbose_name='مقدار')
+    description = models.TextField(blank=True, verbose_name='توضیحات')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'تنظیمات سیستم'
+        verbose_name_plural = 'تنظیمات سیستم'
+        ordering = ['key']
+    
+    def __str__(self):
+        return f"{self.key}: {self.value[:50]}..."
+    
+    @classmethod
+    def get_setting(cls, key, default=None):
+        """دریافت تنظیمات"""
+        try:
+            setting = cls.objects.get(key=key)
+            return setting.value
+        except cls.DoesNotExist:
+            return default
+    
+    @classmethod
+    def set_setting(cls, key, value, description=''):
+        """تنظیم مقدار"""
+        setting, created = cls.objects.get_or_create(
+            key=key,
+            defaults={'value': value, 'description': description}
+        )
+        if not created:
+            setting.value = value
+            setting.description = description
+            setting.save()
+        return setting
+
+
+class PageView(models.Model):
+    """مدل آمار بازدید صفحات"""
+    page_url = models.URLField(verbose_name='آدرس صفحه')
+    page_title = models.CharField(max_length=200, verbose_name='عنوان صفحه')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='کاربر')
+    ip_address = models.GenericIPAddressField(verbose_name='آدرس IP')
+    user_agent = models.TextField(verbose_name='User Agent')
+    referrer = models.URLField(blank=True, null=True, verbose_name='صفحه مرجع')
+    session_id = models.CharField(max_length=100, verbose_name='شناسه جلسه')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ بازدید')
+    
+    class Meta:
+        verbose_name = 'بازدید صفحه'
+        verbose_name_plural = 'بازدیدهای صفحات'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['page_url']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['user']),
+            models.Index(fields=['session_id']),
+        ]
+    
+    def __str__(self):
+        return f"{self.page_title} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class SiteStats(models.Model):
+    """مدل آمار کلی سایت"""
+    date = models.DateField(unique=True, verbose_name='تاریخ')
+    total_views = models.PositiveIntegerField(default=0, verbose_name='کل بازدیدها')
+    unique_visitors = models.PositiveIntegerField(default=0, verbose_name='بازدیدکنندگان منحصر به فرد')
+    new_users = models.PositiveIntegerField(default=0, verbose_name='کاربران جدید')
+    page_views = models.PositiveIntegerField(default=0, verbose_name='بازدید صفحات')
+    avg_session_duration = models.DurationField(null=True, blank=True, verbose_name='میانگین مدت جلسه')
+    bounce_rate = models.FloatField(default=0, verbose_name='نرخ پرش')
+    
+    class Meta:
+        verbose_name = 'آمار سایت'
+        verbose_name_plural = 'آمارهای سایت'
+        ordering = ['-date']
+    
+    def __str__(self):
+        return f"آمار {self.date} - {self.total_views} بازدید"
+
+
+class DiscountCode(models.Model):
+    """مدل کدهای تخفیف"""
+    
+    DISCOUNT_TYPE_CHOICES = [
+        ('percentage', 'درصدی'),
+        ('fixed', 'مبلغ ثابت'),
+    ]
+    
+    code = models.CharField(max_length=50, unique=True, verbose_name='کد تخفیف')
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, default='percentage', verbose_name='نوع تخفیف')
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مقدار تخفیف')
+    discount_percentage = models.PositiveIntegerField(default=0, verbose_name='درصد تخفیف')
+    
+    # محدودیت‌ها
+    max_uses = models.PositiveIntegerField(default=100, verbose_name='حداکثر استفاده')
+    used_count = models.PositiveIntegerField(default=0, verbose_name='تعداد استفاده شده')
+    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='حداقل مبلغ سفارش')
+    
+    # تاریخ‌ها
+    valid_from = models.DateTimeField(default=timezone.now, verbose_name='اعتبار از')
+    valid_until = models.DateTimeField(verbose_name='اعتبار تا')
+    
+    # وضعیت
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    
+    # توضیحات
+    description = models.TextField(blank=True, verbose_name='توضیحات')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'کد تخفیف'
+        verbose_name_plural = 'کدهای تخفیف'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['valid_from']),
+            models.Index(fields=['valid_until']),
+        ]
+    
+    def __str__(self):
+        return f"{self.code} - {self.discount_percentage}%"
+    
+    def is_valid(self):
+        """بررسی اعتبار کد تخفیف"""
+        now = timezone.now()
+        return (
+            self.is_active and
+            self.valid_from <= now <= self.valid_until and
+            self.used_count < self.max_uses
+        )
+    
+    def use_discount(self):
+        """استفاده از کد تخفیف"""
+        if self.is_valid():
+            self.used_count += 1
+            self.save()
+            return True
+        return False
+
+
+class StoreBasicInfo(models.Model):
+    """مدل اطلاعات پایه فروشگاه"""
+    
+    STORE_TYPE_CHOICES = [
+        ('supermarket', 'سوپرمارکت'),
+        ('convenience_store', 'فروشگاه کوچک'),
+        ('department_store', 'فروشگاه بزرگ'),
+        ('specialty_store', 'فروشگاه تخصصی'),
+        ('pharmacy', 'داروخانه'),
+        ('bookstore', 'کتابفروشی'),
+        ('electronics', 'لوازم الکترونیکی'),
+        ('clothing', 'پوشاک'),
+        ('food', 'مواد غذایی'),
+        ('other', 'سایر'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='کاربر')
+    store_name = models.CharField(max_length=200, verbose_name='نام فروشگاه')
+    store_type = models.CharField(max_length=20, choices=STORE_TYPE_CHOICES, verbose_name='نوع فروشگاه')
+    store_location = models.CharField(max_length=300, verbose_name='موقعیت فروشگاه')
+    area = models.CharField(max_length=100, verbose_name='منطقه')
+    city = models.CharField(max_length=100, verbose_name='شهر')
+    
+    # اطلاعات تماس
+    phone = models.CharField(max_length=20, blank=True, verbose_name='تلفن')
+    email = models.EmailField(blank=True, verbose_name='ایمیل')
+    
+    # اطلاعات فیزیکی
+    store_size = models.PositiveIntegerField(verbose_name='مساحت فروشگاه (متر مربع)')
+    employee_count = models.PositiveIntegerField(default=1, verbose_name='تعداد کارکنان')
+    
+    # اطلاعات کسب‌وکار
+    opening_hours = models.CharField(max_length=200, blank=True, verbose_name='ساعات کاری')
+    established_year = models.PositiveIntegerField(null=True, blank=True, verbose_name='سال تاسیس')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'اطلاعات پایه فروشگاه'
+        verbose_name_plural = 'اطلاعات پایه فروشگاه‌ها'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['store_type']),
+            models.Index(fields=['city']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.store_name} - {self.get_store_type_display()}"
+
+
+class StoreAnalysisResult(models.Model):
+    """مدل نتایج تحلیل فروشگاه"""
+    
+    store_analysis = models.OneToOneField(StoreAnalysis, on_delete=models.CASCADE, verbose_name='تحلیل فروشگاه')
+    
+    # نتایج کلی
+    overall_score = models.FloatField(default=0, verbose_name='امتیاز کلی')
+    layout_score = models.FloatField(default=0, verbose_name='امتیاز چیدمان')
+    lighting_score = models.FloatField(default=0, verbose_name='امتیاز نورپردازی')
+    color_score = models.FloatField(default=0, verbose_name='امتیاز رنگ‌بندی')
+    signage_score = models.FloatField(default=0, verbose_name='امتیاز تابلوها')
+    
+    # توصیه‌ها
+    layout_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های چیدمان')
+    lighting_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های نورپردازی')
+    color_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های رنگ‌بندی')
+    signage_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های تابلوها')
+    
+    # فایل‌های تولید شده
+    report_file = models.FileField(upload_to='reports/', blank=True, null=True, verbose_name='فایل گزارش')
+    images_analysis = models.JSONField(default=list, verbose_name='تحلیل تصاویر')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'نتیجه تحلیل فروشگاه'
+        verbose_name_plural = 'نتایج تحلیل فروشگاه‌ها'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"نتیجه تحلیل {self.store_analysis.store_name}"
+
+
+class TicketMessage(models.Model):
+    """مدل پیام‌های تیکت پشتیبانی"""
+    
+    ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE, related_name='messages', verbose_name='تیکت')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='فرستنده')
+    content = models.TextField(verbose_name='محتوای پیام')
+    is_admin_reply = models.BooleanField(default=False, verbose_name='پاسخ ادمین')
+    
+    # پیوست‌ها
+    attachments = models.JSONField(default=list, verbose_name='پیوست‌ها')
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'پیام تیکت'
+        verbose_name_plural = 'پیام‌های تیکت'
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['ticket']),
+            models.Index(fields=['sender']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"پیام از {self.sender.username} - {self.ticket.ticket_id}"
+
+
+class UserProfile(models.Model):
+    """مدل پروفایل کاربر"""
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    
+    # اطلاعات شخصی
+    phone = models.CharField(max_length=20, blank=True, verbose_name='شماره تلفن')
+    address = models.TextField(blank=True, verbose_name='آدرس')
+    birth_date = models.DateField(blank=True, null=True, verbose_name='تاریخ تولد')
+    
+    # تنظیمات حساب
+    legal_agreement_accepted = models.BooleanField(default=False, verbose_name='تایید تعهدنامه')
+    legal_agreement_date = models.DateTimeField(blank=True, null=True, verbose_name='تاریخ تایید تعهدنامه')
+    newsletter_subscription = models.BooleanField(default=True, verbose_name='عضویت در خبرنامه')
+    
+    # تنظیمات اعلان‌ها
+    email_notifications = models.BooleanField(default=True, verbose_name='اعلان‌های ایمیل')
+    sms_notifications = models.BooleanField(default=False, verbose_name='اعلان‌های پیامک')
+    
+    # اطلاعات اضافی
+    bio = models.TextField(blank=True, verbose_name='درباره من')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name='تصویر پروفایل')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'پروفایل کاربر'
+        verbose_name_plural = 'پروفایل‌های کاربران'
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['legal_agreement_accepted']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"پروفایل {self.user.username}"
+    
+    def accept_legal_agreement(self):
+        """تایید تعهدنامه"""
+        self.legal_agreement_accepted = True
+        self.legal_agreement_date = timezone.now()
+        self.save()

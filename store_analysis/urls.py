@@ -100,6 +100,7 @@ urlpatterns = [
         path('pricing/', views.admin_pricing_management, name='admin_pricing'),
         path('discounts/', views.admin_discounts, name='admin_discounts'),
         path('settings/', views.admin_settings, name='admin_settings'),
+        path('analytics/', views.admin_analytics, name='admin_analytics'),
         path('reports/', views.admin_reports, name='admin_reports'),
     ])),
     

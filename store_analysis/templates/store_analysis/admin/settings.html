@@ -37,28 +37,28 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="form-group">
                 <label class="form-label">نام سایت</label>
-                <input type="text" name="site_name" class="form-control" value="چیدمانو" placeholder="نام سایت">
+                <input type="text" name="site_name" class="form-control" value="{{ settings.site_name|default:'چیدمانو' }}" placeholder="نام سایت">
             </div>
             
             <div class="form-group">
                 <label class="form-label">ایمیل پشتیبانی</label>
-                <input type="email" name="support_email" class="form-control" value="support@chidmano.ir" placeholder="ایمیل پشتیبانی">
+                <input type="email" name="support_email" class="form-control" value="{{ settings.support_email|default:'support@chidmano.ir' }}" placeholder="ایمیل پشتیبانی">
             </div>
             
             <div class="form-group">
                 <label class="form-label">شماره تماس</label>
-                <input type="tel" name="contact_phone" class="form-control" value="021-12345678" placeholder="شماره تماس">
+                <input type="tel" name="contact_phone" class="form-control" value="{{ settings.contact_phone|default:'021-12345678' }}" placeholder="شماره تماس">
             </div>
             
             <div class="form-group">
                 <label class="form-label">آدرس</label>
-                <input type="text" name="address" class="form-control" value="تهران، ایران" placeholder="آدرس">
+                <input type="text" name="address" class="form-control" value="{{ settings.address|default:'تهران، ایران' }}" placeholder="آدرس">
             </div>
         </div>
         
         <div class="form-group">
             <label class="form-label">توضیحات سایت</label>
-            <textarea name="site_description" class="form-control" rows="3" placeholder="توضیحات سایت...">پلتفرم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه‌ها</textarea>
+            <textarea name="site_description" class="form-control" rows="3" placeholder="توضیحات سایت...">{{ settings.site_description|default:'پلتفرم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه‌ها' }}</textarea>
         </div>
     </form>
 </div>
@@ -280,30 +280,40 @@
 <script>
 function saveSettings() {
     const form = document.getElementById('settingsForm');
-    const formData = new FormData(form);
-    
-    // Add all form data
-    const allInputs = document.querySelectorAll('input, select, textarea');
-    allInputs.forEach(input => {
-        if (input.name && !formData.has(input.name)) {
-            formData.append(input.name, input.value);
-        }
-    });
-    
-    // Show loading
     const saveBtn = document.querySelector('[onclick="saveSettings()"]');
     const originalText = saveBtn.innerHTML;
+    
+    // Show loading
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ذخیره...';
     saveBtn.disabled = true;
     
-    // Simulate save
-    setTimeout(() => {
+    // Submit form
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            showNotification('تنظیمات با موفقیت ذخیره شد', 'success');
+            // Reload page to show updated settings
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('خطا در ذخیره تنظیمات', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('خطا در ارتباط با سرور', 'error');
+    })
+    .finally(() => {
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
-        
-        // Show success message
-        showNotification('تنظیمات با موفقیت ذخیره شد', 'success');
-    }, 2000);
+    });
 }
 
 function resetSettings() {

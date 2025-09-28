@@ -400,7 +400,7 @@
         <h3 class="section-title">📁 دسته‌بندی‌های سوالات</h3>
         <div class="faq-categories">
             {% for category in faq_categories %}
-            <div class="faq-category" onclick="window.location.href='{% url 'store_analysis:faq_search' %}?category={{ category.id }}'">
+            <div class="faq-category" data-url="{% url 'store_analysis:faq_search' %}?category={{ category.id }}">
                 <span class="faq-category-icon">{{ category.icon|default:"📁" }}</span>
                 <div class="faq-category-title">{{ category.name }}</div>
                 <div class="faq-category-count">{{ category.faq_count }} سوال</div>
@@ -415,7 +415,7 @@
         <h3 class="section-title">🔥 سوالات محبوب</h3>
         
         {% for faq in popular_faqs %}
-        <div class="faq-item" onclick="window.location.href='{% url 'store_analysis:faq_detail' faq.id %}'">
+        <div class="faq-item" data-url="{% url 'store_analysis:faq_detail' faq.id %}">
             <div class="faq-category-badge">{{ faq.category.name }}</div>
             <div class="faq-question">{{ faq.question }}</div>
             <div class="faq-answer">{{ faq.answer|truncatewords:20 }}</div>
@@ -429,23 +429,58 @@
 
     <!-- Ticket System -->
     <div class="contact-methods">
-        <div class="contact-method" onclick="window.location.href='{% url 'store_analysis:create_ticket' %}'">
+        <div class="contact-method" data-url="{% url 'store_analysis:create_ticket' %}">
             <span class="contact-icon">🎫</span>
             <div class="contact-title">ارسال تیکت پشتیبانی</div>
             <div class="contact-info">سوال یا مشکل خود را ارسال کنید</div>
         </div>
         
-        <div class="contact-method" onclick="window.location.href='{% url 'store_analysis:ticket_list' %}'">
+        <div class="contact-method" data-url="{% url 'store_analysis:ticket_list' %}">
             <span class="contact-icon">📋</span>
             <div class="contact-title">تیکت‌های من</div>
             <div class="contact-info">مشاهده وضعیت تیکت‌های ارسالی</div>
         </div>
         
-        <div class="contact-method" onclick="window.location.href='{% url 'store_analysis:faq_search' %}'">
+        <div class="contact-method" data-url="{% url 'store_analysis:faq_search' %}">
             <span class="contact-icon">❓</span>
             <div class="contact-title">سوالات متداول</div>
             <div class="contact-info">پاسخ سوالات رایج کاربران</div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle contact method clicks
+    document.querySelectorAll('.contact-method').forEach(function(element) {
+        element.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Handle FAQ category clicks
+    document.querySelectorAll('.faq-category').forEach(function(element) {
+        element.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Handle FAQ item clicks
+    document.querySelectorAll('.faq-item').forEach(function(element) {
+        element.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+});
+</script>
+
 {% endblock %}

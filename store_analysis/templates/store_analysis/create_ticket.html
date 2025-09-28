@@ -40,12 +40,12 @@
                             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                                 <i class="fas fa-info-circle me-2"></i>
                                 {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
                             </div>
                         {% endfor %}
                     {% endif %}
 
-                    <form method="post" novalidate>
+                    <form id="ticketForm" method="post" novalidate>
                         {% csrf_token %}
                         
                         <!-- دسته‌بندی -->
@@ -173,32 +173,17 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // اعتبارسنجی فرم
-    const form = document.querySelector('form');
+    const form = document.getElementById('ticketForm');
     const subjectInput = document.getElementById('subject');
     const descriptionInput = document.getElementById('description');
+    const submitBtn = document.querySelector('button[type="submit"]');
     
-    form.addEventListener('submit', function(e) {
-        let isValid = true;
-        
-        // بررسی موضوع
-        if (subjectInput.value.trim().length < 5) {
-            alert('موضوع باید حداقل 5 کاراکتر باشد');
-            isValid = false;
-        }
-        
-        // بررسی توضیحات
-        if (descriptionInput.value.trim().length < 20) {
-            alert('توضیحات باید حداقل 20 کاراکتر باشد');
-            isValid = false;
-        }
-        
-        if (!isValid) {
-            e.preventDefault();
-        }
-    });
+    console.log('Form elements:', {form, subjectInput, descriptionInput, submitBtn});
     
     // شمارش کاراکترها
     function updateCharCount(input, minLength) {
+        if (!input) return;
+        
         const currentLength = input.value.length;
         const remaining = minLength - currentLength;
         
@@ -209,13 +194,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    subjectInput.addEventListener('input', function() {
-        updateCharCount(this, 5);
-    });
+    // Event listeners
+    if (subjectInput) {
+        subjectInput.addEventListener('input', function() {
+            updateCharCount(this, 5);
+        });
+    }
     
-    descriptionInput.addEventListener('input', function() {
-        updateCharCount(this, 20);
-    });
+    if (descriptionInput) {
+        descriptionInput.addEventListener('input', function() {
+            updateCharCount(this, 20);
+        });
+    }
+    
+    // Form submission
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitted');
+            
+            let isValid = true;
+            let errorMessage = '';
+            
+            // بررسی دسته‌بندی
+            const categorySelect = document.getElementById('category');
+            if (!categorySelect || !categorySelect.value) {
+                errorMessage += 'لطفاً دسته‌بندی را انتخاب کنید\n';
+                isValid = false;
+            }
+            
+            // بررسی اولویت
+            const prioritySelect = document.getElementById('priority');
+            if (!prioritySelect || !prioritySelect.value) {
+                errorMessage += 'لطفاً اولویت را انتخاب کنید\n';
+                isValid = false;
+            }
+            
+            // بررسی موضوع
+            if (!subjectInput || subjectInput.value.trim().length < 5) {
+                errorMessage += 'موضوع باید حداقل 5 کاراکتر باشد\n';
+                isValid = false;
+            }
+            
+            // بررسی توضیحات
+            if (!descriptionInput || descriptionInput.value.trim().length < 20) {
+                errorMessage += 'توضیحات باید حداقل 20 کاراکتر باشد\n';
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert(errorMessage);
+                return false;
+            }
+            
+            // نمایش لودینگ
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ارسال...';
+            }
+            
+            // اجازه submit شدن فرم به صورت عادی
+            return true;
+        });
+    } else {
+        console.error('Form not found!');
+    }
 });
 </script>
 {% endblock %}

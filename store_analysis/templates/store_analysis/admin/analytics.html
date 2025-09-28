@@ -1,0 +1,230 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="page-title">
+        <div class="page-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        آمار بازدیدکنندگان
+    </div>
+    <div class="admin-actions">
+        <a href="#" class="btn-admin btn-primary" onclick="refreshAnalytics()">
+            <i class="fas fa-sync-alt"></i>
+            بروزرسانی آمار
+        </a>
+    </div>
+</div>
+
+<!-- Today's Stats -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-calendar-day"></i>
+            آمار امروز
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; background: rgba(76, 175, 80, 0.1); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #4CAF50; margin-bottom: 5px;">
+                {{ today_stats.total_views|default:0 }}
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">کل بازدیدها</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(33, 150, 243, 0.1); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #2196F3; margin-bottom: 5px;">
+                {{ today_stats.unique_visitors|default:0 }}
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">بازدیدکنندگان منحصر به فرد</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(255, 193, 7, 0.1); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #FFC107; margin-bottom: 5px;">
+                {{ today_stats.new_users|default:0 }}
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">کاربران جدید</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: rgba(156, 39, 176, 0.1); border-radius: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: #9C27B0; margin-bottom: 5px;">
+                {{ online_users }}
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">کاربران آنلاین</div>
+        </div>
+    </div>
+</div>
+
+<!-- Weekly and Monthly Stats -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <!-- Weekly Stats -->
+    <div class="content-card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-calendar-week"></i>
+                آمار هفته گذشته
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 5px;">
+                    {{ week_stats.total_views|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">کل بازدیدها</div>
+            </div>
+            
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 5px;">
+                    {{ week_stats.unique_visitors|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">بازدیدکنندگان منحصر به فرد</div>
+            </div>
+            
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 5px;">
+                    {{ week_stats.new_users|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">کاربران جدید</div>
+            </div>
+            
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 5px;">
+                    {{ week_stats.page_views|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">بازدید صفحات</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monthly Stats -->
+    <div class="content-card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-calendar-alt"></i>
+                آمار ماه گذشته
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #4CAF50; margin-bottom: 5px;">
+                    {{ month_stats.total_views|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">کل بازدیدها</div>
+            </div>
+            
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #2196F3; margin-bottom: 5px;">
+                    {{ month_stats.unique_visitors|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">بازدیدکنندگان منحصر به فرد</div>
+            </div>
+            
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #FFC107; margin-bottom: 5px;">
+                    {{ month_stats.new_users|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">کاربران جدید</div>
+            </div>
+            
+            <div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #9C27B0; margin-bottom: 5px;">
+                    {{ month_stats.page_views|default:0 }}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;">بازدید صفحات</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Pages -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-fire"></i>
+            محبوب‌ترین صفحات
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>رتبه</th>
+                    <th>عنوان صفحه</th>
+                    <th>آدرس</th>
+                    <th>تعداد بازدید</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in popular_pages %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ page.page_title }}</td>
+                    <td>
+                        <a href="{{ page.page_url }}" target="_blank" style="color: #4CAF50;">
+                            {{ page.page_url|truncatechars:50 }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary">{{ page.view_count }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">هنوز آمار بازدید ثبت نشده است</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Daily Stats Chart -->
+<div class="content-card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-chart-bar"></i>
+            آمار روزانه (7 روز گذشته)
+        </div>
+    </div>
+    
+    <div style="padding: 20px;">
+        {% if daily_stats %}
+        <div style="display: flex; justify-content: space-between; align-items: end; height: 200px; border-bottom: 2px solid rgba(255, 255, 255, 0.2);">
+            {% for stat in daily_stats %}
+            <div style="text-align: center;">
+                <div style="background: linear-gradient(to top, #4CAF50, #2196F3); width: 30px; height: {{ stat.total_views|floatformat:0|add:0|mul:2 }}px; margin: 0 auto 10px; border-radius: 5px 5px 0 0;"></div>
+                <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">{{ stat.date|date:"M d" }}</div>
+                <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.5);">{{ stat.total_views }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.5);">
+            هنوز آمار روزانه ثبت نشده است
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshAnalytics() {
+    const btn = document.querySelector('[onclick="refreshAnalytics()"]');
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال بروزرسانی...';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+</script>
+{% endblock %}

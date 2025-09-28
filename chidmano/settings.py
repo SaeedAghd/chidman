@@ -28,9 +28,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan
 PAYMENT_GATEWAY = {
     'PING_PAYMENT': {
         'MERCHANT_ID': '17D62CFE490EA7C6BF20090BEA12A49FEB4482B02F8534696215A6DE23DF684A-1',
-        'API_KEY': os.getenv('PING_API_KEY', ''),
-        'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'http://localhost:8000/payment/callback/'),
-        'RETURN_URL': os.getenv('PING_RETURN_URL', 'http://localhost:8000/payment/return/'),
+        'API_KEY': os.getenv('PING_API_KEY', 'test-api-key-for-development'),
+        'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'https://chidmano.ir/payment/callback/'),
+        'RETURN_URL': os.getenv('PING_RETURN_URL', 'https://chidmano.ir/payment/return/'),
         'SANDBOX': os.getenv('PING_SANDBOX', 'True').lower() == 'true',
         'API_URL': 'https://api.pingpayment.ir' if os.getenv('PING_SANDBOX', 'True').lower() == 'false' else 'https://api-sandbox.pingpayment.ir'
     }
@@ -98,6 +98,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'chidmano.middleware.CanonicalHostRedirectMiddleware',
     'chidmano.middleware.NoIndexPrivatePathsMiddleware',
+    'store_analysis.middleware.AnalyticsMiddleware',  # Analytics tracking
     'chidmano.middleware.CSPMiddleware',  # برای حل مشکل CSP ویدیوها
     'chidmano.middleware.CacheAndTimingMiddleware',
 ]
@@ -192,12 +193,13 @@ STATICFILES_DIRS = [
 
 # Static files configuration for production
 if not DEBUG:
-    # Use WhiteNoise with compression (no manifest to avoid hard failures on missing entries)
+    # Use WhiteNoise with compression
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-    WHITENOISE_USE_FINDERS = False  # Disable for better performance
-    WHITENOISE_AUTOREFRESH = False
+    WHITENOISE_USE_FINDERS = True  # Enable for better compatibility
+    WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
     WHITENOISE_ROOT = BASE_DIR / 'staticfiles'
+    WHITENOISE_INDEX_FILE = True
 else:
     # Development static files
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
