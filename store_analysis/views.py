@@ -5187,12 +5187,12 @@ def admin_settings(request):
         for key in settings_keys:
             current_settings[key] = SystemSettings.get_setting(key, '')
     
-    context = {
-                'title': 'تنظیمات سیستم',
-                'settings': current_settings
-    }
-    
-    return render(request, 'store_analysis/admin/settings.html', context)
+        context = {
+            'title': 'تنظیمات سیستم',
+            'settings': current_settings
+        }
+        
+        return render(request, 'store_analysis/admin/settings.html', context)
         
     except Exception as e:
         logger.error(f"Error in admin_settings view: {e}")
@@ -6793,63 +6793,63 @@ def deposit_to_wallet(request):
                     logger.error(f"Error creating Payment: {e}")
                     messages.error(request, f'❌ خطا در ایجاد پرداخت: {str(e)}')
                     return redirect('store_analysis:wallet_dashboard')
-            
-            # هدایت به درگاه پرداخت
-            if payment_method == 'ping_payment':
-                logger.info(f"Redirecting to Ping Payment for payment {payment.order_id}")
-                try:
-                    # استفاده از PaymentManager
-                    from .payment_services import PaymentManager
-                    payment_manager = PaymentManager()
-                    
-                    ping_response = payment_manager.initiate_payment(
-                        payment_method='ping_payment',
-                        amount=payment.amount,
-                        order_id=payment.order_id,
-                        description=payment.description,
-                        user=request.user
-                    )
-                    
-                    if ping_response and ping_response.get('success'):
-                        payment.payment_id = ping_response.get('payment_id')
-                        payment.gateway_response = ping_response
-                        payment.save()
+                
+                # هدایت به درگاه پرداخت
+                if payment_method == 'ping_payment':
+                    logger.info(f"Redirecting to Ping Payment for payment {payment.order_id}")
+                    try:
+                        # استفاده از PaymentManager
+                        from .payment_services import PaymentManager
+                        payment_manager = PaymentManager()
                         
-                        # اگر payment_url وجود دارد، به آن هدایت کن
-                        if ping_response.get('payment_url'):
-                            messages.info(request, f'🔄 در حال هدایت به درگاه پرداخت...')
-                            return redirect(ping_response['payment_url'])
+                        ping_response = payment_manager.initiate_payment(
+                            payment_method='ping_payment',
+                            amount=payment.amount,
+                            order_id=payment.order_id,
+                            description=payment.description,
+                            user=request.user
+                        )
+                        
+                        if ping_response and ping_response.get('success'):
+                            payment.payment_id = ping_response.get('payment_id')
+                            payment.gateway_response = ping_response
+                            payment.save()
+                            
+                            # اگر payment_url وجود دارد، به آن هدایت کن
+                            if ping_response.get('payment_url'):
+                                messages.info(request, f'🔄 در حال هدایت به درگاه پرداخت...')
+                                return redirect(ping_response['payment_url'])
+                            else:
+                                # در حالت تست، پیام موفقیت نمایش بده
+                                messages.success(request, f'✅ پرداخت با موفقیت ایجاد شد! شناسه پرداخت: {payment.payment_id}')
+                                return redirect('store_analysis:wallet_dashboard')
                         else:
-                            # در حالت تست، پیام موفقیت نمایش بده
-                            messages.success(request, f'✅ پرداخت با موفقیت ایجاد شد! شناسه پرداخت: {payment.payment_id}')
+                            error_message = ping_response.get('message', 'خطا در شروع پرداخت از درگاه.')
+                            messages.error(request, f"❌ خطا در شروع پرداخت: {error_message}")
                             return redirect('store_analysis:wallet_dashboard')
-                    else:
-                        error_message = ping_response.get('message', 'خطا در شروع پرداخت از درگاه.')
-                        messages.error(request, f"❌ خطا در شروع پرداخت: {error_message}")
+                    except Exception as e:
+                        logger.error(f"Error creating Ping Payment redirect: {e}")
+                        messages.error(request, f'❌ خطا در هدایت به درگاه پرداخت: {str(e)}')
                         return redirect('store_analysis:wallet_dashboard')
-                except Exception as e:
-                    logger.error(f"Error creating Ping Payment redirect: {e}")
-                    messages.error(request, f'❌ خطا در هدایت به درگاه پرداخت: {str(e)}')
+                else:
+                    # برای واریز دستی، مستقیماً واریز کن
+                    payment.status = 'completed'
+                    payment.save()
+                    messages.success(request, f'✅ مبلغ {amount:,} تومان با موفقیت واریز شد!')
                     return redirect('store_analysis:wallet_dashboard')
-            else:
-                # برای واریز دستی، مستقیماً واریز کن
-                payment.status = 'completed'
-                payment.save()
-                messages.success(request, f'✅ مبلغ {amount:,} تومان با موفقیت واریز شد!')
-                return redirect('store_analysis:wallet_dashboard')
             
-        except ValueError as e:
-            messages.error(request, f'❌ {str(e)}')
-        except Exception as e:
-            messages.error(request, f'❌ خطا در واریز: {str(e)}')
+            except ValueError as e:
+                messages.error(request, f'❌ {str(e)}')
+            except Exception as e:
+                messages.error(request, f'❌ خطا در واریز: {str(e)}')
     
-    # دریافت آخرین پرداخت‌ها برای نمایش
-    recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
-    
-    return render(request, 'store_analysis/deposit_to_wallet.html', {
-        'recent_payments': recent_payments,
-        'user': request.user
-    })
+        # دریافت آخرین پرداخت‌ها برای نمایش
+        recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
+        
+        return render(request, 'store_analysis/deposit_to_wallet.html', {
+            'recent_payments': recent_payments,
+            'user': request.user
+        })
         
     except Exception as e:
         logger.error(f"Error in deposit_to_wallet view: {e}")
