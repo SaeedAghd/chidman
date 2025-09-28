@@ -5145,7 +5145,7 @@ def admin_settings(request):
                 logger.info(f"Admin settings updated by {request.user.username}")
                 
                 messages.success(request, 'تنظیمات با موفقیت ذخیره شد')
-        return redirect('store_analysis:admin_settings')
+                return redirect('store_analysis:admin_settings')
                 
             except Exception as e:
                 logger.error(f"Error saving admin settings: {e}")
