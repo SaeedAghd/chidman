@@ -924,3 +924,168 @@ class UserProfile(models.Model):
         self.legal_agreement_accepted = True
         self.legal_agreement_date = timezone.now()
         self.save()
+
+
+# مدل‌های مفقود که در views.py استفاده می‌شوند
+class AnalysisRequest(models.Model):
+    """درخواست تحلیل"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='سفارش')
+    store_analysis_data = models.JSONField(default=dict, verbose_name='داده‌های تحلیل')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'درخواست تحلیل'
+        verbose_name_plural = 'درخواست‌های تحلیل'
+
+
+class StoreLayout(models.Model):
+    """چیدمان فروشگاه"""
+    store_info = models.ForeignKey(StoreBasicInfo, on_delete=models.CASCADE, verbose_name='اطلاعات فروشگاه')
+    entrances = models.IntegerField(default=1, verbose_name='تعداد ورودی')
+    exits = models.IntegerField(default=1, verbose_name='تعداد خروجی')
+    checkout_location = models.CharField(max_length=200, verbose_name='محل صندوق')
+    unused_area_type = models.CharField(max_length=50, verbose_name='نوع فضای خالی')
+    unused_area_size = models.IntegerField(default=0, verbose_name='اندازه فضای خالی')
+    unused_area_reason = models.TextField(blank=True, verbose_name='دلیل فضای خالی')
+    unused_areas = models.TextField(blank=True, verbose_name='فضاهای خالی')
+    layout_restrictions = models.TextField(blank=True, verbose_name='محدودیت‌های چیدمان')
+    
+    class Meta:
+        verbose_name = 'چیدمان فروشگاه'
+        verbose_name_plural = 'چیدمان‌های فروشگاه'
+
+
+class StoreTraffic(models.Model):
+    """ترافیک فروشگاه"""
+    store_info = models.ForeignKey(StoreBasicInfo, on_delete=models.CASCADE, verbose_name='اطلاعات فروشگاه')
+    customer_traffic = models.CharField(max_length=20, default='medium', verbose_name='ترافیک مشتری')
+    peak_hours = models.CharField(max_length=100, blank=True, verbose_name='ساعات پیک')
+    customer_movement_paths = models.CharField(max_length=100, default='mixed', verbose_name='مسیرهای حرکت مشتری')
+    high_traffic_areas = models.CharField(max_length=200, blank=True, verbose_name='مناطق پرترافیک')
+    customer_path_notes = models.CharField(max_length=200, blank=True, verbose_name='یادداشت‌های مسیر')
+    has_customer_video = models.BooleanField(default=False, verbose_name='دارای ویدیو مشتری')
+    video_duration = models.IntegerField(null=True, blank=True, verbose_name='مدت ویدیو')
+    video_date = models.DateField(null=True, blank=True, verbose_name='تاریخ ویدیو')
+    video_time = models.TimeField(null=True, blank=True, verbose_name='زمان ویدیو')
+    
+    class Meta:
+        verbose_name = 'ترافیک فروشگاه'
+        verbose_name_plural = 'ترافیک‌های فروشگاه'
+
+
+class StoreDesign(models.Model):
+    """طراحی فروشگاه"""
+    store_info = models.ForeignKey(StoreBasicInfo, on_delete=models.CASCADE, verbose_name='اطلاعات فروشگاه')
+    design_style = models.CharField(max_length=50, default='modern', verbose_name='سبک طراحی')
+    brand_colors = models.CharField(max_length=200, blank=True, verbose_name='رنگ‌های برند')
+    decorative_elements = models.CharField(max_length=200, blank=True, verbose_name='عناصر تزئینی')
+    main_lighting = models.CharField(max_length=50, default='artificial', verbose_name='نورپردازی اصلی')
+    lighting_intensity = models.CharField(max_length=20, default='medium', verbose_name='شدت نور')
+    color_temperature = models.CharField(max_length=20, default='neutral', verbose_name='دمای رنگ')
+    
+    class Meta:
+        verbose_name = 'طراحی فروشگاه'
+        verbose_name_plural = 'طراحی‌های فروشگاه'
+
+
+class StoreSurveillance(models.Model):
+    """نظارت فروشگاه"""
+    store_info = models.ForeignKey(StoreBasicInfo, on_delete=models.CASCADE, verbose_name='اطلاعات فروشگاه')
+    has_surveillance = models.BooleanField(default=False, verbose_name='دارای نظارت')
+    camera_count = models.IntegerField(null=True, blank=True, verbose_name='تعداد دوربین')
+    camera_locations = models.CharField(max_length=200, blank=True, verbose_name='محل دوربین‌ها')
+    camera_coverage = models.CharField(max_length=200, blank=True, verbose_name='پوشش دوربین')
+    recording_quality = models.CharField(max_length=20, default='medium', verbose_name='کیفیت ضبط')
+    storage_duration = models.IntegerField(default=30, verbose_name='مدت ذخیره')
+    
+    class Meta:
+        verbose_name = 'نظارت فروشگاه'
+        verbose_name_plural = 'نظارت‌های فروشگاه'
+
+
+class StoreProducts(models.Model):
+    """محصولات فروشگاه"""
+    store_info = models.ForeignKey(StoreBasicInfo, on_delete=models.CASCADE, verbose_name='اطلاعات فروشگاه')
+    product_categories = models.CharField(max_length=200, blank=True, verbose_name='دسته‌بندی محصولات')
+    main_products = models.TextField(blank=True, verbose_name='محصولات اصلی')
+    seasonal_products = models.TextField(blank=True, verbose_name='محصولات فصلی')
+    product_display_method = models.CharField(max_length=100, blank=True, verbose_name='روش نمایش محصولات')
+    
+    class Meta:
+        verbose_name = 'محصولات فروشگاه'
+        verbose_name_plural = 'محصولات فروشگاه‌ها'
+
+
+class PricingPlan(models.Model):
+    """پلن قیمت‌گذاری"""
+    name = models.CharField(max_length=100, verbose_name='نام پلن')
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='قیمت')
+    features = models.TextField(verbose_name='ویژگی‌ها')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'پلن قیمت‌گذاری'
+        verbose_name_plural = 'پلن‌های قیمت‌گذاری'
+
+
+class AIConsultantService(models.Model):
+    """سرویس مشاوره هوش مصنوعی"""
+    name = models.CharField(max_length=100, verbose_name='نام سرویس')
+    description = models.TextField(verbose_name='توضیحات')
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='قیمت')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    
+    class Meta:
+        verbose_name = 'سرویس مشاوره هوش مصنوعی'
+        verbose_name_plural = 'سرویس‌های مشاوره هوش مصنوعی'
+
+
+class AIConsultantQuestion(models.Model):
+    """سوال مشاوره هوش مصنوعی"""
+    service = models.ForeignKey(AIConsultantService, on_delete=models.CASCADE, verbose_name='سرویس')
+    question_text = models.TextField(verbose_name='متن سوال')
+    answer_text = models.TextField(blank=True, verbose_name='متن پاسخ')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'سوال مشاوره هوش مصنوعی'
+        verbose_name_plural = 'سوالات مشاوره هوش مصنوعی'
+
+
+class AIConsultantSession(models.Model):
+    """جلسه مشاوره هوش مصنوعی"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    service = models.ForeignKey(AIConsultantService, on_delete=models.CASCADE, verbose_name='سرویس')
+    session_id = models.CharField(max_length=100, unique=True, verbose_name='شناسه جلسه')
+    status = models.CharField(max_length=20, default='active', verbose_name='وضعیت')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'جلسه مشاوره هوش مصنوعی'
+        verbose_name_plural = 'جلسات مشاوره هوش مصنوعی'
+
+
+class AIConsultantPayment(models.Model):
+    """پرداخت مشاوره هوش مصنوعی"""
+    session = models.ForeignKey(AIConsultantSession, on_delete=models.CASCADE, verbose_name='جلسه')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ')
+    status = models.CharField(max_length=20, default='pending', verbose_name='وضعیت')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'پرداخت مشاوره هوش مصنوعی'
+        verbose_name_plural = 'پرداخت‌های مشاوره هوش مصنوعی'
+
+
+class Transaction(models.Model):
+    """تراکنش"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ')
+    transaction_type = models.CharField(max_length=20, verbose_name='نوع تراکنش')
+    status = models.CharField(max_length=20, default='pending', verbose_name='وضعیت')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'تراکنش'
+        verbose_name_plural = 'تراکنش‌ها'
