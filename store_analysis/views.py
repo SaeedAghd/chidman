@@ -209,11 +209,11 @@ def index(request):
     # دریافت تبلیغات فعال (اگر مدل وجود دارد)
     try:
         from .models import PromotionalBanner
-    active_banners = PromotionalBanner.objects.filter(
-        is_active=True,
-        start_date__lte=timezone.now(),
-        end_date__gte=timezone.now()
-    ).order_by('-created_at')
+        active_banners = PromotionalBanner.objects.filter(
+            is_active=True,
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now()
+        ).order_by('-created_at')
     except ImportError:
         # اگر مدل PromotionalBanner وجود ندارد، لیست خالی برگردان
         active_banners = []
@@ -3532,9 +3532,9 @@ def create_ticket(request):
             except Exception as db_error:
                 logger.error(f"خطا در ایجاد تیکت: {db_error}")
                 # ایجاد تیکت ساده در صورت خطای دیتابیس
-            ticket_id = f"TICKET-{timezone.now().timestamp()}-{request.user.id}"
+                ticket_id = f"TICKET-{timezone.now().timestamp()}-{request.user.id}"
                 messages.success(request, f'✅ تیکت شما با موفقیت ایجاد شد! شناسه تیکت: {ticket_id}')
-            return redirect('store_analysis:support_center')
+                return redirect('store_analysis:support_center')
         
         # نمایش فرم
         context = {
@@ -4510,8 +4510,8 @@ def admin_dashboard(request):
     
     # آمار بسته‌های خدمات
     try:
-    total_packages = ServicePackage.objects.count()
-    active_packages = ServicePackage.objects.filter(is_active=True).count()
+        total_packages = ServicePackage.objects.count()
+        active_packages = ServicePackage.objects.filter(is_active=True).count()
     except Exception as e:
         print(f"⚠️ ServicePackage not available: {e}")
         total_packages = 0
@@ -4519,8 +4519,8 @@ def admin_dashboard(request):
     
     # آمار اشتراک‌ها
     try:
-    total_subscriptions = UserSubscription.objects.count()
-    active_subscriptions = UserSubscription.objects.filter(is_active=True).count()
+        total_subscriptions = UserSubscription.objects.count()
+        active_subscriptions = UserSubscription.objects.filter(is_active=True).count()
     except Exception as e:
         print(f"⚠️ UserSubscription not available: {e}")
         total_subscriptions = 0
@@ -4542,12 +4542,12 @@ def admin_dashboard(request):
     
     # آخرین تحلیل‌ها
     try:
-    recent_analyses_list = StoreAnalysis.objects.order_by('-created_at')[:3]
-    for analysis in recent_analyses_list:
-        recent_activities.append({
-            'type': 'analysis',
-            'title': f'تحلیل جدید: {analysis.store_name}',
-            'time': analysis.created_at,
+        recent_analyses_list = StoreAnalysis.objects.order_by('-created_at')[:3]
+        for analysis in recent_analyses_list:
+            recent_activities.append({
+                'type': 'analysis',
+                'title': f'تحلیل جدید: {analysis.store_name}',
+                'time': analysis.created_at,
                 'icon': '📊',
                 'color': '#2196F3'
             })
@@ -5116,7 +5116,7 @@ def admin_settings(request):
         return redirect('home')
     
     try:
-    if request.method == 'POST':
+        if request.method == 'POST':
             try:
                 # دریافت تنظیمات از فرم و ذخیره در دیتابیس
                 settings_to_save = [
