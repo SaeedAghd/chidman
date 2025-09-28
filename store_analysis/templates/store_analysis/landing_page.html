@@ -15,6 +15,9 @@
 <!-- فونت‌های محبوب فارسی -->
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&family=Estedad:wght@100;200;300;400;500;600;700;800;900&family=Samim:wght@400;700&family=Shabnam:wght@300;400;500;600;700&family=Tanha:wght@400;700&family=Yekan:wght@400;700&display=swap" rel="stylesheet">
 
+<!-- Vazirmatn Font for Landing Page -->
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
 <!-- Landing Page Custom CSS -->
 <link rel="stylesheet" href="{% static 'css/landing-page.css' %}?v=1.3">
 
@@ -58,6 +61,7 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
     }
 
     body {
@@ -665,6 +669,15 @@
         line-height: 1.8;
         text-align: justify;
         text-justify: inter-word;
+    }
+    
+    /* Force Vazir font for header and footer */
+    .header, .footer {
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
+    }
+    
+    .header *, .footer * {
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif !important;
     }
     
     /* بهبود فاصله‌گذاری حروف فارسی */

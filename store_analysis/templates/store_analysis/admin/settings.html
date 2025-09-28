@@ -31,7 +31,7 @@
         </div>
     </div>
     
-    <form method="POST" id="settingsForm">
+    <form method="POST" id="settingsForm" action="{% url 'store_analysis:admin_settings' %}">
         {% csrf_token %}
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">

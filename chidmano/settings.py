@@ -37,7 +37,7 @@ PAYMENT_GATEWAY = {
 }
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to False for production
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'  # Default to False for production
 
 # Enable debug for Render if needed
 if os.getenv('RENDER'):
@@ -47,16 +47,17 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.lia
 
 # Security settings for production
 if os.getenv('PRODUCTION', 'False').lower() == 'true':
-    # Temporarily disable SSL redirect until SSL is properly configured
+    # Liara handles SSL termination
     SECURE_SSL_REDIRECT = False
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 0  # Disable HSTS for now
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
-    SESSION_COOKIE_SECURE = False  # Allow HTTP for now
-    CSRF_COOKIE_SECURE = False     # Allow HTTP for now
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = 'DENY'
 else:
     # Development settings
     SECURE_SSL_REDIRECT = False
@@ -101,6 +102,7 @@ MIDDLEWARE = [
     'store_analysis.middleware.AnalyticsMiddleware',  # Analytics tracking
     'chidmano.middleware.CSPMiddleware',  # برای حل مشکل CSP ویدیوها
     'chidmano.middleware.CacheAndTimingMiddleware',
+    'chidmano.seo_middleware.SEOMiddleware',  # SEO optimization
 ]
 
 ROOT_URLCONF = 'chidmano.urls'

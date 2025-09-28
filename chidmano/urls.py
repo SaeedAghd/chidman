@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
 from . import views
-# from .seo_views import sitemap_xml, robots_txt
+from .seo_views import sitemap_xml, robots_txt
 from django.views.generic import TemplateView, RedirectView
 from django.urls import re_path
 
@@ -65,8 +65,8 @@ urlpatterns = [
     re_path(r'^bootstrap-admin/(?P<token>[^/]+)/$', views.bootstrap_admin, name='bootstrap_admin'),
     
     # فایل‌های SEO
-    # path('sitemap.xml', sitemap_xml, name='sitemap'),
-    # path('robots.txt', robots_txt, name='robots'),
+    path('sitemap.xml', sitemap_xml, name='sitemap'),
+    path('robots.txt', robots_txt, name='robots'),
     path('37797489.txt', TemplateView.as_view(template_name='verification/37797489.txt', content_type='text/plain'), name='enamad_37797489'),
     re_path(r'^favicon\.ico$', RedirectView.as_view(url='/static/images/favicon.ico', permanent=True)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

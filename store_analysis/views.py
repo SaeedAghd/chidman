@@ -206,12 +206,17 @@ def index(request):
     """صفحه اصلی - تشخیص مشکل فروشگاه"""
     context = {}
     
-    # دریافت تبلیغات فعال
-    active_banners = PromotionalBanner.objects.filter(
-        is_active=True,
-        start_date__lte=timezone.now(),
-        end_date__gte=timezone.now()
-    ).order_by('-created_at')
+    # دریافت تبلیغات فعال (اگر مدل وجود دارد)
+    try:
+        from .models import PromotionalBanner
+        active_banners = PromotionalBanner.objects.filter(
+            is_active=True,
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now()
+        ).order_by('-created_at')
+    except ImportError:
+        # اگر مدل PromotionalBanner وجود ندارد، لیست خالی برگردان
+        active_banners = []
     
     context['active_banners'] = active_banners
     
@@ -5338,6 +5343,7 @@ def admin_promotional_banner_management(request):
         
         if action == 'create':
             try:
+                from .models import PromotionalBanner
                 banner = PromotionalBanner.objects.create(
                     title=request.POST.get('title'),
                     subtitle=request.POST.get('subtitle'),
@@ -5355,6 +5361,7 @@ def admin_promotional_banner_management(request):
         
         elif action == 'update':
             try:
+                from .models import PromotionalBanner
                 banner_id = request.POST.get('banner_id')
                 banner = PromotionalBanner.objects.get(id=banner_id)
                 banner.title = request.POST.get('title')
@@ -5371,6 +5378,7 @@ def admin_promotional_banner_management(request):
         
         elif action == 'delete':
             try:
+                from .models import PromotionalBanner
                 banner_id = request.POST.get('banner_id')
                 banner = PromotionalBanner.objects.get(id=banner_id)
                 banner.delete()
@@ -5380,7 +5388,11 @@ def admin_promotional_banner_management(request):
         
         return redirect('store_analysis:admin_promotional_banner_management')
     
-    banners = PromotionalBanner.objects.all().order_by('-created_at')
+    try:
+        from .models import PromotionalBanner
+        banners = PromotionalBanner.objects.all().order_by('-created_at')
+    except ImportError:
+        banners = []
     context = {
         'banners': banners,
         'page_title': 'مدیریت بنرهای تبلیغاتی'

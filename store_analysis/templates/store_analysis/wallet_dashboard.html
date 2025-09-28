@@ -295,6 +295,50 @@
         font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
     }
 
+    /* Alert Styles */
+    .alert-container {
+        margin-bottom: 2rem;
+    }
+    
+    .alert {
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+        position: relative;
+    }
+    
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .alert-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    .btn-close {
+        float: left;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: inherit;
+    }
+    
+    .btn-close:hover {
+        opacity: 0.7;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
         .wallet-container {
@@ -326,6 +370,19 @@
 
 {% block content %}
 <div class="wallet-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="alert-container" style="margin-bottom: 2rem;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" 
+                    style="float: left; background: none; border: none; font-size: 1.2rem; cursor: pointer;">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if created %}
     <div class="welcome-message">
         <h4>🎉 کیف پول شما ایجاد شد!</h4>
@@ -425,4 +482,27 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle alert close buttons
+    document.querySelectorAll('.btn-close').forEach(function(button) {
+        button.addEventListener('click', function() {
+            this.parentElement.style.display = 'none';
+        });
+    });
+    
+    // Auto-hide success messages after 5 seconds
+    document.querySelectorAll('.alert-success').forEach(function(alert) {
+        setTimeout(function() {
+            alert.style.transition = 'opacity 0.5s ease';
+            alert.style.opacity = '0';
+            setTimeout(function() {
+                alert.style.display = 'none';
+            }, 500);
+        }, 5000);
+    });
+});
+</script>
+
 {% endblock %}
