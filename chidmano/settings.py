@@ -2,18 +2,19 @@
 Django settings for chidmano project.
 """
 
-import os
 from pathlib import Path
+import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
 # Force-disable PostgreSQL SSL at libpq level to avoid "SSL was required" on Liara private DB
 os.environ['PGSSLMODE'] = 'disable'
-# Remove any env vars that force SSL unintentionally
+
+# Remove any env vars that force SSL unintentionally (use pop to avoid empty loop/body)
 for _var in ('PGSSLCERT', 'PGSSLKEY', 'PGSSLROOTCERT', 'PGREQUIRESSL', 'DATABASE_SSLMODE'):
-    if _var in os.environ:
-        os.environ.pop(_var, None)
+    os.environ.pop(_var, None)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

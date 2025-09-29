@@ -57,6 +57,8 @@ if __name__ == "__main__":
         # Respect WEB_CONCURRENCY if provided; default to 1 to reduce memory usage
         workers = os.environ.get('WEB_CONCURRENCY', '1')
         timeout = os.environ.get('GUNICORN_TIMEOUT', os.environ.get('TIMEOUT', '300'))
+        if not timeout:
+            timeout = '300'
 
         cmd = f"gunicorn chidmano.wsgi:application --bind 0.0.0.0:{port} --workers {workers} --timeout {timeout} --access-logfile - --error-logfile -"
 

@@ -461,8 +461,8 @@ class SupportTicket(models.Model):
         ('bug_report', 'گزارش باگ'),
     ]
     
-    # Primary fields
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Primary fields - Use BigAutoField for production compatibility
+    id = models.BigAutoField(primary_key=True)
     ticket_id = models.CharField(max_length=50, unique=True, default='TEMP-TICKET', verbose_name='شناسه تیکت')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
     
