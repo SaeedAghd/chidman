@@ -43,7 +43,7 @@ class Payment(models.Model):
     # Payment details
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ')
     currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
-    description = models.TextField(verbose_name='توضیحات')
+    description = models.TextField(blank=True, null=True, verbose_name='توضیحات')
     
     # Status and method
     status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending', verbose_name='وضعیت')
@@ -412,7 +412,7 @@ class WalletTransaction(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions', verbose_name='کیف پول')
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ')
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES, verbose_name='نوع تراکنش')
-    description = models.TextField(blank=True, verbose_name='توضیحات')
+    description = models.TextField(blank=True, null=True, verbose_name='توضیحات')
     balance_after = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='موجودی پس از تراکنش')
     
     # Reference to related objects
