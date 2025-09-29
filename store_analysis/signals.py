@@ -18,13 +18,16 @@ def handle_payment_save(sender, instance, created, **kwargs):
     Handle post-save signal for Payment model.
     """
     if created:
-        # Log payment creation
-        PaymentLog.objects.create(
-            payment=instance,
-            log_type='payment_created',
-            message=f'Payment {instance.order_id} created',
-            data={'amount': str(instance.amount), 'currency': instance.currency}
-        )
+        # Log payment creation (with error handling)
+        try:
+            PaymentLog.objects.create(
+                payment=instance,
+                log_type='payment_created',
+                message=f'Payment {instance.order_id} created',
+                data={'amount': str(instance.amount), 'currency': instance.currency}
+            )
+        except Exception as e:
+            logger.warning(f"Could not create PaymentLog: {e}")
         logger.info(f"Payment {instance.order_id} created with status: {instance.status}")
     else:
         logger.info(f"Payment {instance.order_id} updated with status: {instance.status}")
