@@ -6826,7 +6826,6 @@ def deposit_to_wallet(request):
                     order_id = f"WALLET-{timezone.now().timestamp()}-{request.user.id}"
                     
                     payment = Payment.objects.create(
-                        id=str(uuid.uuid4()),
                         order_id=order_id,
                         user=request.user,
                         amount=amount,
