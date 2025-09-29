@@ -20,24 +20,24 @@ if __name__ == "__main__":
     print("📊 Running migrations (main.py)...")
     from django.core.management import call_command
     try:
+        # First, fake all existing migrations to avoid conflicts
+        print("🔄 Faking existing migrations to avoid conflicts...")
+        call_command('migrate', 'store_analysis', '0001', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0002', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0003', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0004', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0005', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0006', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0007', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0008', '--fake', interactive=False, verbosity=1)
+        call_command('migrate', 'store_analysis', '0009', '--fake', interactive=False, verbosity=1)
+        
+        # Now run all migrations
         call_command('migrate', interactive=False, verbosity=1)
         print("✅ All migrations applied successfully")
     except Exception as migrate_error:
         print(f"⚠️ Migration warning: {migrate_error}")
-        # Try to fake problematic migrations
-        try:
-            if "already exists" in str(migrate_error):
-                print("🔄 Attempting to fake problematic migrations...")
-                # Fake all store_analysis migrations
-                call_command('migrate', 'store_analysis', '0001', '--fake', interactive=False, verbosity=1)
-                call_command('migrate', 'store_analysis', '0002', '--fake', interactive=False, verbosity=1)
-                call_command('migrate', 'store_analysis', '0003', '--fake', interactive=False, verbosity=1)
-                # Try to run remaining migrations
-                call_command('migrate', interactive=False, verbosity=1)
-                print("✅ Problematic migrations faked successfully")
-        except Exception as fake_error:
-            print(f"⚠️ Fake migration also failed: {fake_error}")
-            print("⚠️ Continuing anyway - the app might still work")
+        print("⚠️ Continuing anyway - the app might still work")
 
     # Do NOT run collectstatic at runtime on Liara (read-only filesystem). Collectstatic occurs at build time.
     print("📁 Skipping collectstatic in main.py - will be handled at build time")
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         port = os.environ.get('PORT', '8000')
         # Respect WEB_CONCURRENCY if provided; default to 1 to reduce memory usage
         workers = os.environ.get('WEB_CONCURRENCY', '1')
-        timeout = os.environ.get('GUNICORN_TIMEOUT', os.environ.get('TIMEOUT', '120'))
+        timeout = os.environ.get('GUNICORN_TIMEOUT', os.environ.get('TIMEOUT', '300'))
 
         cmd = f"gunicorn chidmano.wsgi:application --bind 0.0.0.0:{port} --workers {workers} --timeout {timeout} --access-logfile - --error-logfile -"
 

@@ -10,6 +10,8 @@
     "PING_SANDBOX": "True",
     "PING_API_KEY": "test-api-key-for-development",
     "SITE_URL": "https://chidmano.liara.app",
-    "ALLOWED_HOSTS": "chidmano.liara.app,*.liara.app,*.liara.run"
+    "ALLOWED_HOSTS": "chidmano.liara.app,*.liara.app,*.liara.run",
+    "GUNICORN_TIMEOUT": "300",
+    "TIMEOUT": "300"
   }
 }
