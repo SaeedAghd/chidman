@@ -473,8 +473,9 @@ class SupportTicket(models.Model):
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium', verbose_name='اولویت')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open', verbose_name='وضعیت')
     
-    # Attachments
+    # Attachments and tags
     attachments = models.JSONField(default=list, verbose_name='پیوست‌ها')
+    tags = models.JSONField(default=list, verbose_name='برچسب‌ها')
     
     # Assignment
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, 
