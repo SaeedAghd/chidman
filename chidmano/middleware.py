@@ -89,21 +89,18 @@ class CSPMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
-        # Add CSP header to allow CDN resources and blob URLs
+        # Add CSP header to allow CDN resources and blob URLs (more permissive for SEO)
         csp_policy = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com; "
-            "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; "
-            "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; "
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: blob: https:; "
-            "media-src 'self' blob: data: https:; "
             "font-src 'self' data: https: https://fonts.gstatic.com https://cdn.jsdelivr.net; "
-            "connect-src 'self' data: blob: https://api.payping.ir https://payping.ir https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://code.jquery.com; "
-            "frame-src 'self' https://payping.ir; "
+            "connect-src 'self' data: blob: https:; "
+            "frame-src 'self' https:; "
             "object-src 'none'; "
             "base-uri 'self'; "
-            "form-action 'self' https://payping.ir https://api.payping.ir https:; "
+            "form-action 'self' https:; "
             "worker-src 'self' blob:; "
             "child-src 'self' blob:"
         )

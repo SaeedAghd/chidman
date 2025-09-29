@@ -8,6 +8,10 @@
     <meta name="description" content="چیدمانو - سیستم تحلیل هوشمند فروشگاه با هوش مصنوعی">
     <meta name="keywords" content="تحلیل فروشگاه, چیدمان, هوش مصنوعی, بهینه‌سازی">
     <meta name="author" content="چیدمانو">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    <link rel="canonical" href="https://chidmano.ir{% if request.path != '/' %}{{ request.path }}{% endif %}">
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website">
@@ -30,8 +34,10 @@
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "چیدمانو",
-        "description": "سیستم تحلیل هوشمند فروشگاه با هوش مصنوعی",
+        "alternateName": "Chidmano",
+        "description": "سیستم تحلیل هوشمند فروشگاه با هوش مصنوعی - تحلیل و بهینه‌سازی چیدمان فروشگاه",
         "url": "https://chidmano.ir",
+        "inLanguage": "fa-IR",
         "potentialAction": {
             "@type": "SearchAction",
             "target": "https://chidmano.ir/search?q={search_term_string}",
@@ -40,7 +46,22 @@
         "publisher": {
             "@type": "Organization",
             "name": "چیدمانو",
-            "url": "https://chidmano.ir"
+            "url": "https://chidmano.ir",
+            "logo": "https://chidmano.ir/static/images/logo.png",
+            "sameAs": [
+                "https://chidmano.ir"
+            ]
+        },
+        "mainEntity": {
+            "@type": "SoftwareApplication",
+            "name": "چیدمانو",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web Browser",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "IRR"
+            }
         }
     }
     </script>
