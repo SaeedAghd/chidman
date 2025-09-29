@@ -3434,8 +3434,11 @@ def support_center(request):
                     'faq_count': FAQService.objects.filter(category=cat['category']).count()
                 })
             
-            # دریافت سوالات محبوب
-            popular_faqs = FAQService.objects.filter(is_featured=True)[:6]
+            # دریافت سوالات محبوب (بدون استفاده از فیلدهای ممکن است موجود نباشند)
+            try:
+                popular_faqs = FAQService.objects.filter(is_featured=True)[:6]
+            except Exception:
+                popular_faqs = FAQService.objects.all()[:6]
         except Exception as faq_error:
             logger.warning(f"FAQ service not available: {faq_error}")
             # داده‌های پیش‌فرض
@@ -3587,8 +3590,8 @@ def create_ticket(request):
             
             # ایجاد تیکت در دیتابیس
             try:
-                # تولید شناسه تیکت منحصر به فرد
-                ticket_id = f"TICKET-{timezone.now().strftime('%Y%m%d%H%M%S')}-{request.user.id}"
+                # تولید شناسه تیکت منحصر به فرد (کوتاه‌تر)
+                ticket_id = f"TK-{timezone.now().strftime('%m%d%H%M')}-{request.user.id}"
                 
                 ticket = SupportTicket.objects.create(
                     ticket_id=ticket_id,
