@@ -26,9 +26,7 @@ class SEOMiddleware:
                 canonical_url = request.build_absolute_uri(request.path)
                 response.headers.setdefault('Link', f'<{canonical_url}>; rel="canonical"')
             
-            # Open Graph headers for social media
-            response.headers.setdefault('og:type', 'website')
-            response.headers.setdefault('og:site_name', 'چیدمانو')
-            response.headers.setdefault('og:locale', 'fa_IR')
+            # Open Graph headers for social media (using meta tags instead of HTTP headers)
+            # Note: Open Graph tags should be in HTML meta tags, not HTTP headers
         
         return response
