@@ -35,8 +35,75 @@ except ImportError:
     arabic_reshaper = None
     get_display = None
 from io import BytesIO
-from .utils import calculate_analysis_cost, generate_initial_ai_analysis, color_name_to_hex
+from .utils import generate_initial_ai_analysis, color_name_to_hex
 from decimal import Decimal
+
+def calculate_analysis_cost(form_data):
+    """محاسبه هزینه تحلیل بر اساس داده‌های فرم"""
+    try:
+        # هزینه پایه
+        base_cost = Decimal('500000')  # 500,000 تومان
+        
+        additional_cost = Decimal('0')
+        
+        # هزینه بر اساس نوع فروشگاه
+        store_type = form_data.get('store_type', '')
+        if 'پوشاک' in store_type:
+            additional_cost += Decimal('100000')
+        elif 'مواد غذایی' in store_type:
+            additional_cost += Decimal('80000')
+        elif 'الکترونیک' in store_type:
+            additional_cost += Decimal('150000')
+        
+        # هزینه بر اساس اندازه فروشگاه
+        store_size = form_data.get('store_size', '100')
+        try:
+            size = int(store_size)
+            if size > 200:
+                additional_cost += Decimal('100000')
+            elif size > 100:
+                additional_cost += Decimal('50000')
+        except (ValueError, TypeError):
+            pass
+        
+        # هزینه خدمات اضافی
+        if form_data.get('layout_analysis') == 'on':
+            additional_cost += Decimal('200000')
+        if form_data.get('traffic_analysis') == 'on':
+            additional_cost += Decimal('150000')
+        if form_data.get('design_analysis') == 'on':
+            additional_cost += Decimal('100000')
+        if form_data.get('surveillance_analysis') == 'on':
+            additional_cost += Decimal('120000')
+        if form_data.get('product_analysis') == 'on':
+            additional_cost += Decimal('80000')
+        
+        total = base_cost + additional_cost
+        
+        # تخفیف (اگر وجود داشته باشد)
+        discount = Decimal('0')
+        if form_data.get('discount_code'):
+            discount = Decimal('50000')  # 50,000 تومان تخفیف
+        
+        final = total - discount
+        
+        return {
+            'base': float(base_cost),
+            'additional': float(additional_cost),
+            'total': float(total),
+            'discount': float(discount),
+            'final': float(final)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error calculating analysis cost: {str(e)}")
+        return {
+            'base': 500000.0,
+            'additional': 0.0,
+            'total': 500000.0,
+            'discount': 0.0,
+            'final': 500000.0
+        }
 
 def calculate_analysis_cost_for_object(analysis):
     """محاسبه هزینه تحلیل برای StoreAnalysis object"""
@@ -3922,73 +3989,53 @@ def store_analysis_form(request):
 
 @login_required
 def submit_analysis(request):
+    """ارسال فرم تحلیل و هدایت به صفحه پرداخت"""
     if request.method == 'POST':
-        # form = ProfessionalStoreAnalysisForm(request.POST, request.FILES)
-        # if form.is_valid():
-            # تبدیل داده‌ها به فرمت قابل serialize
-            # cleaned_data = form.cleaned_data.copy()
+        try:
+            # دریافت داده‌های فرم
+            form_data = request.POST.dict()
+            files_data = request.FILES
             
-            # حذف فایل‌های آپلود شده از JSON
-            file_fields = ['store_photos', 'store_plan', 'shelf_photos', 'entrance_photos', 
-                          'checkout_photos', 'customer_video', 'surveillance_footage', 
-                          'sales_file', 'product_catalog']
+            logger.info(f"Form submission - User: {request.user}, Data: {form_data}")
             
-            # for field in file_fields:
-            #     if field in cleaned_data:
-            #         if cleaned_data[field]:
-            #             cleaned_data[field] = f"File uploaded: {cleaned_data[field].name}"
-            #     else:
-            #         cleaned_data[field] = None
-            
-            # # تبدیل Decimal به float و date به string
-            # for key, value in cleaned_data.items():
-            #     if hasattr(value, 'as_tuple'):  # Decimal object
-            #         cleaned_data[key] = float(value)
-            #     elif hasattr(value, 'strftime'):  # date/datetime object
-            #         cleaned_data[key] = value.isoformat()
-            #     elif isinstance(value, list):
-            #         cleaned_data[key] = [str(v) if hasattr(v, 'as_tuple') or hasattr(v, 'strftime') else v for v in value]
+            # محاسبه هزینه بر اساس درخواست‌ها
+            cost_breakdown = calculate_analysis_cost(form_data)
             
             # ایجاد تحلیل جدید
-            # analysis = StoreAnalysis.objects.create(
-            #     user=request.user,
-            #     store_name=form.cleaned_data.get('store_name', 'فروشگاه جدید'),
-            #     store_type=form.cleaned_data.get('store_type', 'retail'),
-            #     store_size=str(form.cleaned_data.get('store_size', 100)),
-            #     analysis_type='ai_enhanced',
-            #     status='pending',
-            #     analysis_data=cleaned_data,
-            # )
+            analysis = StoreAnalysis.objects.create(
+                user=request.user,
+                store_name=form_data.get('store_name', 'فروشگاه جدید'),
+                store_type=form_data.get('store_type', 'retail'),
+                store_size=str(form_data.get('store_size', 100)),
+                analysis_type='comprehensive',
+                status='pending',
+                analysis_data=form_data
+            )
             
-            # # ایجاد نتایج تحلیل
-            # from .ai_analysis import StoreAnalysisAI
-            # ai_analyzer = StoreAnalysisAI()
+            # ایجاد سفارش
+            order = Order.objects.create(
+                user=request.user,
+                plan=None,  # پلن سفارشی
+                original_amount=cost_breakdown['total'],
+                discount_amount=cost_breakdown.get('discount', 0),
+                final_amount=cost_breakdown['final'],
+                status='pending'
+            )
             
-            # # استفاده از داده‌های ذخیره شده در analysis_data
-            # analysis_data = analysis.analysis_data or {}
+            # اتصال تحلیل به سفارش
+            analysis.order = order
+            analysis.save()
             
-            # # تولید تحلیل
-            # analysis_result = ai_analyzer.generate_detailed_analysis(analysis_data)
+            logger.info(f"Order created - ID: {order.order_id}, Amount: {order.final_amount}")
             
-            # # ذخیره نتایج
-            # StoreAnalysisResult.objects.create(
-            #     store_analysis=analysis,
-            #     overall_score=analysis_result.get('overall_score', 75.0),
-            #     layout_score=analysis_result.get('layout_score', 75.0),
-            #     traffic_score=analysis_result.get('traffic_score', 75.0),
-            #     design_score=analysis_result.get('design_score', 75.0),
-            #     sales_score=analysis_result.get('sales_score', 75.0),
-            #     layout_analysis=str(analysis_result.get('strengths', [])),
-            #     traffic_analysis=str(analysis_result.get('weaknesses', [])),
-            #     design_analysis=str(analysis_result.get('opportunities', [])),
-            #     sales_analysis=str(analysis_result.get('threats', [])),
-            #     overall_analysis=str(analysis_result.get('recommendations', [])),
-            # )
+            # هدایت به صفحه پرداخت
+            return redirect('store_analysis:payment_page', order_id=order.order_id)
             
-            # return redirect('store_analysis:analysis_results', pk=analysis.id)
-        # else:
-            # print(f"Form errors: {form.errors}")
-            # return render(request, 'store_analysis/store_analysis_form.html', {'form': None})
+        except Exception as e:
+            logger.error(f"Error in submit_analysis: {str(e)}")
+            messages.error(request, f'❌ خطا در ارسال فرم: {str(e)}')
+            return render(request, 'store_analysis/forms.html')
+    
     return render(request, 'store_analysis/forms.html')
 
 
