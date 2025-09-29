@@ -76,7 +76,7 @@ urlpatterns = [
     path('order/<str:order_id>/results/', views.order_analysis_results, name='order_analysis_results'),
     
     # URL های موجود (حذف شد چون در بالا تعریف شده)
-    path('payment/<str:order_id>/', views.payment_page, name='payment_page'),
+    path('payment/<str:order_id>/', views.process_payment, name='payment_page'),
     path('payment/<str:order_id>/payping/', views.payping_payment, name='payping_payment'),
     path('payment/<str:order_id>/process/', views.process_payment, name='process_payment'),
     path('analysis/<int:pk>/pdf/', views.view_analysis_pdf_inline, name='view_analysis_pdf_inline'),

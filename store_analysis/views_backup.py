@@ -478,7 +478,6 @@ def virtual_consultant(request, pk):
         'step': 'virtual_consultant'
     }
     return render(request, 'store_analysis/virtual_consultant.html', context)
-
 def implementation_guide(request, pk):
     """امکان اجرای تغییرات - خروجی فنی"""
     analysis = get_object_or_404(StoreAnalysis, pk=pk)
@@ -630,7 +629,6 @@ def analysis_list(request):
         'total_analyses': len(analyses),
     }
     return render(request, 'store_analysis/analysis_list.html', context)
-
 @login_required
 def analysis_results(request, pk):
     """نتایج تحلیل"""
@@ -1766,7 +1764,6 @@ def accept_legal_agreement(request):
         except:
             pass
     return JsonResponse({'success': False})
-
 @login_required
 def user_dashboard(request):
     """پنل کاربری حرفه‌ای - Apple Style"""
@@ -1812,8 +1809,6 @@ def user_dashboard(request):
     }
     
     return render(request, 'store_analysis/user_dashboard.html', context)
-
-
 @login_required
 def download_detailed_pdf(request, pk):
     """دانلود برنامه اجرایی تفصیلی به صورت PDF"""
@@ -2179,7 +2174,6 @@ def view_analysis_pdf_inline(request, pk):
 - اندازه فروشگاه: {analysis.store_size or 'نامشخص'}
 
 متأسفانه تحلیل کامل انجام نشده است. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.
-
 تاریخ: {analysis.created_at.strftime('%Y/%m/%d') if analysis.created_at else 'نامشخص'}
             """.strip()
 
@@ -2372,152 +2366,6 @@ def view_order_pdf_inline(request, order_id):
     return view_analysis_pdf_inline(request, analysis.pk)
 
 @login_required
-def submit_analysis_request(request):
-    """ارسال درخواست تحلیل و محاسبه هزینه"""
-    if request.method == 'POST':
-        try:
-            # دریافت داده‌های فرم
-            form_data = request.POST.dict()
-            files_data = request.FILES
-            
-            # محاسبه هزینه بر اساس درخواست‌ها
-            cost_breakdown = calculate_analysis_cost(form_data)
-            
-            # ذخیره داده‌های تحلیل
-            store_analysis = StoreAnalysis.objects.create(
-                user=request.user,
-                analysis_type='comprehensive',
-                store_name=form_data.get('store_name', ''),
-                store_type=form_data.get('store_type', ''),
-                store_size=form_data.get('store_size', ''),
-                status='pending',
-                analysis_data=form_data
-            )
-            
-            # ایجاد سفارش
-            order = Order.objects.create(
-                user=request.user,
-                plan=None,  # پلن سفارشی
-                original_amount=cost_breakdown['total'],
-                discount_amount=cost_breakdown.get('discount', 0),
-                final_amount=cost_breakdown['final'],
-                status='pending'
-            )
-            
-            # ایجاد درخواست تحلیل (اگر مدل موجود باشد)
-            try:
-                from .models import AnalysisRequest
-                analysis_request = AnalysisRequest.objects.create(
-                    order=order,
-                    store_analysis_data=form_data,
-                    status='pending'
-                )
-            except ImportError:
-                analysis_request = None
-            
-            # اتصال تحلیل به سفارش
-            store_analysis.order = order
-            store_analysis.save()
-            
-            # هدایت به صفحه پرداخت
-            return redirect('store_analysis:payment_page', order_id=order.order_id)
-            
-        except Exception as e:
-            messages.error(request, f'خطا در ارسال درخواست: {str(e)}')
-            return redirect('store_analysis:user_dashboard')
-    
-    return redirect('store_analysis:user_dashboard')
-
-@login_required
-def payment_page(request, order_id):
-    """صفحه پرداخت"""
-    try:
-        # بررسی وجود Order - هر کاربر فقط به Order های خودش دسترسی دارد
-        try:
-            order = Order.objects.get(order_id=order_id, user=request.user)
-        except Order.DoesNotExist:
-            # اگر Order یافت نشد، آخرین Order کاربر را پیدا کن
-            latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
-            if latest_order:
-                messages.warning(request, f'سفارش {order_id} یافت نشد. آخرین سفارش شما ({latest_order.order_id}) نمایش داده می‌شود.')
-                order = latest_order
-            else:
-                messages.error(request, f'سفارش با شناسه {order_id} یافت نشد یا شما دسترسی ندارید.')
-                return redirect('store_analysis:user_dashboard')
-        
-        # بررسی وجود StoreAnalysis
-        store_analysis = StoreAnalysis.objects.filter(order=order).first()
-        if not store_analysis:
-            messages.error(request, 'تحلیل فروشگاه مربوط به این سفارش یافت نشد.')
-            return redirect('store_analysis:user_dashboard')
-        
-        # تولید تحلیل اولیه اگر وجود ندارد
-        if not store_analysis.preliminary_analysis and store_analysis.analysis_data:
-            try:
-                from .ai_analysis import StoreAnalysisAI
-                ai_analyzer = StoreAnalysisAI()
-                preliminary_analysis = ai_analyzer.generate_preliminary_analysis(store_analysis.analysis_data)
-                store_analysis.preliminary_analysis = preliminary_analysis
-                store_analysis.save()
-            except Exception as e:
-                logger.error(f"Error generating preliminary analysis: {e}")
-                # تحلیل اولیه ساده
-                store_analysis.preliminary_analysis = "تحلیل اولیه: فروشگاه شما نیاز به بررسی دقیق‌تر دارد. پس از پرداخت، تحلیل کامل انجام خواهد شد."
-                store_analysis.save()
-        
-        # محاسبه هزینه‌ها - همیشه از object استفاده کن
-        try:
-            cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
-        except Exception as e:
-            logger.error(f"Error calculating cost: {e}")
-            # fallback به محاسبه ساده
-            cost_breakdown = {
-                'base_price': Decimal('500000'),
-                'total': Decimal('700000'),
-                'final': Decimal('700000'),
-                'discount': Decimal('0'),
-                'discount_percentage': 0,
-                'breakdown': [
-                    {
-                        'item': 'تحلیل پایه',
-                        'amount': Decimal('500000'),
-                        'description': 'تحلیل اولیه فروشگاه'
-                    },
-                    {
-                        'item': 'گزارش کامل PDF',
-                        'amount': Decimal('200000'),
-                        'description': 'گزارش تفصیلی و حرفه‌ای فروشگاه'
-                    }
-                ]
-            }
-        
-        # اعمال تخفیف از session
-        session_discount = request.session.get('discount_percentage', 0)
-        if session_discount > 0:
-            # محاسبه تخفیف
-            discount_amount = (cost_breakdown['final'] * session_discount) / 100
-            cost_breakdown['discount'] = discount_amount
-            cost_breakdown['final'] = cost_breakdown['final'] - discount_amount
-            cost_breakdown['discount_percentage'] = session_discount
-        
-        context = {
-            'order': order,
-            'store_analysis': store_analysis,
-            'cost_breakdown': cost_breakdown,
-            'payment_methods': [
-                {'id': 'online', 'name': 'پرداخت آنلاین', 'icon': 'fas fa-credit-card'},
-                {'id': 'wallet', 'name': 'کیف پول', 'icon': 'fas fa-wallet'},
-            ]
-        }
-        
-        return render(request, 'store_analysis/payment_page.html', context)
-        
-    except Exception as e:
-        logger.error(f"Error in payment_page: {e}")
-        messages.error(request, f'❌ خطا در بارگذاری صفحه پرداخت: {str(e)}')
-        return redirect('store_analysis:user_dashboard')
-
-@login_required
 def process_payment(request, order_id):
     """پردازش پرداخت"""
     if request.method == 'POST':
@@ -2572,8 +2420,6 @@ def process_payment(request, order_id):
             return redirect('store_analysis:payment_page', order_id=order_id)
     
     return redirect('store_analysis:payment_page', order_id=order_id)
-
-
 @login_required
 def payping_payment(request, order_id):
     """پرداخت از طریق PayPing"""
@@ -2667,7 +2513,6 @@ def debug_payping(request):
         
     except Exception as e:
         return JsonResponse({'error': str(e)})
-
 @login_required
 def test_payping(request):
     """تست درگاه PayPing"""
@@ -3060,8 +2905,6 @@ def check_analysis_status(request, order_id):
     
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
-@login_required
 def analysis_insights(request, pk):
     """بینش‌های تحلیلی پیشرفته"""
     analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
@@ -3163,9 +3006,6 @@ def ai_consultant(request):
     }
     
     return render(request, 'store_analysis/ai_consultant.html', context)
-
-
-@login_required
 def ai_detailed_analysis(request, pk):
     """تحلیل تفصیلی با AI"""
     # اگر ادمین است، هر تحلیلی را ببیند
@@ -3193,7 +3033,6 @@ def ai_detailed_analysis(request, pk):
     }
     
     return render(request, 'store_analysis/ai_detailed_analysis.html', context)
-
 @login_required
 def admin_process_analysis(request, pk):
     """پردازش فوری تحلیل توسط ادمین"""
@@ -3653,8 +3492,6 @@ def ticket_list(request):
         logger.error(f"خطا در ticket_list: {e}")
         messages.error(request, 'خطایی رخ داده است.')
         return render(request, 'store_analysis/ticket_list.html', {})
-
-
 @login_required
 def ticket_detail(request, ticket_id):
     """جزئیات تیکت"""
@@ -3710,8 +3547,6 @@ def suggest_faqs_api(request):
     except Exception as e:
         logger.error(f"خطا در suggest_faqs_api: {e}")
         return JsonResponse({'suggestions': []})
-
-@login_required
 def check_processing_status(request, pk):
     """بررسی وضعیت پردازش"""
     analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
@@ -3795,8 +3630,6 @@ def _convert_ollama_results_to_text(results):
     except Exception as e:
         logger.error(f"خطا در تبدیل نتایج Ollama: {e}")
         return "تحلیل هوشمند فروشگاه با استفاده از Ollama انجام شده است."
-
-
 @login_required
 def advanced_ml_analysis(request, pk):
     """تحلیل پیشرفته با استفاده از ML"""
@@ -3842,7 +3675,6 @@ def advanced_ml_analysis(request, pk):
 def ai_analysis_guide(request):
     """راهنمای کامل تحلیل AI"""
     return render(request, 'store_analysis/ai_analysis_guide.html')
-
 def check_legal_agreement(request):
     """بررسی وضعیت تایید تعهدنامه حقوقی"""
     try:
@@ -4132,7 +3964,6 @@ def start_analysis(request, pk):
         'status': 'error',
         'message': 'درخواست نامعتبر'
     })
-
 @login_required
 def get_analysis_status(request, pk):
     """دریافت وضعیت تحلیل"""
@@ -4283,9 +4114,6 @@ def apply_discount(request):
             })
     
     return JsonResponse({'success': False, 'message': 'درخواست نامعتبر'})
-
-
-
 def generate_initial_analysis(store_data, ai_results=None):
     """تولید تحلیل اولیه بر اساس داده‌های فروشگاه و نتایج AI"""
     store_name = store_data.get('store_name', 'فروشگاه شما')
@@ -4377,7 +4205,6 @@ def generate_initial_analysis(store_data, ai_results=None):
         """
     
     return analysis
-
 # Admin views
 @login_required
 def admin_pricing_management(request):
@@ -4489,7 +4316,6 @@ def admin_pricing_management(request):
         'current_settings': current_settings,
     }
     return render(request, 'store_analysis/admin/pricing_management.html', context)
-
 @login_required
 def admin_discount_management(request):
     """مدیریت کدهای تخفیف توسط ادمین"""
@@ -4535,7 +4361,6 @@ def store_analysis_result(request):
     """نتایج تحلیل فروشگاه"""
     # این view برای نمایش نتایج تحلیل استفاده می‌شود
     return render(request, 'store_analysis/analysis_results.html', {})
-
 @login_required
 def admin_dashboard(request):
     """داشبورد ادمین حرفه‌ای"""
@@ -4925,8 +4750,6 @@ def admin_order_detail(request, order_id):
     }
     
     return render(request, 'store_analysis/admin/order_detail.html', context)
-
-
 @login_required
 def admin_tickets(request):
     """مدیریت تیکت‌های پشتیبانی"""
@@ -5022,8 +4845,6 @@ def admin_ticket_detail(request, ticket_id):
     }
     
     return render(request, 'store_analysis/admin/ticket_detail.html', context)
-
-
 @login_required
 def admin_wallets(request):
     """مدیریت کیف پول‌ها"""
@@ -5100,11 +4921,11 @@ def admin_wallet_detail(request, wallet_id):
                     )
                 except ImportError:
                     WalletTransaction.objects.create(
-                        wallet=wallet,
-                        transaction_type='admin_adjustment',
-                        amount=amount,
-                        description=f'تنظیم توسط ادمین: {request.user.username}'
-                    )
+                    wallet=wallet,
+                    transaction_type='admin_adjustment',
+                    amount=amount,
+                    description=f'تنظیم توسط ادمین: {request.user.username}'
+                )
                 wallet.balance += amount
                 wallet.save()
                 messages.success(request, f'مبلغ {amount} تومان تنظیم شد')
@@ -5120,8 +4941,6 @@ def admin_wallet_detail(request, wallet_id):
     }
     
     return render(request, 'store_analysis/admin/wallet_detail.html', context)
-
-
 @login_required
 def admin_discounts(request):
     """مدیریت تخفیف‌ها"""
@@ -5186,7 +5005,7 @@ def admin_settings(request):
         return redirect('home')
     
     try:
-        if request.method == 'POST':
+    if request.method == 'POST':
             try:
                 # دریافت تنظیمات از فرم و ذخیره در دیتابیس
                 settings_to_save = [
@@ -5215,12 +5034,9 @@ def admin_settings(request):
                 logger.info(f"Admin settings updated by {request.user.username}")
                 
                 messages.success(request, 'تنظیمات با موفقیت ذخیره شد')
-                return redirect('store_analysis:admin_settings')
-                
             except Exception as e:
                 logger.error(f"Error saving admin settings: {e}")
                 messages.error(request, f'خطا در ذخیره تنظیمات: {str(e)}')
-                return redirect('store_analysis:admin_settings')
         
         # دریافت تنظیمات فعلی از دیتابیس
         current_settings = {}
@@ -5234,12 +5050,12 @@ def admin_settings(request):
         for key in settings_keys:
             current_settings[key] = SystemSettings.get_setting(key, '')
     
-        context = {
+    context = {
             'title': 'تنظیمات سیستم',
             'settings': current_settings
-        }
-        
-        return render(request, 'store_analysis/admin/settings.html', context)
+    }
+    
+    return render(request, 'store_analysis/admin/settings.html', context)
         
     except Exception as e:
         logger.error(f"Error in admin_settings view: {e}")
@@ -5460,7 +5276,7 @@ def admin_promotional_banner_management(request):
     
     try:
         from .models import PromotionalBanner
-        banners = PromotionalBanner.objects.all().order_by('-created_at')
+    banners = PromotionalBanner.objects.all().order_by('-created_at')
     except ImportError:
         banners = []
     
@@ -5515,7 +5331,6 @@ def delete_analysis(request, pk):
         return redirect('store_analysis:user_dashboard')
     
     return render(request, 'store_analysis/delete_analysis_confirm.html', {'analysis': analysis})
-
 @login_required
 def analysis_payment_page(request, pk):
     """صفحه پرداخت برای تحلیل"""
@@ -5545,7 +5360,6 @@ def analysis_payment_page(request, pk):
     }
     
     return render(request, 'store_analysis/payment_page.html', context)
-
 def forms(request):
     """فرم تک صفحه‌ای تحلیل فروشگاه"""
     if request.method == 'POST':
@@ -5674,12 +5488,6 @@ def generate_detailed_analysis_for_dashboard(analysis_data):
 ## 💰 تحلیل مالی و ROI
 
 ### 📈 پیش‌بینی درآمد
-
-#### وضعیت فعلی
-- **فروش روزانه**: {daily_sales:,.0f} تومان
-- **فروش ماهانه**: {daily_sales * 30:,.0f} تومان
-- **فروش سالانه**: {daily_sales * 365:,.0f} تومان
-
 #### وضعیت بهینه (پس از بهبود)
 - **فروش روزانه**: {daily_sales * 1.35:,.0f} تومان
 - **فروش ماهانه**: {daily_sales * 1.35 * 30:,.0f} تومان
@@ -5775,7 +5583,6 @@ def generate_comprehensive_implementation_plan(analysis_data):
 ## 🎯 خلاصه اجرایی
 
 این برنامه اجرایی بر اساس تحلیل هوش مصنوعی از فروشگاه {store_name} تهیه شده است. هدف اصلی، افزایش 35% فروش و بهبود تجربه مشتری از طریق بهینه‌سازی چیدمان، نورپردازی، و مدیریت موجودی است.
-
 **مشخصات فروشگاه:**
 - نام: {store_name}
 - نوع: {store_type}
@@ -6012,7 +5819,6 @@ def generate_comprehensive_implementation_plan(analysis_data):
 - **روز 19-22**: بهبود مسیرهای حرکتی
 - **روز 23-26**: نصب نورپردازی
 - **روز 27-28**: بهینه‌سازی فضاها
-
 ### فاز 3: راه‌اندازی (هفته 5)
 - **روز 29-31**: تست و تنظیم
 - **روز 32-33**: آموزش پرسنل
@@ -6094,8 +5900,6 @@ def generate_comprehensive_implementation_plan(analysis_data):
 """
     
     return implementation_plan
-
-@login_required
 def forms_submit(request):
     """پردازش فرم تک صفحه‌ای تحلیل فروشگاه"""
     if request.method == 'POST':
@@ -6371,17 +6175,16 @@ def forms_submit(request):
             store_analysis.order = order
             store_analysis.save()
             
-            # ایجاد درخواست تحلیل
+            # ایجاد درخواست تحلیل (اگر مدل موجود باشد)
             try:
-                AnalysisRequest.objects.create(
+                from .models import AnalysisRequest
+                analysis_request = AnalysisRequest.objects.create(
                     order=order,
                     store_analysis_data=form_data,
                     status='pending'
                 )
-                logger.info(f"AnalysisRequest created successfully for order {order.order_id}")
-            except Exception as e:
-                logger.error(f"Error creating AnalysisRequest: {e}")
-                raise
+            except ImportError:
+                analysis_request = None
             
             # هدایت بر اساس نوع تحلیل
             is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -6421,8 +6224,6 @@ def forms_submit(request):
         'success': False,
         'message': 'درخواست نامعتبر'
     })
-
-
 def payment_success(request, order_id):
     """پرداخت موفق - اجرای تحلیل AI"""
     try:
@@ -6501,7 +6302,6 @@ def payment_failed(request, order_id):
         return redirect('store_analysis:index')
 
 # --- AI Consultant Views ---
-
 @login_required
 def ai_consultant_list(request):
     """لیست تحلیل‌ها برای انتخاب مشاور"""
@@ -6690,10 +6490,7 @@ def consultant_payment_failed(request, session_id):
         logger.error(f"Error in consultant_payment_failed: {e}")
         messages.error(request, 'خطا در پردازش')
         return redirect('store_analysis:user_dashboard')
-
-
 # ==================== سیستم کیف پول ====================
-
 @login_required
 def wallet_dashboard(request):
     """داشبورد کیف پول کاربر"""
@@ -6800,103 +6597,102 @@ def wallet_transactions(request):
 def deposit_to_wallet(request):
     """واریز به کیف پول - هدایت به PayPing"""
     try:
-        # Debug: Check authentication status
-        logger.info(f"Deposit view accessed - User: {request.user}, Authenticated: {request.user.is_authenticated}")
-        
-        if request.method == 'POST':
-            try:
+    # Debug: Check authentication status
+    logger.info(f"Deposit view accessed - User: {request.user}, Authenticated: {request.user.is_authenticated}")
+    
+    if request.method == 'POST':
+        try:
                 amount = float(request.POST.get('amount', 0))
-                payment_method = request.POST.get('payment_method', 'ping_payment')
-                
-                # Debug logging
-                logger.info(f"Deposit request - Amount: {amount}, Payment Method: {payment_method}")
-                logger.info(f"POST data: {dict(request.POST)}")
-                
-                if amount <= 0:
+            payment_method = request.POST.get('payment_method', 'ping_payment')
+            
+            # Debug logging
+            logger.info(f"Deposit request - Amount: {amount}, Payment Method: {payment_method}")
+            logger.info(f"POST data: {dict(request.POST)}")
+            
+            if amount <= 0:
                     messages.error(request, '❌ مبلغ باید مثبت باشد')
-                    return redirect('store_analysis:wallet_dashboard')
-                
-                if amount < 10000:  # حداقل 10,000 تومان
+                return redirect('store_analysis:wallet_dashboard')
+            
+            if amount < 10000:  # حداقل 10,000 تومان
                     messages.error(request, '❌ حداقل مبلغ واریز 10,000 تومان است')
-                    return redirect('store_analysis:wallet_dashboard')
-                
-                # ایجاد پرداخت جدید
+                return redirect('store_analysis:wallet_dashboard')
+            
+            # ایجاد پرداخت جدید
                 try:
                     # تولید order_id قبل از ایجاد
                     order_id = f"WALLET-{timezone.now().timestamp()}-{request.user.id}"
                     
-                    payment = Payment.objects.create(
-                        id=str(uuid.uuid4()),
+            payment = Payment.objects.create(
                         order_id=order_id,
-                        user=request.user,
-                        amount=amount,
-                        currency='IRR',
-                        description=f"واریز به کیف پول - {amount:,} تومان",
-                        payment_method='ping_payment',
+                user=request.user,
+                amount=amount,
+                currency='IRR',
+                description=f"واریز به کیف پول - {amount:,} تومان",
+                payment_method='ping_payment',
                         status='pending',
                         is_test=getattr(settings, 'PAYMENT_GATEWAY', {}).get('PING_PAYMENT', {}).get('SANDBOX', True)
-                    )
+            )
                 except Exception as e:
                     logger.error(f"Error creating Payment: {e}")
                     messages.error(request, f'❌ خطا در ایجاد پرداخت: {str(e)}')
                     return redirect('store_analysis:wallet_dashboard')
-                
-                # هدایت به درگاه پرداخت
-                if payment_method == 'ping_payment':
-                    logger.info(f"Redirecting to Ping Payment for payment {payment.order_id}")
-                    try:
-                        # استفاده از PaymentManager
-                        from .payment_services import PaymentManager
-                        payment_manager = PaymentManager()
-                        
-                        ping_response = payment_manager.initiate_payment(
-                            payment_method='ping_payment',
-                            amount=payment.amount,
-                            order_id=payment.order_id,
-                            description=payment.description,
-                            user=request.user
-                        )
-                        
-                        if ping_response and ping_response.get('success'):
-                            payment.payment_id = ping_response.get('payment_id')
-                            payment.gateway_response = ping_response
-                            payment.save()
+            
+            # هدایت به درگاه پرداخت
+            if payment_method == 'ping_payment':
+                logger.info(f"Redirecting to Ping Payment for payment {payment.order_id}")
+                try:
+                    # استفاده از PaymentManager
+                    from .payment_services import PaymentManager
+                    payment_manager = PaymentManager()
+                    
+                    ping_response = payment_manager.initiate_payment(
+                        payment_method='ping_payment',
+                        amount=payment.amount,
+                        order_id=payment.order_id,
+                        description=payment.description,
+                        user=request.user
+                    )
+                    
+                    if ping_response and ping_response.get('success'):
+                        payment.payment_id = ping_response.get('payment_id')
+                        payment.gateway_response = ping_response
+                        payment.save()
                             
                             # اگر payment_url وجود دارد، به آن هدایت کن
                             if ping_response.get('payment_url'):
-                                messages.info(request, f'🔄 در حال هدایت به درگاه پرداخت...')
-                                return redirect(ping_response['payment_url'])
+                                messages.info(request, '🔄 در حال هدایت به درگاه پرداخت...')
+                        return redirect(ping_response['payment_url'])
                             else:
                                 # در حالت تست، پیام موفقیت نمایش بده
                                 messages.success(request, f'✅ پرداخت با موفقیت ایجاد شد! شناسه پرداخت: {payment.payment_id}')
                                 return redirect('store_analysis:wallet_dashboard')
-                        else:
-                            error_message = ping_response.get('message', 'خطا در شروع پرداخت از درگاه.')
+                    else:
+                            error_message = (ping_response or {}).get('message', 'خطا در شروع پرداخت از درگاه.')
                             messages.error(request, f"❌ خطا در شروع پرداخت: {error_message}")
-                            return redirect('store_analysis:wallet_dashboard')
-                    except Exception as e:
-                        logger.error(f"Error creating Ping Payment redirect: {e}")
-                        messages.error(request, f'❌ خطا در هدایت به درگاه پرداخت: {str(e)}')
                         return redirect('store_analysis:wallet_dashboard')
-                else:
-                    # برای واریز دستی، مستقیماً واریز کن
-                    payment.status = 'completed'
-                    payment.save()
-                    messages.success(request, f'✅ مبلغ {amount:,} تومان با موفقیت واریز شد!')
+                except Exception as e:
+                    logger.error(f"Error creating Ping Payment redirect: {e}")
+                        messages.error(request, f'❌ خطا در هدایت به درگاه پرداخت: {str(e)}')
                     return redirect('store_analysis:wallet_dashboard')
+            else:
+                # برای واریز دستی، مستقیماً واریز کن
+                payment.status = 'completed'
+                payment.save()
+                    messages.success(request, f'✅ مبلغ {amount:,} تومان با موفقیت واریز شد!')
+                return redirect('store_analysis:wallet_dashboard')
             
-            except ValueError as e:
+        except ValueError as e:
                 messages.error(request, f'❌ {str(e)}')
-            except Exception as e:
+        except Exception as e:
                 messages.error(request, f'❌ خطا در واریز: {str(e)}')
     
-        # دریافت آخرین پرداخت‌ها برای نمایش
-        recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
-        
-        return render(request, 'store_analysis/deposit_to_wallet.html', {
-            'recent_payments': recent_payments,
-            'user': request.user
-        })
+    # دریافت آخرین پرداخت‌ها برای نمایش
+    recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    return render(request, 'store_analysis/deposit_to_wallet.html', {
+        'recent_payments': recent_payments,
+        'user': request.user
+    })
         
     except Exception as e:
         logger.error(f"Error in deposit_to_wallet view: {e}")
@@ -6977,7 +6773,6 @@ def wallet_payment(request, order_id):
 
 
 # ==================== مدیریت کیف پول برای ادمین ====================
-
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_wallet_management(request):
@@ -7057,8 +6852,6 @@ def admin_wallet_detail(request, wallet_id):
     except Exception as e:
         messages.error(request, f'خطا در بارگذاری جزئیات کیف پول: {str(e)}')
         return redirect('store_analysis:admin_wallet_management')
-
-
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_adjust_wallet(request, wallet_id):
@@ -7095,8 +6888,3 @@ def admin_adjust_wallet(request, wallet_id):
             messages.error(request, f'خطا در تنظیم موجودی: {str(e)}')
     
     return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
-
-
-
-
-

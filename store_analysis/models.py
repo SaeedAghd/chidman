@@ -28,8 +28,8 @@ class Payment(models.Model):
         ('manual', 'دستی'),
     ]
     
-    # Primary fields
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Primary fields (align with production bigint identity)
+    id = models.BigAutoField(primary_key=True)
     order_id = models.CharField(max_length=100, unique=True, verbose_name='شناسه سفارش')
     payment_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه پرداخت')
     transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
