@@ -20,5 +20,15 @@ class SEOMiddleware:
             
             # SEO headers
             response.headers.setdefault('X-Robots-Tag', 'index, follow')
+            
+            # Canonical URL for SEO
+            if hasattr(request, 'build_absolute_uri'):
+                canonical_url = request.build_absolute_uri(request.path)
+                response.headers.setdefault('Link', f'<{canonical_url}>; rel="canonical"')
+            
+            # Open Graph headers for social media
+            response.headers.setdefault('og:type', 'website')
+            response.headers.setdefault('og:site_name', 'چیدمانو')
+            response.headers.setdefault('og:locale', 'fa_IR')
         
         return response

@@ -4,12 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; frame-src 'none';">
     <meta name="theme-color" content="#667eea">
     <meta name="description" content="چیدمانو - سیستم تحلیل هوشمند فروشگاه با هوش مصنوعی">
     <meta name="keywords" content="تحلیل فروشگاه, چیدمان, هوش مصنوعی, بهینه‌سازی">
     <meta name="author" content="چیدمانو">
     <title>{% block title %}تحلیل هوشمند فروشگاه{% endblock %}</title>
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "چیدمانو",
+        "description": "سیستم تحلیل هوشمند فروشگاه با هوش مصنوعی",
+        "url": "https://chidmano.ir",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://chidmano.ir/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "url": "https://chidmano.ir"
+        }
+    }
+    </script>
     
     <!-- Vazirmatn Font -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
