@@ -3603,10 +3603,8 @@ def create_ticket(request):
                 return redirect('store_analysis:support_center')
             except Exception as db_error:
                 logger.error(f"خطا در ایجاد تیکت: {db_error}")
-                # ایجاد تیکت ساده در صورت خطای دیتابیس
-            ticket_id = f"TICKET-{timezone.now().timestamp()}-{request.user.id}"
-            messages.success(request, f'✅ تیکت شما با موفقیت ایجاد شد! شناسه تیکت: {ticket_id}')
-            return redirect('store_analysis:support_center')
+                messages.error(request, f'❌ خطا در ایجاد تیکت: {str(db_error)}')
+                return redirect('store_analysis:support_center')
         
         # نمایش فرم
         context = {
