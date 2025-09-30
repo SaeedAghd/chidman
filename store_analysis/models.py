@@ -281,11 +281,15 @@ class StoreAnalysis(models.Model):
     
     # Store information (match production DB schema)
     store_name = models.CharField(max_length=200, verbose_name='نام فروشگاه')
-    store_url = models.URLField(verbose_name='آدرس فروشگاه')
+    store_url = models.URLField(blank=True, null=True, verbose_name='آدرس فروشگاه')
     
     # Analysis details
     analysis_type = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES, default='basic', verbose_name='نوع تحلیل')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
+    
+    # Analysis data and order reference
+    analysis_data = models.JSONField(default=dict, blank=True, verbose_name='داده‌های تحلیل')
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='سفارش')
     
     # Results
     ai_insights = models.TextField(blank=True, verbose_name='بینش‌های هوش مصنوعی')
@@ -577,10 +581,14 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
     
     # Pricing
+    original_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ اصلی')
     base_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ پایه')
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ تخفیف')
     final_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ نهایی')
     currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
+    
+    # Plan reference
+    plan = models.ForeignKey('ServicePackage', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='پکیج')
     
     # Payment reference
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='پرداخت')
