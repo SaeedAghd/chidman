@@ -106,8 +106,10 @@ html {
     font-size: 16px;
     line-height: var(--line-height-normal);
     -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 body {
@@ -158,6 +160,8 @@ a:hover {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    -moz-backdrop-filter: blur(20px);
+    -ms-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-soft);
@@ -173,6 +177,8 @@ a:hover {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    -moz-backdrop-filter: blur(20px);
+    -ms-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-2xl);
     padding: var(--spacing-2xl);
@@ -339,6 +345,8 @@ textarea.form-control {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    -moz-backdrop-filter: blur(20px);
+    -ms-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-2xl);
     padding: var(--spacing-2xl);
@@ -430,6 +438,10 @@ textarea.form-control {
     background: linear-gradient(45deg, #fff, #f0f0f0);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    -moz-background-clip: text;
+    -moz-text-fill-color: transparent;
+    -ms-background-clip: text;
+    -ms-text-fill-color: transparent;
     background-clip: text;
 }
 

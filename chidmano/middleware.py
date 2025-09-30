@@ -89,21 +89,26 @@ class CSPMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
-        # Add CSP header to allow CDN resources and blob URLs (more permissive for SEO)
+        # Add CSP header with comprehensive browser support
         csp_policy = (
-            "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; "
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://analytics.google.com; "
+            "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https: https://www.google-analytics.com https://www.googletagmanager.com; "
-            "font-src 'self' data: https: https://fonts.gstatic.com https://cdn.jsdelivr.net; "
-            "connect-src 'self' data: blob: https: https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://analytics.google.com https://ssl.google-analytics.com; "
-            "media-src 'self' data: blob: https:; "
-            "frame-src 'self' https:; "
+            "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+            "img-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://ssl.google-analytics.com; "
+            "font-src 'self' data: https: http: https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "connect-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://analytics.google.com https://ssl.google-analytics.com; "
+            "media-src 'self' data: blob: https: http:; "
+            "frame-src 'self' https: http:; "
+            "frame-ancestors 'self' https: http:; "
             "object-src 'none'; "
             "base-uri 'self'; "
-            "form-action 'self' https:; "
+            "form-action 'self' https: http:; "
             "worker-src 'self' blob:; "
-            "child-src 'self' blob:"
+            "child-src 'self' blob:; "
+            "manifest-src 'self'; "
+            "prefetch-src 'self' https: http:"
         )
         
         response.headers['Content-Security-Policy'] = csp_policy
