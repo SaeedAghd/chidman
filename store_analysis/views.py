@@ -2420,7 +2420,7 @@ def submit_analysis_request(request):
             store_analysis.save()
             
             # هدایت به صفحه پرداخت
-            return redirect('store_analysis:payment_page', order_id=order.order_id)
+            return redirect('store_analysis:payment_page', order_id=order.order_number)
             
         except Exception as e:
             messages.error(request, f'خطا در ارسال درخواست: {str(e)}')
@@ -4777,7 +4777,7 @@ def admin_user_detail(request, user_id):
     for order in user_orders.order_by('-created_at')[:5]:
         recent_activities.append({
             'type': 'order',
-            'title': f'سفارش: {order.order_id}',
+            'title': f'سفارش: {order.order_number}',
             'time': order.created_at,
             'status': order.status
         })
@@ -4939,7 +4939,7 @@ def admin_order_detail(request, order_id):
         'order': order,
         'analysis': analysis,
         'payments': payments,
-        'title': f'جزئیات سفارش: {order.order_id}'
+        'title': f'جزئیات سفارش: {order.order_number}'
     }
     
     return render(request, 'store_analysis/admin/order_detail.html', context)
@@ -5555,7 +5555,7 @@ def forms(request):
             
             # هدایت به صفحه پرداخت
             messages.success(request, 'فرم با موفقیت ارسال شد!')
-            return redirect('store_analysis:payment_page', order_id=order.order_id)
+            return redirect('store_analysis:payment_page', order_id=order.order_number)
             
         except Exception as e:
             messages.error(request, f'خطا در ارسال فرم: {str(e)}')
@@ -6115,7 +6115,7 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
-                    'redirect_url': f'/store/payment/{order.order_id}/',
+                    'redirect_url': f'/store/payment/{order.order_number}/',
                     'payment_required': True
                 })
             
@@ -6394,7 +6394,7 @@ def forms_submit(request):
                     final_amount=default_plan.price,
                     status='pending'
                 )
-                logger.info(f"Order created successfully: {order.order_id}")
+                logger.info(f"Order created successfully: {order.order_number}")
             except Exception as e:
                 logger.error(f"Error creating order: {e}")
                 raise
@@ -6410,7 +6410,7 @@ def forms_submit(request):
                     store_analysis_data=form_data,
                     status='pending'
                 )
-                logger.info(f"AnalysisRequest created successfully for order {order.order_id}")
+                logger.info(f"AnalysisRequest created successfully for order {order.order_number}")
             except Exception as e:
                 logger.error(f"Error creating AnalysisRequest: {e}")
                 raise
@@ -6435,11 +6435,11 @@ def forms_submit(request):
                     return JsonResponse({
                         'success': True,
                         'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
-                        'redirect_url': f'/store/payment/{order.order_id}/',
+                        'redirect_url': f'/store/payment/{order.order_number}/',
                         'payment_required': True
                     })
                 else:
-                    return redirect('store_analysis:payment_page', order_id=order.order_id)
+                    return redirect('store_analysis:payment_page', order_id=order.order_number)
             
         except Exception as e:
             logger.error(f"Error in forms_submit: {e}")
