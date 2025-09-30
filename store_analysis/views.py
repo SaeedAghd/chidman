@@ -4013,7 +4013,8 @@ def submit_analysis(request):
                 store_name=store_name,
                 store_url=store_url,
                 analysis_type='comprehensive',
-                status='pending'
+                status='pending',
+                analysis_data=form_data
             )
 
             # ایجاد سفارش
@@ -4022,13 +4023,16 @@ def submit_analysis(request):
             order = Order.objects.create(
                 user=request.user,
                 order_number=generated_order_number,
+                original_amount=Decimal(str(cost_breakdown['total'])),
                 base_amount=Decimal(str(cost_breakdown['total'])),
                 discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
                 final_amount=Decimal(str(cost_breakdown['final'])),
                 status='pending'
             )
 
-            # اتصال تحلیل به سفارش حذف شد؛ مدل StoreAnalysis فیلد order ندارد
+            # اتصال تحلیل به سفارش
+            analysis.order = order
+            analysis.save()
 
             logger.info(f"Order created - NUMBER: {order.order_number}, Amount: {order.final_amount}")
 
@@ -6099,10 +6103,13 @@ def forms_submit(request):
                 cost_breakdown = calculate_analysis_cost(form_data)
                 
                 # ایجاد سفارش
+                generated_order_number = f"ORD-{uuid.uuid4().hex[:12].upper()}"
                 order = Order.objects.create(
                     user=request.user,
+                    order_number=generated_order_number,
                     plan=None,
                     original_amount=cost_breakdown['total'],
+                    base_amount=cost_breakdown['total'],
                     discount_amount=cost_breakdown.get('discount', 0),
                     final_amount=cost_breakdown['final'],
                     status='pending'
