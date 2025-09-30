@@ -160,16 +160,16 @@
     </div>
     
     <div style="max-height: 500px; overflow-y: auto;">
-        {% for message in messages %}
-        <div style="margin-bottom: 20px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; {% if message.is_admin %}border-right: 4px solid #2196F3;{% else %}border-right: 4px solid #4CAF50;{% endif %}">
+        {% for message in ticket_messages %}
+        <div style="margin-bottom: 20px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; {% if message.is_admin_reply %}border-right: 4px solid #2196F3;{% else %}border-right: 4px solid #4CAF50;{% endif %}">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: {% if message.is_admin %}var(--primary-gradient){% else %}var(--success-gradient){% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                        {{ message.user.username|first|upper }}
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: {% if message.is_admin_reply %}var(--primary-gradient){% else %}var(--success-gradient){% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                        {{ message.sender.username|first|upper }}
                     </div>
                     <div>
-                        <div style="color: white; font-weight: 600;">{{ message.user.username }}</div>
-                        {% if message.is_admin %}
+                        <div style="color: white; font-weight: 600;">{{ message.sender.username }}</div>
+                        {% if message.is_admin_reply %}
                             <div style="color: #2196F3; font-size: 0.8rem;">ادمین</div>
                         {% else %}
                             <div style="color: #4CAF50; font-size: 0.8rem;">کاربر</div>
@@ -178,7 +178,7 @@
                 </div>
                 <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">{{ message.created_at|date:"Y/m/d H:i" }}</div>
             </div>
-            <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.6; white-space: pre-line;">{{ message.message }}</div>
+            <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.6; white-space: pre-line;">{{ message.content }}</div>
         </div>
         {% empty %}
         <div style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">

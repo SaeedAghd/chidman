@@ -217,14 +217,14 @@ class SimpleFormManager {
                     // پاسخ JSON
                     const data = await response.json();
                     if (data.success) {
-                        this.showMessage('🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
+                        this.showMessage(data.message || '🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
                         // هدایت به صفحه پرداخت
                         console.log('Redirect URL:', data.redirect_url);
                         setTimeout(() => {
                             const redirectUrl = data.redirect_url || '/store/dashboard/';
                             console.log('Redirecting to:', redirectUrl);
                             window.location.href = redirectUrl;
-                        }, 1000);
+                        }, 1500);
                     } else {
                         this.showMessage(data.message || 'خطا در ارسال فرم', 'error');
                     }
@@ -243,7 +243,7 @@ class SimpleFormManager {
                             console.log('No payment URL found, redirecting to dashboard');
                             window.location.href = '/store/dashboard/';
                         }
-                    }, 1000);
+                    }, 2000);
                 }
             } else if (response.type === 'opaqueredirect') {
                 // Redirect response

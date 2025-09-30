@@ -30,10 +30,12 @@ PAYMENT_GATEWAY = {
     'PING_PAYMENT': {
         'MERCHANT_ID': '17D62CFE490EA7C6BF20090BEA12A49FEB4482B02F8534696215A6DE23DF684A-1',
         'API_KEY': os.getenv('PING_API_KEY', '73FD876658226A6A5C40A4B00A605CE5F9CC2C9C92ACFA1AEFF3350C9637C831-1'),
-        'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'https://chidmano.ir/payment/callback/'),
-        'RETURN_URL': os.getenv('PING_RETURN_URL', 'https://chidmano.ir/payment/return/'),
+        'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/'),
+        'RETURN_URL': os.getenv('PING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/'),
         'SANDBOX': os.getenv('PING_SANDBOX', 'False').lower() == 'true',
-        'API_URL': 'https://api.pingpayment.ir' if os.getenv('PING_SANDBOX', 'False').lower() == 'false' else 'https://api-sandbox.pingpayment.ir'
+        'API_URL': 'https://api.pingpayment.ir' if os.getenv('PING_SANDBOX', 'False').lower() == 'false' else 'https://api-sandbox.pingpayment.ir',
+        'TRUST_BADGE': True,  # فعال‌سازی نماد اعتماد
+        'VERIFY_SSL': True
     }
 }
 
@@ -193,35 +195,41 @@ STATICFILES_DIRS = [
     BASE_DIR / "chidmano" / "static",
 ]
 
-# Static files configuration for Liara (read-only filesystem)
+# Always define STATIC_ROOT so staticfiles alias can initialize
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Choose static backend per environment
 if os.getenv('LIARA') == 'true':
-    # Use WhiteNoise without collectstatic for Liara
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    STATIC_BACKEND = 'whitenoise.storage.CompressedStaticFilesStorage'
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
-    # Don't set STATIC_ROOT for Liara to avoid read-only filesystem issues
 elif not DEBUG:
-    # Use WhiteNoise for serving static files in production
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    STATIC_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
     WHITENOISE_ROOT = BASE_DIR / 'staticfiles'
     WHITENOISE_INDEX_FILE = True
 else:
-    # Development static files
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    STATIC_BACKEND = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Explicit storages mapping (Django 4.2+)
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': STATIC_BACKEND,
+    },
+}
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
 
 # تنظیمات آپلود فایل برای Liara (read-only filesystem)
 if os.getenv('LIARA') == 'true':
-    # استفاده از memory storage برای آپلود فایل‌ها
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.MemoryStorage'
+    # Use filesystem storage for uploads via STORAGES['default'] mapping
     FILE_UPLOAD_HANDLERS = [
         'django.core.files.uploadhandler.MemoryFileUploadHandler',
     ]
@@ -294,7 +302,7 @@ USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 
 # Payment - PayPing
-PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', '17CDFDF0A740450AEFA8793D9D13A8616591F313878983911EDC2B7ADAEC325F-1')
+PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', '9CB1E1741B931D55964DC4933CA11B35CDBFB0B18F636F3125D7071BB1AB0522-1')
 
 # AI Analysis Settings
 AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour

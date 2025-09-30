@@ -37,9 +37,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    <link rel="preload" href="{% static 'fonts/Vazir.ttf' %}" as="font" type="font/ttf" crossorigin>
+    <!-- Use hosted Vazirmatn (woff2) instead of local TTF to avoid OTS errors -->
+    <!-- Removed external Google Fonts to avoid fonts.gstatic timeouts -->
     <link rel="preload" href="{% static 'images/logo.png' %}" as="image">
-    <link rel="preload" href="{% static 'images/slider/background.png' %}" as="image">
+    <!-- preload removed: avoid unused image preload -->
     <link rel="preload" href="{% static 'css/bootstrap.min.css' %}" as="style">
     <link rel="preload" href="{% static 'js/bootstrap.bundle.min.js' %}" as="script">
     
@@ -142,15 +143,8 @@
     
     <style>
       /* Local Vazir font */
-      @font-face{
-        font-family:'VazirLocal';
-        src:url('{% static "fonts/Vazir.ttf" %}') format('truetype');
-        font-weight:400;
-        font-style:normal;
-        font-display:swap;
-      }
       html{visibility:visible!important}
-      body{opacity:1!important;font-family:'VazirLocal', Vazirmatn, sans-serif}
+      body{opacity:1!important;font-family:'Vazirmatn', sans-serif}
       .navbar, .nav-link, button, input, textarea{font-family:'VazirLocal', Vazirmatn, sans-serif}
       .preloader,.loading-overlay{display:none!important}
       /* Readability improvements for Vazir */
@@ -177,7 +171,7 @@
     <meta name="geo.country" content="Iran">
     
     <title>تحلیل هوشمند چیدمان فروشگاه - افزایش فروش تا 30% | چیدمانو</title>
-    <link rel="preload" as="image" href="{% static 'images/slider/background.jpg' %}" fetchpriority="high">
+    <!-- hero image loads normally; removed preload to reduce contention -->
     <link rel="preload" as="image" href="{% static 'images/logo.png' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     
@@ -242,16 +236,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Removed Font Awesome and Google Fonts to avoid blocked/slow CDNs -->
     <style>
-        @font-face {
-            font-family: 'VazirLocal';
-            src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-        }
-        html, body {
-            font-family: 'VazirLocal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
+        /* Use fast, system font stack to avoid external font fetch */
+        html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
     </style>
     <style>
         :root {
@@ -2464,7 +2450,8 @@
         // Service Worker Registration for Performance
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
+                // سرویس ورکر از مسیر static سرو می‌شود
+                navigator.serviceWorker.register('/static/sw.js')
                     .then(function(registration) {
                         console.log('SW registered: ', registration);
                     })

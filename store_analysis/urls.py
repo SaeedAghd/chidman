@@ -57,7 +57,7 @@ urlpatterns = [
     path('wallet/', include([
         path('', views.wallet_dashboard, name='wallet_dashboard'),
         path('deposit/', views.deposit_to_wallet, name='deposit_to_wallet'),
-        path('payment/<int:order_id>/', views.wallet_payment, name='wallet_payment'),
+        path('payment/<str:order_id>/', views.wallet_payment, name='wallet_payment'),
         path('withdraw/', views.withdraw_from_wallet, name='withdraw_from_wallet'),
         path('transactions/', views.wallet_transactions, name='wallet_transactions'),
     ])),
@@ -106,6 +106,7 @@ urlpatterns = [
     
     # دیباگ
     path('debug/payping/', views.debug_payping, name='debug_payping'),
+    path('test/payping/', views.test_payping_connection, name='test_payping'),
     
     # Payment URLs
     path('payment/packages/', payment_views.payment_packages, name='payment_packages'),

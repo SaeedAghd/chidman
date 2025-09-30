@@ -602,7 +602,7 @@
                 <h2 class="payment-title">روش پرداخت</h2>
             </div>
             
-            <form id="paymentForm" method="post" action="{% url 'store_analysis:process_payment' order.order_id %}">
+            <form id="paymentForm" method="post" action="{% url 'store_analysis:process_payment' order.order_number %}">
                 {% csrf_token %}
                 
                 <div class="payment-options">
@@ -668,7 +668,7 @@ function directPayPingPayment() {
     button.innerHTML = '<div class="loading-spinner"></div> در حال هدایت به PayPing...';
     
     // Redirect to PayPing
-    window.location.href = "{% url 'store_analysis:payping_payment' order.order_id %}";
+    window.location.href = "{% url 'store_analysis:payping_payment' order.order_number %}";
 }
 
 // Auto-select first payment method and animations
@@ -708,10 +708,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selected) {
                 if (selected.value === 'online') {
                     // هدایت مستقیم به PayPing
-                    window.location.href = "{% url 'store_analysis:payping_payment' order.order_id %}";
+                    window.location.href = "{% url 'store_analysis:payping_payment' order.order_number %}";
                 } else if (selected.value === 'wallet') {
                     // هدایت به کیف پول
-                    window.location.href = "{% url 'store_analysis:wallet_payment' order.order_id %}";
+                    window.location.href = "{% url 'store_analysis:wallet_payment' order.order_number %}";
                 } else {
                     // روش پرداخت نامشخص
                     paymentButton.disabled = false;

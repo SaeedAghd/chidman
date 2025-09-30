@@ -279,17 +279,15 @@ class StoreAnalysis(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
     
-    # Store information
+    # Store information (match production DB schema)
     store_name = models.CharField(max_length=200, verbose_name='نام فروشگاه')
     store_url = models.URLField(verbose_name='آدرس فروشگاه')
-    store_description = models.TextField(blank=True, verbose_name='توضیحات فروشگاه')
     
     # Analysis details
     analysis_type = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES, default='basic', verbose_name='نوع تحلیل')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
     
     # Results
-    analysis_result = models.JSONField(blank=True, null=True, verbose_name='نتیجه تحلیل')
     ai_insights = models.TextField(blank=True, verbose_name='بینش‌های هوش مصنوعی')
     recommendations = models.TextField(blank=True, verbose_name='توصیه‌ها')
     
@@ -531,8 +529,7 @@ class FAQService(models.Model):
     answer = models.TextField(verbose_name='پاسخ')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name='دسته‌بندی')
     
-    # SEO and display
-    keywords = models.TextField(blank=True, verbose_name='کلمات کلیدی')
+    # SEO and display (keywords column not present in current DB)
     is_featured = models.BooleanField(default=False, verbose_name='ویژه')
     sort_order = models.PositiveIntegerField(default=0, verbose_name='ترتیب')
     
@@ -860,12 +857,12 @@ class TicketMessage(models.Model):
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE, related_name='messages', verbose_name='تیکت')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='فرستنده')
     content = models.TextField(verbose_name='محتوای پیام')
-    is_admin_reply = models.BooleanField(default=False, verbose_name='پاسخ ادمین')
     
     # پیوست‌ها
     attachments = models.JSONField(default=list, verbose_name='پیوست‌ها')
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
     
     class Meta:
         verbose_name = 'پیام تیکت'
@@ -879,6 +876,14 @@ class TicketMessage(models.Model):
     
     def __str__(self):
         return f"پیام از {self.sender.username} - {self.ticket.ticket_id}"
+
+    @property
+    def is_admin_reply(self) -> bool:
+        """بر اساس نقش فرستنده تشخیص می‌دهد پیام ادمین است یا خیر (بدون نیاز به ستون DB)."""
+        try:
+            return bool(self.sender and getattr(self.sender, 'is_staff', False))
+        except Exception:
+            return False
 
 
 class UserProfile(models.Model):

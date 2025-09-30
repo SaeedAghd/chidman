@@ -142,7 +142,7 @@ class PayPingGateway:
             logger.warning("Using test token for PayPing development")
         
         # Check if token is valid (not the real token)
-        if self.token == "17CDFDF0A740450AEFA8793D9D13A8616591F313878983911EDC2B7ADAEC325F-1":
+        if self.token in ["17CDFDF0A740450AEFA8793D9D13A8616591F313878983911EDC2B7ADAEC325F-1", "test_token_for_development"]:
             # This token seems to be invalid, use mock
             self.token = "test_token_for_development"
             logger.warning("Using mock token due to invalid PayPing token")

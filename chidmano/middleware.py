@@ -92,11 +92,12 @@ class CSPMiddleware:
         # Add CSP header to allow CDN resources and blob URLs (more permissive for SEO)
         csp_policy = (
             "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https:; "
+            "img-src 'self' data: blob: https: https://www.google-analytics.com https://www.googletagmanager.com; "
             "font-src 'self' data: https: https://fonts.gstatic.com https://cdn.jsdelivr.net; "
-            "connect-src 'self' data: blob: https:; "
+            "connect-src 'self' data: blob: https: https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://analytics.google.com https://ssl.google-analytics.com; "
+            "media-src 'self' data: blob: https:; "
             "frame-src 'self' https:; "
             "object-src 'none'; "
             "base-uri 'self'; "

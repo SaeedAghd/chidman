@@ -277,11 +277,11 @@ def index(request):
     # دریافت تبلیغات فعال (اگر مدل وجود دارد)
     try:
         from .models import PromotionalBanner
-    active_banners = PromotionalBanner.objects.filter(
-        is_active=True,
-        start_date__lte=timezone.now(),
-        end_date__gte=timezone.now()
-    ).order_by('-created_at')
+        active_banners = PromotionalBanner.objects.filter(
+            is_active=True,
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now()
+        ).order_by('-created_at')
     except ImportError:
         # اگر مدل PromotionalBanner وجود ندارد، لیست خالی برگردان
         active_banners = []
@@ -2364,7 +2364,7 @@ def view_analysis_pdf_inline(request, pk):
 @login_required
 def view_order_pdf_inline(request, order_id):
     """نمایش PDF تحلیل بر اساس سفارش به صورت Inline در تب جدید"""
-    order = get_object_or_404(Order, order_id=order_id, user=request.user)
+    order = get_object_or_404(Order, order_number=order_id, user=request.user)
     analysis = StoreAnalysis.objects.filter(order=order).first()
     if not analysis:
         messages.error(request, 'تحلیلی برای این سفارش یافت نشد')
@@ -2407,11 +2407,11 @@ def submit_analysis_request(request):
             # ایجاد درخواست تحلیل (اگر مدل موجود باشد)
             try:
                 from .models import AnalysisRequest
-            analysis_request = AnalysisRequest.objects.create(
-                order=order,
-                store_analysis_data=form_data,
-                status='pending'
-            )
+                analysis_request = AnalysisRequest.objects.create(
+                    order=order,
+                    store_analysis_data=form_data,
+                    status='pending'
+                )
             except ImportError:
                 analysis_request = None
             
@@ -2434,12 +2434,13 @@ def payment_page(request, order_id):
     try:
         # بررسی وجود Order - هر کاربر فقط به Order های خودش دسترسی دارد
         try:
-            order = Order.objects.get(order_id=order_id, user=request.user)
+            # در مدل فعلی Order کلید URL ما order_number است
+            order = Order.objects.get(order_number=order_id, user=request.user)
         except Order.DoesNotExist:
             # اگر Order یافت نشد، آخرین Order کاربر را پیدا کن
             latest_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
             if latest_order:
-                messages.warning(request, f'سفارش {order_id} یافت نشد. آخرین سفارش شما ({latest_order.order_id}) نمایش داده می‌شود.')
+                messages.warning(request, f'سفارش {order_id} یافت نشد. آخرین سفارش شما ({latest_order.order_number}) نمایش داده می‌شود.')
                 order = latest_order
             else:
                 messages.error(request, f'سفارش با شناسه {order_id} یافت نشد یا شما دسترسی ندارید.')
@@ -2523,16 +2524,16 @@ def process_payment(request, order_id):
     if request.method == 'POST':
         try:
             # هر کاربر فقط Order های خودش را پردازش کند
-            order = get_object_or_404(Order, order_id=order_id, user=request.user)
+            order = get_object_or_404(Order, order_number=order_id, user=request.user)
             payment_method = request.POST.get('payment_method', 'online')
             
             # بررسی نوع پرداخت
             if payment_method == 'wallet':
                 # هدایت به صفحه پرداخت کیف پول
-                return redirect('store_analysis:wallet_payment', order_id=order_id)
+                return redirect('store_analysis:wallet_payment', order_id=order.order_number)
             elif payment_method == 'online':
                 # هدایت به PayPing
-                return redirect('store_analysis:payping_payment', order_id=order_id)
+                return redirect('store_analysis:payping_payment', order_id=order.order_number)
             
             # شبیه‌سازی پرداخت موفق (برای سایر روش‌ها)
             # در واقعیت باید با درگاه پرداخت ارتباط برقرار شود
@@ -2565,11 +2566,11 @@ def process_payment(request, order_id):
                 store_analysis.save()
             
             # هدایت به صفحه نتایج
-            return redirect('store_analysis:order_analysis_results', order_id=order_id)
+            return redirect('store_analysis:order_analysis_results', order_id=order.order_number)
             
         except Exception as e:
             messages.error(request, f'❌ خطا در پردازش پرداخت: {str(e)}')
-            return redirect('store_analysis:payment_page', order_id=order_id)
+            return redirect('store_analysis:payment_page', order_id=order.order_number)
     
     return redirect('store_analysis:payment_page', order_id=order_id)
 
@@ -2578,7 +2579,7 @@ def process_payment(request, order_id):
 def payping_payment(request, order_id):
     """پرداخت از طریق PayPing"""
     try:
-        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        order = get_object_or_404(Order, order_number=order_id, user=request.user)
         
         # استفاده از درگاه PayPing
         from .payment_gateways import PaymentGatewayManager
@@ -2595,16 +2596,16 @@ def payping_payment(request, order_id):
         
         # ایجاد درخواست پرداخت
         callback_url = request.build_absolute_uri(
-            reverse('store_analysis:payping_callback', args=[order_id])
+            reverse('store_analysis:payping_callback', args=[order.order_number])
         )
         
         logger.info(f"PayPing callback URL: {callback_url}")
         
         payment_request = payping.create_payment_request(
             amount=int(order.final_amount),
-            description=f'پرداخت سفارش {order.order_id} - تحلیل فروشگاه',
+            description=f'پرداخت سفارش {order.order_number} - تحلیل فروشگاه',
             callback_url=callback_url,
-            client_ref_id=str(order.order_id)
+            client_ref_id=str(order.order_number)
         )
         
         logger.info(f"PayPing payment request result: {payment_request}")
@@ -2807,7 +2808,7 @@ def test_advanced_analysis(request):
 def payping_callback(request, order_id):
     """بازگشت از PayPing"""
     try:
-        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        order = get_object_or_404(Order, order_number=order_id, user=request.user)
         # PayPing returns refId (query string)
         authority = request.GET.get('refId') or request.GET.get('refid') or request.GET.get('RefId')
         status = request.GET.get('status') or request.GET.get('Status')
@@ -2847,11 +2848,11 @@ def payping_callback(request, order_id):
                     )
                     # واریز 5% از مبلغ به عنوان پاداش
                     bonus_amount = int(order.final_amount * 0.05)
-                    wallet.deposit(bonus_amount, f'پاداش پرداخت سفارش {order.order_id}')
-                except:
+                    wallet.deposit(bonus_amount, f'پاداش پرداخت سفارش {order.order_number}')
+                except Exception:
                     pass  # اگر واریز پاداش ناموفق بود، ادامه بده
                 
-                messages.success(request, f'✅ پرداخت سفارش {order.order_id} با موفقیت انجام شد!')
+                messages.success(request, f'✅ پرداخت سفارش {order.order_number} با موفقیت انجام شد!')
                 return redirect('store_analysis:order_analysis_results', order_id=order_id)
             else:
                 # اگر تایید ناموفق بود، شبیه‌سازی پرداخت موفق
@@ -2907,7 +2908,7 @@ def order_analysis_results(request, order_id):
     """صفحه نتایج تحلیل بر اساس سفارش"""
     try:
         # هر کاربر فقط Order های خودش را ببیند
-        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        order = get_object_or_404(Order, order_number=order_id, user=request.user)
         store_analysis = StoreAnalysis.objects.filter(order=order).first()
         
         if not store_analysis:
@@ -3044,7 +3045,7 @@ def check_analysis_status(request, order_id):
     """بررسی وضعیت تحلیل (AJAX)"""
     try:
         # هر کاربر فقط Order های خودش را بررسی کند
-        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        order = get_object_or_404(Order, order_number=order_id, user=request.user)
         store_analysis = StoreAnalysis.objects.filter(order=order).first()
         
         if not store_analysis:
@@ -3436,7 +3437,7 @@ def support_center(request):
             
             # دریافت سوالات محبوب (بدون استفاده از فیلدهای ممکن است موجود نباشند)
             try:
-            popular_faqs = FAQService.objects.filter(is_featured=True)[:6]
+                popular_faqs = FAQService.objects.filter(is_featured=True)[:6]
             except Exception:
                 popular_faqs = FAQService.objects.all()[:6]
         except Exception as faq_error:
@@ -3671,7 +3672,6 @@ def ticket_detail(request, ticket_id):
                 TicketMessage.objects.create(
                     ticket=ticket,
                     sender=request.user,
-                    message_type='user',
                     content=content
                 )
                 
@@ -3996,48 +3996,64 @@ def submit_analysis(request):
         try:
             # دریافت داده‌های فرم
             form_data = request.POST.dict()
-            files_data = request.FILES
-            
-            logger.info(f"Form submission - User: {request.user}, Data: {form_data}")
-            
-            # محاسبه هزینه بر اساس درخواست‌ها
+            logger.info(f"Form submission - User: {request.user}, Data keys: {list(form_data.keys())}")
+
+            # اطمینان از وجود فیلدهای ضروری مدل
+            store_name = form_data.get('store_name') or 'فروشگاه'
+            # فیلدهای غیرموجود در مدل را به StoreAnalysis پاس نده
+            # URLField خالی مجاز نیست؛ مقدار امن پیش‌فرض تنظیم می‌کنیم اگر کاربر چیزی نفرستاده باشد
+            store_url = form_data.get('store_url') or 'https://chidmano.ir'
+
+            # محاسبه هزینه
             cost_breakdown = calculate_analysis_cost(form_data)
-            
+
             # ایجاد تحلیل جدید
             analysis = StoreAnalysis.objects.create(
                 user=request.user,
-                store_name=form_data.get('store_name', 'فروشگاه جدید'),
-                store_type=form_data.get('store_type', 'retail'),
-                store_size=str(form_data.get('store_size', 100)),
+                store_name=store_name,
+                store_url=store_url,
                 analysis_type='comprehensive',
-                status='pending',
-                analysis_data=form_data
-            )
-            
-            # ایجاد سفارش
-            order = Order.objects.create(
-                user=request.user,
-                plan=None,  # پلن سفارشی
-                original_amount=cost_breakdown['total'],
-                discount_amount=cost_breakdown.get('discount', 0),
-                final_amount=cost_breakdown['final'],
                 status='pending'
             )
-            
-            # اتصال تحلیل به سفارش
-            analysis.order = order
-            analysis.save()
-            
-            logger.info(f"Order created - ID: {order.order_id}, Amount: {order.final_amount}")
-            
-            # هدایت به صفحه پرداخت
-            return redirect('store_analysis:payment_page', order_id=order.order_id)
-            
+
+            # ایجاد سفارش
+            # ساخت شماره سفارش یکتا و ایجاد سفارش سازگار با مدل فعلی
+            generated_order_number = f"ORD-{uuid.uuid4().hex[:12].upper()}"
+            order = Order.objects.create(
+                user=request.user,
+                order_number=generated_order_number,
+                base_amount=Decimal(str(cost_breakdown['total'])),
+                discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
+                final_amount=Decimal(str(cost_breakdown['final'])),
+                status='pending'
+            )
+
+            # اتصال تحلیل به سفارش حذف شد؛ مدل StoreAnalysis فیلد order ندارد
+
+            logger.info(f"Order created - NUMBER: {order.order_number}, Amount: {order.final_amount}")
+
+            # اگر درخواست AJAX است، پاسخ JSON برگردان
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+                return JsonResponse({
+                    'success': True,
+                    'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                    'redirect_url': f"/store/payment/{order.order_number}/",
+                    'payment_required': True
+                })
+
+            # در غیر این صورت، ریدایرکت عادی
+            return redirect('store_analysis:payment_page', order_id=order.order_number)
+
         except Exception as e:
-            logger.error(f"Error in submit_analysis: {str(e)}")
+            logger.error(f"Error in submit_analysis: {str(e)}", exc_info=True)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+                return JsonResponse({
+                    'success': False,
+                    'message': f"خطا در ارسال فرم: {str(e)}"
+                }, status=500)
             messages.error(request, f'❌ خطا در ارسال فرم: {str(e)}')
             return render(request, 'store_analysis/forms.html')
-    
+
     return render(request, 'store_analysis/forms.html')
 
 
@@ -4180,7 +4196,7 @@ def create_order(request, plan_id):
     """ایجاد سفارش جدید"""
     try:
         from .models import PricingPlan
-    plan = get_object_or_404(PricingPlan, id=plan_id, is_active=True)
+        plan = get_object_or_404(PricingPlan, id=plan_id, is_active=True)
     except ImportError:
         messages.error(request, 'مدل قیمت‌گذاری یافت نشد')
         return redirect('store_analysis:pricing')
@@ -4201,15 +4217,15 @@ def create_order(request, plan_id):
     )
     
     # ذخیره داده‌های فرم در session برای استفاده بعدی
-    request.session['order_id'] = str(order.order_id)
+    request.session['order_id'] = str(order.order_number)
     request.session['plan_id'] = plan_id
     
-    return redirect('store_analysis:checkout', order_id=order.order_id)
+    return redirect('store_analysis:checkout', order_id=order.order_number)
 
 @login_required
 def checkout(request, order_id):
     """صفحه نهایی پرداخت"""
-    order = get_object_or_404(Order, order_id=order_id, user=request.user)
+    order = get_object_or_404(Order, order_number=order_id, user=request.user)
     
     if request.method == 'POST':
         # در اینجا می‌توانید به درگاه پرداخت متصل شوید
@@ -4569,8 +4585,8 @@ def admin_dashboard(request):
     
     # آمار بسته‌های خدمات
     try:
-    total_packages = ServicePackage.objects.count()
-    active_packages = ServicePackage.objects.filter(is_active=True).count()
+        total_packages = ServicePackage.objects.count()
+        active_packages = ServicePackage.objects.filter(is_active=True).count()
     except Exception as e:
         print(f"⚠️ ServicePackage not available: {e}")
         total_packages = 0
@@ -4578,8 +4594,8 @@ def admin_dashboard(request):
     
     # آمار اشتراک‌ها
     try:
-    total_subscriptions = UserSubscription.objects.count()
-    active_subscriptions = UserSubscription.objects.filter(is_active=True).count()
+        total_subscriptions = UserSubscription.objects.count()
+        active_subscriptions = UserSubscription.objects.filter(is_active=True).count()
     except Exception as e:
         print(f"⚠️ UserSubscription not available: {e}")
         total_subscriptions = 0
@@ -4601,12 +4617,12 @@ def admin_dashboard(request):
     
     # آخرین تحلیل‌ها
     try:
-    recent_analyses_list = StoreAnalysis.objects.order_by('-created_at')[:3]
-    for analysis in recent_analyses_list:
-        recent_activities.append({
-            'type': 'analysis',
-            'title': f'تحلیل جدید: {analysis.store_name}',
-            'time': analysis.created_at,
+        recent_analyses_list = StoreAnalysis.objects.order_by('-created_at')[:3]
+        for analysis in recent_analyses_list:
+            recent_activities.append({
+                'type': 'analysis',
+                'title': f'تحلیل جدید: {analysis.store_name}',
+                'time': analysis.created_at,
                 'icon': '📊',
                 'color': '#2196F3'
             })
@@ -4992,7 +5008,7 @@ def admin_ticket_detail(request, ticket_id):
         return redirect('home')
     
     ticket = get_object_or_404(SupportTicket, ticket_id=ticket_id)
-    messages = TicketMessage.objects.filter(ticket=ticket).order_by('created_at')
+    ticket_messages = TicketMessage.objects.filter(ticket=ticket).order_by('created_at')
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -5001,9 +5017,8 @@ def admin_ticket_detail(request, ticket_id):
             if message_text:
                 TicketMessage.objects.create(
                     ticket=ticket,
-                    user=request.user,
-                    message=message_text,
-                    is_admin=True
+                    sender=request.user,
+                    content=message_text
                 )
                 messages.success(request, 'پاسخ ارسال شد')
         elif action == 'close':
@@ -5019,7 +5034,7 @@ def admin_ticket_detail(request, ticket_id):
     
     context = {
         'ticket': ticket,
-        'messages': messages,
+        'ticket_messages': ticket_messages,
         'title': f'تیکت: {ticket.subject}'
     }
     
@@ -5071,57 +5086,6 @@ def admin_wallets(request):
     return render(request, 'store_analysis/admin/wallets.html', context)
 
 
-@login_required
-def admin_wallet_detail(request, wallet_id):
-    """جزئیات کیف پول"""
-    if not request.user.is_staff:
-        messages.error(request, 'دسترسی غیرمجاز')
-        return redirect('home')
-    
-    wallet = get_object_or_404(Wallet, id=wallet_id)
-    try:
-        from .models import Transaction
-    transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at')
-    except ImportError:
-        transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        amount = request.POST.get('amount')
-        
-        if action == 'adjust' and amount:
-            try:
-                amount = float(amount)
-                try:
-                    from .models import Transaction
-                Transaction.objects.create(
-                    wallet=wallet,
-                    transaction_type='admin_adjustment',
-                    amount=amount,
-                    description=f'تنظیم توسط ادمین: {request.user.username}'
-                )
-                except ImportError:
-                    WalletTransaction.objects.create(
-                    wallet=wallet,
-                    transaction_type='admin_adjustment',
-                    amount=amount,
-                    description=f'تنظیم توسط ادمین: {request.user.username}'
-                )
-                wallet.balance += amount
-                wallet.save()
-                messages.success(request, f'مبلغ {amount} تومان تنظیم شد')
-            except ValueError:
-                messages.error(request, 'مبلغ نامعتبر')
-        
-        return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
-    
-    context = {
-        'wallet': wallet,
-        'transactions': transactions,
-        'title': f'کیف پول: {wallet.user.username}'
-    }
-    
-    return render(request, 'store_analysis/admin/wallet_detail.html', context)
 
 
 @login_required
@@ -5188,7 +5152,7 @@ def admin_settings(request):
         return redirect('home')
     
     try:
-    if request.method == 'POST':
+        if request.method == 'POST':
             try:
                 # دریافت تنظیمات از فرم و ذخیره در دیتابیس
                 settings_to_save = [
@@ -5217,7 +5181,7 @@ def admin_settings(request):
                 logger.info(f"Admin settings updated by {request.user.username}")
                 
                 messages.success(request, 'تنظیمات با موفقیت ذخیره شد')
-        return redirect('store_analysis:admin_settings')
+                return redirect('store_analysis:admin_settings')
                 
             except Exception as e:
                 logger.error(f"Error saving admin settings: {e}")
@@ -5236,12 +5200,12 @@ def admin_settings(request):
         for key in settings_keys:
             current_settings[key] = SystemSettings.get_setting(key, '')
     
-    context = {
+        context = {
             'title': 'تنظیمات سیستم',
             'settings': current_settings
-    }
-    
-    return render(request, 'store_analysis/admin/settings.html', context)
+        }
+        
+        return render(request, 'store_analysis/admin/settings.html', context)
         
     except Exception as e:
         logger.error(f"Error in admin_settings view: {e}")
@@ -5462,7 +5426,7 @@ def admin_promotional_banner_management(request):
     
     try:
         from .models import PromotionalBanner
-    banners = PromotionalBanner.objects.all().order_by('-created_at')
+        banners = PromotionalBanner.objects.all().order_by('-created_at')
     except ImportError:
         banners = []
     
@@ -6099,7 +6063,73 @@ def generate_comprehensive_implementation_plan(analysis_data):
 
 @login_required
 def forms_submit(request):
-    """پردازش فرم تک صفحه‌ای تحلیل فروشگاه"""
+    """پردازش فرم تک صفحه‌ای تحلیل فروشگاه - بهینه‌سازی شده"""
+    if request.method == 'POST':
+        try:
+            # دریافت داده‌های فرم به صورت ساده
+            form_data = request.POST.dict()
+            
+            # بررسی نوع تحلیل
+            analysis_type = form_data.get('analysis_type', 'preliminary')
+            
+            # ایجاد تحلیل جدید (ساده)
+            store_analysis = StoreAnalysis.objects.create(
+                user=request.user,
+                store_name=form_data.get('store_name', 'فروشگاه'),
+                store_type=form_data.get('store_type', 'عمومی'),
+                store_size=form_data.get('store_size', 'متوسط'),
+                status='pending',
+                analysis_type='comprehensive',
+                analysis_data=form_data
+            )
+            
+            if analysis_type == 'preliminary':
+                # تحلیل اولیه - رایگان
+                store_analysis.status = 'processing'
+                store_analysis.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
+                    'redirect_url': f'/store/analysis/{store_analysis.id}/'
+                })
+            else:
+                # تحلیل کامل - پولی
+                # محاسبه هزینه
+                cost_breakdown = calculate_analysis_cost(form_data)
+                
+                # ایجاد سفارش
+                order = Order.objects.create(
+                    user=request.user,
+                    plan=None,
+                    original_amount=cost_breakdown['total'],
+                    discount_amount=cost_breakdown.get('discount', 0),
+                    final_amount=cost_breakdown['final'],
+                    status='pending'
+                )
+                
+                # اتصال تحلیل به سفارش
+                store_analysis.order = order
+                store_analysis.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                    'redirect_url': f'/store/payment/{order.order_id}/',
+                    'payment_required': True
+                })
+            
+        except Exception as e:
+            logger.error(f"Error in forms_submit: {e}")
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در ارسال فرم: {str(e)}'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'درخواست نامعتبر'
+    })
     if request.method == 'POST':
         try:
             # دریافت داده‌های فرم
@@ -6404,8 +6434,9 @@ def forms_submit(request):
                 if is_ajax or is_fetch:
                     return JsonResponse({
                         'success': True,
-                        'message': 'فرم با موفقیت ارسال شد!',
-                        'redirect_url': f'/store/payment/{order.order_id}/'
+                        'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                        'redirect_url': f'/store/payment/{order.order_id}/',
+                        'payment_required': True
                     })
                 else:
                     return redirect('store_analysis:payment_page', order_id=order.order_id)
@@ -6802,66 +6833,66 @@ def wallet_transactions(request):
 def deposit_to_wallet(request):
     """واریز به کیف پول - هدایت به PayPing"""
     try:
-    # Debug: Check authentication status
-    logger.info(f"Deposit view accessed - User: {request.user}, Authenticated: {request.user.is_authenticated}")
-    
-    if request.method == 'POST':
-        try:
+        # Debug: Check authentication status
+        logger.info(f"Deposit view accessed - User: {request.user}, Authenticated: {request.user.is_authenticated}")
+        
+        if request.method == 'POST':
+            try:
                 amount = float(request.POST.get('amount', 0))
-            payment_method = request.POST.get('payment_method', 'ping_payment')
-            
-            # Debug logging
-            logger.info(f"Deposit request - Amount: {amount}, Payment Method: {payment_method}")
-            logger.info(f"POST data: {dict(request.POST)}")
-            
-            if amount <= 0:
+                payment_method = request.POST.get('payment_method', 'ping_payment')
+                
+                # Debug logging
+                logger.info(f"Deposit request - Amount: {amount}, Payment Method: {payment_method}")
+                logger.info(f"POST data: {dict(request.POST)}")
+                
+                if amount <= 0:
                     messages.error(request, '❌ مبلغ باید مثبت باشد')
-                return redirect('store_analysis:wallet_dashboard')
-            
-            if amount < 10000:  # حداقل 10,000 تومان
+                    return redirect('store_analysis:wallet_dashboard')
+                
+                if amount < 10000:  # حداقل 10,000 تومان
                     messages.error(request, '❌ حداقل مبلغ واریز 10,000 تومان است')
-                return redirect('store_analysis:wallet_dashboard')
-            
-            # ایجاد پرداخت جدید
+                    return redirect('store_analysis:wallet_dashboard')
+                
+                # ایجاد پرداخت جدید
                 try:
                     # تولید order_id قبل از ایجاد
                     order_id = f"WALLET-{timezone.now().timestamp()}-{request.user.id}"
                     
-            payment = Payment.objects.create(
+                    payment = Payment.objects.create(
                         order_id=order_id,
-                user=request.user,
-                amount=amount,
-                currency='IRR',
-                description=f"واریز به کیف پول - {amount:,} تومان",
-                payment_method='ping_payment',
+                        user=request.user,
+                        amount=amount,
+                        currency='IRR',
+                        description=f"واریز به کیف پول - {amount:,} تومان",
+                        payment_method='ping_payment',
                         status='pending',
                         is_test=getattr(settings, 'PAYMENT_GATEWAY', {}).get('PING_PAYMENT', {}).get('SANDBOX', True)
-            )
+                    )
                 except Exception as e:
                     logger.error(f"Error creating Payment: {e}")
                     messages.error(request, f'❌ خطا در ایجاد پرداخت: {str(e)}')
                     return redirect('store_analysis:wallet_dashboard')
-            
-            # هدایت به درگاه پرداخت
-            if payment_method == 'ping_payment':
-                logger.info(f"Redirecting to Ping Payment for payment {payment.order_id}")
-                try:
-                    # استفاده از PaymentManager
-                    from .payment_services import PaymentManager
-                    payment_manager = PaymentManager()
-                    
-                    ping_response = payment_manager.initiate_payment(
-                        payment_method='ping_payment',
-                        amount=payment.amount,
-                        order_id=payment.order_id,
-                        description=payment.description,
-                        user=request.user
-                    )
-                    
-                    if ping_response and ping_response.get('success'):
-                        payment.payment_id = ping_response.get('payment_id')
-                        payment.gateway_response = ping_response
-                        payment.save()
+                
+                # هدایت به درگاه پرداخت
+                if payment_method == 'ping_payment':
+                    logger.info(f"Redirecting to Ping Payment for payment {payment.order_id}")
+                    try:
+                        # استفاده از PaymentManager
+                        from .payment_services import PaymentManager
+                        payment_manager = PaymentManager()
+                        
+                        ping_response = payment_manager.initiate_payment(
+                            payment_method='ping_payment',
+                            amount=payment.amount,
+                            order_id=payment.order_id,
+                            description=payment.description,
+                            user=request.user
+                        )
+                        
+                        if ping_response and ping_response.get('success'):
+                            payment.payment_id = ping_response.get('payment_id')
+                            payment.gateway_response = ping_response
+                            payment.save()
                             
                             # بررسی payment_url و هدایت به درگاه
                             payment_url = ping_response.get('payment_url')
@@ -6902,34 +6933,34 @@ def deposit_to_wallet(request):
                                 messages.success(request, f'✅ پرداخت با موفقیت ایجاد شد! شناسه پرداخت: {payment.payment_id}')
                                 
                                 return redirect('store_analysis:wallet_dashboard')
-                    else:
-                        error_message = ping_response.get('message', 'خطا در شروع پرداخت از درگاه.')
+                        else:
+                            error_message = ping_response.get('message', 'خطا در شروع پرداخت از درگاه.')
                             messages.error(request, f"❌ خطا در شروع پرداخت: {error_message}")
-                        return redirect('store_analysis:wallet_dashboard')
-                except Exception as e:
-                    logger.error(f"Error creating Ping Payment redirect: {e}")
+                            return redirect('store_analysis:wallet_dashboard')
+                    except Exception as e:
+                        logger.error(f"Error creating Ping Payment redirect: {e}")
                         messages.error(request, f'❌ خطا در هدایت به درگاه پرداخت: {str(e)}')
-                    return redirect('store_analysis:wallet_dashboard')
-            else:
-                # برای واریز دستی، مستقیماً واریز کن
-                payment.status = 'completed'
-                payment.save()
+                        return redirect('store_analysis:wallet_dashboard')
+                else:
+                    # برای واریز دستی، مستقیماً واریز کن
+                    payment.status = 'completed'
+                    payment.save()
                     messages.success(request, f'✅ مبلغ {amount:,} تومان با موفقیت واریز شد!')
-                return redirect('store_analysis:wallet_dashboard')
-            
-        except ValueError as e:
+                    return redirect('store_analysis:wallet_dashboard')
+                
+            except ValueError as e:
                 messages.error(request, f'❌ {str(e)}')
-        except Exception as e:
+            except Exception as e:
                 messages.error(request, f'❌ خطا در واریز: {str(e)}')
-    
-    # دریافت آخرین پرداخت‌ها برای نمایش
-    recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
-    
-    return render(request, 'store_analysis/deposit_to_wallet.html', {
-        'recent_payments': recent_payments,
-        'user': request.user
-    })
         
+        # دریافت آخرین پرداخت‌ها برای نمایش
+        recent_payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:5]
+        
+        return render(request, 'store_analysis/deposit_to_wallet.html', {
+            'recent_payments': recent_payments,
+            'user': request.user
+        })
+            
     except Exception as e:
         logger.error(f"Error in deposit_to_wallet view: {e}")
         messages.error(request, 'خطا در بارگذاری صفحه واریز')
@@ -6968,7 +6999,7 @@ def withdraw_from_wallet(request):
 def wallet_payment(request, order_id):
     """پرداخت از کیف پول"""
     try:
-        order = get_object_or_404(Order, order_id=order_id, user=request.user)
+        order = get_object_or_404(Order, order_number=order_id, user=request.user)
         wallet = get_object_or_404(Wallet, user=request.user)
         
         if request.method == 'POST':
@@ -6978,7 +7009,7 @@ def wallet_payment(request, order_id):
                 return redirect('store_analysis:order_detail', order_id=order_id)
             
             # برداشت از کیف پول
-            wallet.withdraw(order.final_amount, f'پرداخت سفارش {order.order_id}')
+            wallet.withdraw(order.final_amount, f'پرداخت سفارش {order.order_number}')
             
             # ایجاد پرداخت
             payment = Payment.objects.create(
@@ -6986,14 +7017,14 @@ def wallet_payment(request, order_id):
                 amount=order.final_amount,
                 payment_method='wallet',
                 status='completed',
-                transaction_id=f'WALLET_{order.order_id}_{timezone.now().strftime("%Y%m%d%H%M%S")}'
+            transaction_id=f'WALLET_{order.order_number}_{timezone.now().strftime("%Y%m%d%H%M%S")}'
             )
             
             # تغییر وضعیت سفارش
             order.status = 'paid'
             order.save()
             
-            messages.success(request, f'✅ پرداخت سفارش {order.order_id} با موفقیت انجام شد')
+            messages.success(request, f'✅ پرداخت سفارش {order.order_number} با موفقیت انجام شد')
             return redirect('store_analysis:order_detail', order_id=order_id)
         
         context = {
@@ -7068,7 +7099,7 @@ def admin_wallet_detail(request, wallet_id):
         wallet = get_object_or_404(Wallet, id=wallet_id)
         
         # تراکنش‌های کیف پول
-        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at')
+        transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
         
         # آمار تراکنش‌ها
         from django.db import models
@@ -7088,7 +7119,7 @@ def admin_wallet_detail(request, wallet_id):
         
     except Exception as e:
         messages.error(request, f'خطا در بارگذاری جزئیات کیف پول: {str(e)}')
-        return redirect('store_analysis:admin_wallet_management')
+        return redirect('store_analysis:admin_wallets')
 
 
 @login_required
@@ -7129,6 +7160,42 @@ def admin_adjust_wallet(request, wallet_id):
     return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
 
 
-
-
+@login_required
+def test_payping_connection(request):
+    """تست اتصال به PayPing"""
+    if not request.user.is_staff:
+        messages.error(request, 'دسترسی غیرمجاز')
+        return redirect('home')
+    
+    try:
+        from .payment_gateways import PayPingGateway
+        from django.conf import settings
+        
+        # دریافت تنظیمات PayPing
+        payping_config = settings.PAYMENT_GATEWAY.get('PING_PAYMENT', {})
+        token = settings.PAYPING_TOKEN
+        
+        # تست اتصال
+        gateway = PayPingGateway(token)
+        
+        # تست ایجاد پرداخت کوچک
+        test_amount = 1000  # 1000 تومان
+        test_description = "تست اتصال PayPing"
+        test_callback = f"{settings.SITE_URL}/store/payment/payping/callback/"
+        
+        result = gateway.create_payment_request(
+            amount=test_amount,
+            description=test_description,
+            callback_url=test_callback
+        )
+        
+        if result.get('success'):
+            messages.success(request, f'✅ اتصال به PayPing موفق! کد پرداخت: {result.get("code", "N/A")}')
+        else:
+            messages.error(request, f'❌ خطا در اتصال به PayPing: {result.get("message", "خطای نامشخص")}')
+            
+    except Exception as e:
+        messages.error(request, f'❌ خطا در تست PayPing: {str(e)}')
+    
+    return redirect('store_analysis:admin_dashboard')
 

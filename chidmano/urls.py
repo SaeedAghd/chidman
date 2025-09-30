@@ -8,6 +8,7 @@ from . import views
 from .seo_views import sitemap_xml, robots_txt
 from django.views.generic import TemplateView, RedirectView
 from django.urls import re_path
+from django.views.generic import RedirectView
 
 urlpatterns = [
     # صفحه اصلی
@@ -69,4 +70,6 @@ urlpatterns = [
     path('robots.txt', robots_txt, name='robots'),
     path('37797489.txt', TemplateView.as_view(template_name='verification/37797489.txt', content_type='text/plain'), name='enamad_37797489'),
     re_path(r'^favicon\.ico$', RedirectView.as_view(url='/static/images/favicon.ico', permanent=True)),
+    # Serve service worker at root to avoid 404 in some browsers
+    re_path(r'^sw\.js$', RedirectView.as_view(url='/static/sw.js', permanent=True)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
