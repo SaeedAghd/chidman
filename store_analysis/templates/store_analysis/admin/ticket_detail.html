@@ -161,15 +161,15 @@
     
     <div style="max-height: 500px; overflow-y: auto;">
         {% for message in ticket_messages %}
-        <div style="margin-bottom: 20px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; {% if message.is_admin_reply %}border-right: 4px solid #2196F3;{% else %}border-right: 4px solid #4CAF50;{% endif %}">
+        <div style="margin-bottom: 20px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; {% if message.sender.is_staff %}border-right: 4px solid #2196F3;{% else %}border-right: 4px solid #4CAF50;{% endif %}">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: {% if message.is_admin_reply %}var(--primary-gradient){% else %}var(--success-gradient){% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: {% if message.sender.is_staff %}var(--primary-gradient){% else %}var(--success-gradient){% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
                         {{ message.sender.username|first|upper }}
                     </div>
                     <div>
                         <div style="color: white; font-weight: 600;">{{ message.sender.username }}</div>
-                        {% if message.is_admin_reply %}
+                        {% if message.sender.is_staff %}
                             <div style="color: #2196F3; font-size: 0.8rem;">ادمین</div>
                         {% else %}
                             <div style="color: #4CAF50; font-size: 0.8rem;">کاربر</div>
