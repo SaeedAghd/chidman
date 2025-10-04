@@ -724,7 +724,7 @@ def analysis_results(request, pk):
         'is_admin': is_admin,
         'order': order,
     }
-    return render(request, 'store_analysis/analysis_results_enhanced.html', context)
+    return render(request, 'store_analysis/modern_analysis_results.html', context)
 
 @login_required
 def download_analysis_report(request, pk):
@@ -3039,7 +3039,7 @@ def order_analysis_results(request, order_id):
             logger.error(f"Error generating friendly analysis: {e}")
             context['show_friendly'] = False
         
-        return render(request, 'store_analysis/analysis_results_enhanced.html', context)
+        return render(request, 'store_analysis/modern_analysis_results.html', context)
         
     except Exception as e:
         messages.error(request, f'خطا در بارگذاری نتایج: {str(e)}')
@@ -5452,27 +5452,7 @@ def analysis_results_session(request):
     
     return render(request, 'store_analysis/analysis_results_enhanced.html', {'data': complete_data})
 
-@login_required
-def analysis_detail(request, pk):
-    """نمایش جزئیات تحلیل"""
-    # هر کاربر فقط تحلیل‌های خودش را ببیند
-    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
-    
-    # اگر تحلیل در انتظار است، تحلیل اولیه رایگان ارائه دهید
-    if analysis.status == 'pending':
-        free_analysis = generate_free_initial_analysis(analysis)
-        context = {
-            'analysis': analysis,
-            'free_analysis': free_analysis,
-            'show_payment_prompt': True,
-        }
-    else:
-        context = {
-            'analysis': analysis,
-            'show_payment_prompt': False,
-        }
-    
-    return render(request, 'store_analysis/analysis_detail.html', context)
+# analysis_detail view حذف شد - مستقیماً به نتایج مدرن هدایت می‌شود
 
 @login_required
 def delete_analysis(request, pk):
@@ -6091,7 +6071,7 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
-                    'redirect_url': reverse('store_analysis:analysis_detail', kwargs={'pk': store_analysis.id})
+                    'redirect_url': reverse('store_analysis:analysis_results', kwargs={'pk': store_analysis.id})
                 })
             else:
                 # تحلیل کامل - پولی
@@ -6426,7 +6406,7 @@ def forms_submit(request):
                     return JsonResponse({
                         'success': True,
                         'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
-                        'redirect_url': reverse('store_analysis:analysis_detail', kwargs={'pk': store_analysis.id})
+                        'redirect_url': reverse('store_analysis:analysis_results', kwargs={'pk': store_analysis.id})
                     })
                 else:
                     return redirect('store_analysis:analysis_detail', analysis_id=store_analysis.id)
