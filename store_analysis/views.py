@@ -6063,24 +6063,13 @@ def forms_submit(request):
                 analysis_data=form_data
             )
             
-            if analysis_type == 'preliminary':
-                # تحلیل اولیه - رایگان
-                store_analysis.status = 'processing'
-                store_analysis.save()
-                
-                return JsonResponse({
-                    'success': True,
-                    'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
-                    'redirect_url': reverse('store_analysis:analysis_results', kwargs={'pk': store_analysis.id})
-                })
-            else:
-                # تحلیل کامل - پولی
-                # محاسبه هزینه
-                cost_breakdown = calculate_analysis_cost(form_data)
-                
-                # ایجاد سفارش
-                generated_order_number = f"ORD-{uuid.uuid4().hex[:12].upper()}"
-                order = Order.objects.create(
+            # همه تحلیل‌ها پولی هستند - هدایت به صفحه پرداخت
+            # محاسبه هزینه
+            cost_breakdown = calculate_analysis_cost(form_data)
+            
+            # ایجاد سفارش
+            generated_order_number = f"ORD-{uuid.uuid4().hex[:12].upper()}"
+            order = Order.objects.create(
                     user=request.user,
                     order_number=generated_order_number,
                     plan=None,
@@ -6090,17 +6079,17 @@ def forms_submit(request):
                     final_amount=cost_breakdown['final'],
                     status='pending'
                 )
-                
-                # اتصال تحلیل به سفارش
-                store_analysis.order = order
-                store_analysis.save()
-                
-                return JsonResponse({
-                    'success': True,
-                    'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
-                    'redirect_url': f'/store/payment/{order.order_number}/',
-                    'payment_required': True
-                })
+            
+            # اتصال تحلیل به سفارش
+            store_analysis.order = order
+            store_analysis.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                'redirect_url': f'/store/payment/{order.order_number}/',
+                'payment_required': True
+            })
             
         except Exception as e:
             logger.error(f"Error in forms_submit: {e}")
@@ -6400,27 +6389,16 @@ def forms_submit(request):
             is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
             is_fetch = 'fetch' in request.headers.get('User-Agent', '') or request.headers.get('Accept') == 'application/json'
             
-            if analysis_type == 'preliminary':
-                # تحلیل اولیه - رایگان - هدایت مستقیم به تحلیل
-                if is_ajax or is_fetch:
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
-                        'redirect_url': reverse('store_analysis:analysis_results', kwargs={'pk': store_analysis.id})
-                    })
-                else:
-                    return redirect('store_analysis:analysis_results', pk=store_analysis.id)
+            # همه تحلیل‌ها پولی هستند - هدایت به صفحه پرداخت
+            if is_ajax or is_fetch:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                    'redirect_url': f'/store/payment/{order.order_number}/',
+                    'payment_required': True
+                })
             else:
-                # تحلیل کامل - پولی - هدایت به صفحه پرداخت
-                if is_ajax or is_fetch:
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
-                        'redirect_url': f'/store/payment/{order.order_number}/',
-                        'payment_required': True
-                    })
-                else:
-                    return redirect('store_analysis:payment_page', order_id=order.order_number)
+                return redirect('store_analysis:payment_page', order_id=order.order_number)
             
         except Exception as e:
             logger.error(f"Error in forms_submit: {e}")
