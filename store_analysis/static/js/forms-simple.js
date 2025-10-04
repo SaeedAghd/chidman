@@ -13,6 +13,7 @@ class SimpleFormManager {
 
     init() {
         this.setupEventListeners();
+        this.setupGoalsInteractions();
         this.updateStep();
     }
 
@@ -315,6 +316,129 @@ class SimpleFormManager {
                 });
             }
         });
+    }
+
+    setupGoalsInteractions() {
+        // Goal cards interactions
+        document.querySelectorAll('.goal-card').forEach(card => {
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            
+            // Card click handler
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.goal-checkbox')) return;
+                checkbox.checked = !checkbox.checked;
+                this.updateGoalCard(card, checkbox.checked);
+                this.updateGoalsProgress();
+            });
+
+            // Checkbox change handler
+            checkbox.addEventListener('change', () => {
+                this.updateGoalCard(card, checkbox.checked);
+                this.updateGoalsProgress();
+            });
+
+            // Initial state
+            this.updateGoalCard(card, checkbox.checked);
+        });
+
+        // Select all functionality
+        const selectAllCheckbox = document.getElementById('select_all_goals');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', () => {
+                const isChecked = selectAllCheckbox.checked;
+                document.querySelectorAll('.goal-card input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                    const card = checkbox.closest('.goal-card');
+                    this.updateGoalCard(card, isChecked);
+                });
+                this.updateGoalsProgress();
+            });
+        }
+
+        // Smart suggestions
+        this.setupSmartSuggestions();
+        
+        // Initial progress update
+        this.updateGoalsProgress();
+    }
+
+    updateGoalCard(card, isSelected) {
+        if (isSelected) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    }
+
+    updateGoalsProgress() {
+        const selectedGoals = document.querySelectorAll('.goal-card input[type="checkbox"]:checked');
+        const totalGoals = document.querySelectorAll('.goal-card input[type="checkbox"]').length;
+        const progressText = document.querySelector('.progress-text');
+        const progressFill = document.querySelector('.progress-fill');
+        
+        if (progressText && progressFill) {
+            const percentage = (selectedGoals.length / totalGoals) * 100;
+            progressText.textContent = `${selectedGoals.length} هدف انتخاب شده`;
+            progressFill.style.width = `${percentage}%`;
+        }
+
+        // Update select all checkbox
+        const selectAllCheckbox = document.getElementById('select_all_goals');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = selectedGoals.length === totalGoals;
+        }
+    }
+
+    setupSmartSuggestions() {
+        const suggestionsContainer = document.getElementById('smartSuggestions');
+        if (!suggestionsContainer) return;
+
+        // Get store type from form
+        const storeTypeSelect = document.querySelector('select[name="store_type"]');
+        if (!storeTypeSelect) return;
+
+        const suggestions = {
+            'پوشاک': ['افزایش فروش و درآمد', 'تقویت برندینگ', 'بهبود تجربه مشتری'],
+            'مواد غذایی': ['بهینه‌سازی عملیات', 'تقویت امنیت', 'افزایش فروش و درآمد'],
+            'الکترونیک': ['دیجیتال‌سازی', 'بهبود تجربه مشتری', 'تقویت امنیت'],
+            'کتاب و لوازم تحریر': ['بهبود تجربه مشتری', 'تقویت برندینگ', 'افزایش فروش و درآمد'],
+            'لوازم خانگی': ['بهینه‌سازی عملیات', 'افزایش فروش و درآمد', 'بهبود تجربه مشتری']
+        };
+
+        const updateSuggestions = () => {
+            const selectedType = storeTypeSelect.value;
+            const typeSuggestions = suggestions[selectedType] || [];
+            
+            suggestionsContainer.innerHTML = typeSuggestions.map(suggestion => 
+                `<span class="suggestion-tag" data-goal="${suggestion}">${suggestion}</span>`
+            ).join('');
+
+            // Add click handlers to suggestion tags
+            suggestionsContainer.querySelectorAll('.suggestion-tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    const goalName = tag.dataset.goal;
+                    const goalCard = document.querySelector(`[data-goal="${goalName}"]`);
+                    if (goalCard) {
+                        const checkbox = goalCard.querySelector('input[type="checkbox"]');
+                        checkbox.checked = true;
+                        this.updateGoalCard(goalCard, true);
+                        this.updateGoalsProgress();
+                        
+                        // Scroll to goal card
+                        goalCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Highlight effect
+                        goalCard.style.animation = 'pulse 0.6s ease-in-out';
+                        setTimeout(() => {
+                            goalCard.style.animation = '';
+                        }, 600);
+                    }
+                });
+            });
+        };
+
+        storeTypeSelect.addEventListener('change', updateSuggestions);
+        updateSuggestions(); // Initial load
     }
 
     handleFileUpload(event) {
