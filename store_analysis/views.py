@@ -2495,22 +2495,37 @@ def payment_page(request, order_id):
             cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
         except Exception as e:
             logger.error(f"Error calculating cost: {e}")
-            # fallback به محاسبه ساده
+            # fallback به محاسبه ساده با تخفیف 100%
+            from datetime import datetime
+            current_date = datetime.now()
+            launch_end_date = datetime(2025, 12, 31)
+            
+            base_cost = Decimal('500000')
+            additional_cost = Decimal('200000')
+            total_cost = base_cost + additional_cost
+            
+            # تخفیف 100% برای دوره راه‌اندازی
+            discount = Decimal('0')
+            if current_date <= launch_end_date:
+                discount = total_cost  # تخفیف 100%
+            
+            final_cost = total_cost - discount
+            
             cost_breakdown = {
-                'base_price': Decimal('500000'),
-                'total': Decimal('700000'),
-                'final': Decimal('700000'),
-                'discount': Decimal('0'),
-                'discount_percentage': 0,
+                'base_price': base_cost,
+                'total': total_cost,
+                'final': final_cost,
+                'discount': discount,
+                'discount_percentage': 100 if discount > 0 else 0,
                 'breakdown': [
                     {
                         'item': 'تحلیل پایه',
-                        'amount': Decimal('500000'),
+                        'amount': base_cost,
                         'description': 'تحلیل اولیه فروشگاه'
                     },
                     {
                         'item': 'گزارش کامل PDF',
-                        'amount': Decimal('200000'),
+                        'amount': additional_cost,
                         'description': 'گزارش تفصیلی و حرفه‌ای فروشگاه'
                     }
                 ]
