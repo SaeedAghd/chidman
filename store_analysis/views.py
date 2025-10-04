@@ -119,14 +119,14 @@ def calculate_analysis_cost_for_object(analysis):
         # هزینه پایه
         base_cost = Decimal('500000')  # 500,000 تومان
         
-        # دریافت اطلاعات فروشگاه
-        basic_info = StoreBasicInfo.objects.filter(analysis=analysis).first()
+        # دریافت اطلاعات فروشگاه از analysis_data
+        analysis_data = analysis.analysis_data or {}
         
         additional_cost = Decimal('0')
         
-        if basic_info:
+        if analysis_data:
             # هزینه بر اساس نوع فروشگاه
-            store_type = basic_info.store_type or ''
+            store_type = analysis_data.get('store_type', '')
             if 'پوشاک' in store_type:
                 additional_cost += Decimal('100000')
             elif 'مواد غذایی' in store_type:
@@ -135,7 +135,7 @@ def calculate_analysis_cost_for_object(analysis):
                 additional_cost += Decimal('150000')
             
             # هزینه بر اساس اندازه فروشگاه
-            store_size = basic_info.store_size or 0
+            store_size = int(analysis_data.get('store_size', 0))
             if store_size > 1000:
                 additional_cost += Decimal('200000')
             elif store_size > 500:
