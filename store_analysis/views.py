@@ -2995,12 +2995,13 @@ def order_analysis_results(request, order_id):
                 import asyncio
                 
                 # آماده‌سازی اطلاعات فروشگاه
+                analysis_data = store_analysis.analysis_data or {}
                 store_info = {
                     'store_name': store_analysis.store_name or 'نامشخص',
-                    'store_type': store_analysis.store_type or 'عمومی',
-                    'store_size': str(store_analysis.store_size or 0),
+                    'store_type': analysis_data.get('store_type', 'عمومی'),
+                    'store_size': str(analysis_data.get('store_size', 0)),
                     'city': 'تهران',  # می‌توان از فرم دریافت کرد
-                    'description': store_analysis.analysis_data.get('description', '') if store_analysis.analysis_data else ''
+                    'description': analysis_data.get('description', '')
                 }
                 
                 # تصاویر (اگر وجود دارد)
