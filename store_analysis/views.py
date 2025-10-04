@@ -5474,7 +5474,7 @@ def analysis_payment_page(request, pk):
     # اگر تحلیل قبلاً پرداخت شده، به صفحه تحلیل هدایت شود
     if analysis.status != 'pending':
         messages.info(request, 'این تحلیل قبلاً پرداخت شده است.')
-        return redirect('store_analysis:analysis_results', pk=pk)
+        return redirect('store_analysis:order_analysis_results', order_id=analysis.order.order_number)
     
     # محاسبه هزینه تحلیل
     cost = calculate_analysis_cost_for_object(analysis)
