@@ -135,7 +135,19 @@ def calculate_analysis_cost_for_object(analysis):
                 additional_cost += Decimal('150000')
             
             # هزینه بر اساس اندازه فروشگاه
-            store_size = int(analysis_data.get('store_size', 0))
+            store_size_str = analysis_data.get('store_size', '0')
+            try:
+                store_size = int(store_size_str)
+            except (ValueError, TypeError):
+                # اگر store_size رشته است، به عدد تبدیل کن
+                size_mapping = {
+                    'small': 50,
+                    'medium': 150,
+                    'large': 300,
+                    'very_large': 500
+                }
+                store_size = size_mapping.get(store_size_str.lower(), 100)
+            
             if store_size > 1000:
                 additional_cost += Decimal('200000')
             elif store_size > 500:
