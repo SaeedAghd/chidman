@@ -24,7 +24,7 @@ urlpatterns = [
     path('analysis/', include([
         path('create/', views.analysis_create, name='analysis_create'),
         path('list/', views.analysis_list, name='analysis_list'),
-        # analysis_detail URL حذف شد - هدایت مستقیم به نتایج
+        path('<uuid:pk>/', views.analysis_detail, name='analysis_detail'),
         # path('<uuid:pk>/edit/', views.edit_analysis, name='edit_analysis'),  # Function removed
         # path('<uuid:pk>/delete/', views.delete_analysis, name='delete_analysis'),  # Function removed  
         # path('<uuid:pk>/payment/', views.analysis_payment_page, name='analysis_payment'),  # Function removed

@@ -6091,7 +6091,7 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
-                    'redirect_url': f'/store/analysis/{store_analysis.id}/'
+                    'redirect_url': reverse('store_analysis:analysis_detail', kwargs={'pk': store_analysis.id})
                 })
             else:
                 # تحلیل کامل - پولی
@@ -6426,7 +6426,7 @@ def forms_submit(request):
                     return JsonResponse({
                         'success': True,
                         'message': 'درخواست تحلیل اولیه با موفقیت ثبت شد!',
-                        'redirect_url': f'/store/analysis/{store_analysis.id}/'
+                        'redirect_url': reverse('store_analysis:analysis_detail', kwargs={'pk': store_analysis.id})
                     })
                 else:
                     return redirect('store_analysis:analysis_detail', analysis_id=store_analysis.id)
