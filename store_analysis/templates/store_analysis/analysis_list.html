@@ -93,7 +93,7 @@
                             <div class="card-footer bg-light">
                                 <div class="row">
                                     <div class="col-4">
-                                        <a href="{% url 'store_analysis:analysis_results' pk=analysis.pk %}" 
+                                        <a href="{% url 'store_analysis:order_analysis_results' order_id=analysis.order.order_number %}" 
                                            class="btn btn-outline-primary btn-sm w-100">
                                             <i class="fas fa-eye me-1"></i>
                                             مشاهده
@@ -120,10 +120,16 @@
                                             <i class="fas fa-play me-1"></i>
                                             پردازش فوری
                                         </a>
-                                        {% else %}
-                                        <button class="btn btn-outline-info btn-sm w-100" disabled>
+                                        {% elif analysis.status == 'pending' or analysis.status == 'draft' %}
+                                        <a href="{% url 'store_analysis:edit_analysis' pk=analysis.pk %}" 
+                                           class="btn btn-outline-warning btn-sm w-100">
                                             <i class="fas fa-edit me-1"></i>
                                             ویرایش
+                                        </a>
+                                        {% else %}
+                                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                                            <i class="fas fa-lock me-1"></i>
+                                            غیرقابل ویرایش
                                         </button>
                                         {% endif %}
                                     </div>

@@ -1,0 +1,1624 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}نتایج تحلیل - {{ store_analysis.store_name }} - چیدمانو{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-color: #f8fafc;
+        --white: #ffffff;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        
+        --border-radius: 0.75rem;
+        --border-radius-lg: 1rem;
+        --border-radius-xl: 1.5rem;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--light-color) 0%, var(--gray-100) 100%);
+        font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Arial, sans-serif;
+        line-height: 1.6;
+        color: var(--gray-800);
+    }
+
+    .results-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        min-height: 100vh;
+    }
+
+    /* Header Section */
+    .results-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: var(--border-radius-xl);
+        box-shadow: var(--shadow-xl);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .results-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+        opacity: 0.1;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .header-info h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header-info .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .header-meta {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.1);
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        backdrop-filter: blur(10px);
+    }
+
+    .meta-item i {
+        font-size: 1.2rem;
+    }
+
+    .overall-score {
+        text-align: center;
+    }
+
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, var(--success-color) 0deg, var(--success-color) calc(var(--score) * 3.6deg), rgba(255,255,255,0.2) calc(var(--score) * 3.6deg), rgba(255,255,255,0.2) 360deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto 1rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .score-circle::before {
+        content: '';
+        position: absolute;
+        width: 90px;
+        height: 90px;
+        background: white;
+        border-radius: 50%;
+    }
+
+    .score-value {
+        position: relative;
+        z-index: 2;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+
+    .score-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    /* Main Content Grid */
+    .results-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Cards */
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        width: 100%;
+    }
+    
+    .card-title .title-content {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .collapse-btn {
+        background: none;
+        border: none;
+        color: var(--gray-500);
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+    }
+    
+    .collapse-btn:hover {
+        background: var(--gray-100);
+        color: var(--primary-color);
+    }
+    
+    .collapse-btn.expanded {
+        transform: rotate(180deg);
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    /* Analysis Content */
+    .analysis-content {
+        line-height: 1.8;
+        color: var(--gray-700);
+    }
+
+    .analysis-content h2 {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        margin: 2rem 0 1rem 0;
+        font-weight: 600;
+    }
+
+    .analysis-content h3 {
+        color: var(--gray-800);
+        font-size: 1.25rem;
+        margin: 1.5rem 0 0.75rem 0;
+        font-weight: 600;
+    }
+
+    .analysis-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+    }
+
+    .analysis-content li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .analysis-content li:last-child {
+        border-bottom: none;
+    }
+
+    .analysis-content li::before {
+        content: '✓';
+        color: var(--success-color);
+        font-weight: bold;
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        background: var(--success-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        margin-top: 0.1rem;
+    }
+    
+    /* Analysis Summary */
+    .analysis-summary {
+        margin-bottom: 1rem;
+    }
+    
+    .summary-text {
+        color: var(--gray-700);
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .analysis-full-content {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gray-200);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary {
+        background: transparent;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+    }
+    
+    .btn-outline-primary:hover {
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    .mt-3 {
+        margin-top: 1rem;
+    }
+    
+    .text-muted {
+        color: var(--gray-500);
+    }
+
+    /* Quick Stats */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-200);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-icon.layout { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .stat-icon.traffic { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .stat-icon.design { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .stat-icon.sales { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: var(--white);
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-50);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: var(--gray-700);
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-info {
+        background: var(--info-color);
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-warning {
+        background: var(--warning-color);
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Progress Indicator */
+    .progress-indicator {
+        margin-bottom: 2rem;
+    }
+
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+    }
+
+    .progress-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        right: -50%;
+        width: 100%;
+        height: 2px;
+        background: var(--gray-300);
+        z-index: 1;
+    }
+
+    .progress-step.completed:not(:last-child)::after {
+        background: var(--success-color);
+    }
+
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--gray-300);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-step.completed .step-circle {
+        background: var(--success-color);
+    }
+
+    .progress-step.current .step-circle {
+        background: var(--primary-color);
+        animation: pulse 2s infinite;
+    }
+
+    .step-label {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        text-align: center;
+    }
+
+    /* Recommendations */
+    .recommendations-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .recommendation-item {
+        background: var(--gray-50);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+        border-right: 4px solid var(--primary-color);
+    }
+
+    .recommendation-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .recommendation-title {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 0.5rem;
+    }
+
+    .recommendation-desc {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .results-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .sidebar {
+            order: -1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .results-container {
+            padding: 1rem 0.5rem;
+        }
+        
+        .header-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        
+        .header-info h1 {
+            font-size: 2rem;
+        }
+        
+        .quick-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .quick-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .header-meta {
+            justify-content: center;
+        }
+        
+        .action-buttons {
+            gap: 0.75rem;
+        }
+    }
+
+    /* Animations */
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* Loading States */
+    .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        color: var(--gray-500);
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--gray-200);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-container" data-analysis-status="{{ store_analysis.status }}">
+    <!-- Header Section -->
+    <div class="results-header fade-in-up">
+        <div class="header-content">
+            <div class="header-info">
+                <h1>{{ store_analysis.store_name|default:"فروشگاه شما" }}</h1>
+                <p class="subtitle">نتایج تحلیل حرفه‌ای چیدمان فروشگاه</p>
+                <div class="header-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-store"></i>
+                        <span>{{ store_analysis.get_store_type_display|default:"عمومی" }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span>{{ store_analysis.store_size|default:"نامشخص" }} متر مربع</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ store_analysis.created_at|date:"Y/m/d" }}</span>
+                    </div>
+                    {% if order %}
+                    <div class="meta-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>سفارش {{ order.order_number }}</span>
+                    </div>
+                    {% endif %}
+                    {% if store_analysis.status != 'completed' %}
+                    <div class="meta-item" style="cursor: pointer;" onclick="refreshPage()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>بروزرسانی</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="overall-score">
+                <div class="score-circle" style="--score: {{ results.overall_score|default:75 }}">
+                    <div class="score-value">{{ results.overall_score|default:75|floatformat:0 }}</div>
+                </div>
+                <div class="score-label">امتیاز کلی</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    {% if store_analysis.status != 'completed' %}
+    <div class="card fade-in-up">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-cog fa-spin"></i>
+                وضعیت تحلیل
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="progress-indicator">
+                <div class="progress-steps">
+                    <div class="progress-step completed">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">دریافت اطلاعات</div>
+                    </div>
+                    <div class="progress-step {% if store_analysis.status == 'processing' %}current{% elif store_analysis.status == 'completed' %}completed{% endif %}">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">تحلیل هوش مصنوعی</div>
+                    </div>
+                    <div class="progress-step {% if store_analysis.status == 'completed' %}completed{% endif %}">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">تولید گزارش</div>
+                    </div>
+                    <div class="progress-step {% if store_analysis.status == 'completed' %}completed{% endif %}">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">آماده مشاهده</div>
+                    </div>
+                </div>
+            </div>
+            {% if store_analysis.status != 'completed' %}
+            <div class="loading">
+                <span>در حال تحلیل...</span>
+                <div class="spinner"></div>
+            </div>
+            <script>
+                // Auto refresh disabled for better UX
+                console.log('Auto-refresh disabled - use manual refresh button');
+            </script>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Stats -->
+    {% if store_analysis.status == 'completed' and results %}
+    <div class="quick-stats fade-in-up">
+        <div class="stat-card">
+            <div class="stat-icon layout">
+                <i class="fas fa-th-large"></i>
+            </div>
+            <div class="stat-value">{{ results.layout_score|default:70 }}%</div>
+            <div class="stat-label">چیدمان</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon traffic">
+                <i class="fas fa-walking"></i>
+            </div>
+            <div class="stat-value">{{ results.traffic_score|default:75 }}%</div>
+            <div class="stat-label">جریان مشتری</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon design">
+                <i class="fas fa-palette"></i>
+            </div>
+            <div class="stat-value">{{ results.design_score|default:80 }}%</div>
+            <div class="stat-label">طراحی</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon sales">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-value">{{ results.sales_potential|default:85 }}%</div>
+            <div class="stat-label">پتانسیل فروش</div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="results-grid">
+        <!-- Main Analysis Content -->
+        <div class="main-content">
+            <!-- Analysis Results -->
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <div class="title-content">
+                            <i class="fas fa-brain"></i>
+                            تحلیل هوش مصنوعی
+                        </div>
+                        <button class="collapse-btn" onclick="toggleAnalysisContent()" id="analysisToggleBtn">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <!-- خلاصه تحلیل -->
+                    <div class="analysis-summary">
+                        {% if results.analysis_text %}
+                        <p class="summary-text">
+                            {{ results.analysis_text|truncatewords:50 }}
+                            {% if results.analysis_text|wordcount > 50 %}
+                            <span class="text-muted">...</span>
+                            {% endif %}
+                        </p>
+                        {% elif store_analysis.preliminary_analysis %}
+                        <p class="summary-text">
+                            {{ store_analysis.preliminary_analysis|truncatewords:50 }}
+                            {% if store_analysis.preliminary_analysis|wordcount > 50 %}
+                            <span class="text-muted">...</span>
+                            {% endif %}
+                        </p>
+                        {% else %}
+                        <div class="loading">
+                            <span>تحلیل در حال پردازش...</span>
+                            <div class="spinner"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- محتوای کامل تحلیل (مخفی) -->
+                    <div class="analysis-full-content" id="analysisFullContent" style="display: none;">
+                        {% if results.analysis_text %}
+                        <div class="analysis-content">
+                            {{ results.analysis_text|linebreaks }}
+                        </div>
+                        {% elif store_analysis.preliminary_analysis %}
+                        <div class="analysis-content">
+                            {{ store_analysis.preliminary_analysis|linebreaks }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- دکمه نمایش بیشتر/کمتر -->
+                    {% if results.analysis_text or store_analysis.preliminary_analysis %}
+                    <div class="text-center mt-3">
+                        <button class="btn btn-outline-primary btn-sm" onclick="toggleAnalysisContent()" id="showMoreBtn">
+                            <i class="fas fa-eye"></i>
+                            نمایش تحلیل کامل
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            {% if results.recommendations or results.strategic_recommendations %}
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-lightbulb"></i>
+                        توصیه‌های کلیدی
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="recommendations-list">
+                        {% for recommendation in results.recommendations|slice:":5" %}
+                        <div class="recommendation-item">
+                            <div class="recommendation-title">{{ recommendation.title|default:"توصیه مهم" }}</div>
+                            <div class="recommendation-desc">{{ recommendation.description|default:recommendation }}</div>
+                        </div>
+                        {% empty %}
+                        {% if results.strategic_recommendations %}
+                        {% for recommendation in results.strategic_recommendations|slice:":5" %}
+                        <div class="recommendation-item">
+                            <div class="recommendation-title">توصیه استراتژیک</div>
+                            <div class="recommendation-desc">{{ recommendation }}</div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Action Buttons -->
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-tools"></i>
+                        عملیات
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="action-buttons">
+                        {% if store_analysis.status == 'completed' %}
+                        <!-- دانلود گزارش -->
+                        <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}" 
+                           class="btn btn-primary"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           onclick="downloadPDF(event)">
+                            <i class="fas fa-download"></i>
+                            دانلود گزارش PDF
+                        </a>
+                        
+                        <!-- دانلود گواهینامه AI -->
+                        <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}?type=html" 
+                           class="btn btn-success"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="fas fa-certificate"></i>
+                            دانلود گواهینامه AI
+                        </a>
+                        {% endif %}
+                        
+                        <!-- تحلیل جدید -->
+                        <a href="{% url 'store_analysis:forms' %}" class="btn btn-secondary">
+                            <i class="fas fa-plus"></i>
+                            تحلیل جدید
+                        </a>
+                        
+                        <!-- تحلیل پیشرفته با GPT-4.1 -->
+                        {% if store_analysis.status == 'completed' and not results.source == 'liara_ai' %}
+                        <a href="#" onclick="requestAdvancedAnalysis()" class="btn btn-info">
+                            <i class="fas fa-brain"></i>
+                            تحلیل پیشرفته GPT-4.1
+                        </a>
+                        {% endif %}
+                        
+                        <!-- پردازش با Chidmano2 AI -->
+                        {% if store_analysis.status == 'completed' and results.source != 'ollama' %}
+                        <a href="#" onclick="requestOllamaAnalysis()" class="btn btn-warning">
+                            <i class="fas fa-robot"></i>
+                            پردازش با Chidmano2 AI
+                        </a>
+                        {% endif %}
+                        
+                        <!-- پنل کاربری -->
+                        <a href="{% url 'store_analysis:user_dashboard' %}" class="btn btn-info">
+                            <i class="fas fa-tachometer-alt"></i>
+                            داشبورد
+                        </a>
+                        
+                        {% if request.user.is_staff %}
+                        <!-- پنل مدیریت -->
+                        <a href="{% url 'store_analysis:admin_dashboard' %}" class="btn btn-success">
+                            <i class="fas fa-cog"></i>
+                            پنل مدیریت
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Analysis Info -->
+            {% if store_analysis.status == 'completed' and results %}
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-microchip"></i>
+                        اطلاعات تحلیل AI
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <strong>منبع تحلیل:</strong><br>
+            {% if results.source == 'liara_ai' %}
+            <span class="ai-badge liara">
+                <i class="fas fa-brain"></i>
+                هوش مصنوعی لیارا (GPT-4.1)
+            </span>
+            {% elif results.source == 'ollama' %}
+            <span class="ai-badge ollama">
+                <i class="fas fa-robot"></i>
+                هوش مصنوعی محلی اولاما
+            </span>
+            {% elif results.source == 'fallback' %}
+            <span class="ai-badge fallback">
+                <i class="fas fa-cogs"></i>
+                سیستم تحلیل پیشرفته
+            </span>
+            {% else %}
+            <span class="ai-badge unknown">
+                <i class="fas fa-microchip"></i>
+                سیستم تحلیل هوشمند
+            </span>
+            {% endif %}
+                        </div>
+                        
+                        {% if results.ai_models_used %}
+                        <div>
+                            <strong>مدل‌های استفاده شده:</strong><br>
+                            {% for model in results.ai_models_used %}
+                            <code class="model-tag">{{ model }}</code>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <strong>کیفیت تحلیل:</strong><br>
+                            <div class="quality-bar">
+                                <div class="quality-fill" data-quality="{{ results.quality_score|default:80 }}"></div>
+                                <span class="quality-text">{{ results.quality_score|default:80 }}%</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <strong>درجه اطمینان:</strong><br>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" data-confidence="{{ results.confidence_score|default:85 }}"></div>
+                                <span class="confidence-text">{{ results.confidence_score|default:85 }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Order Info -->
+            {% if order %}
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-receipt"></i>
+                        اطلاعات سفارش
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <strong>شماره سفارش:</strong><br>
+                            <code>{{ order.order_number }}</code>
+                        </div>
+                        <div>
+                            <strong>وضعیت:</strong><br>
+                            <span class="badge {% if order.status == 'paid' %}badge-success{% else %}badge-warning{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <div>
+                            <strong>مبلغ:</strong><br>
+                            {% if order.final_amount == 0 %}
+                            <span style="color: var(--success-color); font-weight: 600;">رایگان (تخفیف 100%)</span>
+                            {% else %}
+                            {{ order.final_amount|floatformat:0 }} تومان
+                            {% endif %}
+                        </div>
+                        <div>
+                            <strong>تاریخ:</strong><br>
+                            {{ order.created_at|date:"Y/m/d H:i" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Help & Support -->
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-question-circle"></i>
+                        راهنما و پشتیبانی
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="action-buttons">
+                        <a href="{% url 'store_analysis:wallet_dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-wallet"></i>
+                            کیف پول
+                        </a>
+                        
+                        <a href="mailto:support@chidmano.com" class="btn btn-secondary">
+                            <i class="fas fa-envelope"></i>
+                            تماس با پشتیبانی
+                        </a>
+                        
+                        <a href="{% url 'store_analysis:forms' %}#help" class="btn btn-secondary">
+                            <i class="fas fa-book"></i>
+                            راهنمای استفاده
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.375rem;
+    }
+    
+    .badge-success {
+        background-color: var(--success-color);
+        color: white;
+    }
+    
+    .badge-warning {
+        background-color: var(--warning-color);
+        color: white;
+    }
+    
+    /* AI Badges */
+    .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .ai-badge.liara {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .ai-badge.ollama {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+    
+    .ai-badge.fallback {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+    }
+    
+    .ai-badge.unknown {
+        background: var(--gray-500);
+        color: white;
+    }
+    
+    /* Model Tags */
+    .model-tag {
+        display: inline-block;
+        background: var(--gray-100);
+        color: var(--gray-700);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.8rem;
+        margin: 0.25rem 0.25rem 0.25rem 0;
+        border: 1px solid var(--gray-300);
+    }
+    
+    /* Progress Bars */
+    .quality-bar, .confidence-bar {
+        position: relative;
+        width: 100%;
+        height: 24px;
+        background: var(--gray-200);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    
+    .quality-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--success-color), #22c55e);
+        transition: width 1s ease;
+    }
+    
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--info-color), #3b82f6);
+        transition: width 1s ease;
+    }
+    
+    .quality-text, .confidence-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all fade-in elements
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Add click tracking for buttons
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Add ripple effect
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple');
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Auto-refresh completely disabled for better UX
+        console.log('Auto-refresh disabled - page will not refresh automatically');
+        
+        // سبک‌تر: فقط جلوگیری از reload
+        window.location.reload = function() {
+            console.log('🚫 Auto-reload blocked');
+            showInfoMessage('بروزرسانی خودکار غیرفعال است.');
+        };
+        
+        // Check if analysis is completed and show appropriate notification
+        const analysisStatus = document.querySelector('[data-analysis-status]')?.getAttribute('data-analysis-status');
+        if (analysisStatus !== 'completed') {
+            showIncompleteAnalysisNotification();
+        }
+        
+        // Initialize progress bars
+        const qualityFill = document.querySelector('.quality-fill');
+        const confidenceFill = document.querySelector('.confidence-fill');
+        
+        if (qualityFill) {
+            const qualityValue = parseInt(qualityFill.getAttribute('data-quality') || '80');
+            qualityFill.style.width = qualityValue + '%';
+        }
+        
+        if (confidenceFill) {
+            const confidenceValue = parseInt(confidenceFill.getAttribute('data-confidence') || '85');
+            confidenceFill.style.width = confidenceValue + '%';
+        }
+    });
+    
+    // Manual refresh function
+    function refreshPage() {
+        showToast('در حال بروزرسانی...', 'info');
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    }
+    
+    // Show notification for incomplete analysis
+    function showIncompleteAnalysisNotification() {
+        setTimeout(function() {
+            showToast('🔄 بروزرسانی خودکار غیرفعال شد. برای بروزرسانی از دکمه "بروزرسانی" استفاده کنید.', 'info', 5000);
+        }, 2000);
+    }
+    
+    // Toggle analysis content
+    function toggleAnalysisContent() {
+        const fullContent = document.getElementById('analysisFullContent');
+        const toggleBtn = document.getElementById('analysisToggleBtn');
+        const showMoreBtn = document.getElementById('showMoreBtn');
+        
+        if (fullContent.style.display === 'none' || fullContent.style.display === '') {
+            // نمایش محتوای کامل
+            fullContent.style.display = 'block';
+            toggleBtn.classList.add('expanded');
+            if (showMoreBtn) {
+                showMoreBtn.innerHTML = '<i class="fas fa-eye-slash"></i> نمایش خلاصه';
+            }
+            
+            // انیمیشن نرم
+            fullContent.style.opacity = '0';
+            fullContent.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                fullContent.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                fullContent.style.opacity = '1';
+                fullContent.style.transform = 'translateY(0)';
+            }, 10);
+        } else {
+            // مخفی کردن محتوای کامل
+            fullContent.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            fullContent.style.opacity = '0';
+            fullContent.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                fullContent.style.display = 'none';
+                toggleBtn.classList.remove('expanded');
+                if (showMoreBtn) {
+                    showMoreBtn.innerHTML = '<i class="fas fa-eye"></i> نمایش تحلیل کامل';
+                }
+            }, 300);
+        }
+    }
+    
+    // Functions for AI analysis requests
+    function requestAdvancedAnalysis() {
+        if (confirm('آیا می‌خواهید تحلیل پیشرفته با GPT-4.1 انجام دهید؟\n\nزمان تقریبی: 2-4 دقیقه\n\nلطفاً صبر کنید تا تحلیل کامل شود.')) {
+            showLoadingModal('در حال درخواست تحلیل پیشرفته با Chidmano1 AI...<br><small style="color: #666;">زمان تقریبی: 2-4 دقیقه</small>');
+            
+            // Send request to reprocess with Liara AI
+            fetch(`{% url 'store_analysis:order_analysis_results' order.order_number %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'action': 'reprocess_liara',
+                    'analysis_id': '{{ store_analysis.pk }}'
+                }),
+                signal: AbortSignal.timeout(10000) // 10 second timeout
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoadingModal();
+                if (data.success) {
+                    showSuccessMessage('درخواست تحلیل پیشرفته ارسال شد. زمان تقریبی: 2-4 دقیقه<br>لطفاً دکمه بروزرسانی را فشار دهید.');
+                    // حذف auto-reload
+                    // setTimeout(() => {
+                    //     window.location.reload();
+                    // }, 2000);
+                } else {
+                    showErrorMessage('خطا در درخواست تحلیل پیشرفته: ' + (data.message || 'خطای نامشخص'));
+                }
+            })
+            .catch(error => {
+                hideLoadingModal();
+                if (error.name === 'AbortError') {
+                    showErrorMessage('درخواست لغو شد - زمان اتصال به پایان رسید');
+                } else if (error.name === 'TimeoutError') {
+                    showErrorMessage('خطای timeout - سرور پاسخ نمی‌دهد');
+                } else {
+                    showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
+                }
+                console.error('Error:', error);
+            });
+        }
+    }
+    
+    function requestOllamaAnalysis() {
+        if (confirm('آیا می‌خواهید تحلیل با Chidmano2 AI انجام دهید؟\n\nزمان تقریبی: 5-7 دقیقه\n\nلطفاً صبر کنید تا تحلیل کامل شود.')) {
+            showLoadingModal('در حال درخواست تحلیل با Chidmano2 AI...<br><small style="color: #666;">زمان تقریبی: 5-7 دقیقه</small>');
+            
+            // Send request to reprocess with Ollama
+            fetch(`{% url 'store_analysis:order_analysis_results' order.order_number %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'action': 'reprocess_ollama',
+                    'analysis_id': '{{ store_analysis.pk }}'
+                }),
+                signal: AbortSignal.timeout(15000) // 15 second timeout for Ollama
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoadingModal();
+                if (data.success) {
+                    showSuccessMessage('درخواست تحلیل با Chidmano2 AI ارسال شد. زمان تقریبی: 5-7 دقیقه<br>لطفاً دکمه بروزرسانی را فشار دهید.');
+                    // حذف auto-reload
+                    // setTimeout(() => {
+                    //     window.location.reload();
+                    // }, 2000);
+                } else {
+                    showErrorMessage('خطا در درخواست تحلیل: ' + (data.message || 'خطای نامشخص'));
+                }
+            })
+            .catch(error => {
+                hideLoadingModal();
+                if (error.name === 'AbortError') {
+                    showErrorMessage('درخواست لغو شد - زمان اتصال به پایان رسید');
+                } else if (error.name === 'TimeoutError') {
+                    showErrorMessage('خطای timeout - سرور پاسخ نمی‌دهد');
+                } else {
+                    showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
+                }
+                console.error('Error:', error);
+            });
+        }
+    }
+    
+    // PDF download function
+    function downloadPDF(event) {
+        event.preventDefault();
+        const url = event.target.closest('a').href;
+        
+        // Show loading toast
+        showToast('📄 در حال آماده‌سازی گزارش PDF...', 'info');
+        
+        // Method 1: Use fetch to get the PDF and trigger download
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // دریافت نام فایل از servers قبل از blob
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let fileName = 'Analysis_Report.pdf';
+                
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        fileName = filenameMatch[1].replace(/['"]/g, '');
+                    }
+                }
+                
+                return response.blob().then(blob => ({
+                    blob: blob,
+                    fileName: fileName
+                }));
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(result => {
+            // Create download link
+            const downloadUrl = window.URL.createObjectURL(result.blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = result.fileName;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up
+            window.URL.revokeObjectURL(downloadUrl);
+            
+            // Show success message
+            showSuccessMessage('✅ دانلود گزارش شروع شد!');
+        })
+        .catch(error => {
+            console.error('Download error:', error);
+            showErrorMessage('❌ خطا در دانلود گزارش: ' + error.message);
+            
+            // Fallback 1: Try direct link
+            showToast('🔄 تلاش با روش جایگزین...', 'warning');
+            
+            setTimeout(() => {
+                // Create temporary link and trigger click
+                const tempLink = document.createElement('a');
+                tempLink.href = url;
+                tempLink.download = 'Analysis_Report.pdf';
+                tempLink.style.display = 'none';
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                
+                showToast('📄 دانلود با روش جایگزین شروع شد', 'success');
+            }, 1000);
+            
+            // Fallback 2: Open in new tab as last resort
+            setTimeout(() => {
+                window.open(url, '_blank');
+                showToast('📄 اگر دانلود نشد، در تب جدید باز شد', 'info');
+            }, 2000);
+        });
+    }
+
+    // Utility functions
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function showLoadingModal(message) {
+        const modal = document.createElement('div');
+        modal.id = 'loadingModal';
+        modal.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 2rem; border-radius: 1rem; text-align: center; max-width: 400px;">
+                    <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                    <div style="margin: 0; color: var(--gray-700);">${message}</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    function hideLoadingModal() {
+        const modal = document.getElementById('loadingModal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+    
+    function showSuccessMessage(message) {
+        showToast(message, 'success');
+    }
+    
+    function showErrorMessage(message) {
+        showToast(message, 'error');
+    }
+    
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? 'var(--success-color)' : 'var(--danger-color)'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            z-index: 10000;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.3s ease;
+        `;
+        toast.innerHTML = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 4000);
+    }
+</script>
+
+<style>
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+</style>
+
+<style>
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple-animation {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,43 @@
+{
+    "extraPaths": [
+        "C:\\Users\\saeid\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages"
+    ],
+    "include": [
+        "**/*.py"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__"
+    ],
+    "typeCheckingMode": "off",
+    "reportMissingImports": false,
+    "reportMissingTypeStubs": false,
+    "reportUnknownMemberType": false,
+    "reportUnknownArgumentType": false,
+    "reportUnknownVariableType": false,
+    "reportOptionalMemberAccess": false,
+    "reportOptionalCall": false,
+    "reportOptionalIterable": false,
+    "reportOptionalContextManager": false,
+    "reportUnionAttributeAccessError": false,
+    "reportGeneralTypeIssues": false,
+    "reportOptionalSubscript": false,
+    "reportPrivateUsage": false,
+    "reportConstantRedefinition": false,
+    "reportDeprecated": false,
+    "reportIncompatibleMethodOverride": false,
+    "reportIncompatibleVariableOverride": false,
+    "reportInconsistentConstructor": false,
+    "reportOverlappingOverload": false,
+    "reportMissingSuperCall": false,
+    "reportUninitializedInstanceVariable": false,
+    "reportInvalidStringEscapeSequence": false,
+    "reportUnknownLambdaType": false,
+    "reportUnknownMemberType": false,
+    "reportUnboundVariable": false,
+    "reportUnusedImport": false,
+    "reportUnusedClass": false,
+    "reportUnusedFunction": false,
+    "reportUnusedVariable": false,
+    "disableTypeCheckingStubs": false
+}

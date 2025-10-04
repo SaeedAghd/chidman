@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from decimal import Decimal
 import uuid
+from datetime import timedelta
 
 class Payment(models.Model):
     """
@@ -28,8 +29,8 @@ class Payment(models.Model):
         ('manual', 'دستی'),
     ]
     
-    # Primary fields (align with production bigint identity)
-    id = models.BigAutoField(primary_key=True)
+    # Primary key: use UUID to match current database schema
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order_id = models.CharField(max_length=100, unique=True, verbose_name='شناسه سفارش')
     payment_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه پرداخت')
     transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
@@ -289,9 +290,12 @@ class StoreAnalysis(models.Model):
     
     # Analysis data and order reference
     analysis_data = models.JSONField(default=dict, blank=True, verbose_name='داده‌های تحلیل')
+    # AI results (structured)
+    results = models.JSONField(default=dict, blank=True, null=True, verbose_name='نتایج هوش مصنوعی')
     order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='سفارش')
     
     # Results
+    preliminary_analysis = models.TextField(blank=True, verbose_name='تحلیل اولیه')
     ai_insights = models.TextField(blank=True, verbose_name='بینش‌های هوش مصنوعی')
     recommendations = models.TextField(blank=True, verbose_name='توصیه‌ها')
     
@@ -332,6 +336,26 @@ class StoreAnalysis(models.Model):
         """Mark analysis as failed"""
         self.status = 'failed'
         self.save()
+    
+    def get_analysis_data(self):
+        """Get analysis data for PDF generation"""
+        return self.analysis_data or {}
+    
+    @property
+    def has_results(self):
+        """Check if analysis has AI results"""
+        return bool(self.results and isinstance(self.results, dict))
+    
+    def get_progress(self):
+        """Get analysis progress percentage"""
+        if self.status == 'completed':
+            return 100
+        elif self.status == 'processing':
+            return 75
+        elif self.status == 'pending':
+            return 25
+        else:
+            return 0
 
 
 class Wallet(models.Model):
@@ -706,8 +730,46 @@ class SiteStats(models.Model):
         return f"آمار {self.date} - {self.total_views} بازدید"
 
 
+class Phonebook(models.Model):
+    """دفتر تلفن فروشگاه‌ها"""
+    
+    # اطلاعات فروشگاه
+    store_name = models.CharField(max_length=200, verbose_name='نام فروشگاه')
+    store_type = models.CharField(max_length=50, blank=True, verbose_name='نوع فروشگاه')
+    
+    # اطلاعات تماس
+    contact_name = models.CharField(max_length=200, verbose_name='نام و نام خانوادگی')
+    contact_email = models.EmailField(verbose_name='ایمیل')
+    contact_phone = models.CharField(max_length=20, verbose_name='شماره تماس')
+    
+    # اطلاعات اضافی
+    additional_notes = models.TextField(blank=True, verbose_name='توضیحات اضافی')
+    
+    # اطلاعات سیستم
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    analysis = models.ForeignKey('StoreAnalysis', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='تحلیل مربوطه')
+    
+    # زمان‌ها
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'دفتر تلفن'
+        verbose_name_plural = 'دفتر تلفن‌ها'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['store_name']),
+            models.Index(fields=['contact_email']),
+            models.Index(fields=['contact_phone']),
+            models.Index(fields=['user']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.store_name} - {self.contact_name} ({self.contact_phone})"
+
+
 class DiscountCode(models.Model):
-    """مدل کدهای تخفیف"""
     
     DISCOUNT_TYPE_CHOICES = [
         ('percentage', 'درصدی'),
@@ -835,12 +897,24 @@ class StoreAnalysisResult(models.Model):
     lighting_score = models.FloatField(default=0, verbose_name='امتیاز نورپردازی')
     color_score = models.FloatField(default=0, verbose_name='امتیاز رنگ‌بندی')
     signage_score = models.FloatField(default=0, verbose_name='امتیاز تابلوها')
+
+    # فیلدهای مورد استفاده در views (هم‌ترازسازی با کد)
+    traffic_score = models.FloatField(default=0, verbose_name='امتیاز ترافیک')
+    design_score = models.FloatField(default=0, verbose_name='امتیاز طراحی')
+    sales_score = models.FloatField(default=0, verbose_name='امتیاز فروش')
     
     # توصیه‌ها
     layout_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های چیدمان')
     lighting_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های نورپردازی')
     color_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های رنگ‌بندی')
     signage_recommendations = models.TextField(blank=True, verbose_name='توصیه‌های تابلوها')
+
+    # تحلیل‌های متنی مورد استفاده در views
+    overall_analysis = models.TextField(blank=True, verbose_name='تحلیل کلی')
+    layout_analysis = models.TextField(blank=True, verbose_name='تحلیل چیدمان (متن)')
+    traffic_analysis = models.TextField(blank=True, verbose_name='تحلیل ترافیک (متن)')
+    design_analysis = models.TextField(blank=True, verbose_name='تحلیل طراحی (متن)')
+    sales_analysis = models.TextField(blank=True, verbose_name='تحلیل فروش (متن)')
     
     # فایل‌های تولید شده
     report_file = models.FileField(upload_to='reports/', blank=True, null=True, verbose_name='فایل گزارش')
@@ -1103,3 +1177,22 @@ class Transaction(models.Model):
     class Meta:
         verbose_name = 'تراکنش'
         verbose_name_plural = 'تراکنش‌ها'
+
+
+class PromotionalBanner(models.Model):
+    """بنرهای تبلیغاتی سایت"""
+    title = models.CharField(max_length=200, verbose_name='عنوان')
+    content = models.TextField(verbose_name='محتوای تبلیغاتی')
+    image_url = models.URLField(blank=True, verbose_name='آدرس تصویر')
+    link_url = models.URLField(blank=True, verbose_name='لینک تبلیغاتی')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    start_date = models.DateTimeField(default=timezone.now, verbose_name='تاریخ شروع')
+    end_date = models.DateTimeField(default=timezone.now() + timedelta(days=30), verbose_name='تاریخ پایان')
+    priority = models.IntegerField(default=1, verbose_name='اولویت نمایش')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='آخرین بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'بنر تبلیغاتی'
+        verbose_name_plural = 'بنرهای تبلیغاتی'
+        ordering = ['-priority', '-created_at']

@@ -1,17 +1,29 @@
 {
-  "app": "chidmano",
-  "platform": "python",
-  "version": "3.11",
-  "port": 8000,
-  "env": {
-    "SECRET_KEY": "1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan3h$&$esj",
-    "DEBUG": "False",
-    "PRODUCTION": "True",
-    "PING_SANDBOX": "True",
-    "PING_API_KEY": "test-api-key-for-development",
-    "SITE_URL": "https://chidmano.liara.app",
-    "ALLOWED_HOSTS": "chidmano.liara.app,*.liara.app,*.liara.run",
-    "GUNICORN_TIMEOUT": "300",
-    "TIMEOUT": "300"
-  }
+  "platform": "django",
+  "python": "3.11",
+  "framework": "Django",
+  "build": {
+    "buildCommand": "python manage.py migrate --no-input",
+    "staticFiles": [
+      {
+        "source": "static/",
+        "destination": "/static/"
+      }
+    ]
+  },
+  "services": [
+    {
+      "name": "web",
+      "size": "S",
+      "replicas": 1,
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "chidmano.settings",
+        "PYTHONPATH": "/app"
+      },
+      "healthCheck": {
+        "path": "/",
+        "port": 80
+      }
+    }
+  ]
 }

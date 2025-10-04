@@ -627,18 +627,41 @@
                     <p>پرداخت شما با بالاترین استانداردهای امنیتی محافظت می‌شود</p>
                 </div>
                 
+                {% if order.final_amount == 0 %}
+                <!-- برای مبلغ صفر - گزینه کیف پول -->
+                <div class="zero-amount-section" style="background: #f8f9fa; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+                    <div style="color: #28a745; font-size: 3rem; margin-bottom: 1rem;">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3 style="color: #28a745; margin-bottom: 1rem;">🎉 به مناسبت افتتاحیه، تحلیل شما رایگان است!</h3>
+                    <p style="color: #6c757d; margin-bottom: 2rem;">برای ادامه، لطفاً کیف پول خود را شارژ کنید تا از خدمات آینده استفاده کنید</p>
+                    
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" onclick="rechargeWallet()" class="payment-button" style="background: #17a2b8; max-width: 300px;">
+                            <i class="fas fa-wallet"></i>
+                            شارژ کیف پول
+                        </button>
+                        <button type="button" onclick="proceedWithFreeAnalysis()" class="payment-button" style="background: #28a745; max-width: 300px;">
+                            <i class="fas fa-check"></i>
+                            ادامه با تحلیل رایگان
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <!-- برای مبلغ غیر صفر - پرداخت عادی -->
                 <button type="submit" class="payment-button" id="paymentButton">
                     <i class="fas fa-lock"></i>
-                    پرداخت {{ cost_breakdown.final|floatformat:0 }} تومان
+                    پرداخت {{ order.final_amount|floatformat:0 }} تومان
                 </button>
 
                 <div style="margin-top: 10px; text-align:center">
-                    <button type="button" onclick="directPayPingPayment()" 
+                    <button type="button" onclick="alert('PayPing button clicked!'); directPayPingPayment(event)" 
                             class="payment-button" style="display:inline-block; background: #28a745;">
                         <i class="fas fa-bolt"></i>
                         پرداخت آنلاین مستقیم (PayPing)
                     </button>
                 </div>
+                {% endif %}
             </form>
         </div>
     </div>
@@ -660,15 +683,62 @@ function selectPaymentMethod(methodId) {
 
 
 // Direct PayPing payment function
-function directPayPingPayment() {
+function directPayPingPayment(event) {
+    console.log('directPayPingPayment called with event:', event);
+    
+    // Prevent any default behavior
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     // Show loading state
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = '<div class="loading-spinner"></div> در حال هدایت به PayPing...';
+    const button = event ? event.target : document.querySelector('button[onclick*="directPayPingPayment"]');
+    console.log('Button found:', button);
+    
+    if (button) {
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<div class="loading-spinner"></div> در حال هدایت به PayPing...';
+    }
     
     // Redirect to PayPing
-    window.location.href = "{% url 'store_analysis:payping_payment' order.order_number %}";
+    const paypingUrl = "{% url 'store_analysis:payping_payment' order.order_number %}";
+    console.log('PayPing URL:', paypingUrl);
+    console.log('Order number:', '{{ order.order_number }}');
+    
+    // Add a small delay to show loading state
+    setTimeout(() => {
+        console.log('About to redirect to:', paypingUrl);
+        try {
+            window.top.location.assign(paypingUrl);
+        } catch (e) {
+            window.location.assign(paypingUrl);
+        }
+    }, 500);
+}
+
+// Function to recharge wallet
+function rechargeWallet() {
+    // Redirect to wallet dashboard for recharge
+    window.location.href = "{% url 'store_analysis:wallet_dashboard' %}";
+}
+
+// Function to proceed with free analysis
+function proceedWithFreeAnalysis() {
+    // Submit the form to process payment with zero amount
+    const form = document.getElementById('paymentForm');
+    if (form) {
+        // Create a hidden input for payment method
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'payment_method';
+        hiddenInput.value = 'free';
+        form.appendChild(hiddenInput);
+        
+        // Submit the form
+        form.submit();
+    }
 }
 
 // Auto-select first payment method and animations

@@ -297,12 +297,16 @@ ZARINPAL_MERCHANT_ID = os.getenv('ZARINPAL_MERCHANT_ID', 'test-merchant-id')
 ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
 
 # Liara AI Settings
-LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2OGM3MjU1NjJlYTVmMGYxNTA3MWU5ZDgiLCJ0eXBlIjoiYXV0aCIsImlhdCI6MTc1ODE0NzM2Mn0._pcbp8DXGwSBCub-SFj5eRNmEYHgq15QyU4-wND-UPo')
+LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiI2OGRlMGJiODg3OWEyMmVhNTY4ZjgwMGQiLCJ0eXBlIjoiYWlfa2V5IiwiaWF0IjoxNzU5MzgyNDU2fQ.PyG78aKySoeSlrohHSA52tT605gO1sY-UNhU_ia82Fo')
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 
 # Payment - PayPing
+# PayPing Settings
 PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', 'EB28E90039CB8FCD97F3D778FC7644917A1391217F9E47046EA864EA25331445-1')
+PAYPING_SANDBOX = os.getenv('PAYPING_SANDBOX', 'False').lower() == 'true'
+PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/')
+PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
 
 # AI Analysis Settings
 AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour
@@ -370,13 +374,15 @@ else:
 
 # Template optimization
 if not DEBUG:
-    TEMPLATES[0]['OPTIONS']['loaders'] = [
-        ('django.template.loaders.cached.Loader', [
-            'django.template.loaders.filesystem.Loader',
-            'django.template.loaders.app_directories.Loader',
-        ]),
-    ]
-    TEMPLATES[0]['APP_DIRS'] = False
+    # Template caching - disabled for development
+    # TEMPLATES[0]['OPTIONS']['loaders'] = [
+    #     ('django.template.loaders.cached.Loader', [
+    #         'django.template.loaders.filesystem.Loader',
+    #         'django.template.loaders.app_directories.Loader',
+    #     ]),
+    # ]
+    # TEMPLATES[0]['APP_DIRS'] = False
+    pass
 
 # Session optimization
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'

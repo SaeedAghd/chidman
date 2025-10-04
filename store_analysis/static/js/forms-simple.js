@@ -221,9 +221,13 @@ class SimpleFormManager {
                         // هدایت به صفحه پرداخت
                         console.log('Redirect URL:', data.redirect_url);
                         setTimeout(() => {
-                            const redirectUrl = data.redirect_url || '/store/dashboard/';
-                            console.log('Redirecting to:', redirectUrl);
-                            window.location.href = redirectUrl;
+                            if (data.redirect_url) {
+                                console.log('Redirecting to:', data.redirect_url);
+                                window.location.href = data.redirect_url;
+                            } else {
+                                console.log('No redirect URL provided, staying on page');
+                                this.showMessage('فرم با موفقیت ارسال شد! لطفاً منتظر بمانید...', 'success');
+                            }
                         }, 1500);
                     } else {
                         this.showMessage(data.message || 'خطا در ارسال فرم', 'error');

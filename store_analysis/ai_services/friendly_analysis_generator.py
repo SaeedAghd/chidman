@@ -37,7 +37,9 @@ class FriendlyAnalysisGenerator:
             'smile': '😊',
             'thumbs_up': '👍',
             'thinking': '🤔',
-            'celebration': '🎉'
+            'celebration': '🎉',
+            'crystal_ball': '🔮',
+            'gold': '🥇'
         }
     
     def _load_friendly_templates(self) -> Dict[str, List[str]]:

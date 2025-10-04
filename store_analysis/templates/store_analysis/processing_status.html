@@ -425,7 +425,7 @@
                 
                 // هدایت به صفحه نتایج
                 setTimeout(() => {
-                    window.location.href = '{% url "store_analysis:analysis_detail" pk=analysis_id %}';
+                    window.location.href = '{% url "store_analysis:order_analysis_results" order_id=order.order_number %}';
                 }, 2000);
             }
         }
@@ -452,7 +452,7 @@
                     });
                     
                     setTimeout(() => {
-                        window.location.href = '{% url "store_analysis:analysis_detail" pk=analysis_id %}';
+                        window.location.href = '{% url "store_analysis:order_analysis_results" order_id=order.order_number %}';
                     }, 2000);
                 } else if (data.failed) {
                     progressText.textContent = 'خطا در پردازش';

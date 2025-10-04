@@ -1,10 +1,28 @@
 /* Landing Page Custom Styles */
+
+/* Vazir Font Definition */
+@font-face {
+    font-family: 'VazirLocal';
+    src: url('../fonts/Vazir.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'VazirLocal';
+    src: url('../fonts/Vazir-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
-    /* فونت‌های فارسی */
-    --font-primary: 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
-    --font-heading: 'Estedad', 'Vazirmatn', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
-    --font-body: 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
-    --font-accent: 'Samim', 'Vazirmatn', 'Estedad', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    /* فونت‌های فارسی - اولویت با VazirLocal */
+    --font-primary: 'VazirLocal', 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    --font-heading: 'VazirLocal', 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    --font-body: 'VazirLocal', 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    --font-accent: 'VazirLocal', 'Vazirmatn', 'Samim', 'Estedad', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
     
     /* رنگ‌های Apple */
     --apple-white: #ffffff;
@@ -32,6 +50,23 @@
     --border-radius: 12px;
     --border-radius-lg: 16px;
     --border-radius-xl: 20px;
+}
+
+/* Global Vazir Font Application */
+* {
+    font-family: var(--font-primary) !important;
+}
+
+body {
+    font-family: var(--font-body) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading) !important;
+}
+
+button, .btn, input, textarea, select {
+    font-family: var(--font-accent) !important;
 }
 
 /* Hero Section - Apple Style */

@@ -1,0 +1,266 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}فعال‌سازی کیف پول افتتاحیه - چیدمانو{% endblock %}
+
+{% block extra_css %}
+<style>
+.activation-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activation-card {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-width: 500px;
+    width: 100%;
+    margin: 1rem;
+}
+
+.activation-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.activation-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.activation-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.activation-header p {
+    font-size: 1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 0;
+}
+
+.bonus-amount {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.bonus-amount .amount {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.bonus-amount .currency {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.activation-body {
+    padding: 2rem;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+}
+
+.features-list li {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.features-list li:last-child {
+    border-bottom: none;
+}
+
+.feature-icon {
+    font-size: 1.2rem;
+    margin-left: 1rem;
+    width: 2rem;
+    text-align: center;
+}
+
+.feature-text {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.activation-button {
+    width: 100%;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.activation-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+}
+
+.activation-button:active {
+    transform: translateY(0);
+}
+
+.warning-text {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #856404;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .activation-container {
+        padding: 1rem;
+    }
+    
+    .activation-card {
+        margin: 0.5rem;
+    }
+    
+    .activation-header {
+        padding: 1.5rem;
+    }
+    
+    .activation-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .activation-body {
+        padding: 1.5rem;
+    }
+    
+    .bonus-amount .amount {
+        font-size: 1.8rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="activation-container">
+    <div class="activation-card">
+        <div class="activation-header">
+            <h1>🎉 تبریک! شما برنده شدید!</h1>
+            <p>به مناسبت افتتاحیه چیدمانو</p>
+            
+            <div class="bonus-amount">
+                <div class="amount">{{ bonus_amount|floatformat:0 }}</div>
+                <div class="currency">تومان هدیه</div>
+            </div>
+        </div>
+        
+        <div class="activation-body">
+            <h3 style="text-align: center; margin-bottom: 1rem; color: #333;">
+                کیف پول شما با 700,000 تومان شارژ می‌شود!
+            </h3>
+            
+            <ul class="features-list">
+                <li>
+                    <span class="feature-icon">💰</span>
+                    <span class="feature-text">700,000 تومان اعتبار رایگان در کیف پول</span>
+                </li>
+                <li>
+                    <span class="feature-icon">📊</span>
+                    <span class="feature-text">تحلیل کامل فروشگاه شما رایگان</span>
+                </li>
+                <li>
+                    <span class="feature-icon">📄</span>
+                    <span class="feature-text">گزارش PDF حرفه‌ای</span>
+                </li>
+                <li>
+                    <span class="feature-icon">🏆</span>
+                    <span class="feature-text">گواهینامه AI معتبر</span>
+                </li>
+                <li>
+                    <span class="feature-icon">⚡</span>
+                    <span class="feature-text">تحلیل فوری و آنی</span>
+                </li>
+            </ul>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="activation-button">
+                    <i class="fas fa-gift"></i>
+                    فعال‌سازی کیف پول و شروع تحلیل
+                </button>
+            </form>
+            
+            <div class="warning-text">
+                ⚠️ این هدیه فقط یکبار برای هر کاربر قابل استفاده است
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some animation to the bonus amount
+    const bonusAmount = document.querySelector('.bonus-amount .amount');
+    if (bonusAmount) {
+        bonusAmount.style.animation = 'pulse 2s infinite';
+    }
+});
+
+// Add pulse animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -227,7 +227,7 @@
                         <i class="fas fa-trash"></i>
                         بله، حذف کن
                     </button>
-                    <a href="{% url 'store_analysis:analysis_detail' analysis.pk %}" class="btn-cancel">
+                    <a href="{% url 'store_analysis:order_analysis_results' order_id=analysis.order.order_number %}" class="btn-cancel">
                         <i class="fas fa-times"></i>
                         لغو
                     </a>

@@ -38,12 +38,12 @@ class AdvancedImageAnalyzer:
         self._init_liara_ai()
         
     def _init_liara_ai(self):
-        """راه‌اندازی سرویس Liara AI"""
+        """راه‌اندازی سرویس Chidmano1 AI"""
         try:
             from .liara_ai_service import LiaraAIService
             self.liara_ai_service = LiaraAIService()
         except Exception as e:
-            logger.warning(f"Liara AI service not available: {e}")
+            logger.warning(f"Chidmano1 AI service not available: {e}")
     
     def analyze_store_images(self, images: List[str], store_info: Dict[str, Any]) -> ImageAnalysisResult:
         """
@@ -144,7 +144,7 @@ class AdvancedImageAnalyzer:
             # آماده‌سازی prompt برای AI
             prompt = self._create_advanced_analysis_prompt(images, store_info)
             
-            # درخواست به Liara AI
+            # درخواست به Chidmano1 AI
             response = self.liara_ai_service.analyze_store_images(
                 images=images,
                 store_info=store_info,

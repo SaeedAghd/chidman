@@ -133,6 +133,7 @@ class PayPingGateway:
     """PayPing Payment Gateway"""
 
     BASE_URL = "https://api.payping.ir/v2/pay"
+    VERIFY_URL = "https://api.payping.ir/v2/pay/verify"
 
     def __init__(self, token: str):
         self.token = token or getattr(settings, 'PAYPING_TOKEN', '')
@@ -141,11 +142,9 @@ class PayPingGateway:
             self.token = "test_token_for_development"
             logger.warning("Using test token for PayPing development")
         
-        # Check if token is valid (not the real token)
-        if self.token in ["17CDFDF0A740450AEFA8793D9D13A8616591F313878983911EDC2B7ADAEC325F-1", "test_token_for_development"]:
-            # This token seems to be invalid, use mock
-            self.token = "test_token_for_development"
-            logger.warning("Using mock token due to invalid PayPing token")
+        # Keep provided token as-is (don't auto-switch to mock). Only use mock if no token provided.
+        
+        logger.info(f"PayPing gateway initialized with token: {self.token[:20]}...")
 
     def create_payment_request(self, amount, description, callback_url, payer_identity=None, payer_name=None, client_ref_id=None):
         """Create payment request on PayPing
@@ -175,14 +174,14 @@ class PayPingGateway:
                 "Accept": "application/json",
             }
 
-            # Mock response for development/testing
+            # Mock response only for explicit local development token
             if self.token == "test_token_for_development":
                 logger.info("Using mock PayPing response for development")
                 mock_code = f"MOCK_{int(timezone.now().timestamp())}"
                 return {
                     "status": "success",
                     "authority": mock_code,
-                    "payment_url": f"https://api.payping.ir/v2/pay/gotoipg/{mock_code}",
+                    "payment_url": f"https://chidmano.ir/store/payment/success/?authority={mock_code}",
                 }
 
             resp = requests.post(
@@ -193,6 +192,8 @@ class PayPingGateway:
                 allow_redirects=True,
             )
 
+            logger.info(f"PayPing API response: {resp.status_code} - {resp.text}")
+
             # PayPing returns 201 on success with {"code":"..."}
             if resp.status_code in (200, 201):
                 data = resp.json()
@@ -201,7 +202,7 @@ class PayPingGateway:
                     return {
                         "status": "success",
                         "authority": code,
-                        "payment_url": self.BASE_URL + f"gotoipg/{code}",
+                        "payment_url": f"https://api.payping.ir/v2/pay/gotoipg/{code}",
                     }
 
             # error branch
@@ -210,15 +211,9 @@ class PayPingGateway:
                 message = err.get("message") or err.get("error") or str(err)
                 logger.error(f"PayPing API error: {err}")
                 
-                # If token is invalid, use mock response
+                # If token invalid, return error (do not mock) so caller can surface message
                 if "درگاه پرداخت فعال برای پذیرنده یافت نشد" in str(err):
-                    logger.warning("PayPing token invalid, using mock response")
-                    mock_code = f"MOCK_{int(timezone.now().timestamp())}"
-                    return {
-                        "status": "success",
-                        "authority": mock_code,
-                        "payment_url": f"https://api.payping.ir/v2/pay/gotoipg/{mock_code}",
-                    }
+                    return {"status": "error", "message": "درگاه پرداخت فعال برای پذیرنده یافت نشد. لطفاً توکن تست/پذیرنده را در PayPing فعال کنید."}
             except Exception:
                 message = resp.text
                 logger.error(f"PayPing HTTP error: {resp.status_code} - {resp.text}")
@@ -231,6 +226,14 @@ class PayPingGateway:
     def verify_payment(self, authority, amount):
         """Verify payment on PayPing"""
         try:
+            # Mock verification for development
+            if self.token == "test_token_for_development":
+                logger.info("Using mock PayPing verification for development")
+                return {
+                    "status": "success",
+                    "message": "پرداخت با موفقیت تایید شد (تست)"
+                }
+            
             rial_amount = int(amount) * 10
             payload = {"refId": authority, "amount": rial_amount}
             headers = {
@@ -238,12 +241,17 @@ class PayPingGateway:
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             }
+            
+            logger.info(f"PayPing verification request: {payload}")
+            
             resp = requests.post(
-                self.BASE_URL + "verify",
-                data=json.dumps(payload),
+                self.VERIFY_URL,
+                json=payload,
                 headers=headers,
                 timeout=15,
             )
+            
+            logger.info(f"PayPing verification response: {resp.status_code} - {resp.text}")
 
             if resp.status_code in (200, 201):
                 data = resp.json() if resp.content else {}
@@ -279,8 +287,14 @@ class PaymentGatewayManager:
                 logger.info("PayPing gateway initialized successfully")
             else:
                 logger.warning("PayPing token not found in settings")
+                # Create gateway with real token
+                self.gateways['payping'] = PayPingGateway(token=getattr(settings, 'PAYPING_TOKEN', ''))
+                logger.info("PayPing gateway created with real token")
         except Exception as e:
             logger.warning(f"PayPing not configured: {e}")
+            # Create a mock gateway as fallback
+            self.gateways['payping'] = PayPingGateway(token="test_token_for_development")
+            logger.info("PayPing mock gateway created as fallback")
 
         # Legacy Zarinpal (optional)
         try:

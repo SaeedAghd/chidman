@@ -17,7 +17,8 @@ class LiaraAIService:
     """سرویس هوش مصنوعی پیشرفته لیارا"""
     
     def __init__(self):
-        self.base_url = "https://api.liara.ir/ai/v1"
+        # URL صحیح API لیارا بر اساس مستندات
+        self.base_url = "https://ai.liara.ir/api/68cb388afcfe30ace3a2a314/v1"
         self.api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
         self.headers = {
             'Authorization': f'Bearer {self.api_key}',
@@ -26,14 +27,14 @@ class LiaraAIService:
             'User-Agent': 'Chidmano-AI-Client/1.0'
         }
         
-        # مدل‌های پیشرفته برای تحلیل‌های مختلف
+        # مدل‌های موجود در لیارا بر اساس مستندات
         self.models = {
-            'analysis': 'openai/gpt-4.1',     # تحلیل اصلی - جدیدترین و قدرتمندترین مدل
-            'design': 'openai/gpt-4.1',       # تحلیل طراحی - قدرت بالا و درک چندرسانه‌ای
-            'marketing': 'openai/gpt-4.1',    # تحلیل بازاریابی - بینش عمیق و استدلال پیشرفته
-            'psychology': 'openai/gpt-4.1',   # روانشناسی مشتری - تحلیل پیشرفته و دقیق
-            'optimization': 'openai/gpt-4.1', # بهینه‌سازی - الگوریتم‌های پیشرفته و مهندسی نرم‌افزار
-            'summary': 'openai/gpt-4.1'       # خلاصه‌سازی - کیفیت بالا و پنجره محتوا بزرگ
+            'analysis': 'openai/gpt-4.1',           # تحلیل اصلی
+            'design': 'openai/gpt-4.1',             # تحلیل طراحی
+            'marketing': 'openai/gpt-4.1',          # تحلیل بازاریابی
+            'psychology': 'openai/gpt-4.1',         # روانشناسی مشتری
+            'optimization': 'openai/gpt-4.1',       # بهینه‌سازی
+            'summary': 'openai/gpt-4.1'             # خلاصه‌سازی
         }
     
     def _make_request(self, model: str, prompt: str, max_tokens: int = 4000, temperature: float = 0.7) -> Dict:
@@ -62,7 +63,7 @@ class LiaraAIService:
                 f"{self.base_url}/chat/completions",
                 headers=self.headers,
                 json=payload,
-                timeout=30
+                timeout=45  # کاهش timeout برای سرعت بیشتر
             )
             
             if response.status_code == 200:
@@ -71,26 +72,34 @@ class LiaraAIService:
                 logger.error(f"خطا در API لیارا: {response.status_code} - {response.text}")
                 return None
                 
+        except requests.exceptions.Timeout:
+            logger.warning(f"Timeout در ارتباط با لیارا AI - درخواست بیش از 2 دقیقه طول کشید")
+            return None
+        except requests.exceptions.ConnectionError:
+            logger.error(f"خطا در اتصال به لیارا AI - بررسی اتصال اینترنت")
+            return None
         except Exception as e:
             logger.error(f"خطا در ارتباط با لیارا AI: {e}")
             return None
     
-    def analyze_store_comprehensive(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تحلیل جامع و حرفه‌ای فروشگاه با استفاده از چندین مدل AI"""
+    def analyze_store_comprehensive(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
+        """تحلیل جامع و حرفه‌ای فروشگاه با استفاده از چندین مدل AI و پردازش تصاویر"""
         
         store_name = store_data.get('store_name', 'فروشگاه')
         store_type = store_data.get('store_type', 'عمومی')
         
+        logger.info(f"🚀 شروع تحلیل جامع فروشگاه {store_name} با {len(images) if images else 0} تصویر")
+        
         # تحلیل‌های موازی با مدل‌های مختلف
         analyses = {}
         
-        # 1. تحلیل اصلی با GPT-4 Turbo
-        main_analysis = self._analyze_main_store(store_data)
+        # 1. تحلیل اصلی با GPT-4 Turbo (شامل اطلاعات تصاویر)
+        main_analysis = self._analyze_main_store(store_data, images)
         if main_analysis:
             analyses['main'] = main_analysis
         
-        # 2. تحلیل طراحی با Claude-3 Opus
-        design_analysis = self._analyze_store_design(store_data)
+        # 2. تحلیل طراحی با Claude-3 Opus (با تمرکز بر تصاویر)
+        design_analysis = self._analyze_store_design(store_data, images)
         if design_analysis:
             analyses['design'] = design_analysis
         
@@ -110,11 +119,11 @@ class LiaraAIService:
             analyses['optimization'] = optimization_analysis
         
         # ترکیب و خلاصه‌سازی نتایج
-        final_analysis = self._combine_analyses(analyses, store_data)
+        final_analysis = self._combine_analyses(analyses, store_data, images)
         
         return final_analysis
     
-    def _analyze_main_store(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_main_store(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """تحلیل اصلی فروشگاه با GPT-4 Turbo"""
         
         prompt = f"""
@@ -192,7 +201,7 @@ class LiaraAIService:
             }
         return None
     
-    def _analyze_store_design(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_store_design(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """تحلیل طراحی با Claude-3 Opus"""
         
         prompt = f"""
@@ -485,7 +494,7 @@ class LiaraAIService:
             }
         return None
     
-    def _combine_analyses(self, analyses: Dict[str, Any], store_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _combine_analyses(self, analyses: Dict[str, Any], store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """ترکیب و خلاصه‌سازی تحلیل‌ها"""
         
         if not analyses:

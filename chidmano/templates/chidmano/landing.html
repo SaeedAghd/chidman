@@ -145,29 +145,59 @@
     }
     </script>
     
+    <!-- Vazir Font CSS -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
     <style>
-      /* Local Vazir font */
+      /* Vazir font definition */
+      @font-face {
+        font-family: 'VazirLocal';
+        src: url('{% static "fonts/Vazir.ttf" %}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: 'VazirLocal';
+        src: url('{% static "fonts/Vazir-Bold.ttf" %}') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      /* Global font application */
       html{visibility:visible!important}
-      body{opacity:1!important;font-family:'Vazirmatn', sans-serif}
-      .navbar, .nav-link, button, input, textarea{font-family:'VazirLocal', Vazirmatn, sans-serif}
+      body{opacity:1!important;font-family:'VazirLocal', 'Vazirmatn', sans-serif}
+      .navbar, .nav-link, button, input, textarea{font-family:'VazirLocal', 'Vazirmatn', sans-serif}
       .preloader,.loading-overlay{display:none!important}
+      
       /* Readability improvements for Vazir */
       html,body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
-      :root{--bs-body-font-family:'VazirLocal', Vazirmatn, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif}
+      :root{--bs-body-font-family:'VazirLocal', 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif}
       body{font-family:var(--bs-body-font-family) !important}
+      
       /* Force Vazir everywhere on the homepage */
       body:not(.allow-system-font),
-      body:not(.allow-system-font) * { font-family:'VazirLocal', Vazirmatn, sans-serif !important; }
-      .hero-title{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:800;line-height:1.2;letter-spacing:.1px;color:#0f172a;margin-bottom:.5rem;background:linear-gradient(135deg,#0f172a 0%,#ff6b35 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-      .hero-subtitle{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:500;line-height:1.7;letter-spacing:.1px;color:#334155}
+      body:not(.allow-system-font) * { font-family:'VazirLocal', 'Vazirmatn', sans-serif !important; }
+      
+      .hero-title{font-family:'VazirLocal','Vazirmatn',sans-serif;font-weight:800;line-height:1.2;letter-spacing:.1px;color:#0f172a;margin-bottom:.5rem;background:linear-gradient(135deg,#0f172a 0%,#ff6b35 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+      .hero-subtitle{font-family:'VazirLocal','Vazirmatn',sans-serif;font-weight:500;line-height:1.7;letter-spacing:.1px;color:#334155}
+      
       /* Feature cards typography */
       .features-section .card-title,
-      .features-grid .card h3{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:800;line-height:1.35;letter-spacing:.1px;color:#0f172a;margin:0 0 .5rem;transition:all 0.3s ease}
+      .features-grid .card h3{font-family:'VazirLocal','Vazirmatn',sans-serif;font-weight:800;line-height:1.35;letter-spacing:.1px;color:#0f172a;margin:0 0 .5rem;transition:all 0.3s ease}
       .features-section .card:hover .card-title,
       .features-grid .card:hover h3{color:#ff6b35;transform:translateY(-2px)}
       .features-section .card-text,
-      .features-grid .card p{font-family:'VazirLocal',Vazirmatn,sans-serif;font-weight:400;line-height:1.9;color:#334155}
-      .features-grid .card,.features-grid .card *{font-family:'VazirLocal',Vazirmatn,sans-serif}
+      .features-grid .card p{font-family:'VazirLocal','Vazirmatn',sans-serif;font-weight:400;line-height:1.9;color:#334155}
+      .features-grid .card,.features-grid .card *{font-family:'VazirLocal','Vazirmatn',sans-serif}
+      
+      /* Force Vazir for all elements */
+      *, *::before, *::after {
+        font-family: 'VazirLocal', 'Vazirmatn', sans-serif !important;
+      }
+      
       @media(max-width:480px){.hero-title{font-size:22px}.hero-subtitle{font-size:14px}}
     </style>
     <meta name="language" content="Persian">
@@ -228,7 +258,7 @@
         .navbar-brand { font-weight: 700; font-size: 1.5rem; color: #ff6b35; text-decoration: none; transition: all 0.15s ease; }
         .hero { background: transparent; min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden; padding-top: 80px; }
         .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.2; color: #0f172a; margin-bottom: 0.5rem; }
-        body { font-family: 'VazirLocal', Vazirmatn, sans-serif; opacity: 0; transition: opacity 0.5s ease; }
+        body { font-family: 'VazirLocal', 'Vazirmatn', sans-serif; opacity: 0; transition: opacity 0.5s ease; }
     </style>
     
     <!-- Async CSS loading to avoid render-blocking -->
@@ -243,8 +273,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Removed Font Awesome and Google Fonts to avoid blocked/slow CDNs -->
     <style>
-        /* Use fast, system font stack to avoid external font fetch */
-        html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        /* Use Vazir font stack */
+        html, body { font-family: 'VazirLocal', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
     </style>
     <style>
         :root {
@@ -385,7 +415,7 @@
         }
         
         body {
-            font-family: 'Inter', 'Plus Jakarta Sans', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'VazirLocal', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: #1a1a1a;
             overflow-x: hidden;
@@ -491,7 +521,7 @@
         .rainbow-text {
             font-size: 1.6rem;
             font-weight: 700;
-            font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+            font-family: 'VazirLocal', 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
             background: linear-gradient(
                 135deg,
                 #ff0000 0%,      /* قرمز */
@@ -642,7 +672,7 @@
         }
         
         .navbar-brand {
-            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
+            font-family: 'VazirLocal', 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
             font-weight: 700;
             font-size: 1.5rem;
             color: var(--primary-color);
@@ -769,7 +799,7 @@
         }
         
         .hero h1 {
-            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
+            font-family: 'VazirLocal', 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
             font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
@@ -823,7 +853,7 @@
             margin: 10px;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-            font-family: 'Inter', sans-serif;
+            font-family: 'VazirLocal', 'Vazirmatn', sans-serif;
             letter-spacing: 0.02em;
         }
         
@@ -900,7 +930,7 @@
         }
         
         .feature-card h3 {
-            font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
+            font-family: 'VazirLocal', 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 15px;
@@ -1124,7 +1154,7 @@
             .hero h1 {
                 font-size: 2.5rem;
                 line-height: 1.2;
-                font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
+                font-family: 'VazirLocal', 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
             }
             
             .hero p {
@@ -1155,7 +1185,7 @@
         @media (max-width: 576px) {
             .hero h1 {
                 font-size: 2rem;
-                font-family: 'Vazirmatn', 'Inter', 'Plus Jakarta Sans', 'Tahoma', 'Arial', sans-serif;
+                font-family: 'VazirLocal', 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
             }
             
             .hero p {
