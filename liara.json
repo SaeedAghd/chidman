@@ -3,10 +3,10 @@
   "python": "3.11",
   "framework": "Django",
   "build": {
-    "buildCommand": "python manage.py migrate --no-input",
-    "staticFiles": [
+    "buildCommand": "python manage.py collectstatic --noinput && python manage.py migrate --no-input",
+    "files": [
       {
-        "source": "static/",
+        "source": "staticfiles/",
         "destination": "/static/"
       }
     ]
@@ -18,10 +18,12 @@
       "replicas": 1,
       "env": {
         "DJANGO_SETTINGS_MODULE": "chidmano.settings",
-        "PYTHONPATH": "/app"
+        "PYTHONPATH": "/app",
+        "PRODUCTION": "True",
+        "DEBUG": "False"
       },
       "healthCheck": {
-        "path": "/",
+        "path": "/health",
         "port": 80
       }
     }
