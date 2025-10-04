@@ -2395,8 +2395,6 @@ def submit_analysis_request(request):
                 user=request.user,
                 analysis_type='comprehensive',
                 store_name=form_data.get('store_name', ''),
-                store_type=form_data.get('store_type', ''),
-                store_size=form_data.get('store_size', ''),
                 status='pending',
                 analysis_data=form_data
             )
@@ -3962,13 +3960,8 @@ def store_analysis_form(request):
             #     user=request.user if request.user.is_authenticated else None,
             #     analysis_type='comprehensive_7step',
             #     store_name=form_data.get('store_name', 'فروشگاه جدید'),
-            #     store_size=form_data.get('store_size', 0),
-            #     store_type=form_data.get('store_type', 'supermarket'),
             #     status='pending',
-            #     results='',
-            #     error_message='',
-            #     priority='high',
-            #     estimated_duration=45,
+            #     analysis_data=form_data
             #     analysis_data=form_data  # ذخیره مستقیم در analysis_data
             # )
             
@@ -5544,8 +5537,6 @@ def forms(request):
             store_analysis = StoreAnalysis.objects.create(
                 user=request.user if request.user.is_authenticated else None,
                 store_name=form_data.get('store_name', ''),
-                store_type=form_data.get('store_type', ''),
-                store_size=form_data.get('store_size', ''),
                 status='pending',
                 analysis_data=form_data
             )
@@ -6087,8 +6078,6 @@ def forms_submit(request):
             store_analysis = StoreAnalysis.objects.create(
                 user=request.user,
                 store_name=form_data.get('store_name', 'فروشگاه'),
-                store_type=form_data.get('store_type', 'عمومی'),
-                store_size=form_data.get('store_size', 'متوسط'),
                 status='pending',
                 analysis_type='comprehensive',
                 analysis_data=form_data
@@ -6218,8 +6207,6 @@ def forms_submit(request):
             store_analysis = StoreAnalysis.objects.create(
                 user=request.user if request.user.is_authenticated else None,
                 store_name=form_data.get('store_name', 'فروشگاه'),
-                store_type=form_data.get('store_type', 'عمومی'),
-                store_size=form_data.get('store_size', 'متوسط'),
                 status='pending',
                 analysis_type='comprehensive',
                 analysis_data=form_data  # ذخیره تمام داده‌ها در JSON
