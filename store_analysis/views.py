@@ -85,6 +85,14 @@ def calculate_analysis_cost(form_data):
         if form_data.get('discount_code'):
             discount = Decimal('50000')  # 50,000 تومان تخفیف
         
+        # تخفیف 100% برای دوره راه‌اندازی
+        from datetime import datetime
+        current_date = datetime.now()
+        launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
+        
+        if current_date <= launch_end_date:
+            discount = total  # تخفیف 100%
+        
         final = total - discount
         
         return {
@@ -144,6 +152,17 @@ def calculate_analysis_cost_for_object(analysis):
         
         total_cost = base_cost + additional_cost
         
+        # تخفیف 100% برای دوره راه‌اندازی
+        from datetime import datetime
+        current_date = datetime.now()
+        launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
+        
+        discount = Decimal('0')
+        if current_date <= launch_end_date:
+            discount = total_cost  # تخفیف 100%
+        
+        final_cost = total_cost - discount
+        
         # ساخت breakdown
         breakdown = [
             {
@@ -169,9 +188,9 @@ def calculate_analysis_cost_for_object(analysis):
         return {
             'base_price': base_cost,
             'total': total_cost,
-            'final': total_cost,
-            'discount': Decimal('0'),
-            'discount_percentage': 0,
+            'final': final_cost,
+            'discount': discount,
+            'discount_percentage': 100 if discount > 0 else 0,
             'breakdown': breakdown
         }
         
