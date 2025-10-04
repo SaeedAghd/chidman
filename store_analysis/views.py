@@ -5474,7 +5474,7 @@ def analysis_payment_page(request, pk):
     # اگر تحلیل قبلاً پرداخت شده، به صفحه تحلیل هدایت شود
     if analysis.status != 'pending':
         messages.info(request, 'این تحلیل قبلاً پرداخت شده است.')
-        return redirect('store_analysis:analysis_detail', pk=pk)
+        return redirect('store_analysis:analysis_results', pk=pk)
     
     # محاسبه هزینه تحلیل
     cost = calculate_analysis_cost_for_object(analysis)
@@ -6409,7 +6409,7 @@ def forms_submit(request):
                         'redirect_url': reverse('store_analysis:analysis_results', kwargs={'pk': store_analysis.id})
                     })
                 else:
-                    return redirect('store_analysis:analysis_detail', analysis_id=store_analysis.id)
+                    return redirect('store_analysis:analysis_results', pk=store_analysis.id)
             else:
                 # تحلیل کامل - پولی - هدایت به صفحه پرداخت
                 if is_ajax or is_fetch:
