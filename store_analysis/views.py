@@ -2585,6 +2585,27 @@ def process_payment(request, order_id):
             elif payment_method == 'online':
                 # هدایت به PayPing
                 return redirect('store_analysis:payping_payment', order_id=order.order_number)
+            elif payment_method == 'free':
+                # پرداخت رایگان - مستقیماً به نتایج برو
+                # به‌روزرسانی وضعیت سفارش
+                order.status = 'paid'
+                order.payment_method = 'free'
+                order.transaction_id = f'FREE_{uuid.uuid4().hex[:12].upper()}'
+                order.save()
+                
+                # به‌روزرسانی وضعیت تحلیل
+                store_analysis = StoreAnalysis.objects.filter(order=order).first()
+                if store_analysis:
+                    store_analysis.status = 'preliminary_completed'
+                    store_analysis.save()
+                    
+                    # تولید تحلیل اولیه هوش مصنوعی
+                    initial_analysis = generate_initial_ai_analysis(store_analysis.analysis_data)
+                    store_analysis.preliminary_analysis = initial_analysis
+                    store_analysis.save()
+                
+                # هدایت به صفحه نتایج
+                return redirect('store_analysis:order_analysis_results', order_id=order.order_number)
             
             # شبیه‌سازی پرداخت موفق (برای سایر روش‌ها)
             # در واقعیت باید با درگاه پرداخت ارتباط برقرار شود
