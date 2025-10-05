@@ -57,55 +57,10 @@ def signup_view(request):
         messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
         return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
 
-def verify_email_view(request, user_id):
-    """صفحه تاییدیه ایمیل"""
-    try:
-        user = User.objects.get(id=user_id)
-        email_verification = EmailVerification.objects.get(user=user)
-        
-        if request.method == 'POST':
-            verification_code = request.POST.get('verification_code')
-            
-            if verification_code == email_verification.verification_code:
-                if not email_verification.is_expired():
-                    # تایید موفق
-                    email_verification.is_verified = True
-                    email_verification.save()
-                    
-                    # فعال کردن کاربر
-                    user.is_active = True
-                    user.save()
-                    
-                    # ارسال ایمیل خوش‌آمدگویی
-                    email_service = EmailVerificationService()
-                    email_service.send_welcome_email(user, user.email)
-                    
-                    messages.success(request, 'ایمیل شما با موفقیت تایید شد! حالا می‌توانید وارد شوید.')
-                    return redirect('login')
-                else:
-                    messages.error(request, 'کد تایید منقضی شده است. لطفاً کد جدید درخواست کنید.')
-            else:
-                # افزایش تعداد تلاش
-                email_verification.attempts += 1
-                email_verification.save()
-                
-                if email_verification.attempts >= 3:
-                    messages.error(request, 'تعداد تلاش‌های شما به حد مجاز رسیده است. لطفاً کد جدید درخواست کنید.')
-                else:
-                    messages.error(request, f'کد تایید اشتباه است. {3 - email_verification.attempts} تلاش باقی مانده.')
-        
-        return render(request, 'registration/verify_email.html', {
-            'user': user,
-            'email_verification': email_verification
-        })
-        
-    except (User.DoesNotExist, EmailVerification.DoesNotExist):
-        messages.error(request, 'کاربر یا تاییدیه ایمیل یافت نشد.')
-        return redirect('signup')
-    except Exception as e:
-        logger.error(f"خطا در verify_email_view: {e}")
-        messages.error(request, 'خطایی رخ داده است.')
-        return redirect('signup')
+# def verify_email_view(request, user_id):
+#     """صفحه تاییدیه ایمیل - غیرفعال شده"""
+#     messages.error(request, 'این قابلیت در حال حاضر غیرفعال است.')
+#     return redirect('signup')
 
 def resend_verification_code(request, user_id):
     """ارسال مجدد کد تاییدیه"""
