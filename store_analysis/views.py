@@ -3452,7 +3452,9 @@ def start_advanced_ai_processing(request, pk):
                 # به‌روزرسانی نتایج
                 analysis.results = advanced_analysis
                 analysis.status = 'completed'
-                analysis.preliminary_analysis = advanced_analysis.get('final_report', 'تحلیل پیشرفته با GPT-4.1 تولید شد.')
+                # استفاده از تحلیل اولیه فارسی به جای تحلیل پیشرفته غیرفارسی
+                from .utils import generate_initial_ai_analysis
+                analysis.preliminary_analysis = generate_initial_ai_analysis(analysis.analysis_data)
                 analysis.save()
                 
                 # به‌روزرسانی StoreAnalysisResult
