@@ -20,19 +20,8 @@ if __name__ == "__main__":
     print("📊 Running migrations (main.py)...")
     from django.core.management import call_command
     try:
-        # First, fake all existing migrations to avoid conflicts
-        print("🔄 Faking existing migrations to avoid conflicts...")
-        call_command('migrate', 'store_analysis', '0001', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0002', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0003', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0004', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0005', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0006', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0007', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0008', '--fake', interactive=False, verbosity=1)
-        call_command('migrate', 'store_analysis', '0009', '--fake', interactive=False, verbosity=1)
-        
-        # Now run all migrations
+        # Run all migrations without faking
+        print("🔄 Running all migrations...")
         call_command('migrate', interactive=False, verbosity=1)
         print("✅ All migrations applied successfully")
     except Exception as migrate_error:

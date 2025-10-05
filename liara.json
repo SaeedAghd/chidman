@@ -20,11 +20,14 @@
         "DJANGO_SETTINGS_MODULE": "chidmano.settings",
         "PYTHONPATH": "/app",
         "PRODUCTION": "True",
-        "DEBUG": "False"
+        "DEBUG": "False",
+        "WEB_CONCURRENCY": "1",
+        "TIMEOUT": "120"
       },
       "healthCheck": {
         "path": "/health",
-        "port": 80
+        "port": 80,
+        "timeout": 30
       }
     }
   ]

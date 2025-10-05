@@ -15,6 +15,16 @@ logs/
 test_files/
 test_*.py
 *_test.py
+test_ai_analysis.py
+test_discount.py
+test_discount_simple.py
+test_html_issue.py
+test_liara_ai.py
+test_liara_connection.py
+test_payment_page.py
+test_pdf_generation.py
+test_pdf_simple.py
+test_template.py
 
 # SSL certificates
 ssl/
