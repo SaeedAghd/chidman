@@ -21,7 +21,7 @@ urlpatterns = [
     # احراز هویت
     path('accounts/', include([
         path('signup/', views.signup_view, name='signup'),
-        path('verify-email/<int:user_id>/', views.verify_email_view, name='verify_email'),
+        # Email verification view removed
         path('resend-code/<int:user_id>/', views.resend_verification_code, name='resend_verification_code'),
         path('login/', views.simple_login_view, name='login'),
         path('logout/', views.logout_view, name='logout'),
