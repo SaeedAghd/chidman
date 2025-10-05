@@ -734,8 +734,8 @@ def analysis_results(request, pk):
     if is_admin:
         # ادمین همیشه دسترسی دارد
         show_management_report = True
-    elif analysis.can_generate_report:
-        # کاربر عادی وقتی امکان تولید گزارش وجود داشته باشد
+    elif analysis.status == 'completed' and analysis.results:
+        # کاربر عادی وقتی تحلیل کامل شده و نتایج موجود باشد
         show_management_report = True
     
     # بررسی وجود نتایج AI در JSONField
@@ -773,8 +773,8 @@ def download_analysis_report(request, pk):
     if is_admin:
         # ادمین همیشه دسترسی دارد
         show_management_report = True
-    elif analysis.can_generate_report:
-        # کاربر عادی وقتی امکان تولید گزارش وجود داشته باشد
+    elif analysis.status == 'completed' and analysis.results:
+        # کاربر عادی وقتی تحلیل کامل شده و نتایج موجود باشد
         show_management_report = True
     
     if not show_management_report:
@@ -795,13 +795,15 @@ def download_analysis_report(request, pk):
             if pdf_content:
                 response = HttpResponse(pdf_content, content_type='application/pdf')
                 response['Content-Disposition'] = f'attachment; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
+                response['Content-Length'] = len(pdf_content)
                 return response
             else:
-                # fallback به گزارش متنی
-                text_content = generate_pdf_report(analysis, has_ai_results)
-                response = HttpResponse(content_type='text/plain; charset=utf-8')
-                response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_گزارش_تحلیل_{analysis.id}.txt"'
-                response.write(text_content.encode('utf-8'))
+                # fallback به گزارش HTML
+                logger.warning("PDF generation failed, falling back to HTML")
+                html_content = generate_management_report(analysis, has_ai_results)
+                response = HttpResponse(content_type='text/html; charset=utf-8')
+                response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_گزارش_تحلیل_{analysis.id}.html"'
+                response.write(html_content.encode('utf-8'))
                 return response
             
         else:
@@ -7293,21 +7295,34 @@ def generate_professional_persian_pdf_report(analysis):
         import os
         import datetime
         
-        # تنظیم فونت فارسی
+        # تنظیم فونت فارسی با fallback بهتر
+        font_name = 'Helvetica'  # فونت پیش‌فرض
+        
         try:
+            # اولویت 1: فونت Vazir
             font_path = os.path.join(os.path.dirname(__file__), 'static', 'fonts', 'Vazir-Bold.ttf')
             if os.path.exists(font_path):
                 pdfmetrics.registerFont(TTFont('Vazir-Bold', font_path))
                 font_name = 'Vazir-Bold'
+                logger.info(f"Using Vazir font: {font_path}")
             else:
-                # استفاده از فونت Tahoma
+                # اولویت 2: فونت Tahoma
                 tahoma_path = "C:/Windows/Fonts/tahoma.ttf"
                 if os.path.exists(tahoma_path):
                     pdfmetrics.registerFont(TTFont('Tahoma', tahoma_path))
                     font_name = 'Tahoma'
+                    logger.info(f"Using Tahoma font: {tahoma_path}")
                 else:
-                    font_name = 'Helvetica'
-        except Exception:
+                    # اولویت 3: فونت Arial
+                    arial_path = "C:/Windows/Fonts/arial.ttf"
+                    if os.path.exists(arial_path):
+                        pdfmetrics.registerFont(TTFont('Arial', arial_path))
+                        font_name = 'Arial'
+                        logger.info(f"Using Arial font: {arial_path}")
+                    else:
+                        logger.warning("No suitable font found, using Helvetica")
+        except Exception as e:
+            logger.error(f"Font registration error: {e}")
             font_name = 'Helvetica'
         
         # ایجاد PDF در حافظه
@@ -7489,6 +7504,7 @@ def generate_professional_persian_pdf_report(analysis):
         return pdf_content
         
     except Exception as e:
-        print(f"خطا در تولید PDF فارسی: {str(e)}")
+        logger.error(f"خطا در تولید PDF فارسی: {str(e)}")
+        logger.error(f"PDF generation error details: {type(e).__name__}: {e}")
         return None
 
