@@ -5,6 +5,114 @@
 
 {% block extra_css %}
 <style>
+    /* Professional Loading States for Results Page */
+    .analysis-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(15px);
+    }
+
+    .analysis-loading-container {
+        background: white;
+        border-radius: 25px;
+        padding: 3rem;
+        text-align: center;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        max-width: 600px;
+        width: 90%;
+        animation: slideInUp 0.5s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .analysis-loading-spinner {
+        width: 80px;
+        height: 80px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1.2s linear infinite;
+        margin: 0 auto 2rem;
+    }
+
+    .analysis-loading-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .analysis-loading-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .analysis-loading-progress {
+        background: #f0f0f0;
+        border-radius: 15px;
+        height: 12px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .analysis-loading-progress-bar {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        height: 100%;
+        border-radius: 15px;
+        animation: progress 3s ease-in-out infinite;
+    }
+
+    .analysis-loading-steps {
+        text-align: right;
+        font-size: 1rem;
+        color: #888;
+    }
+
+    .analysis-loading-step {
+        margin: 0.8rem 0;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .analysis-loading-step.active {
+        opacity: 1;
+        color: #667eea;
+        font-weight: 600;
+        transform: scale(1.05);
+    }
+
+    .analysis-loading-step.completed {
+        opacity: 0.8;
+        color: #28a745;
+    }
+
+    .analysis-loading-step-icon {
+        font-size: 1.2rem;
+    }
+
     :root {
         --primary-color: #667eea;
         --secondary-color: #764ba2;
@@ -1208,7 +1316,91 @@
 
 {% block extra_js %}
 <script>
+    // Professional Loading State for Analysis Results
+    function showAnalysisLoadingState() {
+        const loadingHTML = `
+            <div class="analysis-loading-overlay" id="analysisLoadingOverlay">
+                <div class="analysis-loading-container">
+                    <div class="analysis-loading-spinner"></div>
+                    <div class="analysis-loading-title">در حال تولید تحلیل پیشرفته</div>
+                    <div class="analysis-loading-subtitle">
+                        سیستم هوش مصنوعی در حال تحلیل عمیق فروشگاه شما است. لطفاً صبور باشید...
+                    </div>
+                    <div class="analysis-loading-progress">
+                        <div class="analysis-loading-progress-bar"></div>
+                    </div>
+                    <div class="analysis-loading-steps">
+                        <div class="analysis-loading-step active" id="analysisStep1">
+                            <span class="analysis-loading-step-icon">🔍</span>
+                            تحلیل اولیه داده‌ها
+                        </div>
+                        <div class="analysis-loading-step" id="analysisStep2">
+                            <span class="analysis-loading-step-icon">🤖</span>
+                            پردازش هوش مصنوعی
+                        </div>
+                        <div class="analysis-loading-step" id="analysisStep3">
+                            <span class="analysis-loading-step-icon">📊</span>
+                            تولید نمودارها و آمار
+                        </div>
+                        <div class="analysis-loading-step" id="analysisStep4">
+                            <span class="analysis-loading-step-icon">📝</span>
+                            آماده‌سازی گزارش نهایی
+                        </div>
+                        <div class="analysis-loading-step" id="analysisStep5">
+                            <span class="analysis-loading-step-icon">✅</span>
+                            تکمیل و نمایش نتایج
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+        
+        // Simulate analysis progress steps
+        setTimeout(() => {
+            document.getElementById('analysisStep1').classList.add('completed');
+            document.getElementById('analysisStep2').classList.add('active');
+        }, 2000);
+        
+        setTimeout(() => {
+            document.getElementById('analysisStep2').classList.add('completed');
+            document.getElementById('analysisStep3').classList.add('active');
+        }, 5000);
+        
+        setTimeout(() => {
+            document.getElementById('analysisStep3').classList.add('completed');
+            document.getElementById('analysisStep4').classList.add('active');
+        }, 8000);
+        
+        setTimeout(() => {
+            document.getElementById('analysisStep4').classList.add('completed');
+            document.getElementById('analysisStep5').classList.add('active');
+        }, 12000);
+        
+        // Hide loading after 15 seconds (or when analysis is complete)
+        setTimeout(() => {
+            hideAnalysisLoadingState();
+        }, 15000);
+    }
+
+    function hideAnalysisLoadingState() {
+        const overlay = document.getElementById('analysisLoadingOverlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            overlay.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                overlay.remove();
+            }, 300);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Show loading state if analysis is still processing
+        {% if store_analysis.status == 'processing' or store_analysis.status == 'preliminary_completed' %}
+        showAnalysisLoadingState();
+        {% endif %}
+        
         // Add fade-in animations
         const observerOptions = {
             threshold: 0.1,
