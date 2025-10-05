@@ -7,6 +7,23 @@ ENV/
 # Media files
 media/
 
+# Local SQLite database (not needed in production)
+db.sqlite3
+
+# Deployment reports and large analysis artifacts
+seo_reports/
+health_check.py
+health.py
+
+# Editor/OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local runtime/process helpers
+fix_*.py
+*.bak
+
 # Logs
 logs/
 *.log
