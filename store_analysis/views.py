@@ -2983,6 +2983,55 @@ def order_analysis_results(request, order_id):
         order = get_object_or_404(Order, order_number=order_id, user=request.user)
         store_analysis = StoreAnalysis.objects.filter(order=order).first()
         
+        # Handle POST requests (AJAX)
+        if request.method == 'POST':
+            try:
+                import json
+                data = json.loads(request.body)
+                action = data.get('action')
+                
+                if action == 'reprocess_liara':
+                    # شروع تحلیل پیشرفته با لیارا
+                    from .ai_services.advanced_ai_manager import AdvancedAIManager
+                    ai_manager = AdvancedAIManager()
+                    
+                    # آماده‌سازی اطلاعات فروشگاه
+                    analysis_data = store_analysis.analysis_data or {}
+                    store_info = {
+                        'store_name': store_analysis.store_name or 'نامشخص',
+                        'store_type': analysis_data.get('store_type', 'عمومی'),
+                        'store_size': str(analysis_data.get('store_size', 0)),
+                        'city': 'تهران',
+                        'description': analysis_data.get('description', '')
+                    }
+                    
+                    # شروع تحلیل پیشرفته
+                    advanced_analysis = ai_manager.start_advanced_analysis(store_info)
+                    
+                    # به‌روزرسانی نتایج
+                    store_analysis.results = advanced_analysis
+                    store_analysis.status = 'completed'
+                    store_analysis.save()
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'تحلیل پیشرفته با موفقیت انجام شد!',
+                        'status': 'completed'
+                    })
+                
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'عملیات نامشخص'
+                    })
+                    
+            except Exception as e:
+                logger.error(f"Error in POST request: {e}")
+                return JsonResponse({
+                    'success': False,
+                    'message': f'خطا در پردازش درخواست: {str(e)}'
+                })
+        
         if not store_analysis:
             messages.error(request, 'تحلیل مورد نظر یافت نشد')
             return redirect('store_analysis:user_dashboard')
