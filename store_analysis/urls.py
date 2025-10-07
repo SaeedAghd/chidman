@@ -24,25 +24,25 @@ urlpatterns = [
     path('analysis/', include([
         path('create/', views.analysis_create, name='analysis_create'),
         path('list/', views.analysis_list, name='analysis_list'),
-        path('<uuid:pk>/results/', views.analysis_results, name='analysis_results'),
+        path('<int:pk>/results/', views.analysis_results, name='analysis_results'),
         # analysis_detail حذف شد - مستقیماً به نتایج مدرن هدایت می‌شود
         # path('<uuid:pk>/edit/', views.edit_analysis, name='edit_analysis'),  # Function removed
         # path('<uuid:pk>/delete/', views.delete_analysis, name='delete_analysis'),  # Function removed  
         # path('<uuid:pk>/payment/', views.analysis_payment_page, name='analysis_payment'),  # Function removed
-        path('<uuid:pk>/download/', views.download_analysis_report, name='download_analysis'),
-        path('<uuid:pk>/progress/', views.analysis_progress, name='analysis_progress'),
-        path('<uuid:pk>/start/', views.start_analysis, name='start_analysis'),
-        path('<uuid:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
-        path('<uuid:pk>/insights/', views.analysis_insights, name='analysis_insights'),
-        path('<uuid:pk>/ml/', views.advanced_ml_analysis, name='advanced_ml_analysis'),
-        path('<uuid:pk>/ai/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
-        path('<uuid:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
-        path('<uuid:pk>/generate-ai/', views.generate_ai_report, name='generate_ai_report'),
-        path('<uuid:pk>/reprocess-ollama/', views.reprocess_analysis_with_ollama, name='reprocess_analysis_with_ollama'),
-        path('<uuid:pk>/processing-status/', views.processing_status, name='processing_status'),
-        path('<uuid:pk>/start-ollama-processing/', views.start_ollama_processing, name='start_ollama_processing'),
-        path('<uuid:pk>/start-advanced-ai-processing/', views.start_advanced_ai_processing, name='start_advanced_ai_processing'),
-        path('<uuid:pk>/check-processing-status/', views.check_processing_status, name='check_processing_status'),
+        path('<int:pk>/download/', views.download_analysis_report, name='download_analysis'),
+        path('<int:pk>/progress/', views.analysis_progress, name='analysis_progress'),
+        path('<int:pk>/start/', views.start_analysis, name='start_analysis'),
+        path('<int:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
+        path('<int:pk>/insights/', views.analysis_insights, name='analysis_insights'),
+        path('<int:pk>/ml/', views.advanced_ml_analysis, name='advanced_ml_analysis'),
+        path('<int:pk>/ai/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
+        path('<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
+        path('<int:pk>/generate-ai/', views.generate_ai_report, name='generate_ai_report'),
+        path('<int:pk>/reprocess-ollama/', views.reprocess_analysis_with_ollama, name='reprocess_analysis_with_ollama'),
+        path('<int:pk>/processing-status/', views.processing_status, name='processing_status'),
+        path('<int:pk>/start-ollama-processing/', views.start_ollama_processing, name='start_ollama_processing'),
+        path('<int:pk>/start-advanced-ai-processing/', views.start_advanced_ai_processing, name='start_advanced_ai_processing'),
+        path('<int:pk>/check-processing-status/', views.check_processing_status, name='check_processing_status'),
     ])),
     
     # پشتیبانی
@@ -84,18 +84,18 @@ urlpatterns = [
     path('payment/<str:order_id>/payping/', views.payping_payment, name='payping_payment'),
     path('payment/<str:order_id>/process/', views.process_payment, name='process_payment'),
     path('payment/success/', views.payment_success, name='payment_success'),
-    path('analysis/<uuid:pk>/pdf/', views.view_analysis_pdf_inline, name='view_analysis_pdf_inline'),
-    path('analysis/<uuid:pk>/pdf-detailed/', views.download_detailed_pdf, name='download_detailed_pdf'),
+    path('analysis/<int:pk>/pdf/', views.view_analysis_pdf_inline, name='view_analysis_pdf_inline'),
+    path('analysis/<int:pk>/pdf-detailed/', views.download_detailed_pdf, name='download_detailed_pdf'),
     path('store-comparison/', views.store_comparison, name='store_comparison'),
     path('ai-consultant/', views.ai_consultant_list, name='ai_consultant_list'),
-    path('ai-consultant/<uuid:analysis_id>/', views.ai_consultant, name='ai_consultant'),
+    path('ai-consultant/<int:analysis_id>/', views.ai_consultant, name='ai_consultant'),
     # مدیریت ادمین کامل
     path('admin/', include([
         path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
         path('users/', views.admin_users, name='admin_users'),
         path('users/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
         path('analyses/', views.admin_analyses, name='admin_analyses'),
-        path('analyses/<uuid:analysis_id>/', views.admin_analysis_detail, name='admin_analysis_detail'),
+        path('analyses/<int:analysis_id>/', views.admin_analysis_detail, name='admin_analysis_detail'),
         path('orders/', views.admin_orders, name='admin_orders'),
         path('orders/<str:order_id>/', views.admin_order_detail, name='admin_order_detail'),
         path('tickets/', views.admin_tickets, name='admin_tickets'),
@@ -119,7 +119,7 @@ urlpatterns = [
     path('payment/callback/', payment_views.payment_callback, name='payment_callback'),
     path('payment/return/', payment_views.payment_return, name='payment_return'),
     path('payment/history/', payment_views.payment_history, name='payment_history'),
-    path('payment/detail/<uuid:payment_id>/', payment_views.payment_detail, name='payment_detail'),
+    path('payment/detail/<int:payment_id>/', payment_views.payment_detail, name='payment_detail'),
     path('subscriptions/', payment_views.user_subscriptions, name='user_subscriptions'),
     
     # PayPing Callback URL
