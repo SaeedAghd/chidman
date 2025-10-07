@@ -149,11 +149,11 @@ def calculate_analysis_cost_for_object(analysis):
                 store_size = size_mapping.get(store_size_str.lower(), 100)
             
             if store_size > 1000:
-                additional_cost += Decimal('200000')
+                    additional_cost += Decimal('200000')
             elif store_size > 500:
-                additional_cost += Decimal('100000')
+                    additional_cost += Decimal('100000')
             elif store_size > 200:
-                additional_cost += Decimal('50000')
+                    additional_cost += Decimal('50000')
         
         # هزینه‌های اضافی
         if hasattr(analysis, 'analysis_type') and analysis.analysis_type == 'advanced':
@@ -804,7 +804,7 @@ def download_analysis_report(request, pk):
                 response = HttpResponse(content_type='text/html; charset=utf-8')
                 response['Content-Disposition'] = f'attachment; filename="{analysis.store_name}_گزارش_تحلیل_{analysis.id}.html"'
                 response.write(html_content.encode('utf-8'))
-                return response
+            return response
             
         else:
             # تولید HTML حرفه‌ای (پیش‌فرض)
@@ -2439,7 +2439,9 @@ def submit_analysis_request(request):
                 original_amount=cost_breakdown['total'],
                 discount_amount=cost_breakdown.get('discount', 0),
                 final_amount=cost_breakdown['final'],
-                status='pending'
+                status='pending',
+                payment_method='online',
+                transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
             )
             
             # ایجاد درخواست تحلیل (اگر مدل موجود باشد)
@@ -2554,6 +2556,31 @@ def payment_page(request, order_id):
             cost_breakdown['final'] = cost_breakdown['final'] - discount_amount
             cost_breakdown['discount_percentage'] = session_discount
         
+        # اگر مبلغ نهایی صفر است (100% تخفیف)، مستقیماً به نتایج هدایت کن
+        if cost_breakdown['final'] == 0:
+            # به‌روزرسانی وضعیت سفارش
+            order.status = 'paid'
+            order.payment_method = 'free'
+            order.transaction_id = f'FREE_{uuid.uuid4().hex[:12].upper()}'
+            order.save()
+            
+            # به‌روزرسانی وضعیت تحلیل
+            store_analysis.status = 'preliminary_completed'
+            store_analysis.save()
+            
+            # تولید تحلیل اولیه هوش مصنوعی
+            try:
+                initial_analysis = generate_initial_ai_analysis(store_analysis.analysis_data)
+                store_analysis.preliminary_analysis = initial_analysis
+                store_analysis.save()
+            except Exception as e:
+                logger.error(f"Error generating initial analysis: {e}")
+                store_analysis.preliminary_analysis = "تحلیل اولیه: فروشگاه شما نیاز به بررسی دقیق‌تر دارد. تحلیل کامل در حال انجام است."
+                store_analysis.save()
+            
+            # هدایت به صفحه نتایج
+            return redirect('store_analysis:order_analysis_results', order_id=order.order_number)
+        
         context = {
             'order': order,
             'store_analysis': store_analysis,
@@ -2579,7 +2606,7 @@ def process_payment(request, order_id):
             # هر کاربر فقط Order های خودش را پردازش کند
             order = get_object_or_404(Order, order_number=order_id, user=request.user)
             payment_method = request.POST.get('payment_method', 'online')
-            
+
             # بررسی نوع پرداخت
             if payment_method == 'wallet':
                 # هدایت به صفحه پرداخت کیف پول
@@ -4148,7 +4175,9 @@ def submit_analysis(request):
                 base_amount=Decimal(str(cost_breakdown['total'])),
                 discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
                 final_amount=Decimal(str(cost_breakdown['final'])),
-                status='pending'
+                status='pending',
+                payment_method='online',
+                transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
             )
 
             # اتصال تحلیل به سفارش
@@ -4333,12 +4362,15 @@ def create_order(request, plan_id):
         return redirect('store_analysis:forms')
     
     # ایجاد سفارش
-    order = Order.objects.create(
+            order = Order.objects.create(
         user=request.user,
         plan=plan,
-        original_amount=plan.original_price,
-        discount_amount=plan.original_price - plan.price,
-        final_amount=plan.price
+                original_amount=plan.original_price,
+                discount_amount=plan.original_price - plan.price,
+                final_amount=plan.price,
+                status='pending',
+                payment_method='online',
+                transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
     )
     
     # ذخیره داده‌های فرم در session برای استفاده بعدی
@@ -5649,7 +5681,9 @@ def forms(request):
                 original_amount=float(cost_breakdown['total']),
                 discount_amount=float(cost_breakdown.get('discount', 0)),
                 final_amount=float(cost_breakdown['final']),
-                status='pending'
+                status='pending',
+                payment_method='online',
+                transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
             )
             
             # اتصال تحلیل به سفارش
@@ -6191,8 +6225,8 @@ def forms_submit(request):
             # ایجاد سفارش
             generated_order_number = f"ORD-{uuid.uuid4().hex[:12].upper()}"
             order = Order.objects.create(
-                    user=request.user,
-                    order_number=generated_order_number,
+                user=request.user,
+                order_number=generated_order_number,
                     plan=None,
                     original_amount=cost_breakdown['total'],
                     base_amount=cost_breakdown['total'],
@@ -6200,17 +6234,21 @@ def forms_submit(request):
                     final_amount=cost_breakdown['final'],
                     status='pending'
                 )
-            
+                
             # اتصال تحلیل به سفارش
             store_analysis.order = order
+            # تنظیم فیلدهای خالی برای جلوگیری از خطای database
+            store_analysis.preliminary_analysis = ""
+            store_analysis.ai_insights = ""
+            store_analysis.recommendations = ""
             store_analysis.save()
             
             return JsonResponse({
                 'success': True,
                 'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
-                'redirect_url': f'/store/payment/{order.order_number}/',
-                'payment_required': True
-            })
+                    'redirect_url': f'/store/payment/{order.order_number}/',
+                    'payment_required': True
+                })
             
         except Exception as e:
             logger.error(f"Error in forms_submit: {e}")
@@ -6219,10 +6257,6 @@ def forms_submit(request):
                 'message': f'خطا در ارسال فرم: {str(e)}'
             })
     
-    return JsonResponse({
-        'success': False,
-        'message': 'درخواست نامعتبر'
-    })
     if request.method == 'POST':
         try:
             # دریافت داده‌های فرم
@@ -6478,7 +6512,7 @@ def forms_submit(request):
             # ایجاد سفارش
             try:
                 order = Order.objects.create(
-                    user=request.user,
+                user=request.user,
                     plan=default_plan,
                     original_amount=default_plan.original_price,
                     discount_amount=default_plan.original_price - default_plan.price,

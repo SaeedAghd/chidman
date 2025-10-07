@@ -643,6 +643,14 @@ class Order(models.Model):
         # Ensure payment_method always has a safe value to avoid NULL inserts
         if not getattr(self, 'payment_method', None):
             self.payment_method = 'online'
+        # Ensure transaction_id is present to satisfy NOT NULL in production DB
+        if not getattr(self, 'transaction_id', None):
+            # Generate a placeholder transaction id; real id will be set after gateway
+            try:
+                import uuid as _uuid
+                self.transaction_id = f"PENDING_{_uuid.uuid4().hex[:12].upper()}"
+            except Exception:
+                self.transaction_id = "PENDING_AUTO"
         super().save(*args, **kwargs)
 
     def mark_paid(self):
