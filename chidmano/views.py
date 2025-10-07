@@ -57,10 +57,13 @@ def signup_view(request):
         messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
         return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
 
-# def verify_email_view(request, user_id):
-#     """صفحه تاییدیه ایمیل - غیرفعال شده"""
-#     messages.error(request, 'این قابلیت در حال حاضر غیرفعال است.')
-#     return redirect('signup')
+def verify_email_view(request, user_id):
+    """Fallback view: email verification is disabled; prevent server error."""
+    try:
+        messages.info(request, 'تایید ایمیل در حال حاضر غیرفعال است.')
+    except Exception:
+        pass
+    return redirect('signup')
 
 def resend_verification_code(request, user_id):
     """ارسال مجدد کد تاییدیه"""

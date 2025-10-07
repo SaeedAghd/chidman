@@ -9,7 +9,16 @@ from .seo_views import sitemap_xml, robots_txt
 from django.views.generic import TemplateView, RedirectView
 from django.urls import re_path
 from django.views.generic import RedirectView
+from django.shortcuts import redirect
+from django.urls import reverse
 
+# NOTE: Deployment cache-buster: 2025-10-05T22:58 - urls synced
+# Fallback to prevent import-time errors if an old build references verify_email_view
+if not hasattr(views, 'verify_email_view'):
+    def verify_email_view(request, user_id):
+        return redirect('signup')
+
+# NOTE: Deployment cache-buster: 2025-10-05T22:58 - urls synced
 urlpatterns = [
     # صفحه اصلی
     path('', views.simple_home, name='home'),

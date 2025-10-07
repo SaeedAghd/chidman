@@ -766,6 +766,61 @@
 </div>
 
 <script>
+function proceedWithFreeAnalysis() {
+    // نمایش loading
+    showLoadingOverlay();
+    
+    // ارسال درخواست پرداخت رایگان
+    fetch(`/store/payment/{{ order.order_number }}/process/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: 'payment_method=free'
+    })
+    .then(response => {
+        if (response.ok) {
+            // هدایت به صفحه نتایج
+            window.location.href = `/store/order/{{ order.order_number }}/results/`;
+        } else {
+            hideLoadingOverlay();
+            alert('خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.');
+        }
+    })
+    .catch(error => {
+        hideLoadingOverlay();
+        console.error('Error:', error);
+        alert('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.');
+    });
+}
+
+function rechargeWallet() {
+    // هدایت به صفحه شارژ کیف پول
+    window.location.href = '/store/wallet/deposit/';
+}
+
+function showLoadingOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'loadingOverlay';
+    overlay.className = 'loading-overlay';
+    overlay.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <h3 class="loading-title">در حال پردازش...</h3>
+            <p class="loading-text">لطفاً صبر کنید</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
 function selectPaymentMethod(methodId) {
     // Remove selected class from all options
     document.querySelectorAll('.payment-option').forEach(option => {
@@ -778,7 +833,6 @@ function selectPaymentMethod(methodId) {
     // Check the radio button
     document.getElementById('payment_' + methodId).checked = true;
 }
-
 
 // Direct PayPing payment function
 function directPayPingPayment(event) {

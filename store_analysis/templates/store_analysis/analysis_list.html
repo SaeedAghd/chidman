@@ -75,7 +75,8 @@
                                     <div class="col-6">
                                         <strong>پیشرفت:</strong>
                                         <div class="progress">
-                                            <div class="progress-bar bg-primary" style="width: {{ analysis.progress|default:0 }}%">
+                                            <div class="progress-bar bg-primary" 
+                                                 data-progress="{{ analysis.progress|default:0 }}">
                                                 {{ analysis.progress|default:0 }}%
                                             </div>
                                         </div>
@@ -196,6 +197,13 @@ document.addEventListener('DOMContentLoaded', function() {
             bsToast.hide();
         });
     }, 5000);
+    
+    // Set progress bar widths
+    var progressBars = document.querySelectorAll('.progress-bar[data-progress]');
+    progressBars.forEach(function(bar) {
+        var progress = bar.getAttribute('data-progress');
+        bar.style.width = progress + '%';
+    });
 });
 </script>
 {% endblock %} 

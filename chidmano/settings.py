@@ -209,11 +209,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
 
 # تنظیمات آپلود فایل برای Liara (read-only filesystem)
 if os.getenv('LIARA') == 'true':
-    # Use filesystem storage for uploads via STORAGES['default'] mapping
+    # Use hybrid handlers: keep small files in memory, large files spill to temp dir
     FILE_UPLOAD_HANDLERS = [
         'django.core.files.uploadhandler.MemoryFileUploadHandler',
+        'django.core.files.uploadhandler.TemporaryFileUploadHandler',
     ]
-    FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+    # افزایش سقف آپلود برای فرم‌های چندفایلی
+    FILE_UPLOAD_MAX_MEMORY_SIZE = 32 * 1024 * 1024  # 32MB
+    DATA_UPLOAD_MAX_MEMORY_SIZE = 64 * 1024 * 1024  # 64MB
 
 # Media files configuration for production
 if not DEBUG:
@@ -433,9 +436,9 @@ PERFORMANCE_MONITORING = {
     'memory_usage_threshold': 0.9,  # 90%
 }
 
-# File upload optimization
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+# File upload optimization (defaults; Liara overrides above)
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE', 32 * 1024 * 1024))
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('DATA_UPLOAD_MAX_MEMORY_SIZE', 64 * 1024 * 1024))
 temp_dir = BASE_DIR / 'temp'
 temp_dir.mkdir(exist_ok=True)
 FILE_UPLOAD_TEMP_DIR = str(temp_dir)

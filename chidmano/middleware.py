@@ -108,7 +108,6 @@ class CSPMiddleware:
             "worker-src 'self' blob:; "
             "child-src 'self' blob:; "
             "manifest-src 'self'; "
-            "prefetch-src 'self' https: http:; "
             "upgrade-insecure-requests; "
             "block-all-mixed-content"
         )
