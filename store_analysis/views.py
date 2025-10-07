@@ -2556,39 +2556,29 @@ def payment_page(request, order_id):
             cost_breakdown['final'] = cost_breakdown['final'] - discount_amount
             cost_breakdown['discount_percentage'] = session_discount
         
-        # اگر مبلغ نهایی صفر است (100% تخفیف)، مستقیماً به نتایج هدایت کن
+        # حتی اگر مبلغ نهایی صفر است، صفحه پرداخت را نمایش بده
+        # کاربر باید بتواند پرداخت رایگان را انتخاب کند
+        
+        # تعیین روش‌های پرداخت بر اساس مبلغ نهایی
+        payment_methods = [
+            {'id': 'online', 'name': 'پرداخت آنلاین', 'icon': 'fas fa-credit-card'},
+            {'id': 'wallet', 'name': 'کیف پول', 'icon': 'fas fa-wallet'},
+        ]
+        
+        # اگر مبلغ نهایی صفر است، گزینه پرداخت رایگان اضافه کن
         if cost_breakdown['final'] == 0:
-            # به‌روزرسانی وضعیت سفارش
-            order.status = 'paid'
-            order.payment_method = 'free'
-            order.transaction_id = f'FREE_{uuid.uuid4().hex[:12].upper()}'
-            order.save()
-            
-            # به‌روزرسانی وضعیت تحلیل
-            store_analysis.status = 'preliminary_completed'
-            store_analysis.save()
-            
-            # تولید تحلیل اولیه هوش مصنوعی
-            try:
-                initial_analysis = generate_initial_ai_analysis(store_analysis.analysis_data)
-                store_analysis.preliminary_analysis = initial_analysis
-                store_analysis.save()
-            except Exception as e:
-                logger.error(f"Error generating initial analysis: {e}")
-                store_analysis.preliminary_analysis = "تحلیل اولیه: فروشگاه شما نیاز به بررسی دقیق‌تر دارد. تحلیل کامل در حال انجام است."
-                store_analysis.save()
-            
-            # هدایت به صفحه نتایج
-            return redirect('store_analysis:order_analysis_results', order_id=order.order_number)
+            payment_methods.append({
+                'id': 'free', 
+                'name': 'پرداخت رایگان', 
+                'icon': 'fas fa-gift',
+                'highlight': True
+            })
         
         context = {
             'order': order,
             'store_analysis': store_analysis,
             'cost_breakdown': cost_breakdown,
-            'payment_methods': [
-                {'id': 'online', 'name': 'پرداخت آنلاین', 'icon': 'fas fa-credit-card'},
-                {'id': 'wallet', 'name': 'کیف پول', 'icon': 'fas fa-wallet'},
-            ]
+            'payment_methods': payment_methods
         }
         
         return render(request, 'store_analysis/payment_page.html', context)
@@ -2648,14 +2638,26 @@ def payment_page(request, order_id):
                     ]
                 }
                 
+                # تعیین روش‌های پرداخت بر اساس مبلغ نهایی
+                payment_methods = [
+                    {'id': 'online', 'name': 'پرداخت آنلاین', 'icon': 'fas fa-credit-card'},
+                    {'id': 'wallet', 'name': 'کیف پول', 'icon': 'fas fa-wallet'},
+                ]
+                
+                # اگر مبلغ نهایی صفر است، گزینه پرداخت رایگان اضافه کن
+                if cost_breakdown['final'] == 0:
+                    payment_methods.append({
+                        'id': 'free', 
+                        'name': 'پرداخت رایگان', 
+                        'icon': 'fas fa-gift',
+                        'highlight': True
+                    })
+                
                 context = {
                     'order': order,
                     'store_analysis': store_analysis,
                     'cost_breakdown': cost_breakdown,
-                    'payment_methods': [
-                        {'id': 'online', 'name': 'پرداخت آنلاین', 'icon': 'fas fa-credit-card'},
-                        {'id': 'wallet', 'name': 'کیف پول', 'icon': 'fas fa-wallet'},
-                    ]
+                    'payment_methods': payment_methods
                 }
                 
                 return render(request, 'store_analysis/payment_page.html', context)
