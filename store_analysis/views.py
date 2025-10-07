@@ -4362,15 +4362,15 @@ def create_order(request, plan_id):
         return redirect('store_analysis:forms')
     
     # ایجاد سفارش
-            order = Order.objects.create(
+    order = Order.objects.create(
         user=request.user,
         plan=plan,
-                original_amount=plan.original_price,
-                discount_amount=plan.original_price - plan.price,
-                final_amount=plan.price,
-                status='pending',
-                payment_method='online',
-                transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
+        original_amount=plan.original_price,
+        discount_amount=plan.original_price - plan.price,
+        final_amount=plan.price,
+        status='pending',
+        payment_method='online',
+        transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
     )
     
     # ذخیره داده‌های فرم در session برای استفاده بعدی
