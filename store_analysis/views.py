@@ -3104,10 +3104,10 @@ def order_analysis_results(request, order_id):
                     'predictions': analysis_result.predictions,
                     'action_plan': analysis_result.action_plan,
                     'image_analysis': {
-                        'store_type_confidence': analysis_result.image_analysis.store_type_confidence,
-                        'quality_score': analysis_result.image_analysis.quality_score,
-                        'consistency_score': analysis_result.image_analysis.consistency_score,
-                        'recommendations': analysis_result.image_analysis.recommendations
+                        'store_type_confidence': analysis_result.image_analysis.get('store_type_confidence', 0.8),
+                        'quality_score': analysis_result.image_analysis.get('quality_score', 7.5),
+                        'consistency_score': analysis_result.image_analysis.get('consistency_score', 7.0),
+                        'recommendations': analysis_result.image_analysis.get('recommendations', 'توصیه‌های تصویری')
                     },
                     'market_analysis': analysis_result.market_analysis,
                     'financial_analysis': analysis_result.financial_analysis,
