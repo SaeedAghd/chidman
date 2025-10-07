@@ -30,7 +30,7 @@ class Payment(models.Model):
     ]
     
     # Primary key: use UUID to match current database schema
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     order_id = models.CharField(max_length=100, unique=True, verbose_name='شناسه سفارش')
     payment_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه پرداخت')
     transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
@@ -277,7 +277,7 @@ class StoreAnalysis(models.Model):
     ]
     
     # Primary fields
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
     
     # Store information (match production DB schema)
@@ -287,6 +287,7 @@ class StoreAnalysis(models.Model):
     # Analysis details
     analysis_type = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES, default='basic', verbose_name='نوع تحلیل')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
+    priority = models.CharField(max_length=10, default='medium', verbose_name='اولویت')
     
     # Analysis data and order reference
     analysis_data = models.JSONField(default=dict, blank=True, verbose_name='داده‌های تحلیل')
@@ -597,12 +598,15 @@ class Order(models.Model):
     ]
     
     # Primary fields
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
     
     # Order details
     order_number = models.CharField(max_length=50, unique=True, verbose_name='شماره سفارش')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
+    # Payment meta (present in production DB)
+    payment_method = models.CharField(max_length=50, default='online', verbose_name='روش پرداخت')
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
     
     # Pricing
     original_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ اصلی')
@@ -635,6 +639,12 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.order_number} - {self.final_amount} {self.currency}"
     
+    def save(self, *args, **kwargs):
+        # Ensure payment_method always has a safe value to avoid NULL inserts
+        if not getattr(self, 'payment_method', None):
+            self.payment_method = 'online'
+        super().save(*args, **kwargs)
+
     def mark_paid(self):
         """Mark order as paid"""
         self.status = 'paid'
