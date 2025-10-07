@@ -2502,7 +2502,7 @@ def payment_page(request, order_id):
                 store_analysis.save()
             except Exception as e:
                 logger.error(f"Error generating preliminary analysis: {e}")
-                # تحلیل اولیه ساده
+                # تحلیل اولیه ساده - خطا را لاگ کن اما ادامه بده
                 store_analysis.preliminary_analysis = "تحلیل اولیه: فروشگاه شما نیاز به بررسی دقیق‌تر دارد. پس از پرداخت، تحلیل کامل انجام خواهد شد."
                 store_analysis.save()
         
@@ -2511,7 +2511,7 @@ def payment_page(request, order_id):
             cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
         except Exception as e:
             logger.error(f"Error calculating cost: {e}")
-            # fallback به محاسبه ساده با تخفیف 100%
+            # fallback به محاسبه ساده با تخفیف 100% - خطا را لاگ کن اما ادامه بده
             from datetime import datetime
             current_date = datetime.now()
             launch_end_date = datetime(2025, 12, 31)
@@ -2595,8 +2595,74 @@ def payment_page(request, order_id):
         
     except Exception as e:
         logger.error(f"Error in payment_page: {e}")
-        messages.error(request, f'❌ خطا در بارگذاری صفحه پرداخت: {str(e)}')
-        return redirect('store_analysis:user_dashboard')
+        # فقط در صورت خطای جدی به داشبورد هدایت کن
+        if "Order.DoesNotExist" in str(e) or "StoreAnalysis.DoesNotExist" in str(e):
+            messages.error(request, f'❌ خطا در بارگذاری صفحه پرداخت: {str(e)}')
+            return redirect('store_analysis:user_dashboard')
+        else:
+            # برای خطاهای جزئی، پیام نمایش بده اما صفحه پرداخت را نشان بده
+            messages.warning(request, f'⚠️ خطای جزئی در بارگذاری: {str(e)}. صفحه پرداخت نمایش داده می‌شود.')
+            
+            # ایجاد مقادیر پیش‌فرض برای نمایش صفحه پرداخت
+            try:
+                order = Order.objects.filter(user=request.user).order_by('-created_at').first()
+                if not order:
+                    return redirect('store_analysis:user_dashboard')
+                
+                store_analysis = StoreAnalysis.objects.filter(order=order).first()
+                if not store_analysis:
+                    return redirect('store_analysis:user_dashboard')
+                
+                # محاسبه هزینه پیش‌فرض
+                from datetime import datetime
+                current_date = datetime.now()
+                launch_end_date = datetime(2025, 12, 31)
+                
+                base_cost = Decimal('500000')
+                additional_cost = Decimal('200000')
+                total_cost = base_cost + additional_cost
+                
+                discount = Decimal('0')
+                if current_date <= launch_end_date:
+                    discount = total_cost
+                
+                final_cost = total_cost - discount
+                
+                cost_breakdown = {
+                    'base_price': base_cost,
+                    'total': total_cost,
+                    'final': final_cost,
+                    'discount': discount,
+                    'discount_percentage': 100 if discount > 0 else 0,
+                    'breakdown': [
+                        {
+                            'item': 'تحلیل پایه',
+                            'amount': base_cost,
+                            'description': 'تحلیل اولیه فروشگاه'
+                        },
+                        {
+                            'item': 'گزارش کامل PDF',
+                            'amount': additional_cost,
+                            'description': 'گزارش تفصیلی و حرفه‌ای فروشگاه'
+                        }
+                    ]
+                }
+                
+                context = {
+                    'order': order,
+                    'store_analysis': store_analysis,
+                    'cost_breakdown': cost_breakdown,
+                    'payment_methods': [
+                        {'id': 'online', 'name': 'پرداخت آنلاین', 'icon': 'fas fa-credit-card'},
+                        {'id': 'wallet', 'name': 'کیف پول', 'icon': 'fas fa-wallet'},
+                    ]
+                }
+                
+                return render(request, 'store_analysis/payment_page.html', context)
+                
+            except Exception as fallback_error:
+                logger.error(f"Fallback error in payment_page: {fallback_error}")
+                return redirect('store_analysis:user_dashboard')
 
 @login_required
 def process_payment(request, order_id):
