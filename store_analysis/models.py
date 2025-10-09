@@ -209,8 +209,8 @@ class UserSubscription(models.Model):
     """
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
-    package = models.ForeignKey(ServicePackage, on_delete=models.CASCADE, verbose_name='بسته')
-    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, verbose_name='پرداخت')
+    package = models.ForeignKey(ServicePackage, on_delete=models.CASCADE, blank=True, null=True, verbose_name='بسته')
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, blank=True, null=True, verbose_name='پرداخت')
     
     # Subscription details
     start_date = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ شروع')
@@ -219,7 +219,7 @@ class UserSubscription(models.Model):
     
     # Usage tracking
     analyses_used = models.PositiveIntegerField(default=0, verbose_name='تحلیل‌های استفاده شده')
-    max_analyses = models.PositiveIntegerField(verbose_name='حداکثر تحلیل')
+    max_analyses = models.PositiveIntegerField(default=10, verbose_name='حداکثر تحلیل')
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
@@ -277,7 +277,7 @@ class StoreAnalysis(models.Model):
     ]
     
     # Primary fields
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
     
     # Store information (match production DB schema)
