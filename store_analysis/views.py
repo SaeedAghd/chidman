@@ -6528,6 +6528,7 @@ def generate_comprehensive_implementation_plan(analysis_data):
     
     return implementation_plan
 
+@csrf_exempt
 @login_required
 def forms_submit(request):
     """پردازش فرم تک صفحه‌ای تحلیل فروشگاه - بهینه‌سازی شده"""
