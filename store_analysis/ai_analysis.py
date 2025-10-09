@@ -114,8 +114,22 @@ class ImageProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.cache_timeout = 1800  # 30 minutes cache for image analysis
-        self.analysis_output_dir = Path(settings.MEDIA_ROOT) / 'analysis'
-        self.analysis_output_dir.mkdir(exist_ok=True)
+        
+        # تنظیم مسیر خروجی با مدیریت خطا برای محیط‌های فقط خواندنی
+        try:
+            self.analysis_output_dir = Path(settings.MEDIA_ROOT) / 'analysis'
+            self.analysis_output_dir.mkdir(exist_ok=True)
+        except (OSError, PermissionError) as e:
+            # در محیط‌های فقط خواندنی (مثل Liara)، از مسیر موقت استفاده کن
+            import tempfile
+            self.analysis_output_dir = Path(tempfile.gettempdir()) / 'chidmano_analysis'
+            try:
+                self.analysis_output_dir.mkdir(exist_ok=True)
+                self.logger.warning(f"Using temporary directory for analysis: {self.analysis_output_dir}")
+            except Exception as temp_error:
+                # اگر حتی مسیر موقت هم کار نکرد، None قرار بده
+                self.analysis_output_dir = None
+                self.logger.error(f"Cannot create analysis directory: {temp_error}")
     
     def process_images(self, image_paths: List[str]) -> Dict[str, Any]:
         """پردازش پیشرفته تصاویر و استخراج ویژگی‌ها"""
@@ -1005,6 +1019,11 @@ class ImageProcessor:
     def _save_analysis_report(self, analysis_data: Dict[str, Any]):
         """ذخیره گزارش تحلیل"""
         try:
+            # اگر مسیر خروجی موجود نیست، گزارش را ذخیره نکن
+            if self.analysis_output_dir is None:
+                self.logger.warning("Analysis output directory not available, skipping report save")
+                return
+                
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             report_path = self.analysis_output_dir / f"image_analysis_{timestamp}.json"
             
@@ -1015,6 +1034,7 @@ class ImageProcessor:
             
         except Exception as e:
             self.logger.error(f"خطا در ذخیره گزارش: {e}")
+            # خطا را لاگ کن اما ادامه بده - ذخیره گزارش اختیاری است
     
     def _get_basic_image_features(self, image_array, image_path: str) -> Dict[str, Any]:
         """ویژگی‌های پایه تصویر"""
