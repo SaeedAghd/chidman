@@ -1895,13 +1895,15 @@ def user_dashboard(request):
     # محاسبه درصد موفقیت پرداخت
     success_rate = (completed_payments / total_payments * 100) if total_payments > 0 else 0
     
-    # تحلیل‌های اخیر کاربر
+    # تحلیل‌های اخیر کاربر (شامل همه وضعیت‌ها)
     recent_analyses = StoreAnalysis.objects.filter(user=request.user).order_by('-created_at')[:5]
     
-    # آمار تحلیل‌ها
+    # آمار تحلیل‌ها (شامل همه وضعیت‌ها)
     total_analyses = StoreAnalysis.objects.filter(user=request.user).count()
     completed_analyses = StoreAnalysis.objects.filter(user=request.user, status='completed').count()
     processing_analyses = StoreAnalysis.objects.filter(user=request.user, status='processing').count()
+    failed_analyses = StoreAnalysis.objects.filter(user=request.user, status='failed').count()
+    pending_analyses = StoreAnalysis.objects.filter(user=request.user, status='pending').count()
     
     context = {
         'total_payments': total_payments,
@@ -1917,6 +1919,8 @@ def user_dashboard(request):
         'total_analyses': total_analyses,
         'completed_analyses': completed_analyses,
         'processing_analyses': processing_analyses,
+        'failed_analyses': failed_analyses,
+        'pending_analyses': pending_analyses,
     }
     
     return render(request, 'store_analysis/user_dashboard.html', context)
@@ -6536,10 +6540,14 @@ def forms_submit(request):
         try:
             # بررسی محدودیت تحلیل برای کاربران رایگان (غیرفعال برای ادمین‌ها)
             if not request.user.is_staff:
-                user_analyses_count = StoreAnalysis.objects.filter(user=request.user).count()
+                # فقط تحلیل‌های موفق را بشمار (تحلیل‌های ناموفق نباید محدودیت ایجاد کنند)
+                successful_analyses_count = StoreAnalysis.objects.filter(
+                    user=request.user, 
+                    status='completed'
+                ).count()
                 
-                # اگر کاربر تحلیل قبلی دارد و پلن رایگان است
-                if user_analyses_count >= 1:
+                # اگر کاربر تحلیل موفق قبلی دارد و پلن رایگان است
+                if successful_analyses_count >= 1:
                     # بررسی اینکه آیا کاربر پلن پولی دارد یا نه
                     from .models import UserSubscription
                     has_paid_subscription = UserSubscription.objects.filter(
@@ -6550,7 +6558,7 @@ def forms_submit(request):
                     if not has_paid_subscription:
                         return JsonResponse({
                             'success': False,
-                            'message': 'شما در طرح رایگان فقط یک تحلیل می‌توانید انجام دهید. برای تحلیل‌های بیشتر، لطفاً پلن پولی تهیه کنید.',
+                            'message': 'شما در طرح رایگان فقط یک تحلیل موفق می‌توانید انجام دهید. برای تحلیل‌های بیشتر، لطفاً پلن پولی تهیه کنید.',
                             'redirect_url': '/store/payment-packages/',
                             'upgrade_required': True
                         })

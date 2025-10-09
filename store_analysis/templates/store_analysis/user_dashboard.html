@@ -584,6 +584,9 @@
                                         {% elif analysis.status == 'processing' %}
                                             <span>⏳</span>
                                             <span>در حال پردازش</span>
+                                        {% elif analysis.status == 'failed' %}
+                                            <span>❌</span>
+                                            <span>تحلیل ناموفق</span>
                                         {% else %}
                                             <span>⏸️</span>
                                             <span>در انتظار</span>
@@ -591,7 +594,17 @@
                                     </div>
                                     
                                     <!-- دکمه‌های عملی -->
-                                    {% if analysis.order and analysis.order.order_number %}
+                                    {% if analysis.status == 'failed' %}
+                                    <!-- دکمه‌های تحلیل ناموفق -->
+                                    <a href="/store/forms/" class="view-details-btn main-btn">
+                                        <span>🔄</span>
+                                        <span>تلاش مجدد</span>
+                                    </a>
+                                    <a href="/store/forms/" class="view-details-btn pdf-btn">
+                                        <span>📝</span>
+                                        <span>تحلیل جدید</span>
+                                    </a>
+                                    {% elif analysis.order and analysis.order.order_number %}
                                     <!-- دکمه اصلی: مشاهده نتایج -->
                                     <a href="/store/order/{{ analysis.order.order_number }}/results/" class="view-details-btn main-btn">
                                         <span>📊</span>
@@ -620,12 +633,17 @@
                         </div>
                     {% else %}
                         <div class="cta-section">
-                            <h3 class="cta-title">هنوز تحلیلی انجام نداده‌اید</h3>
-                            <p class="cta-subtitle">اولین تحلیل فروشگاه خود را شروع کنید و ببینید چقدر می‌توانید فروش خود را افزایش دهید</p>
+                            {% if failed_analyses > 0 %}
+                                <h3 class="cta-title">تحلیل‌های ناموفق شما</h3>
+                                <p class="cta-subtitle">شما {{ failed_analyses }} تحلیل ناموفق دارید. می‌توانید دوباره تلاش کنید یا تحلیل جدیدی انجام دهید.</p>
+                            {% else %}
+                                <h3 class="cta-title">هنوز تحلیلی انجام نداده‌اید</h3>
+                                <p class="cta-subtitle">اولین تحلیل فروشگاه خود را شروع کنید و ببینید چقدر می‌توانید فروش خود را افزایش دهید</p>
+                            {% endif %}
                             <div class="cta-buttons">
                                 <a href="{% url 'store_analysis:forms' %}" class="cta-button">
                                     <span>🚀</span>
-                                    <span>شروع تحلیل جدید</span>
+                                    <span>{% if failed_analyses > 0 %}تلاش مجدد{% else %}شروع تحلیل جدید{% endif %}</span>
                                 </a>
                                 <a href="{% url 'store_analysis:payment_packages' %}" class="cta-button secondary">
                                     <span>💳</span>
