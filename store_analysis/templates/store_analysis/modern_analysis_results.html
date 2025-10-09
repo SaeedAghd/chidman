@@ -1553,10 +1553,37 @@
         }
     }
 
+    function showAnalysisFailedState() {
+        const failedHTML = `
+            <div class="analysis-loading-overlay" id="analysisFailedOverlay">
+                <div class="analysis-loading-container">
+                    <div style="font-size: 4rem; color: #dc3545; margin-bottom: 1rem;">❌</div>
+                    <div class="analysis-loading-title" style="color: #dc3545;">تحلیل ناموفق بود</div>
+                    <div class="analysis-loading-subtitle">
+                        متأسفانه در حین پردازش تحلیل فروشگاه شما خطایی رخ داده است.<br>
+                        لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.
+                    </div>
+                    <div style="margin-top: 2rem;">
+                        <button onclick="window.location.reload()" class="btn btn-primary" style="margin-left: 1rem;">
+                            🔄 تلاش مجدد
+                        </button>
+                        <button onclick="window.location.href='/store/forms/'" class="btn btn-secondary">
+                            📝 تحلیل جدید
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', failedHTML);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Show loading state if analysis is still processing
         {% if store_analysis.status == 'processing' or store_analysis.status == 'preliminary_completed' %}
         showAnalysisLoadingState();
+        {% elif store_analysis.status == 'failed' %}
+        showAnalysisFailedState();
         {% endif %}
         
         // Add fade-in animations
