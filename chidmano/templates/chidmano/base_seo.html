@@ -1,0 +1,293 @@
+{% load static %}
+{% load seo_tags %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Advanced SEO Meta Tags -->
+    {% advanced_seo_meta page_type=page_type store_name=store_name analysis_id=analysis_id %}
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% seo_canonical_url request %}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% seo_title page_title %}">
+    <meta property="og:description" content="{% seo_description page_description %}">
+    <meta property="og:url" content="{% seo_canonical_url request %}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="چیدمانو">
+    <meta property="og:image" content="{% seo_og_image og_image %}">
+    <meta property="og:locale" content="fa_IR">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% seo_title page_title %}">
+    <meta name="twitter:description" content="{% seo_description page_description %}">
+    <meta name="twitter:image" content="{% seo_twitter_image twitter_image %}">
+    <meta name="twitter:site" content="@chidmano">
+    <meta name="twitter:creator" content="@chidmano">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="keywords" content="{% seo_keywords_list page_keywords %}">
+    <meta name="author" content="چیدمانو">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    
+    <!-- Language and Region -->
+    <meta name="language" content="Persian">
+    <meta name="geo.region" content="IR">
+    <meta name="geo.country" content="Iran">
+    
+    <!-- Mobile Optimization -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="چیدمانو">
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#007bff">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://www.google-analytics.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//www.google-analytics.com">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
+    
+    <!-- CSS Files -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fontawesome.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/modern-ui.css' %}" rel="stylesheet">
+    <link href="{% static 'css/browser-fallbacks.css' %}" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Structured Data -->
+    {% advanced_seo_structured_data page_type=page_type store_name=store_name analysis_id=analysis_id %}
+    {% seo_website_schema %}
+    
+    <!-- Breadcrumb Schema -->
+    {% if breadcrumbs %}
+        {% seo_json_ld breadcrumbs %}
+    {% endif %}
+    
+    <!-- Google Search Console Verification -->
+    {% seo_google_search_console %}
+    
+    <!-- Google Analytics -->
+    {% seo_analytics_gtag %}
+    
+    <!-- Facebook Pixel -->
+    {% seo_facebook_pixel %}
+    
+    <!-- Performance Monitoring -->
+    {% seo_performance_monitoring %}
+    
+    <!-- Additional Head Content -->
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="visually-hidden-focusable">پرش به محتوای اصلی</a>
+    
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'chidmano:home' %}">
+                <img src="{% static 'images/logo.png' %}" alt="چیدمانو - تحلیل هوشمند فروشگاه" height="40">
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'chidmano:home' %}">خانه</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store_analysis:features' %}">ویژگی‌ها</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store_analysis:forms' %}">شروع تحلیل</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'chidmano:about' %}">درباره ما</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'chidmano:contact' %}">تماس</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'store_analysis:user_dashboard' %}">داشبورد</a></li>
+                                <li><a class="dropdown-item" href="{% url 'store_analysis:analysis_list' %}">تحلیل‌های من</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">خروج</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">ورود</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary" href="{% url 'register' %}">ثبت‌نام</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Breadcrumb Navigation -->
+    {% if breadcrumbs %}
+    <nav aria-label="breadcrumb" class="bg-light py-2">
+        <div class="container">
+            <ol class="breadcrumb mb-0">
+                {% for breadcrumb in breadcrumbs %}
+                    {% if forloop.last %}
+                        <li class="breadcrumb-item active" aria-current="page">{{ breadcrumb.name }}</li>
+                    {% else %}
+                        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5>چیدمانو</h5>
+                    <p class="text-muted">اولین پلتفرم تحلیل هوشمند فروشگاه و مغازه در ایران. با استفاده از هوش مصنوعی پیشرفته، فروشگاه شما را تحلیل کرده و راهکارهای افزایش فروش ارائه می‌دهیم.</p>
+                    <div class="social-links">
+                        <a href="https://instagram.com/chidmano" class="text-light me-3" target="_blank" rel="noopener">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://linkedin.com/company/chidmano" class="text-light me-3" target="_blank" rel="noopener">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="https://twitter.com/chidmano" class="text-light me-3" target="_blank" rel="noopener">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6>لینک‌های مفید</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'chidmano:home' %}" class="text-muted">خانه</a></li>
+                        <li><a href="{% url 'store_analysis:features' %}" class="text-muted">ویژگی‌ها</a></li>
+                        <li><a href="{% url 'store_analysis:forms' %}" class="text-muted">شروع تحلیل</a></li>
+                        <li><a href="{% url 'chidmano:about' %}" class="text-muted">درباره ما</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6>خدمات</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted">تحلیل فروشگاه</a></li>
+                        <li><a href="#" class="text-muted">طراحی مغازه</a></li>
+                        <li><a href="#" class="text-muted">مشاوره تخصصی</a></li>
+                        <li><a href="#" class="text-muted">گزارش‌گیری</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <h6>تماس با ما</h6>
+                    <ul class="list-unstyled text-muted">
+                        <li><i class="fas fa-phone me-2"></i> 021-12345678</li>
+                        <li><i class="fas fa-envelope me-2"></i> info@chidmano.ir</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> تهران، ایران</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">&copy; 2024 چیدمانو. تمامی حقوق محفوظ است.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="{% url 'chidmano:privacy' %}" class="text-muted me-3">حریم خصوصی</a>
+                    <a href="{% url 'chidmano:terms' %}" class="text-muted">شرایط استفاده</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript Files -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/browser-compatibility.js' %}"></script>
+    
+    <!-- Custom JavaScript -->
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Schema.org for Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "چیدمانو",
+        "alternateName": "Chidmano",
+        "url": "https://chidmano.ir",
+        "logo": "https://chidmano.ir/static/images/logo.png",
+        "description": "اولین پلتفرم تحلیل هوشمند فروشگاه و مغازه در ایران",
+        "foundingDate": "2024",
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "IR",
+            "addressLocality": "تهران"
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+98-21-12345678",
+            "contactType": "customer service",
+            "availableLanguage": ["Persian", "English"]
+        },
+        "sameAs": [
+            "https://instagram.com/chidmano",
+            "https://linkedin.com/company/chidmano",
+            "https://twitter.com/chidmano"
+        ],
+        "service": {
+            "@type": "Service",
+            "name": "تحلیل هوشمند فروشگاه",
+            "description": "تحلیل جامع فروشگاه و مغازه با استفاده از هوش مصنوعی"
+        }
+    }
+    </script>
+</body>
+</html>

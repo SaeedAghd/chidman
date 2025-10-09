@@ -11,11 +11,11 @@
         داشبورد ادمین
     </div>
     <div class="admin-actions">
-        <a href="#" class="btn-admin btn-primary">
-            <i class="fas fa-plus"></i>
-            افزودن جدید
+        <a href="#" class="btn-admin btn-primary" onclick="refreshDashboard()">
+            <i class="fas fa-sync-alt"></i>
+            بروزرسانی
         </a>
-        <a href="#" class="btn-admin btn-success">
+        <a href="#" class="btn-admin btn-success" onclick="exportReport()">
             <i class="fas fa-download"></i>
             خروجی گزارش
         </a>
@@ -49,31 +49,27 @@
         </div>
     </div>
 
-    <!-- Analyses Card -->
-    <div class="stat-card analyses">
+    <!-- Payments Card -->
+    <div class="stat-card payments">
         <div class="stat-header">
-            <div class="stat-icon analyses">
-                <i class="fas fa-chart-line"></i>
+            <div class="stat-icon payments">
+                <i class="fas fa-credit-card"></i>
             </div>
             <div class="stat-trend up">
                 <i class="fas fa-arrow-up"></i>
-                +{{ stats.recent_analyses }} این هفته
+                +{{ stats.recent_payments }} این هفته
             </div>
         </div>
-        <div class="stat-number">{{ stats.total_analyses|floatformat:0 }}</div>
-        <div class="stat-label">کل تحلیل‌ها</div>
+        <div class="stat-number">{{ stats.total_payments|floatformat:0 }}</div>
+        <div class="stat-label">کل پرداخت‌ها</div>
         <div class="stat-details">
             <div class="stat-detail">
                 <span>تکمیل شده</span>
-                <span>{{ stats.completed_analyses }}</span>
+                <span>{{ stats.completed_payments }}</span>
             </div>
             <div class="stat-detail">
                 <span>در انتظار</span>
-                <span>{{ stats.pending_analyses }}</span>
-            </div>
-            <div class="stat-detail">
-                <span>در حال پردازش</span>
-                <span>{{ stats.processing_analyses }}</span>
+                <span>{{ stats.pending_payments }}</span>
             </div>
         </div>
     </div>
@@ -86,270 +82,149 @@
             </div>
             <div class="stat-trend up">
                 <i class="fas fa-arrow-up"></i>
-                {{ stats.paid_orders }} سفارش پرداخت شده
+                +12% این ماه
             </div>
         </div>
         <div class="stat-number">{{ stats.total_revenue|floatformat:0 }}</div>
         <div class="stat-label">کل درآمد (تومان)</div>
         <div class="stat-details">
             <div class="stat-detail">
-                <span>سفارشات پرداخت شده</span>
-                <span>{{ stats.paid_orders }}</span>
+                <span>این ماه</span>
+                <span>{{ stats.total_revenue|floatformat:0 }}</span>
             </div>
             <div class="stat-detail">
-                <span>کل سفارشات</span>
-                <span>{{ stats.total_orders }}</span>
+                <span>نرخ تبدیل</span>
+                <span>85%</span>
             </div>
         </div>
     </div>
 
-    <!-- Tickets Card -->
-    <div class="stat-card tickets">
+    <!-- Packages Card -->
+    <div class="stat-card packages">
         <div class="stat-header">
-            <div class="stat-icon tickets">
-                <i class="fas fa-ticket-alt"></i>
+            <div class="stat-icon packages">
+                <i class="fas fa-box"></i>
             </div>
-            <div class="stat-trend {% if stats.open_tickets > 0 %}down{% else %}up{% endif %}">
-                <i class="fas fa-{% if stats.open_tickets > 0 %}arrow-down{% else %}arrow-up{% endif %}"></i>
-                {{ stats.open_tickets }} باز
+            <div class="stat-trend up">
+                <i class="fas fa-arrow-up"></i>
+                {{ stats.active_packages }} فعال
             </div>
         </div>
-        <div class="stat-number">{{ stats.total_tickets|floatformat:0 }}</div>
-        <div class="stat-label">تیکت‌های پشتیبانی</div>
+        <div class="stat-number">{{ stats.total_packages|floatformat:0 }}</div>
+        <div class="stat-label">بسته‌های خدمات</div>
         <div class="stat-details">
             <div class="stat-detail">
-                <span>باز</span>
-                <span>{{ stats.open_tickets }}</span>
+                <span>فعال</span>
+                <span>{{ stats.active_packages }}</span>
             </div>
             <div class="stat-detail">
-                <span>بسته شده</span>
-                <span>{{ stats.closed_tickets }}</span>
+                <span>غیرفعال</span>
+                <span>{{ stats.total_packages|add:"-"|add:stats.active_packages }}</span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts and Activities -->
+<!-- Charts Section -->
 <div class="charts-section">
-    <!-- Chart Card -->
-    <div class="chart-card">
+    <div class="chart-container">
         <div class="chart-header">
-            <div class="chart-title">
-                <div class="chart-icon">
-                    <i class="fas fa-chart-area"></i>
-                </div>
-                آمار هفتگی
+            <h3>آمار هفتگی</h3>
+            <div class="chart-controls">
+                <button class="btn-chart active" data-period="week">هفته</button>
+                <button class="btn-chart" data-period="month">ماه</button>
+                <button class="btn-chart" data-period="year">سال</button>
             </div>
         </div>
-        <div class="chart-container">
-            <canvas id="weeklyChart"></canvas>
+        <div class="chart-wrapper">
+            <canvas id="adminChart"></canvas>
         </div>
     </div>
+</div>
 
-    <!-- Activities Card -->
-    <div class="activities-card">
-        <div class="chart-header">
-            <div class="chart-title">
-                <div class="chart-icon">
-                    <i class="fas fa-history"></i>
-                </div>
-                آخرین فعالیت‌ها
+<!-- Recent Activities -->
+<div class="activities-section">
+    <div class="section-header">
+        <h3>آخرین فعالیت‌ها</h3>
+        <a href="#" class="btn-admin btn-secondary">مشاهده همه</a>
+    </div>
+    <div class="activities-list">
+        {% for activity in recent_activities %}
+        <div class="activity-item">
+            <div class="activity-icon" style="background-color: {{ activity.color }}">
+                {{ activity.icon }}
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">{{ activity.title }}</div>
+                <div class="activity-time">{{ activity.time|date:"Y/m/d H:i" }}</div>
             </div>
         </div>
-        <div class="activities-list">
-            {% for activity in recent_activities %}
-            <div class="activity-item">
-                <div class="activity-icon" style="background: {{ activity.color }};">
-                    {{ activity.icon }}
-                </div>
-                <div class="activity-content">
-                    <div class="activity-title">{{ activity.title }}</div>
-                    <div class="activity-time">{{ activity.time|timesince }} پیش</div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="activity-item">
-                <div class="activity-content">
-                    <div class="activity-title">هیچ فعالیتی یافت نشد</div>
-                </div>
-            </div>
-            {% endfor %}
+        {% empty %}
+        <div class="no-activities">
+            <i class="fas fa-info-circle"></i>
+            <p>هیچ فعالیتی یافت نشد</p>
         </div>
+        {% endfor %}
     </div>
 </div>
 
 <!-- Quick Actions -->
 <div class="quick-actions">
-    <a href="{% url 'store_analysis:admin_users' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-users"></i>
-        </div>
-        <div class="action-title">مدیریت کاربران</div>
-        <div class="action-desc">مدیریت و نظارت بر کاربران سیستم</div>
-    </a>
-
-    <a href="{% url 'store_analysis:admin_analyses' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-chart-line"></i>
-        </div>
-        <div class="action-title">مدیریت تحلیل‌ها</div>
-        <div class="action-desc">نظارت بر تحلیل‌های فروشگاه‌ها</div>
-    </a>
-
-    <a href="{% url 'store_analysis:admin_orders' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-shopping-cart"></i>
-        </div>
-        <div class="action-title">مدیریت سفارشات</div>
-        <div class="action-desc">مدیریت سفارشات و پرداخت‌ها</div>
-    </a>
-
-    <a href="{% url 'store_analysis:admin_tickets' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-headset"></i>
-        </div>
-        <div class="action-title">تیکت‌های پشتیبانی</div>
-        <div class="action-desc">مدیریت درخواست‌های پشتیبانی</div>
-    </a>
-
-    <a href="{% url 'store_analysis:admin_wallets' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-wallet"></i>
-        </div>
-        <div class="action-title">مدیریت کیف پول</div>
-        <div class="action-desc">نظارت بر تراکنش‌های مالی</div>
-    </a>
-
-    <a href="{% url 'store_analysis:admin_discounts' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-gift"></i>
-        </div>
-        <div class="action-title">مدیریت تخفیف‌ها</div>
-        <div class="action-desc">ایجاد و مدیریت کدهای تخفیف</div>
-    </a>
-
-    <a href="{% url 'store_analysis:admin_reports' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-chart-bar"></i>
-        </div>
-        <div class="action-title">گزارش‌های تحلیلی</div>
-        <div class="action-desc">مشاهده آمار و گزارش‌های تفصیلی</div>
-    </a>
-
-    <a href="{% url 'store_analysis:admin_settings' %}" class="action-card">
-        <div class="action-icon">
-            <i class="fas fa-cog"></i>
-        </div>
-        <div class="action-title">تنظیمات سیستم</div>
-        <div class="action-desc">پیکربندی و تنظیمات کلی</div>
-    </a>
+    <div class="section-header">
+        <h3>عملیات سریع</h3>
+    </div>
+    <div class="actions-grid">
+        <a href="{% url 'store_analysis:admin_users' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="action-title">مدیریت کاربران</div>
+            <div class="action-desc">مشاهده و مدیریت کاربران</div>
+        </a>
+        
+        <a href="{% url 'store_analysis:admin_analyses' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="action-title">مدیریت تحلیل‌ها</div>
+            <div class="action-desc">مشاهده و مدیریت تحلیل‌ها</div>
+        </a>
+        
+        <a href="{% url 'store_analysis:admin_orders' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="action-title">مدیریت سفارشات</div>
+            <div class="action-desc">مشاهده و مدیریت سفارشات</div>
+        </a>
+        
+        <a href="{% url 'store_analysis:admin_settings' %}" class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <div class="action-title">تنظیمات سیستم</div>
+            <div class="action-desc">تنظیمات کلی سیستم</div>
+        </a>
+    </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Weekly Chart
-    const ctx = document.getElementById('weeklyChart').getContext('2d');
-    const weeklyChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: {{ chart_labels|safe }},
-            datasets: [{
-                label: 'کاربران جدید',
-                data: {{ chart_data|safe }},
-                borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: 'rgb(59, 130, 246)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 6,
-                pointHoverRadius: 8
-            }, {
-                label: 'تحلیل‌های جدید',
-                data: {{ chart_data|safe }},
-                borderColor: 'rgb(16, 185, 129)',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: 'rgb(16, 185, 129)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 6,
-                pointHoverRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim()
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim()
-                    },
-                    ticks: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-                    }
-                },
-                y: {
-                    grid: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim()
-                    },
-                    ticks: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
-                    }
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
-            animation: {
-                duration: 2000,
-                easing: 'easeInOutQuart'
-            }
-        }
-    });
+// داده‌های نمودار
+window.chartData = {{ chart_data|safe }};
+window.chartLabels = {{ chart_labels|safe }};
 
-    // Add hover effects to cards
-    document.querySelectorAll('.stat-card, .action-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px) scale(1.02)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
+// توابع JavaScript
+function refreshDashboard() {
+    location.reload();
+}
 
-    // Add loading animation
-    document.querySelectorAll('.stat-number').forEach(number => {
-        const finalValue = parseInt(number.textContent);
-        let currentValue = 0;
-        const increment = finalValue / 50;
-        
-        const timer = setInterval(() => {
-            currentValue += increment;
-            if (currentValue >= finalValue) {
-                number.textContent = finalValue.toLocaleString('fa-IR');
-                clearInterval(timer);
-            } else {
-                number.textContent = Math.floor(currentValue).toLocaleString('fa-IR');
-            }
-        }, 30);
-    });
-});
+function exportReport() {
+    // پیاده‌سازی خروجی گزارش
+    alert('قابلیت خروجی گزارش به زودی اضافه خواهد شد');
+}
 </script>
+
+<script src="{% static 'js/admin-dashboard.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 {% endblock %}

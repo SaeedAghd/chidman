@@ -199,7 +199,8 @@ class SimpleFormManager {
         }
 
         try {
-            const response = await fetch(form.action, {
+            // تنظیمات fetch برای سازگاری با مرورگرها
+            const fetchOptions = {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -207,8 +208,17 @@ class SimpleFormManager {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
+                credentials: 'same-origin', // برای session cookies
                 redirect: 'manual' // برای کنترل redirect
-            });
+            };
+
+            // بررسی پشتیبانی از fetch
+            if (!window.fetch) {
+                // Fallback به XMLHttpRequest
+                return this.handleFormSubmissionXHR(formData);
+            }
+
+            const response = await fetch(form.action, fetchOptions);
 
             if (response.ok) {
                 // بررسی نوع پاسخ
@@ -262,7 +272,15 @@ class SimpleFormManager {
             }
         } catch (error) {
             console.error('Form submission error:', error);
-            this.showMessage('خطایی در ارسال فرم رخ داد. لطفاً دوباره تلاش کنید.', 'error');
+            
+            // بررسی نوع خطا
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                this.showMessage('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.', 'error');
+            } else if (error.message.includes('CSRF')) {
+                this.showMessage('خطا در احراز هویت. لطفاً صفحه را رفرش کنید و دوباره تلاش کنید.', 'error');
+            } else {
+                this.showMessage('خطایی در ارسال فرم رخ داد. لطفاً دوباره تلاش کنید.', 'error');
+            }
         } finally {
             // بازگردانی دکمه
             if (submitBtn) {
@@ -270,6 +288,56 @@ class SimpleFormManager {
                 submitBtn.disabled = false;
             }
         }
+    }
+
+    handleFormSubmissionXHR(formData) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const contentType = xhr.getResponseHeader('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                const data = JSON.parse(xhr.responseText);
+                                if (data.success) {
+                                    this.showMessage(data.message || '🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
+                                    setTimeout(() => {
+                                        if (data.redirect_url) {
+                                            window.location.href = data.redirect_url;
+                                        } else {
+                                            window.location.href = '/store/dashboard/';
+                                        }
+                                    }, 1500);
+                                } else {
+                                    this.showMessage(data.message || 'خطا در ارسال فرم', 'error');
+                                }
+                            } else {
+                                this.showMessage('🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
+                                setTimeout(() => {
+                                    window.location.href = '/store/dashboard/';
+                                }, 2000);
+                            }
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    } else {
+                        reject(new Error(`خطا در سرور: ${xhr.status}`));
+                    }
+                }
+            };
+            
+            xhr.onerror = () => {
+                reject(new Error('خطا در اتصال به سرور'));
+            };
+            
+            xhr.open('POST', document.getElementById('storeAnalysisForm').action);
+            xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.send(formData);
+        });
     }
 
     setupFileUploads() {
@@ -761,5 +829,23 @@ function hideUploadGuide() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.simpleFormManager = new SimpleFormManager();
+    // بررسی پشتیبانی از fetch
+    if (!window.fetch) {
+        console.warn('Fetch API not supported, loading polyfill...');
+        // بارگذاری polyfill برای fetch
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.2/dist/fetch.umd.js';
+        script.onload = () => {
+            console.log('Fetch polyfill loaded');
+            window.simpleFormManager = new SimpleFormManager();
+        };
+        script.onerror = () => {
+            console.error('Failed to load fetch polyfill');
+            // Fallback to XMLHttpRequest
+            window.simpleFormManager = new SimpleFormManager();
+        };
+        document.head.appendChild(script);
+    } else {
+        window.simpleFormManager = new SimpleFormManager();
+    }
 });

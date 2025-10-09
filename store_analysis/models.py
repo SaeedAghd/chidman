@@ -277,7 +277,7 @@ class StoreAnalysis(models.Model):
     ]
     
     # Primary fields
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
     
     # Store information (match production DB schema)

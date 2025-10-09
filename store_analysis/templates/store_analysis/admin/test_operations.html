@@ -1,0 +1,75 @@
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1>تست عملیات‌ها</h1>
+</div>
+
+<div class="admin-content">
+    <div class="operations-container">
+        <a href="#" class="operation-btn view-btn" title="مشاهده جزئیات">
+            <i class="fas fa-eye"></i>
+        </a>
+        
+        <span class="operation-btn disabled-btn" title="ویرایش تحلیل (غیرفعال)">
+            <i class="fas fa-lock"></i>
+        </span>
+        
+        <button type="button" class="operation-btn delete-btn" onclick="alert('حذف')" title="حذف تحلیل">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</div>
+
+<style>
+    .operations-container {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .operation-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .view-btn {
+        background: #2196F3;
+        color: white;
+    }
+
+    .view-btn:hover {
+        background: #1976D2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+
+    .disabled-btn {
+        background: #9E9E9E;
+        color: white;
+        cursor: not-allowed;
+    }
+
+    .delete-btn {
+        background: #F44336;
+        color: white;
+    }
+
+    .delete-btn:hover {
+        background: #D32F2F;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+    }
+</style>
+{% endblock %}

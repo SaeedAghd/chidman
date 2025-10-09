@@ -2,17 +2,16 @@ from django.db import migrations, models
 
 def add_order_number_column_if_not_exists(apps, schema_editor):
     with schema_editor.connection.cursor() as cursor:
-        cursor.execute(
-            """
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='store_analysis_order' AND column_name='order_number') THEN
-                    ALTER TABLE store_analysis_order ADD COLUMN order_number varchar(50) NULL;
-                END IF;
-            END
-            $$;
-            """
-        )
+        # SQLite compatible version
+        try:
+            cursor.execute(
+                """
+                ALTER TABLE store_analysis_order ADD COLUMN order_number varchar(50) NULL;
+                """
+            )
+        except Exception:
+            # Column already exists, ignore
+            pass
 
 class Migration(migrations.Migration):
 

@@ -15,6 +15,53 @@
     <meta name="author" content="چیدمانو">
     <title>{% block title %}چیدمانو - بهینه‌سازی چیدمان فروشگاه با هوش مصنوعی{% endblock %}</title>
     
+    {# Canonical URL (request-aware, safe fallback) #}
+    <link rel="canonical" href="{{ request.build_absolute_uri|default:'https://chidmano.ir/' }}">
+
+    {# Favicons and PWA #}
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+    <link rel="icon" type="image/png" href="{% static 'images/logo_optimized.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/logo_optimized.png' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+
+    {# Open Graph & Twitter Cards (override via blocks if needed) #}
+    {% block seo_meta %}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Chidmano">
+    <meta property="og:title" content="چیدمانو | تحلیل هوشمند فروشگاه">
+    <meta property="og:description" content="تحلیل ویدیو مشتریان، پیش‌بینی فروش و داشبورد تعاملی.">
+    <meta property="og:url" content="{{ request.build_absolute_uri|default:'https://chidmano.ir/' }}">
+    <meta property="og:image" content="https://chidmano.ir/static/images/logo_optimized.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="چیدمانو | تحلیل هوشمند فروشگاه">
+    <meta name="twitter:description" content="تحلیل چیدمان، رفتار مشتری و فروش با هوش مصنوعی.">
+    <meta name="twitter:image" content="https://chidmano.ir/static/images/logo_optimized.png">
+    {% endblock %}
+
+    {# Structured Data (JSON‑LD) #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Chidmano",
+      "url": "https://chidmano.ir/",
+      "logo": "https://chidmano.ir/static/images/logo_optimized.png"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": "https://chidmano.ir/",
+      "name": "Chidmano",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://chidmano.ir/search/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
     <!-- Google Analytics - Disabled for Development -->
     {% if not debug %}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>

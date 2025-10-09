@@ -1,4 +1,11 @@
-{% block extra_css %}
+{% extends "store_analysis/admin/base.html" %}
+{% load static %}
+
+<script>
+// CSRF Token
+const csrfToken = '{{ csrf_token }}';
+</script>
+
 <style>
     .operations-container {
         display: flex;
@@ -132,7 +139,6 @@
         background: #757575;
     }
 </style>
-{% endblock %}
 
 {% block admin_content %}
 <!-- Header -->
@@ -290,19 +296,11 @@
                                 <i class="fas fa-eye"></i>
                             </a>
                             
-                            <!-- دکمه ویرایش -->
-                            {% if analysis.status in 'pending,draft' %}
-                            <a href="{% url 'store_analysis:edit_analysis' analysis.id %}" 
-                               class="operation-btn edit-btn" 
-                               title="ویرایش تحلیل">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            {% else %}
+                            <!-- دکمه ویرایش - غیرفعال -->
                             <span class="operation-btn disabled-btn" 
-                                  title="تحلیل قابل ویرایش نیست">
+                                  title="ویرایش تحلیل (غیرفعال)">
                                 <i class="fas fa-lock"></i>
                             </span>
-                            {% endif %}
                             
                             <!-- دکمه حذف -->
                             <button type="button" 
@@ -394,9 +392,10 @@ function deleteAnalysis() {
         // ارسال درخواست حذف
         fetch(`/store/admin/analyses/${analysisToDelete}/delete/`, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': (csrfToken || getCookie('csrftoken'))
             }
         })
         .then(response => response.json())

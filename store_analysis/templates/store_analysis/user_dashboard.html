@@ -211,19 +211,92 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        background: var(--apple-blue);
         color: white;
         text-decoration: none;
         border-radius: 20px;
         font-size: 0.875rem;
         font-weight: 500;
         transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
     }
 
-    .view-details-btn:hover {
+    .main-btn {
+        background: var(--apple-blue);
+    }
+
+    .main-btn:hover {
         background: #0056b3;
         transform: translateY(-1px);
         box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+
+    .pdf-btn {
+        background: var(--apple-green);
+    }
+
+    .pdf-btn:hover {
+        background: #28a745;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+
+    .ai-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .ai-btn:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Upgrade Notice */
+    .upgrade-notice {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        color: white;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+    }
+    
+    .upgrade-notice h4 {
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .upgrade-notice p {
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .upgrade-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .upgrade-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         color: white;
         text-decoration: none;
     }
@@ -504,10 +577,10 @@
                                     <div class="analysis-status status-{{ analysis.status }}">
                                         {% if analysis.status == 'completed' %}
                                             <span>✅</span>
-                                            <span>تکمیل شده</span>
+                                            <span>تحلیل کامل</span>
                                         {% elif analysis.status == 'preliminary_completed' %}
                                             <span>📋</span>
-                                            <span>پیش‌تحلیل تکمیل</span>
+                                            <span>تحلیل اولیه</span>
                                         {% elif analysis.status == 'processing' %}
                                             <span>⏳</span>
                                             <span>در حال پردازش</span>
@@ -516,27 +589,28 @@
                                             <span>در انتظار</span>
                                         {% endif %}
                                     </div>
-                                    <a href="{% url 'store_analysis:order_analysis_results' order_id=analysis.order.order_number %}" class="view-details-btn">
-                                        <span>👁️</span>
-                                        <span>جزئیات</span>
-                                    </a>
-                                    {% if analysis.preliminary_analysis %}
-                                    <a href="{% url 'store_analysis:order_analysis_results' order_id=analysis.order.order_number %}#preliminary" class="view-details-btn" style="background:#f3f4f6">
-                                        <span>📋</span>
-                                        <span>نمایش پیش‌تحلیل</span>
-                                    </a>
-                                    {% endif %}
+                                    
+                                    <!-- دکمه‌های عملی -->
                                     {% if analysis.order and analysis.order.order_number %}
-                                    {% if analysis.status == 'completed' or analysis.preliminary_analysis %}
-                                    <a href="{% url 'store_analysis:order_analysis_results' order_id=analysis.order.order_number %}" class="view-details-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff;">
-                                        <span>🤖</span>
-                                        <span>تحلیل پیشرفته (GPT‑4)</span>
+                                    <!-- دکمه اصلی: مشاهده نتایج -->
+                                    <a href="/store/order/{{ analysis.order.order_number }}/results/" class="view-details-btn main-btn">
+                                        <span>📊</span>
+                                        <span>مشاهده نتایج</span>
+                                    </a>
+                                    
+                                    <!-- دکمه PDF (فقط برای تحلیل‌های کامل) -->
+                                    {% if analysis.status == 'completed' %}
+                                    <a href="/store/analysis/{{ analysis.pk }}/download/?type=pdf" target="_blank" rel="noopener" class="view-details-btn pdf-btn">
+                                        <span>📄</span>
+                                        <span>دانلود PDF</span>
                                     </a>
                                     {% endif %}
-                                    {% if analysis.status == 'completed' or analysis.preliminary_analysis %}
-                                    <a href="{% url 'store_analysis:view_analysis_pdf_inline' analysis.pk %}" target="_blank" rel="noopener" class="view-details-btn" style="background:#10b981;color:#fff;">
-                                        <span>📄</span>
-                                        <span>مشاهده PDF</span>
+                                    
+                                    <!-- دکمه تحلیل پیشرفته (فقط برای تحلیل‌های اولیه) -->
+                                    {% if analysis.status == 'preliminary_completed' %}
+                                    <a href="/store/order/{{ analysis.order.order_number }}/results/" class="view-details-btn ai-btn">
+                                        <span>🤖</span>
+                                        <span>تحلیل پیشرفته</span>
                                     </a>
                                     {% endif %}
                                     {% endif %}
@@ -558,7 +632,23 @@
                                     <span>بسته‌های خدمات</span>
                                 </a>
                             </div>
-                </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- نمایش محدودیت تحلیل برای کاربران رایگان -->
+                    {% if total_analyses >= 1 %}
+                        {% if not active_subscriptions %}
+                        <div class="upgrade-notice">
+                            <div class="notice-content">
+                                <h4>📊 شما در طرح رایگان هستید</h4>
+                                <p>شما {{ total_analyses }} تحلیل انجام داده‌اید. برای تحلیل‌های بیشتر، پلن پولی تهیه کنید.</p>
+                                <a href="{% url 'store_analysis:payment_packages' %}" class="upgrade-btn">
+                                    <span>💎</span>
+                                    <span>ارتقا به پلن پولی</span>
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
                     {% endif %}
             </div>
         </div>

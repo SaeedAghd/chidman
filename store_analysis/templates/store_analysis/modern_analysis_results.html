@@ -787,6 +787,123 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    
+    /* Analysis Type Badge */
+    .analysis-type-badge {
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+
+    .badge-warning {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #17a2b8, #6f42c1);
+        color: white;
+    }
+
+    .badge-secondary {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+    }
+
+    /* Analysis Actions */
+    .analysis-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .analysis-actions .btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+
+    .analysis-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    /* Navigation Buttons */
+    .navigation-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .dashboard-btn {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+    
+    .dashboard-btn:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .pdf-btn {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .pdf-btn:hover {
+        background: linear-gradient(135deg, #20c997, #17a2b8);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .new-analysis-btn {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+    }
+    
+    .new-analysis-btn:hover {
+        background: linear-gradient(135deg, #fd7e14, #e83e8c);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255,193,7,0.3);
+        color: white;
+        text-decoration: none;
+    }
 </style>
 {% endblock %}
 
@@ -831,6 +948,26 @@
                 </div>
                 <div class="score-label">امتیاز کلی</div>
             </div>
+        </div>
+        
+        <!-- دکمه‌های ناوبری -->
+        <div class="navigation-buttons">
+            <a href="/store/dashboard/" class="nav-btn dashboard-btn">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>داشبورد</span>
+            </a>
+            
+            {% if store_analysis.status == 'completed' %}
+            <a href="/store/analysis/{{ store_analysis.pk }}/download/?type=pdf" target="_blank" class="nav-btn pdf-btn">
+                <i class="fas fa-file-pdf"></i>
+                <span>دانلود PDF</span>
+            </a>
+            {% endif %}
+            
+            <a href="/store/forms/" class="nav-btn new-analysis-btn">
+                <i class="fas fa-plus"></i>
+                <span>تحلیل جدید</span>
+            </a>
         </div>
     </div>
 
@@ -929,22 +1066,31 @@
                     </h2>
                 </div>
                 <div class="card-body">
+                    <!-- نمایش نوع تحلیل -->
+                    <div class="analysis-type-badge">
+                        {% if store_analysis.status == 'completed' %}
+                            <span class="badge badge-success">✅ تحلیل کامل</span>
+                        {% elif store_analysis.status == 'preliminary_completed' %}
+                            <span class="badge badge-warning">📋 تحلیل اولیه</span>
+                        {% elif store_analysis.status == 'processing' %}
+                            <span class="badge badge-info">⏳ در حال پردازش</span>
+                        {% else %}
+                            <span class="badge badge-secondary">⏸️ در انتظار</span>
+                        {% endif %}
+                    </div>
+
                     <!-- خلاصه تحلیل -->
                     <div class="analysis-summary">
                         {% if results.analysis_text %}
-                        <p class="summary-text">
-                            {{ results.analysis_text|truncatewords:50 }}
-                            {% if results.analysis_text|wordcount > 50 %}
-                            <span class="text-muted">...</span>
-                            {% endif %}
-                        </p>
+                        <div class="analysis-content">
+                            <h4>📊 نتایج تحلیل کامل:</h4>
+                            {{ results.analysis_text|linebreaks }}
+                        </div>
                         {% elif store_analysis.preliminary_analysis %}
-                        <p class="summary-text">
-                            {{ store_analysis.preliminary_analysis|truncatewords:50 }}
-                            {% if store_analysis.preliminary_analysis|wordcount > 50 %}
-                            <span class="text-muted">...</span>
-                            {% endif %}
-                        </p>
+                        <div class="analysis-content">
+                            <h4>📋 نتایج تحلیل اولیه:</h4>
+                            {{ store_analysis.preliminary_analysis|linebreaks }}
+                        </div>
                         {% else %}
                         <div class="loading">
                             <span>تحلیل در حال پردازش...</span>
@@ -953,28 +1099,22 @@
                         {% endif %}
                     </div>
 
-                    <!-- محتوای کامل تحلیل (مخفی) -->
-                    <div class="analysis-full-content" id="analysisFullContent" style="display: none;">
-                        {% if results.analysis_text %}
-                        <div class="analysis-content">
-                            {{ results.analysis_text|linebreaks }}
-                        </div>
-                        {% elif store_analysis.preliminary_analysis %}
-                        <div class="analysis-content">
-                            {{ store_analysis.preliminary_analysis|linebreaks }}
-                        </div>
+                    <!-- دکمه‌های عملی -->
+                    <div class="analysis-actions mt-4">
+                        {% if store_analysis.status == 'completed' %}
+                            <a href="{% url 'store_analysis:view_analysis_pdf_inline' store_analysis.pk %}" target="_blank" class="btn btn-success">
+                                <i class="fas fa-file-pdf"></i> دانلود PDF کامل
+                            </a>
+                        {% elif store_analysis.status == 'preliminary_completed' %}
+                            <button class="btn btn-primary" onclick="startAdvancedAnalysis()">
+                                <i class="fas fa-robot"></i> شروع تحلیل پیشرفته
+                            </button>
                         {% endif %}
+                        
+                        <a href="{% url 'store_analysis:user_dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-right"></i> بازگشت به داشبورد
+                        </a>
                     </div>
-
-                    <!-- دکمه نمایش بیشتر/کمتر -->
-                    {% if results.analysis_text or store_analysis.preliminary_analysis %}
-                    <div class="text-center mt-3">
-                        <button class="btn btn-outline-primary btn-sm" onclick="toggleAnalysisContent()" id="showMoreBtn">
-                            <i class="fas fa-eye"></i>
-                            نمایش تحلیل کامل
-                        </button>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -1022,9 +1162,21 @@
                 </div>
                 <div class="card-body">
                     <div class="action-buttons">
-                        {% if store_analysis.status == 'completed' %}
+                        {% if is_processing %}
+                        <div class="processing-container text-center py-5">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">در حال پردازش...</span>
+                            </div>
+                            <h4 class="text-primary mb-3">🔄 تحلیل پیشرفته در حال انجام است</h4>
+                            <p class="text-muted mb-4">{{ processing_message|default:"لطفاً چند دقیقه صبر کنید..." }}</p>
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                            </div>
+                            <small class="text-muted">این صفحه به طور خودکار بروزرسانی می‌شود</small>
+                        </div>
+                        {% else %}
                         <!-- دانلود گزارش -->
-                        <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}" 
+                        <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}?type=pdf" 
                            class="btn btn-primary"
                            target="_blank"
                            rel="noopener noreferrer"
@@ -1041,6 +1193,12 @@
                             <i class="fas fa-certificate"></i>
                             دانلود گواهینامه AI
                         </a>
+                        
+                        <!-- دکمه بروزرسانی دستی -->
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">
+                            <i class="fas fa-rotate"></i>
+                            بروزرسانی
+                        </button>
                         {% endif %}
                         
                         <!-- تحلیل جدید -->
@@ -1619,6 +1777,53 @@
         }
     }
     
+    // Processing status polling
+    function startStatusPolling() {
+        const pollingUrl = '{{ polling_url|default:"" }}';
+        if (!pollingUrl) return;
+        
+        const pollInterval = setInterval(() => {
+            fetch(pollingUrl, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    clearInterval(pollInterval);
+                    showToast('✅ تحلیل تکمیل شد!', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else if (data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    showToast('❌ تحلیل ناموفق بود: ' + data.message, 'error');
+                } else if (data.status === 'processing') {
+                    // Continue polling
+                    console.log('Processing...');
+                }
+            })
+            .catch(error => {
+                console.error('Polling error:', error);
+            });
+        }, 3000); // Poll every 3 seconds
+        
+        // Stop polling after 5 minutes
+        setTimeout(() => {
+            clearInterval(pollInterval);
+        }, 300000);
+    }
+    
+    // Start polling if processing
+    {% if is_processing %}
+    document.addEventListener('DOMContentLoaded', function() {
+        startStatusPolling();
+    });
+    {% endif %}
+
     // PDF download function
     function downloadPDF(event) {
         event.preventDefault();
@@ -1769,6 +1974,54 @@
                 toast.remove();
             }, 300);
         }, 4000);
+    }
+    
+    function startAdvancedAnalysis() {
+        if (confirm('آیا می‌خواهید تحلیل پیشرفته را شروع کنید؟ این فرآیند ممکن است چند دقیقه طول بکشد.')) {
+            showLoadingModal();
+            
+            // ارسال درخواست تحلیل پیشرفته
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'action': 'reprocess_liara'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoadingModal();
+                if (data.success) {
+                    showSuccessMessage('تحلیل پیشرفته شروع شد! لطفاً چند دقیقه صبر کنید...');
+                    // شروع polling برای بررسی وضعیت
+                    startStatusPolling();
+                } else {
+                    showErrorMessage('خطا در شروع تحلیل پیشرفته: ' + data.message);
+                }
+            })
+            .catch(error => {
+                hideLoadingModal();
+                showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
+            });
+        }
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 </script>
 

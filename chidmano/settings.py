@@ -86,6 +86,13 @@ MIDDLEWARE = [
     'chidmano.middleware.CSPMiddleware',  # برای حل مشکل CSP ویدیوها
     'chidmano.middleware.CacheAndTimingMiddleware',
     'chidmano.seo_middleware.SEOMiddleware',  # SEO optimization
+    'chidmano.seo_middleware.AdvancedSEOMiddleware',  # Advanced SEO
+    'chidmano.seo_middleware.SEOLoggingMiddleware',  # SEO Logging
+    'chidmano.browser_compatibility_middleware.BrowserCompatibilityMiddleware',  # Browser compatibility
+    'chidmano.browser_compatibility_middleware.ConcurrencyLimitMiddleware',  # Concurrency limit
+    'chidmano.browser_compatibility_middleware.SessionFixMiddleware',  # Session fix
+    'chidmano.browser_compatibility_middleware.SEOEnhancementMiddleware',  # SEO enhancement
+    'chidmano.browser_compatibility_middleware.SearchEngineOptimizationMiddleware',  # Search engine optimization
 ]
 
 ROOT_URLCONF = 'chidmano.urls'
@@ -207,6 +214,25 @@ STORAGES = {
 MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
 
+# SEO Settings
+BASE_DOMAIN = 'chidmano.ir'
+SITE_NAME = 'چیدمانو - تحلیل هوشمند فروشگاه و مغازه'
+
+# Google Analytics
+GOOGLE_ANALYTICS_ID = os.getenv('GOOGLE_ANALYTICS_ID', 'G-XXXXXXXXXX')
+
+# Google Search Console
+GOOGLE_SEARCH_CONSOLE_VERIFICATION = os.getenv('GOOGLE_SEARCH_CONSOLE_VERIFICATION', '')
+
+# Facebook Pixel
+FACEBOOK_PIXEL_ID = os.getenv('FACEBOOK_PIXEL_ID', '')
+
+# Bing Webmaster
+BING_WEBMASTER_VERIFICATION = os.getenv('BING_WEBMASTER_VERIFICATION', '')
+
+# Yandex Verification
+YANDEX_VERIFICATION = os.getenv('YANDEX_VERIFICATION', '')
+
 # تنظیمات آپلود فایل برای Liara (read-only filesystem)
 if os.getenv('LIARA') == 'true':
     # Use hybrid handlers: keep small files in memory, large files spill to temp dir
@@ -290,12 +316,19 @@ if DEBUG:
     # CSRF_COOKIE_SECURE = True
     pass
 
-# AI Model settings
-MODEL_PATH = os.path.join(BASE_DIR, os.getenv('MODEL_PATH', 'models'))
-MODEL_VERSION = os.getenv('MODEL_VERSION', '1.0.0')
+# SEO and Domain settings
+BASE_DOMAIN = 'chidmano.ir'
+SITE_NAME = 'چیدمانو'
+SITE_DESCRIPTION = 'تحلیل پیشرفته فروشگاه با هوش مصنوعی'
 
-# OpenAI settings
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+# Search Engine Verification Codes
+GOOGLE_SITE_VERIFICATION = os.getenv('GOOGLE_SITE_VERIFICATION', '')
+BING_SITE_VERIFICATION = os.getenv('BING_SITE_VERIFICATION', '')
+YANDEX_SITE_VERIFICATION = os.getenv('YANDEX_SITE_VERIFICATION', '')
+
+# Analytics
+GOOGLE_ANALYTICS_ID = os.getenv('GOOGLE_ANALYTICS_ID', '')
+GOOGLE_TAG_MANAGER_ID = os.getenv('GOOGLE_TAG_MANAGER_ID', '')
 
 # Payment Gateway Settings
 ZARINPAL_MERCHANT_ID = os.getenv('ZARINPAL_MERCHANT_ID', 'test-merchant-id')
@@ -391,7 +424,18 @@ if not DEBUG:
 
 # Session optimization
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-# SESSION_CACHE_ALIAS = 'default'
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # برای سازگاری با مرورگرها
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# CSRF settings
+CSRF_COOKIE_AGE = 3600
+CSRF_COOKIE_HTTPONLY = False  # برای JavaScript access
+CSRF_COOKIE_SAMESITE = 'Lax'  # برای سازگاری با مرورگرها
+CSRF_USE_SESSIONS = False
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 # Logging configuration - simplified for Liara read-only filesystem
 LOGGING = {
@@ -542,11 +586,15 @@ CORS_ALLOWED_ORIGINS = [
 # Add production domains
 if not DEBUG:
     CORS_ALLOWED_ORIGINS.extend([
-        "https://your-domain.com",
-        "https://www.your-domain.com",
+        "https://chidmano.liara.run",
+        "https://chidmano.liara.app",
+        "https://chidmano.ir",
+        "https://www.chidmano.ir",
     ])
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # فقط در development
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
 # CSRF settings for HTTPS proxy
 CSRF_TRUSTED_ORIGINS = [

@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
 from . import views
-from .seo_views import sitemap_xml, robots_txt
+from .seo_views import sitemap_xml, robots_txt, sitemap_images, seo_analysis, seo_home, seo_features, seo_analytics_dashboard
 from django.views.generic import TemplateView, RedirectView
 from django.urls import re_path
 from django.views.generic import RedirectView
@@ -76,7 +76,15 @@ urlpatterns = [
     
     # فایل‌های SEO
     path('sitemap.xml', sitemap_xml, name='sitemap'),
+    path('sitemap-index.xml', sitemap_xml, name='sitemap_index'),
+    path('sitemap-images.xml', sitemap_images, name='sitemap_images'),
     path('robots.txt', robots_txt, name='robots'),
+    
+    # صفحات SEO
+    path('seo/analysis/<int:analysis_id>/', seo_analysis, name='seo_analysis'),
+    path('seo/home/', seo_home, name='seo_home'),
+    path('seo/features/', seo_features, name='seo_features'),
+    path('seo/analytics/', seo_analytics_dashboard, name='seo_analytics'),
     path('37797489.txt', TemplateView.as_view(template_name='verification/37797489.txt', content_type='text/plain'), name='enamad_37797489'),
     re_path(r'^favicon\.ico$', RedirectView.as_view(url='/static/images/favicon.ico', permanent=True)),
     # Serve service worker at root to avoid 404 in some browsers

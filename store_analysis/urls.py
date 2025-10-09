@@ -29,7 +29,9 @@ urlpatterns = [
         # path('<uuid:pk>/edit/', views.edit_analysis, name='edit_analysis'),  # Function removed
         # path('<uuid:pk>/delete/', views.delete_analysis, name='delete_analysis'),  # Function removed  
         # path('<uuid:pk>/payment/', views.analysis_payment_page, name='analysis_payment'),  # Function removed
+        # Compatibility: support both int and legacy uuid patterns for reverse()
         path('<int:pk>/download/', views.download_analysis_report, name='download_analysis'),
+        path('<uuid:pk>/download/', views.download_analysis_report, name='download_analysis'),
         path('<int:pk>/progress/', views.analysis_progress, name='analysis_progress'),
         path('<int:pk>/start/', views.start_analysis, name='start_analysis'),
         path('<int:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
@@ -76,7 +78,7 @@ urlpatterns = [
     
     # نتایج سفارش
     path('order/<str:order_id>/results/', views.order_analysis_results, name='order_analysis_results'),
-    path('order/<str:order_id>/status/', views.check_analysis_status, name='check_analysis_status'),
+    path('order/<str:order_id>/status/', views.check_processing_status, name='check_processing_status'),
     
     # URL های موجود (حذف شد چون در بالا تعریف شده)
     path('payment/<str:order_id>/', views.payment_page, name='payment_page'),
@@ -95,7 +97,9 @@ urlpatterns = [
         path('users/', views.admin_users, name='admin_users'),
         path('users/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
         path('analyses/', views.admin_analyses, name='admin_analyses'),
-        path('analyses/<int:analysis_id>/', views.admin_analysis_detail, name='admin_analysis_detail'),
+        path('analyses/<str:analysis_id>/', views.admin_analysis_detail, name='admin_analysis_detail'),
+        path('analyses/<str:analysis_id>/delete/', views.admin_delete_analysis, name='admin_delete_analysis'),
+        path('test-operations/', views.test_operations, name='test_operations'),
         path('orders/', views.admin_orders, name='admin_orders'),
         path('orders/<str:order_id>/', views.admin_order_detail, name='admin_order_detail'),
         path('tickets/', views.admin_tickets, name='admin_tickets'),

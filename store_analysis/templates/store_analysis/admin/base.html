@@ -4,6 +4,13 @@
 {% block title %}{{ title }} - چیدمانو{% endblock %}
 
 {% block extra_css %}
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<!-- Modern UI CSS -->
+<link rel="stylesheet" href="{% static 'css/modern-ui.css' %}">
+<!-- Browser Fallbacks CSS -->
+<link rel="stylesheet" href="{% static 'css/browser-fallbacks.css' %}">
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     :root {
@@ -870,6 +877,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Bootstrap JS -->
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<!-- Browser Compatibility JS -->
+<script src="{% static 'js/browser-compatibility.js' %}"></script>
+<!-- Admin Dashboard JS -->
+<script src="{% static 'js/admin-dashboard.js' %}"></script>
 <script>
 // Theme Toggle Functionality
 function toggleTheme() {
