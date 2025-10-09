@@ -6533,25 +6533,26 @@ def forms_submit(request):
     """پردازش فرم تک صفحه‌ای تحلیل فروشگاه - بهینه‌سازی شده"""
     if request.method == 'POST':
         try:
-            # بررسی محدودیت تحلیل برای کاربران رایگان
-            user_analyses_count = StoreAnalysis.objects.filter(user=request.user).count()
-            
-            # اگر کاربر تحلیل قبلی دارد و پلن رایگان است
-            if user_analyses_count >= 1:
-                # بررسی اینکه آیا کاربر پلن پولی دارد یا نه
-                from .models import UserSubscription
-                has_paid_subscription = UserSubscription.objects.filter(
-                    user=request.user, 
-                    is_active=True
-                ).exists()
+            # بررسی محدودیت تحلیل برای کاربران رایگان (غیرفعال برای ادمین‌ها)
+            if not request.user.is_staff:
+                user_analyses_count = StoreAnalysis.objects.filter(user=request.user).count()
                 
-                if not has_paid_subscription:
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'شما در طرح رایگان فقط یک تحلیل می‌توانید انجام دهید. برای تحلیل‌های بیشتر، لطفاً پلن پولی تهیه کنید.',
-                        'redirect_url': '/store/payment-packages/',
-                        'upgrade_required': True
-                    })
+                # اگر کاربر تحلیل قبلی دارد و پلن رایگان است
+                if user_analyses_count >= 1:
+                    # بررسی اینکه آیا کاربر پلن پولی دارد یا نه
+                    from .models import UserSubscription
+                    has_paid_subscription = UserSubscription.objects.filter(
+                        user=request.user, 
+                        is_active=True
+                    ).exists()
+                    
+                    if not has_paid_subscription:
+                        return JsonResponse({
+                            'success': False,
+                            'message': 'شما در طرح رایگان فقط یک تحلیل می‌توانید انجام دهید. برای تحلیل‌های بیشتر، لطفاً پلن پولی تهیه کنید.',
+                            'redirect_url': '/store/payment-packages/',
+                            'upgrade_required': True
+                        })
             
             # دریافت داده‌های فرم به صورت ساده
             form_data = request.POST.dict()
