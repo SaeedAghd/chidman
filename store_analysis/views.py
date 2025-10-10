@@ -3144,13 +3144,63 @@ def payping_callback(request, order_id):
         except Exception:
             return redirect('store_analysis:payment_page', order_id=order_id)
 
+def find_or_create_store_analysis(order, user):
+    """پیدا کردن یا ایجاد StoreAnalysis برای Order - نسخه بهبود یافته"""
+    try:
+        # ابتدا سعی کن StoreAnalysis مرتبط با Order را پیدا کن
+        store_analysis = StoreAnalysis.objects.filter(order=order).first()
+        
+        if store_analysis:
+            logger.info(f"Found existing StoreAnalysis {store_analysis.pk} for Order {order.order_number}")
+            return store_analysis
+        
+        # اگر پیدا نشد، آخرین تحلیل کاربر را پیدا کن که Order ندارد
+        store_analysis = StoreAnalysis.objects.filter(
+            user=user,
+            order__isnull=True
+        ).order_by('-created_at').first()
+        
+        if store_analysis:
+            # ارتباط Order را برقرار کن
+            store_analysis.order = order
+            store_analysis.save()
+            logger.info(f"Linked StoreAnalysis {store_analysis.pk} to Order {order.order_number}")
+            return store_analysis
+        
+        # اگر هیچ تحلیل وجود ندارد، بررسی کن که آیا کاربر تحلیل‌های دیگری دارد
+        user_analyses = StoreAnalysis.objects.filter(user=user).count()
+        if user_analyses > 0:
+            logger.warning(f"User {user.username} has {user_analyses} analyses but none available for Order {order.order_number}")
+            return None
+        
+        # اگر کاربر هیچ تحلیلی ندارد، یک تحلیل جدید ایجاد کن
+        store_analysis = StoreAnalysis.objects.create(
+            user=user,
+            order=order,
+            store_name=f'فروشگاه {order.order_number}',
+            status='pending',
+            analysis_data={}
+        )
+        logger.info(f"Created new StoreAnalysis {store_analysis.pk} for Order {order.order_number}")
+        return store_analysis
+        
+    except Exception as e:
+        logger.error(f"Error in find_or_create_store_analysis: {e}")
+        return None
+
 @login_required
 def order_analysis_results(request, order_id):
-    """صفحه نتایج تحلیل بر اساس سفارش"""
+    """صفحه نتایج تحلیل بر اساس سفارش - نسخه بهبود یافته"""
     try:
         # هر کاربر فقط Order های خودش را ببیند
         order = get_object_or_404(Order, order_number=order_id, user=request.user)
-        store_analysis = StoreAnalysis.objects.filter(order=order).first()
+        
+        # پیدا کردن StoreAnalysis مرتبط
+        store_analysis = find_or_create_store_analysis(order, request.user)
+        
+        if not store_analysis:
+            messages.error(request, 'تحلیل مورد نظر یافت نشد. لطفاً ابتدا فرم تحلیل را تکمیل کنید.')
+            return redirect('store_analysis:store_analysis_form')
         
         # Handle POST requests (AJAX) - run processing in background and return fast
         if request.method == 'POST':
@@ -3226,9 +3276,6 @@ def order_analysis_results(request, order_id):
                 logger.error(f"Error in POST request: {e}")
                 return JsonResponse({'success': False, 'message': f'خطا در پردازش درخواست: {str(e)}'})
         
-        if not store_analysis:
-            messages.error(request, 'تحلیل مورد نظر یافت نشد')
-            return redirect('store_analysis:user_dashboard')
         
         # اگر تحلیل هنوز انجام نشده، تحلیل پیشرفته را شروع کن
         if store_analysis.status != 'completed':
