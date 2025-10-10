@@ -4335,64 +4335,66 @@ def accept_legal_agreement(request):
 def store_analysis_form(request):
     """فرم تحلیل هوشمند فروشگاه - ۷ گام بهینه‌سازی"""
     if request.method == 'POST':
-        # استفاده از فرم جدید ۷ گامه
-        # form = ProfessionalStoreAnalysisForm(request.POST, request.FILES)
-        # if form.is_valid():
+        try:
             # پردازش داده‌های فرم
-            # form_data = form.cleaned_data.copy()
+            form_data = {}
             
-            # تبدیل فایل‌های آپلود شده به string
+            # استخراج داده‌های فرم
+            for key, value in request.POST.items():
+                if key != 'csrfmiddlewaretoken':
+                    form_data[key] = value
+            
+            # پردازش فایل‌های آپلود شده
+            uploaded_files = {}
             file_fields = ['store_photos', 'store_layout', 'shelf_photos', 'customer_flow_video', 
                           'store_map', 'window_display_photos', 'entrance_photos', 
                           'checkout_photos', 'surveillance_footage', 'sales_file', 'product_catalog']
             
-            # for field in file_fields:
-            #     if field in form_data and form_data[field]:
-            #         form_data[field] = f"File uploaded: {form_data[field].name}"
-            # else:
-            #         form_data[field] = None
+            for field in file_fields:
+                if field in request.FILES:
+                    file_obj = request.FILES[field]
+                    # ذخیره فایل
+                    from django.core.files.storage import default_storage
+                    file_path = default_storage.save(f'uploads/{field}/{file_obj.name}', file_obj)
+                    uploaded_files[field] = {
+                        'name': file_obj.name,
+                        'size': file_obj.size,
+                        'path': file_path,
+                        'url': default_storage.url(file_path)
+                    }
+                    logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
             
-            # # تبدیل Decimal به float و date به string
-            # for key, value in form_data.items():
-            #     if hasattr(value, 'as_tuple'):  # Decimal object
-            #         form_data[key] = float(value)
-            #     elif hasattr(value, 'strftime'):  # date/datetime object
-            #         form_data[key] = value.isoformat()
-            #     elif isinstance(value, list):
-            #         form_data[key] = [str(v) if hasattr(v, 'as_tuple') or hasattr(v, 'strftime') else v for v in value]
+            # اضافه کردن اطلاعات فایل‌ها به form_data
+            form_data['uploaded_files'] = uploaded_files
             
-            # # ایجاد رکورد تحلیل جدید
-            # analysis = StoreAnalysis.objects.create(
-            #     user=request.user if request.user.is_authenticated else None,
-            #     analysis_type='comprehensive_7step',
-            #     store_name=form_data.get('store_name', 'فروشگاه جدید'),
-            #     status='pending',
-            #     analysis_data=form_data
-            #     analysis_data=form_data  # ذخیره مستقیم در analysis_data
-            # )
+            # ایجاد رکورد تحلیل جدید
+            analysis = StoreAnalysis.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                analysis_type='comprehensive_7step',
+                store_name=form_data.get('store_name', 'فروشگاه جدید'),
+                status='pending',
+                analysis_data=form_data
+            )
             
-            # # ذخیره داده‌های فرم در session برای استفاده در صفحه پرداخت
-            # request.session['store_analysis_data'] = form_data
+            logger.info(f"StoreAnalysis created: {analysis.pk} for user {request.user.username if request.user.is_authenticated else 'anonymous'}")
+            
+            # ذخیره داده‌های فرم در session برای استفاده در صفحه پرداخت
+            request.session['store_analysis_data'] = form_data
+            request.session['analysis_id'] = analysis.pk
             
             # نمایش پیام موفقیت
             messages.success(request, 'فرم تحلیل فروشگاه با موفقیت تکمیل شد! لطفاً پلن مورد نظر خود را انتخاب کنید.')
             
             # هدایت به صفحه پرداخت
             return redirect('store_analysis:payment_page')
-        # else:
-            # نمایش خطاهای فرم
-            # for field, errors in form.errors.items():
-            #     for error in errors:
-            #         messages.error(request, f'خطا در فیلد {field}: {error}')
             
-            # return render(request, 'store_analysis/user_dashboard.html', {'form': None})
-    else:
-        # نمایش فرم خالی
-        # form = ProfessionalStoreAnalysisForm()
-        pass
+        except Exception as e:
+            logger.error(f"Error processing form: {e}")
+            messages.error(request, f'خطا در پردازش فرم: {str(e)}')
+            return redirect('store_analysis:store_analysis_form')
     
-    # نمایش فرم به جای redirect
-    return render(request, 'store_analysis/forms.html', {'form': None})
+    # نمایش فرم
+    return render(request, 'store_analysis/forms.html')
 
 
 @login_required
