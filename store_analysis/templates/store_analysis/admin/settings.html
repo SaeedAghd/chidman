@@ -300,18 +300,19 @@ function saveSettings() {
     })
     .then(response => {
         if (response.ok) {
-            showNotification('تنظیمات با موفقیت ذخیره شد', 'success');
+            // Show success message
+            alert('تنظیمات با موفقیت ذخیره شد');
             // Reload page to show updated settings
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
         } else {
-            showNotification('خطا در ذخیره تنظیمات', 'error');
+            alert('خطا در ذخیره تنظیمات');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('خطا در ارتباط با سرور', 'error');
+        alert('خطا در ارتباط با سرور');
     })
     .finally(() => {
         saveBtn.innerHTML = originalText;
@@ -331,7 +332,7 @@ function resetSettings() {
             }
         });
         
-        showNotification('تنظیمات بازنشانی شد', 'info');
+        alert('تنظیمات بازنشانی شد');
     }
 }
 
