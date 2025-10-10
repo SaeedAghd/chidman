@@ -277,7 +277,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+    <script src="{% static 'js/http-fetch-helper.js' %}"></script>
+    <script>
 function saveSettings() {
     const form = document.getElementById('settingsForm');
     const saveBtn = document.querySelector('[onclick="saveSettings()"]');
@@ -288,7 +289,9 @@ function saveSettings() {
     saveBtn.disabled = true;
     
     // Submit form
-    fetch(form.action, {
+    const formAction = form.action || window.location.pathname;
+    
+    httpFetch(formAction, {
         method: 'POST',
         body: new FormData(form),
         headers: {

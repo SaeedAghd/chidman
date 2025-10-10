@@ -286,7 +286,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+    <script src="{% static 'js/http-fetch-helper.js' %}"></script>
+    <script>
 // مقادیر پیش‌فرض برای بازنشانی
 const defaultValues = {
     'simple_price': parseInt('{{ current_settings.simple_price|default:200000 }}') || 200000,
@@ -325,7 +326,9 @@ function savePricingSettings() {
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ذخیره...';
     
     // ارسال فرم
-    fetch(form.action, {
+    const formAction = form.action || window.location.pathname;
+    
+    httpFetch(formAction, {
         method: 'POST',
         body: new FormData(form),
         headers: {
