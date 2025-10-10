@@ -251,7 +251,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // اضافه کردن CSS برای اعلان‌ها
-const notificationCSS = `
+// Check if notificationCSS is already defined
+if (typeof notificationCSS === 'undefined') {
+    const notificationCSS = `
 .notification {
     position: fixed;
     top: 20px;
@@ -311,3 +313,4 @@ const notificationCSS = `
 const style = document.createElement('style');
 style.textContent = notificationCSS;
 document.head.appendChild(style);
+}

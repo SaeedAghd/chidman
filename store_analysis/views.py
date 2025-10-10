@@ -5830,6 +5830,8 @@ def admin_settings(request):
         return redirect('home')
     
     try:
+        from .models import SystemSettings
+        
         if request.method == 'POST':
             try:
                 # دریافت تنظیمات از فرم و ذخیره در دیتابیس
