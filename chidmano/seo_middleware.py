@@ -188,7 +188,7 @@ class SEOLoggingMiddleware(MiddlewareMixin):
             logger.info(f"SEO Response: {response.status_code} {request.path} - Content-Type: {response.get('Content-Type', 'Unknown')}")
         
         return response
-    
+
     def _should_log_request(self, request):
         """تشخیص درخواست‌های مهم برای لاگ"""
         important_paths = [
