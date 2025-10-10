@@ -237,7 +237,8 @@ class SimpleFormManager {
                 return this.handleFormSubmissionXHR(formData);
             }
 
-            const response = await fetch(form.action, fetchOptions);
+            const formAction = form.action || window.location.pathname;
+            const response = await fetch(formAction, fetchOptions);
 
             if (response.ok) {
                 // بررسی نوع پاسخ
@@ -352,7 +353,9 @@ class SimpleFormManager {
                 reject(new Error('خطا در اتصال به سرور'));
             };
             
-            xhr.open('POST', document.getElementById('storeAnalysisForm').action);
+            const form = document.getElementById('storeAnalysisForm');
+            const formAction = form.action || window.location.pathname;
+            xhr.open('POST', formAction);
             xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.send(formData);
