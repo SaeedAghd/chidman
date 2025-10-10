@@ -664,6 +664,50 @@ class Order(models.Model):
         self.save()
 
 
+class DiscountNotification(models.Model):
+    """مدل اطلاعیه تخفیف"""
+    title = models.CharField(max_length=200, verbose_name='عنوان')
+    message = models.TextField(verbose_name='پیام')
+    discount_percentage = models.IntegerField(default=0, verbose_name='درصد تخفیف')
+    discount_type = models.CharField(max_length=50, choices=[
+        ('opening', 'تخفیف افتتاحیه'),
+        ('seasonal', 'تخفیف فصلی'),
+        ('nowruz', 'تخفیف نوروزی'),
+        ('special', 'تخفیف ویژه'),
+    ], default='opening', verbose_name='نوع تخفیف')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    start_date = models.DateTimeField(verbose_name='تاریخ شروع')
+    end_date = models.DateTimeField(verbose_name='تاریخ پایان')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'اطلاعیه تخفیف'
+        verbose_name_plural = 'اطلاعیه‌های تخفیف'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} - {self.discount_percentage}%"
+    
+    @classmethod
+    def get_active_notifications(cls):
+        """دریافت اطلاعیه‌های فعال"""
+        from django.utils import timezone
+        now = timezone.now()
+        return cls.objects.filter(
+            is_active=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).order_by('-discount_percentage')
+    
+    @classmethod
+    def get_current_discount(cls):
+        """دریافت تخفیف فعلی"""
+        notifications = cls.get_active_notifications()
+        if notifications.exists():
+            return notifications.first()
+        return None
+
 class SystemSettings(models.Model):
     """مدل تنظیمات سیستم"""
     key = models.CharField(max_length=100, unique=True, verbose_name='کلید')

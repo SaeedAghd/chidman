@@ -15,7 +15,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, Wallet, WalletTransaction, SupportTicket, FAQService, Order, SystemSettings, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile, AnalysisRequest, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, PricingPlan, AIConsultantService, AIConsultantQuestion, AIConsultantSession, AIConsultantPayment, Transaction
+from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, Wallet, WalletTransaction, SupportTicket, FAQService, Order, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile, AnalysisRequest, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, PricingPlan, AIConsultantService, AIConsultantQuestion, AIConsultantSession, AIConsultantPayment, Transaction
 from django.contrib.auth.models import User
 # Admin views moved to chidmano.admin_dashboard
 from .ai_analysis import StoreAnalysisAI
@@ -113,11 +113,116 @@ def calculate_analysis_cost(form_data):
             'final': 500000.0
         }
 
-def calculate_analysis_cost_for_object(analysis):
-    """محاسبه هزینه تحلیل برای StoreAnalysis object"""
+def create_discount_notification():
+    """ایجاد اطلاعیه تخفیف خودکار بر اساس تنظیمات سیستم"""
     try:
-        # هزینه پایه
-        base_cost = Decimal('500000')  # 500,000 تومان
+        from .models import DiscountNotification, SystemSettings
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # دریافت تنظیمات تخفیف
+        opening_discount = int(SystemSettings.get_setting('opening_discount_percentage', '100'))
+        seasonal_discount = int(SystemSettings.get_setting('seasonal_discount_percentage', '0'))
+        nowruz_discount = int(SystemSettings.get_setting('nowruz_discount_percentage', '0'))
+        
+        # تعیین تخفیف فعال
+        active_discount = 0
+        discount_type = 'opening'
+        
+        if opening_discount > 0:
+            active_discount = opening_discount
+            discount_type = 'opening'
+        elif seasonal_discount > 0:
+            active_discount = seasonal_discount
+            discount_type = 'seasonal'
+        elif nowruz_discount > 0:
+            active_discount = nowruz_discount
+            discount_type = 'nowruz'
+        
+        if active_discount > 0:
+            # بررسی وجود اطلاعیه فعال
+            existing_notification = DiscountNotification.objects.filter(
+                discount_type=discount_type,
+                is_active=True
+            ).first()
+            
+            if not existing_notification:
+                # ایجاد اطلاعیه جدید
+                now = timezone.now()
+                end_date = now + timedelta(days=30)  # 30 روز اعتبار
+                
+                title = f"تخفیف ویژه {active_discount}%"
+                message = f"🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف {active_discount}% در دسترس است. همین حالا سفارش دهید!"
+                
+                DiscountNotification.objects.create(
+                    title=title,
+                    message=message,
+                    discount_percentage=active_discount,
+                    discount_type=discount_type,
+                    is_active=True,
+                    start_date=now,
+                    end_date=end_date
+                )
+                
+                logger.info(f"Created discount notification: {active_discount}% {discount_type}")
+        
+    except Exception as e:
+        logger.error(f"Error creating discount notification: {e}")
+
+def get_discount_context():
+    """دریافت context تخفیف برای نمایش در صفحات"""
+    try:
+        from .models import DiscountNotification
+        
+        current_discount = DiscountNotification.get_current_discount()
+        
+        if current_discount:
+            return {
+                'has_discount': True,
+                'discount_percentage': current_discount.discount_percentage,
+                'discount_title': current_discount.title,
+                'discount_message': current_discount.message,
+                'discount_type': current_discount.discount_type,
+                'discount_end_date': current_discount.end_date
+            }
+        else:
+            return {
+                'has_discount': False,
+                'discount_percentage': 0,
+                'discount_title': '',
+                'discount_message': '',
+                'discount_type': 'none',
+                'discount_end_date': None
+            }
+            
+    except Exception as e:
+        logger.error(f"Error getting discount context: {e}")
+        return {
+            'has_discount': False,
+            'discount_percentage': 0,
+            'discount_title': '',
+            'discount_message': '',
+            'discount_type': 'none',
+            'discount_end_date': None
+        }
+    """محاسبه هزینه تحلیل برای StoreAnalysis object - نسخه بهبود یافته با تخفیف‌ها"""
+    try:
+        # دریافت تنظیمات قیمت از دیتابیس
+        from .models import SystemSettings
+        
+        # قیمت‌های پایه از تنظیمات
+        base_price_simple = Decimal(SystemSettings.get_setting('price_simple_analysis', '200000'))
+        base_price_medium = Decimal(SystemSettings.get_setting('price_medium_analysis', '350000'))
+        base_price_complex = Decimal(SystemSettings.get_setting('price_complex_analysis', '500000'))
+        
+        # هزینه پایه بر اساس نوع تحلیل
+        analysis_type = getattr(analysis, 'analysis_type', 'medium')
+        if analysis_type == 'simple':
+            base_cost = base_price_simple
+        elif analysis_type == 'complex' or analysis_type == 'advanced':
+            base_cost = base_price_complex
+        else:
+            base_cost = base_price_medium
         
         # دریافت اطلاعات فروشگاه از analysis_data
         analysis_data = analysis.analysis_data or {}
@@ -164,16 +269,27 @@ def calculate_analysis_cost_for_object(analysis):
         
         total_cost = base_cost + additional_cost
         
-        # تخفیف 100% برای دوره راه‌اندازی
-        from datetime import datetime
-        current_date = datetime.now()
-        launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
+        # محاسبه تخفیف از تنظیمات سیستم
+        discount_percentage = 0
         
-        discount = Decimal('0')
-        if current_date <= launch_end_date:
-            discount = total_cost  # تخفیف 100%
+        # تخفیف افتتاحیه
+        opening_discount = int(SystemSettings.get_setting('opening_discount_percentage', '100'))
+        if opening_discount > 0:
+            discount_percentage = opening_discount
         
-        final_cost = total_cost - discount
+        # تخفیف فصلی
+        seasonal_discount = int(SystemSettings.get_setting('seasonal_discount_percentage', '0'))
+        if seasonal_discount > discount_percentage:
+            discount_percentage = seasonal_discount
+        
+        # تخفیف نوروزی
+        nowruz_discount = int(SystemSettings.get_setting('nowruz_discount_percentage', '0'))
+        if nowruz_discount > discount_percentage:
+            discount_percentage = nowruz_discount
+        
+        # محاسبه مبلغ تخفیف
+        discount_amount = (total_cost * discount_percentage) / 100
+        final_cost = total_cost - discount_amount
         
         # ساخت breakdown
         breakdown = [
@@ -201,9 +317,10 @@ def calculate_analysis_cost_for_object(analysis):
             'base_price': base_cost,
             'total': total_cost,
             'final': final_cost,
-            'discount': discount,
-            'discount_percentage': 100 if discount > 0 else 0,
-            'breakdown': breakdown
+            'discount': discount_amount,
+            'discount_percentage': discount_percentage,
+            'breakdown': breakdown,
+            'discount_type': 'opening' if opening_discount > 0 else 'seasonal' if seasonal_discount > 0 else 'nowruz' if nowruz_discount > 0 else 'none'
         }
         
     except Exception as e:

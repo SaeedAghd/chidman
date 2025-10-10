@@ -189,9 +189,19 @@ def dashboard_view(request):
 
 def simple_home(request):
     """صفحه اصلی فوق‌العاده جذاب و حرفه‌ای"""
+    # دریافت اطلاعات تخفیف
+    from store_analysis.views import get_discount_context, create_discount_notification
+    
+    # ایجاد اطلاعیه تخفیف خودکار
+    create_discount_notification()
+    
+    # دریافت context تخفیف
+    discount_info = get_discount_context()
+    
     context = {
         'hero_title': 'تحلیل هوشمند فروشگاه شما',
         'hero_subtitle': 'با هوش مصنوعی پیشرفته، فروشگاه خود را به سطح جهانی برسانید',
+        'discount_info': discount_info,
         'features': [
             {
                 'icon': '🚀',
