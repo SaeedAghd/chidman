@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ctx = document.getElementById('adminChart');
                 if (ctx) {
                     // Destroy existing chart if it exists
-                    if (window.adminChart) {
+                    if (window.adminChart && typeof window.adminChart.destroy === 'function') {
                         window.adminChart.destroy();
                     }
                     
@@ -97,6 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Chart initialization error:', error);
+            // Reset chart instance on error
+            window.adminChart = null;
         }
     }
     
