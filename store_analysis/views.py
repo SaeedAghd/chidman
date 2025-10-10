@@ -3303,11 +3303,11 @@ def order_analysis_results(request, order_id):
                     'order': order,
                     'store_analysis': store_analysis,
                     'is_processing': True,
-                    'processing_message': 'تحلیل پیشرفته در حال انجام است. لطفاً چند دقیقه صبر کنید...',
+                    'processing_message': 'تحلیل جامع در حال انجام است. تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد. برای دیدن نتیجه، حدود 1 ساعت دیگر به کارتابل مراجعه کنید.',
                     'polling_url': f'/store/order/{order_id}/status/'
                 }
                 
-                messages.info(request, 'تحلیل پیشرفته شروع شد. لطفاً چند دقیقه صبر کنید...')
+                messages.info(request, 'تحلیل جامع شروع شد. تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد. برای دیدن نتیجه، حدود 1 ساعت دیگر به کارتابل مراجعه کنید.')
                 
                 # رندر صفحه در حال پردازش
                 return render(request, 'store_analysis/modern_analysis_results.html', context)
@@ -6628,7 +6628,7 @@ def forms_submit(request):
             
             return JsonResponse({
                 'success': True,
-                'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                'message': 'با تشکر! در حال آپلود عکس و فیلم هستیم، منتظر بمانید...',
                 'redirect_url': f'/store/payment/{order.order_number}/',
                 'payment_required': True
             })

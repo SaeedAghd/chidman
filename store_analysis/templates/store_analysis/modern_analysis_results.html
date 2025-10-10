@@ -1167,10 +1167,19 @@
                             <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
                                 <span class="visually-hidden">در حال پردازش...</span>
                             </div>
-                            <h4 class="text-primary mb-3">🔄 تحلیل پیشرفته در حال انجام است</h4>
-                            <p class="text-muted mb-4">{{ processing_message|default:"لطفاً چند دقیقه صبر کنید..." }}</p>
+                            <h4 class="text-primary mb-3">🔄 تحلیل جامع در حال انجام است</h4>
+                            <p class="text-muted mb-4">
+                                <strong>تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد</strong><br>
+                                با توجه به سرعت اینترنت و پیچیدگی تحلیل، لطفاً صبور باشید.<br>
+                                <span class="text-info">⏰ برای دیدن نتیجه، حدود 1 ساعت دیگر به کارتابل مراجعه کنید</span>
+                            </p>
                             <div class="progress mb-3" style="height: 8px;">
                                 <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>از صبر و شکیبایی شما متشکریم!</strong><br>
+                                تحلیل جامع شامل بررسی چیدمان، روشنایی، جریان مشتریان، محصولات و برنامه اجرایی می‌باشد.
                             </div>
                             <small class="text-muted">این صفحه به طور خودکار بروزرسانی می‌شود</small>
                         </div>
@@ -1559,10 +1568,11 @@
                 <div class="analysis-loading-container">
                     <div style="font-size: 4rem; color: #dc3545; margin-bottom: 1rem;">❌</div>
                     <div class="analysis-loading-title" style="color: #dc3545;">تحلیل ناموفق بود</div>
-                    <div class="analysis-loading-subtitle">
-                        متأسفانه در حین پردازش تحلیل فروشگاه شما خطایی رخ داده است.<br>
-                        لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.
-                    </div>
+                        <div class="analysis-loading-subtitle">
+                            متأسفانه در حین پردازش تحلیل جامع فروشگاه شما خطایی رخ داده است.<br>
+                            تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد و ممکن است به دلیل حجم زیاد داده‌ها یا سرعت اینترنت ناموفق باشد.<br>
+                            لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.
+                        </div>
                     <div style="margin-top: 2rem;">
                         <button onclick="window.location.reload()" class="btn btn-primary" style="margin-left: 1rem;">
                             🔄 تلاش مجدد
@@ -1830,7 +1840,7 @@
                     showToast('❌ تحلیل ناموفق بود: ' + data.message, 'error');
                 } else if (data.status === 'processing') {
                     // Continue polling
-                    console.log('Processing...');
+                    console.log('تحلیل در حال انجام است... لطفاً صبور باشید.');
                 }
             })
             .catch(error => {

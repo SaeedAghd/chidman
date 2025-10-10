@@ -302,19 +302,19 @@ class SimpleFormManager {
                             if (contentType && contentType.includes('application/json')) {
                                 const data = JSON.parse(xhr.responseText);
                                 if (data.success) {
-                                    this.showMessage(data.message || '🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
+                                    this.showMessage(data.message || '🎉 با تشکر! در حال آپلود عکس و فیلم هستیم، منتظر بمانید...', 'success');
                                     setTimeout(() => {
                                         if (data.redirect_url) {
                                             window.location.href = data.redirect_url;
                                         } else {
                                             window.location.href = '/store/dashboard/';
                                         }
-                                    }, 1500);
+                                    }, 2000);
                                 } else {
                                     this.showMessage(data.message || 'خطا در ارسال فرم', 'error');
                                 }
                             } else {
-                                this.showMessage('🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
+                                this.showMessage('🎉 با تشکر! در حال آپلود عکس و فیلم هستیم، منتظر بمانید...', 'success');
                                 setTimeout(() => {
                                     window.location.href = '/store/dashboard/';
                                 }, 2000);
