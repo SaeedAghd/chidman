@@ -60,7 +60,6 @@
             <label class="form-label">توضیحات سایت</label>
             <textarea name="site_description" class="form-control" rows="3" placeholder="توضیحات سایت...">{{ settings.site_description|default:'پلتفرم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه‌ها' }}</textarea>
         </div>
-    </form>
 </div>
 
 <!-- Payment Settings -->
@@ -93,12 +92,12 @@
         
         <div class="form-group">
             <label class="form-label">حداقل مبلغ پرداخت (تومان)</label>
-            <input type="number" name="min_payment_amount" class="form-control" value="10000" placeholder="حداقل مبلغ">
+            <input type="number" name="min_payment_amount" class="form-control" value="{{ settings.min_payment_amount|default:'10000' }}" placeholder="حداقل مبلغ">
         </div>
         
         <div class="form-group">
             <label class="form-label">حداکثر مبلغ پرداخت (تومان)</label>
-            <input type="number" name="max_payment_amount" class="form-control" value="10000000" placeholder="حداکثر مبلغ">
+            <input type="number" name="max_payment_amount" class="form-control" value="{{ settings.max_payment_amount|default:'10000000' }}" placeholder="حداکثر مبلغ">
         </div>
     </div>
 </div>
@@ -115,12 +114,12 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div class="form-group">
             <label class="form-label">حداکثر تحلیل همزمان</label>
-            <input type="number" name="max_concurrent_analyses" class="form-control" value="5" placeholder="تعداد">
+            <input type="number" name="max_concurrent_analyses" class="form-control" value="{{ settings.max_concurrent_analyses|default:'5' }}" placeholder="تعداد">
         </div>
         
         <div class="form-group">
             <label class="form-label">زمان انتظار تحلیل (دقیقه)</label>
-            <input type="number" name="analysis_timeout" class="form-control" value="30" placeholder="دقیقه">
+            <input type="number" name="analysis_timeout" class="form-control" value="{{ settings.analysis_timeout|default:'30' }}" placeholder="دقیقه">
         </div>
         
         <div class="form-group">
@@ -151,17 +150,17 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div class="form-group">
             <label class="form-label">SMTP سرور</label>
-            <input type="text" name="smtp_server" class="form-control" value="smtp.gmail.com" placeholder="SMTP سرور">
+            <input type="text" name="smtp_server" class="form-control" value="{{ settings.smtp_server|default:'smtp.gmail.com' }}" placeholder="SMTP سرور">
         </div>
         
         <div class="form-group">
             <label class="form-label">پورت SMTP</label>
-            <input type="number" name="smtp_port" class="form-control" value="587" placeholder="پورت">
+            <input type="number" name="smtp_port" class="form-control" value="{{ settings.smtp_port|default:'587' }}" placeholder="پورت">
         </div>
         
         <div class="form-group">
             <label class="form-label">ایمیل فرستنده</label>
-            <input type="email" name="sender_email" class="form-control" value="noreply@chidmano.ir" placeholder="ایمیل فرستنده">
+            <input type="email" name="sender_email" class="form-control" value="{{ settings.sender_email|default:'noreply@chidmano.ir' }}" placeholder="ایمیل فرستنده">
         </div>
         
         <div class="form-group">
@@ -187,17 +186,17 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div class="form-group">
             <label class="form-label">حداکثر تلاش ورود</label>
-            <input type="number" name="max_login_attempts" class="form-control" value="5" placeholder="تعداد">
+            <input type="number" name="max_login_attempts" class="form-control" value="{{ settings.max_login_attempts|default:'5' }}" placeholder="تعداد">
         </div>
         
         <div class="form-group">
             <label class="form-label">زمان قفل حساب (دقیقه)</label>
-            <input type="number" name="account_lockout_time" class="form-control" value="15" placeholder="دقیقه">
+            <input type="number" name="account_lockout_time" class="form-control" value="{{ settings.account_lockout_time|default:'15' }}" placeholder="دقیقه">
         </div>
         
         <div class="form-group">
             <label class="form-label">مدت اعتبار جلسه (ساعت)</label>
-            <input type="number" name="session_timeout" class="form-control" value="24" placeholder="ساعت">
+            <input type="number" name="session_timeout" class="form-control" value="{{ settings.session_timeout|default:'24' }}" placeholder="ساعت">
         </div>
         
         <div class="form-group">
@@ -274,6 +273,7 @@
         </a>
     </div>
 </div>
+</form>
 {% endblock %}
 
 {% block extra_js %}
