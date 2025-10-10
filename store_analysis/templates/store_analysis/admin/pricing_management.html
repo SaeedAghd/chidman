@@ -332,19 +332,29 @@ function savePricingSettings() {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error('Network response was not ok');
+    })
     .then(data => {
         if (data.success) {
-            showAlert('✅ تنظیمات با موفقیت ذخیره شد', 'success');
+            showAlert('تنظیمات قیمت با موفقیت ذخیره شد', 'success');
+            // بازنشانی فرم
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } else {
-            showAlert('❌ خطا در ذخیره تنظیمات: ' + (data.error || 'خطای نامشخص'), 'danger');
+            showAlert(data.message || 'خطا در ذخیره تنظیمات', 'danger');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('❌ خطا در ارتباط با سرور', 'danger');
+        showAlert('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.', 'danger');
     })
     .finally(() => {
+        // بازگردانی دکمه
         saveBtn.disabled = false;
         saveBtn.innerHTML = '<i class="fas fa-save"></i> ذخیره تنظیمات';
     });
