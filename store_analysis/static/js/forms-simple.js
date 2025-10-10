@@ -179,7 +179,26 @@ class SimpleFormManager {
         // Show final message on last step
         const finalMotivation = document.getElementById('finalMotivation');
         if (finalMotivation) {
-            finalMotivation.style.display = this.currentStep === this.totalSteps ? 'block' : 'none';
+            if (this.currentStep === this.totalSteps) {
+                finalMotivation.style.display = 'block';
+                // Add animation effect
+                setTimeout(() => {
+                    finalMotivation.style.opacity = '1';
+                    finalMotivation.style.transform = 'translateY(0)';
+                }, 100);
+                
+                // Scroll to final message
+                setTimeout(() => {
+                    finalMotivation.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                }, 500);
+            } else {
+                finalMotivation.style.display = 'none';
+                finalMotivation.style.opacity = '0';
+                finalMotivation.style.transform = 'translateY(20px)';
+            }
         }
     }
 
