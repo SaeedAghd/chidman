@@ -355,7 +355,12 @@ function closeLegalModal() {
 }
 
 function acceptLegalAgreement() {
-    // ارسال درخواست به سرور برای ذخیره تایید
+    // نمایش loading
+    const button = document.querySelector('#legalAgreementModal .btn-primary');
+    const originalText = button.textContent;
+    button.textContent = 'در حال ذخیره...';
+    button.disabled = true;
+    
     fetch('/store/accept-legal-agreement/', {
         method: 'POST',
         headers: {
@@ -367,19 +372,59 @@ function acceptLegalAgreement() {
             'timestamp': new Date().toISOString()
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // بستن مودال
             document.getElementById('legalAgreementModal').style.display = 'none';
+            // نمایش پیام موفقیت
+            showSuccessMessage('تعهدنامه با موفقیت تایید شد');
         } else {
-            alert('خطا در ذخیره تایید. لطفاً دوباره تلاش کنید.');
+            throw new Error(data.message || 'خطا در ذخیره تایید');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.');
+        showErrorMessage('خطا در ذخیره تایید. لطفاً دوباره تلاش کنید.');
+    })
+    .finally(() => {
+        // بازگردانی دکمه
+        button.textContent = originalText;
+        button.disabled = false;
     });
+}
+
+function showSuccessMessage(message) {
+    // ایجاد پیام موفقیت
+    const successDiv = document.createElement('div');
+    successDiv.className = 'alert alert-success';
+    successDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+    successDiv.textContent = message;
+    document.body.appendChild(successDiv);
+    
+    // حذف پیام پس از 3 ثانیه
+    setTimeout(() => {
+        successDiv.remove();
+    }, 3000);
+}
+
+function showErrorMessage(message) {
+    // ایجاد پیام خطا
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger';
+    errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+    
+    // حذف پیام پس از 5 ثانیه
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 5000);
 }
 
 function getCookie(name) {

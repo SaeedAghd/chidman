@@ -4220,7 +4220,7 @@ def check_legal_agreement(request):
         })
 
 def accept_legal_agreement(request):
-    """تایید تعهدنامه حقوقی"""
+    """تایید تعهدنامه حقوقی - نسخه بهبود یافته"""
     if request.method == 'POST':
         try:
             import json
@@ -4229,31 +4229,52 @@ def accept_legal_agreement(request):
             if data.get('accepted'):
                 # همیشه در سشن ذخیره کن (چه لاگین باشد چه نباشد)
                 request.session['legal_agreement_accepted'] = True
+                request.session['legal_agreement_date'] = timezone.now().isoformat()
 
                 # اگر کاربر لاگین است، در دیتابیس هم ذخیره کن
                 if request.user.is_authenticated:
-                    from .models import UserProfile
-                    profile, created = UserProfile.objects.get_or_create(
-                        user=request.user,
-                        defaults={'legal_agreement_accepted': True}
-                    )
-                    if not created:
-                        profile.legal_agreement_accepted = True
-                        profile.save()
+                    try:
+                        from .models import UserProfile
+                        profile, created = UserProfile.objects.get_or_create(
+                            user=request.user,
+                            defaults={
+                                'legal_agreement_accepted': True,
+                                'legal_agreement_date': timezone.now()
+                            }
+                        )
+                        if not created:
+                            profile.legal_agreement_accepted = True
+                            profile.legal_agreement_date = timezone.now()
+                            profile.save()
+
+                        logger.info(f"Legal agreement accepted for user {request.user.id}")
+                        
+                    except Exception as db_error:
+                        logger.error(f"Database error in legal agreement: {str(db_error)}")
+                        # حتی اگر دیتابیس خطا داشته باشد، session را حفظ کن
+                        pass
 
                 return JsonResponse({
                     'success': True,
                     'message': 'تعهدنامه با موفقیت تایید شد'
                 })
-            return JsonResponse({
-                'success': False,
-                'message': 'تایید تعهدنامه الزامی است'
-            })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'تایید تعهدنامه الزامی است'
+                })
                 
-        except Exception as e:
+        except json.JSONDecodeError as json_error:
+            logger.error(f"JSON decode error: {str(json_error)}")
             return JsonResponse({
                 'success': False,
-                'message': f'خطا در ذخیره تایید: {str(e)}'
+                'message': 'خطا در پردازش درخواست'
+            })
+        except Exception as e:
+            logger.error(f"Unexpected error in legal agreement: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': 'خطا در ذخیره تایید. لطفاً دوباره تلاش کنید.'
             })
     
     return JsonResponse({
