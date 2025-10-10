@@ -55,7 +55,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (chartData.length > 0 && typeof Chart !== 'undefined') {
                 const ctx = document.getElementById('adminChart');
                 if (ctx) {
-                    new Chart(ctx, {
+                    // Destroy existing chart if it exists
+                    if (window.adminChart) {
+                        window.adminChart.destroy();
+                    }
+                    
+                    window.adminChart = new Chart(ctx, {
                         type: 'line',
                         data: {
                             labels: chartLabels,
