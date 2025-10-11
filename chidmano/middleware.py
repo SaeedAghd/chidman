@@ -107,16 +107,16 @@ class CSPMiddleware:
                 "object-src 'none'"
             )
         else:
-            # CSP کامل برای مرورگرهای عادی
+            # CSP کامل برای مرورگرهای عادی - با پشتیبانی اینماد و Clarity
             csp_policy = (
                 "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://analytics.google.com; "
-                "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://analytics.google.com https://www.clarity.ms; "
+                "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://www.clarity.ms; "
                 "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
                 "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-                "img-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://ssl.google-analytics.com; "
+                "img-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://ssl.google-analytics.com https://trustseal.enamad.ir; "
                 "font-src 'self' data: https: http: https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-                "connect-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://analytics.google.com https://ssl.google-analytics.com; "
+                "connect-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://analytics.google.com https://ssl.google-analytics.com https://www.clarity.ms https://trustseal.enamad.ir; "
                 "media-src 'self' data: blob: https: http:; "
                 "frame-src 'self' https: http:; "
                 "frame-ancestors 'self' https: http:; "
