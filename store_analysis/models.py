@@ -1270,6 +1270,10 @@ class ChatSession(models.Model):
     title = models.CharField(max_length=200, default='مشاوره جدید', verbose_name='عنوان جلسه')
     is_active = models.BooleanField(default=True, verbose_name='فعال')
     
+    # محدودیت سوال: 3 سوال رایگان
+    is_premium = models.BooleanField(default=False, verbose_name='حساب پریمیوم')
+    premium_expires_at = models.DateTimeField(null=True, blank=True, verbose_name='تاریخ انقضای پریمیوم')
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='آخرین بروزرسانی')
     
@@ -1284,6 +1288,20 @@ class ChatSession(models.Model):
     def get_messages_count(self):
         """تعداد پیام‌های جلسه"""
         return self.messages.count()
+    
+    def get_user_questions_count(self):
+        """تعداد سوالات کاربر"""
+        return self.messages.filter(role='user').count()
+    
+    def has_free_questions_left(self):
+        """آیا کاربر سوال رایگان باقی دارد؟"""
+        if self.is_premium:
+            from django.utils import timezone
+            if self.premium_expires_at and self.premium_expires_at > timezone.now():
+                return True  # پریمیوم فعال - نامحدود
+        
+        # 3 سوال رایگان
+        return self.get_user_questions_count() < 3
     
     def get_last_message(self):
         """آخرین پیام"""

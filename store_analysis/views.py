@@ -41,8 +41,9 @@ from decimal import Decimal
 def calculate_analysis_cost(form_data):
     """محاسبه هزینه تحلیل بر اساس داده‌های فرم"""
     try:
-        # هزینه ثابت برای تحلیل جامع: 200,000 تومان (فعلاً رایگان)
-        base_cost = Decimal('200000')  # 200,000 تومان
+        # هزینه ثابت برای تحلیل جامع: 2,000,000 تومان
+        # تحلیل اولیه رایگان: 200,000 تومان (با تخفیف 100%)
+        base_cost = Decimal('2000000')  # 2,000,000 تومان
         
         # فعلاً بدون هزینه اضافی - همه تحلیل‌های جامع 200,000 تومان
         additional_cost = Decimal('0')
@@ -4273,7 +4274,33 @@ def _convert_ollama_results_to_text(results):
                 except:
                     pass
             
-            return report
+            # استفاده از template حرفه‌ای برای ساختاردهی (بدون تغییر نگارش)
+            try:
+                from .services.comprehensive_report_template import ComprehensiveReportTemplate
+                
+                ai_result = {
+                    'analysis_text': report,
+                    'scores': results.get('scores', {
+                        'overall_score': results.get('overall_score', 75),
+                        'design_score': results.get('design_score', 70),
+                        'quality_score': results.get('quality_score', 85)
+                    })
+                }
+                
+                analysis_data = results.get('store_info', {
+                    'store_name': results.get('store_name', 'فروشگاه'),
+                    'store_type': results.get('store_type', 'عمومی')
+                })
+                
+                formatted_report = ComprehensiveReportTemplate.format_comprehensive_report(
+                    analysis_data, ai_result
+                )
+                
+                return formatted_report
+                
+            except Exception as e:
+                logger.error(f"Error formatting report: {e}")
+                return report  # در صورت خطا، گزارش اصلی
         
         # اگر analysis_text از Ollama/local است
         if 'analysis_text' in results:
