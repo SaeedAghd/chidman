@@ -1,17 +1,72 @@
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemaps
 Sitemap: https://chidmano.ir/sitemap.xml
+Sitemap: https://chidmano.ir/sitemap-images.xml
 
-# Disallow private areas
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin areas (private content)
 Disallow: /admin/
+Disallow: /api/
 Disallow: /accounts/
 Disallow: /store/dashboard/
-Disallow: /store/analysis/
-Disallow: /api/
 
-# Allow important pages
+# Allow important pages (public content)
+Allow: /store/
+Allow: /store/forms/
 Allow: /guide/
+Allow: /case-studies/
+Allow: /partnership/
+
+# Allow static files for proper rendering
 Allow: /static/
-Allow: /media/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+Allow: /*.woff
+Allow: /*.woff2
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 2
+
+# Block bad bots that waste resources
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
