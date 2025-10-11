@@ -6874,10 +6874,19 @@ def payment_success(request, order_id):
         store_analysis.status = 'processing'
         store_analysis.save()
         
-        # اجرای تحلیل AI
+        # اجرای تحلیل AI با Liara
         try:
+            logger.info(f"🚀 شروع تحلیل AI با Liara برای سفارش {order_id}")
             ai_analyzer = StoreAnalysisAI()
-            analysis_result = ai_analyzer.analyze_store(store_analysis.analysis_data)
+            
+            # آماده‌سازی داده‌ها با تصاویر
+            analysis_data = store_analysis.analysis_data or {}
+            images = analysis_data.get('uploaded_files', {}).get('store_images', [])
+            
+            # تحلیل با Liara AI
+            analysis_result = ai_analyzer.analyze_store(analysis_data, images=images)
+            
+            logger.info(f"✅ تحلیل AI تکمیل شد. منبع: {analysis_result.get('source', 'unknown')}, کیفیت: {analysis_result.get('quality_score', 0)}")
             
             # ذخیره نتایج تحلیل
             store_analysis.results = analysis_result
