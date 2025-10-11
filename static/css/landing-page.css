@@ -1,28 +1,14 @@
 /* Landing Page Custom Styles */
 
-/* Vazir Font Definition */
-@font-face {
-    font-family: 'VazirLocal';
-    src: url('../fonts/Vazir.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'VazirLocal';
-    src: url('../fonts/Vazir-Bold.ttf') format('truetype');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
-}
+/* فونت Vazirmatn از CDN (بدون نیاز به فایل محلی) */
+/* تعریف فونت در vazirmatn.css انجام شده */
 
 :root {
-    /* فونت‌های فارسی - اولویت با VazirLocal */
-    --font-primary: 'VazirLocal', 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
-    --font-heading: 'VazirLocal', 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
-    --font-body: 'VazirLocal', 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
-    --font-accent: 'VazirLocal', 'Vazirmatn', 'Samim', 'Estedad', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    /* فونت‌های فارسی - استفاده از Vazirmatn (CDN) */
+    --font-primary: 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    --font-heading: 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    --font-body: 'Vazirmatn', 'Estedad', 'Samim', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
+    --font-accent: 'Vazirmatn', 'Samim', 'Estedad', 'Shabnam', 'Tanha', 'Yekan', sans-serif;
     
     /* رنگ‌های Apple */
     --apple-white: #ffffff;

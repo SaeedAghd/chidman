@@ -1,0 +1,19 @@
+📋 دستورات حل مشکل Migration (کپی کن و در Shell بزن):
+
+# مرحله 1: Fake کردن migration مشکل‌دار
+python manage.py migrate store_analysis 0047_add_recommendations_column --fake
+
+# مرحله 2: اجرای تمام migration های باقی‌مانده
+python manage.py migrate
+
+# مرحله 3: بررسی وضعیت نهایی
+python manage.py showmigrations store_analysis
+
+---
+
+✅ اگر موفق شد، باید ببینی:
+[X] 0071_chatsession_is_premium_and_more
+[X] 0072_alter_promotionalbanner_end_date
+
+و همه [X] داشته باشند!
+
