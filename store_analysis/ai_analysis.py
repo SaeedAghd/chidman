@@ -1735,8 +1735,27 @@ class DeepStoreAnalyzer:
         }
     
     def _calculate_quality_score(self, store_data: Dict[str, Any], images: List[str] = None) -> float:
-        """محاسبه امتیاز کیفیت تحلیل"""
-        return 94.5
+        """محاسبه امتیاز کیفیت تحلیل بر اساس داده‌های موجود"""
+        quality = 70.0  # پایه
+        
+        # افزایش کیفیت بر اساس تصاویر
+        if images and len(images) > 0:
+            quality += 10.0
+            if len(images) >= 3:
+                quality += 5.0  # حداکثر +15
+        
+        # افزایش بر اساس اطلاعات فروشگاه
+        if store_data.get('store_name'):
+            quality += 2.0
+        if store_data.get('store_type'):
+            quality += 3.0
+        if store_data.get('store_size'):
+            quality += 2.0
+        if store_data.get('daily_customers'):
+            quality += 3.0
+        
+        # حداکثر 95%
+        return min(95.0, quality)
     
     def _analyze_layout(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """تحلیل چیدمان"""
@@ -2436,30 +2455,38 @@ class StoreAnalysisAI:
     def _generate_ai_analysis(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """تولید تحلیل با هوش مصنوعی - اولویت با Liara AI"""
         try:
-            # اولویت 1: استفاده از Liara AI
+            # اولویت 1: استفاده از Liara AI (GPT-4.1)
             try:
                 from .ai_services.liara_ai_service import LiaraAIService
                 liara_ai = LiaraAIService()
                 
-                logger.info("🚀 استفاده از Chidmano1 AI برای تحلیل...")
-                liara_result = liara_ai.analyze_store_comprehensive(store_data)
+                logger.info("🚀 استفاده از Liara AI (GPT-4.1) برای تحلیل...")
+                liara_result = liara_ai.analyze_store_comprehensive(store_data, images)
                 
                 if liara_result and liara_result.get('final_report'):
-                    logger.info("✅ تحلیل Chidmano1 AI موفقیت‌آمیز بود")
+                    logger.info("✅ تحلیل Liara AI (GPT-4.1) موفقیت‌آمیز بود")
+                    
+                    # محاسبه کیفیت واقعی بر اساس تحلیل
+                    quality = 85.0  # پایه برای Liara AI
+                    if images and len(images) > 0:
+                        quality += 5.0
+                    if len(liara_result.get('detailed_analyses', {})) > 3:
+                        quality += 5.0  # تحلیل کامل
+                    
                     return {
                         'analysis_text': liara_result.get('final_report', ''),
                         'detailed_analyses': liara_result.get('detailed_analyses', {}),
-                        'ai_models_used': liara_result.get('ai_models_used', ['gpt-4-turbo']),
+                        'ai_models_used': liara_result.get('ai_models_used', ['gpt-4.1']),
                         'source': 'liara_ai',
-                        'quality_score': 95,
-                        'confidence_score': 90
+                        'quality_score': min(98.0, quality),
+                        'confidence_score': 92
                     }
                 else:
                     logger.warning("⚠️ Liara AI نتیجه مناسب برنگرداند")
                     
             except Exception as e:
-                logger.error(f"❌ خطا در Chidmano1 AI: {e}")
-                logger.info("🔄 ادامه با Ollama...")
+                logger.error(f"❌ خطا در Liara AI: {e}", exc_info=True)
+                logger.info("🔄 ادامه با تحلیل محلی...")
             
             # اولویت 2: استفاده از Ollama (fallback)
             if self.ollama_available:
