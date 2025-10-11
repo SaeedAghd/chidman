@@ -89,28 +89,46 @@ class CSPMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
-        # Add CSP header with comprehensive browser support
-        csp_policy = (
-            "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://analytics.google.com; "
-            "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://ssl.google-analytics.com; "
-            "font-src 'self' data: https: http: https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-            "connect-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://analytics.google.com https://ssl.google-analytics.com; "
-            "media-src 'self' data: blob: https: http:; "
-            "frame-src 'self' https: http:; "
-            "frame-ancestors 'self' https: http:; "
-            "object-src 'none'; "
-            "base-uri 'self'; "
-            "form-action 'self' https: http:; "
-            "worker-src 'self' blob:; "
-            "child-src 'self' blob:; "
-            "manifest-src 'self'; "
-            "upgrade-insecure-requests; "
-            "block-all-mixed-content"
-        )
+        # تشخیص Google Bot
+        user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+        is_googlebot = 'googlebot' in user_agent or 'google' in user_agent
+        
+        # CSP سبک‌تر برای Google Bot
+        if is_googlebot:
+            csp_policy = (
+                "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; "
+                "style-src 'self' 'unsafe-inline' https:; "
+                "img-src 'self' data: blob: https:; "
+                "font-src 'self' data: https:; "
+                "connect-src 'self' data: blob: https:; "
+                "media-src 'self' data: blob: https:; "
+                "frame-src 'self' https:; "
+                "object-src 'none'"
+            )
+        else:
+            # CSP کامل برای مرورگرهای عادی
+            csp_policy = (
+                "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://analytics.google.com; "
+                "script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+                "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+                "img-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://ssl.google-analytics.com; "
+                "font-src 'self' data: https: http: https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+                "connect-src 'self' data: blob: https: http: https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://analytics.google.com https://ssl.google-analytics.com; "
+                "media-src 'self' data: blob: https: http:; "
+                "frame-src 'self' https: http:; "
+                "frame-ancestors 'self' https: http:; "
+                "object-src 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self' https: http:; "
+                "worker-src 'self' blob:; "
+                "child-src 'self' blob:; "
+                "manifest-src 'self'; "
+                "upgrade-insecure-requests; "
+                "block-all-mixed-content"
+            )
         
         response.headers['Content-Security-Policy'] = csp_policy
         return response
