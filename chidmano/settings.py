@@ -28,12 +28,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan
 # Payment Gateway Settings
 PAYMENT_GATEWAY = {
     'PING_PAYMENT': {
-        'MERCHANT_ID': '17D62CFE490EA7C6BF20090BEA12A49FEB4482B02F8534696215A6DE23DF684A-1',
+        'MERCHANT_ID': 'ADCA58BCD11E654DE22B4677E14D51B379738F188767A8BD1A41FFADD07A5B83-1',  # تستی برای کاربران تکراری
         'API_KEY': os.getenv('PING_API_KEY', 'EB28E90039CB8FCD97F3D778FC7644917A1391217F9E47046EA864EA25331445-1'),
         'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/'),
         'RETURN_URL': os.getenv('PING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/'),
-        'SANDBOX': os.getenv('PING_SANDBOX', 'False').lower() == 'true',
-        'API_URL': 'https://api.pingpayment.ir' if os.getenv('PING_SANDBOX', 'False').lower() == 'false' else 'https://api-sandbox.pingpayment.ir',
+        'SANDBOX': True,  # فعال کردن حالت تست برای کاربران تکراری
+        'API_URL': 'https://api-sandbox.pingpayment.ir',  # استفاده از sandbox برای تست
         'TRUST_BADGE': True,  # فعال‌سازی نماد اعتماد
         'VERIFY_SSL': True
     }
