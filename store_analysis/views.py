@@ -41,42 +41,21 @@ from decimal import Decimal
 def calculate_analysis_cost(form_data):
     """محاسبه هزینه تحلیل بر اساس داده‌های فرم"""
     try:
-        # هزینه پایه
-        base_cost = Decimal('500000')  # 500,000 تومان
+        # هزینه ثابت برای تحلیل جامع: 200,000 تومان (فعلاً رایگان)
+        base_cost = Decimal('200000')  # 200,000 تومان
         
+        # فعلاً بدون هزینه اضافی - همه تحلیل‌های جامع 200,000 تومان
         additional_cost = Decimal('0')
         
-        # هزینه بر اساس نوع فروشگاه
-        store_type = form_data.get('store_type', '')
-        if 'پوشاک' in store_type:
-            additional_cost += Decimal('100000')
-        elif 'مواد غذایی' in store_type:
-            additional_cost += Decimal('80000')
-        elif 'الکترونیک' in store_type:
-            additional_cost += Decimal('150000')
+        # نوع فروشگاه و اندازه تأثیری در قیمت ندارد (فعلاً)
+        # در آینده می‌توان بر اساس نیاز اضافه کرد
         
-        # هزینه بر اساس اندازه فروشگاه
-        store_size = form_data.get('store_size', '100')
-        try:
-            size = int(store_size)
-            if size > 200:
-                additional_cost += Decimal('100000')
-            elif size > 100:
-                additional_cost += Decimal('50000')
-        except (ValueError, TypeError):
-            pass
-        
-        # هزینه خدمات اضافی
-        if form_data.get('layout_analysis') == 'on':
-            additional_cost += Decimal('200000')
-        if form_data.get('traffic_analysis') == 'on':
-            additional_cost += Decimal('150000')
-        if form_data.get('design_analysis') == 'on':
-            additional_cost += Decimal('100000')
-        if form_data.get('surveillance_analysis') == 'on':
-            additional_cost += Decimal('120000')
-        if form_data.get('product_analysis') == 'on':
-            additional_cost += Decimal('80000')
+        # هزینه خدمات اضافی (غیرفعال)
+        # if form_data.get('layout_analysis') == 'on':
+        #     additional_cost += Decimal('100000')
+        # خدمات اضافی غیرفعال (همه چیز در 200,000 تومان)
+        # if form_data.get('traffic_analysis') == 'on':
+        #     additional_cost += Decimal('50000')
         
         total = base_cost + additional_cost
         
@@ -85,15 +64,15 @@ def calculate_analysis_cost(form_data):
         if form_data.get('discount_code'):
             discount = Decimal('50000')  # 50,000 تومان تخفیف
         
-        # تخفیف 100% برای دوره راه‌اندازی
+        # تخفیف 100% برای دوره راه‌اندازی (فعلاً رایگان)
         from datetime import datetime
         current_date = datetime.now()
         launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
         
         if current_date <= launch_end_date:
-            discount = total  # تخفیف 100%
+            discount = total  # تخفیف 100% - فعلاً رایگان
         
-        final = total - discount
+        final = max(Decimal('0'), total - discount)  # حداقل 0
         
         return {
             'base': float(base_cost),
@@ -6849,8 +6828,20 @@ def forms_submit(request):
                 analysis_data=form_data
             )
             
-            # همه تحلیل‌ها پولی هستند - هدایت به صفحه پرداخت
-            # محاسبه هزینه
+            # تولید تحلیل اولیه رایگان
+            try:
+                from .services.preliminary_analysis_service import PreliminaryAnalysisService
+                preliminary_service = PreliminaryAnalysisService()
+                preliminary_text = preliminary_service.generate_preliminary_analysis(form_data)
+                store_analysis.preliminary_analysis = preliminary_text
+                store_analysis.status = 'preliminary_completed'
+                store_analysis.save()
+                logger.info(f"✅ تحلیل اولیه برای {store_analysis.store_name} تولید شد")
+            except Exception as e:
+                logger.error(f"خطا در تولید تحلیل اولیه: {e}")
+            
+            # همه تحلیل‌های جامع پولی هستند - هدایت به صفحه پرداخت
+            # محاسبه هزینه (200,000 تومان برای تحلیل جامع)
             cost_breakdown = calculate_analysis_cost(form_data)
             
             # ایجاد سفارش
@@ -6869,16 +6860,16 @@ def forms_submit(request):
             # اتصال تحلیل به سفارش
             store_analysis.order = order
             # تنظیم فیلدهای خالی برای جلوگیری از خطای database
-            store_analysis.preliminary_analysis = ""
             store_analysis.ai_insights = ""
             store_analysis.recommendations = ""
             store_analysis.save()
             
+            # کاربر اول تحلیل اولیه را می‌بیند، بعد می‌تواند برای جامع پرداخت کند
             return JsonResponse({
                 'success': True,
-                'message': 'با تشکر! در حال آپلود عکس و فیلم هستیم، منتظر بمانید...',
-                'redirect_url': f'/store/payment/{order.order_number}/',
-                'payment_required': True
+                'message': 'با تشکر! تحلیل اولیه رایگان شما آماده است.',
+                'redirect_url': f'/store/analysis/{store_analysis.id}/results/',
+                'has_preliminary': True
             })
             
         except Exception as e:
