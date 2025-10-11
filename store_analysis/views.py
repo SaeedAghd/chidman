@@ -2215,13 +2215,26 @@ def download_detailed_pdf(request, pk):
             """تبدیل متن فارسی به فرمت صحیح RTL"""
             if not text:
                 return text
+            
             # حذف کاراکترهای خاص که مشکل ایجاد می‌کنند
             text = text.replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
-            # تبدیل به RTL
-            if arabic_reshaper and get_display:
-                reshaped_text = arabic_reshaper.reshape(text)
-                return get_display(reshaped_text)
-            else:
+            
+            # تبدیل متن به فرمت صحیح فارسی
+            try:
+                # تلاش برای استفاده از arabic_reshaper
+                import arabic_reshaper
+                from bidi.algorithm import get_display
+                
+                if arabic_reshaper and get_display:
+                    reshaped_text = arabic_reshaper.reshape(text)
+                    return get_display(reshaped_text)
+                else:
+                    return text
+            except ImportError:
+                # اگر arabic_reshaper نصب نیست، متن را بدون تغییر برگردان
+                return text
+            except Exception:
+                # در صورت هر خطای دیگر، متن اصلی را برگردان
                 return text
         
         # سربرگ تمیز و حرفه‌ای - بدون تداخل

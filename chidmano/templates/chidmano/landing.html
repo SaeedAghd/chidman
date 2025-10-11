@@ -6,17 +6,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="3Wemu5dBmbflr4MsYwW840qSZh2y2zIuf7L0QgS4FrY" />
+    <!-- Apple-specific Meta Tags -->
+    <meta name="apple-mobile-web-app-title" content="چیدمانو">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; frame-src 'none';">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-touch-fullscreen" content="yes">
+    
+    <!-- Apple Business Connect -->
+    <meta name="apple-itunes-app" content="app-id=YOUR_APP_ID">
+    
+    <!-- Safari-specific -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https: https://www.google-analytics.com https://ssl.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com; frame-src 'none';">
     <meta name="theme-color" content="#667eea">
     <!-- SEO Meta Tags -->
     <meta name="description" content="تحلیل هوشمند چیدمان فروشگاه با هوش مصنوعی - افزایش فروش تا 30% با بهینه‌سازی چیدمان فروشگاه، طراحی حرفه‌ای و تحلیل ترافیک مشتریان">
     <meta name="keywords" content="تحلیل چیدمان فروشگاه, بهینه‌سازی فروشگاه, چیدمان فروشگاه, افزایش فروش, طراحی فروشگاه, تحلیل ترافیک فروشگاه, هوش مصنوعی فروشگاه, نرم‌افزار فروشگاه, چیدمانو">
     <meta name="author" content="چیدمانو - تیم تحلیل فروشگاه">
+    <!-- Advanced SEO Meta Tags -->
+    <meta name="language" content="Persian">
+    <meta name="geo.region" content="IR">
+    <meta name="geo.placename" content="Iran">
+    <meta name="geo.position" content="35.6892;51.3890">
+    <meta name="ICBM" content="35.6892, 51.3890">
+    
+    <!-- Additional Search Engine Directives -->
+    <meta name="revisit-after" content="1 days">
+    <meta name="distribution" content="global">
+    <meta name="rating" content="general">
+    <meta name="target" content="all">
+    
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Robots Meta Tags -->
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow">
     <meta name="bingbot" content="index, follow">
+    <meta name="slurp" content="index, follow">
+    <meta name="duckduckbot" content="index, follow">
+    <meta name="baiduspider" content="index, follow">
+    <meta name="yandexbot" content="index, follow">
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="تحلیل هوشمند چیدمان فروشگاه - افزایش فروش تا 30%">
@@ -31,16 +64,36 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="تحلیل هوشمند چیدمان فروشگاه - افزایش فروش تا 30%">
     <meta name="twitter:description" content="با هوش مصنوعی چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا 30% افزایش دهید">
-    <meta name="twitter:image" content="https://chidmano.ir{% static 'images/logo.png' %}">
+    <!-- Social Media Verification -->
+    <meta name="facebook-domain-verification" content="YOUR_FACEBOOK_VERIFICATION_CODE" />
+    <meta name="p:domain_verify" content="YOUR_PINTEREST_VERIFICATION_CODE" />
+    <meta name="twitter:site" content="@chidmano">
+    <meta name="twitter:creator" content="@chidmano">
+    
+    <!-- Additional Social Media -->
+    <meta property="fb:app_id" content="YOUR_FACEBOOK_APP_ID">
+    <meta property="fb:pages" content="YOUR_FACEBOOK_PAGE_ID">
     
     <!-- Canonical URL and hreflang -->
     <link rel="canonical" href="https://chidmano.ir/">
     <link rel="alternate" hreflang="fa-IR" href="https://chidmano.ir/">
     
-    <!-- Resource Hints for Performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <!-- Performance Optimization -->
+    <link rel="preload" href="{% static 'css/bootstrap.min.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"></noscript>
+    
+    <!-- Critical CSS Inline -->
+    <style>
+        /* Critical CSS for above-the-fold content */
+        .navbar { background: #667eea; }
+        .hero-section { min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .btn-primary { background: #667eea; border: none; }
+    </style>
+    
+    <!-- Resource Hints -->
+    <link rel="dns-prefetch" href="//www.google-analytics.com">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
+    <link rel="dns-prefetch" href="//www.clarity.ms">
     <!-- Use hosted Vazirmatn (woff2) instead of local TTF to avoid OTS errors -->
     <!-- Removed external Google Fonts to avoid fonts.gstatic timeouts -->
     <link rel="preload" href="{% static 'images/logo.png' %}" as="image">
@@ -48,7 +101,47 @@
     <link rel="preload" href="{% static 'css/bootstrap.min.css' %}" as="style">
     <link rel="preload" href="{% static 'js/bootstrap.bundle.min.js' %}" as="script">
     
-    <!-- Language and Region -->
+    <!-- Microsoft-specific Meta Tags -->
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-TileImage" content="{% static 'images/logo.png' %}">
+    <meta name="msapplication-config" content="{% static 'browserconfig.xml' %}">
+    
+    <!-- Microsoft Edge Specific -->
+    <meta name="msapplication-starturl" content="/">
+    <meta name="msapplication-navbutton-color" content="#667eea">
+    <meta name="msapplication-window" content="width=1024;height=768">
+    
+    <!-- Microsoft Clarity -->
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "YOUR_CLARITY_ID");
+    </script>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+    <!-- End Google Tag Manager -->
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-85C9F4Q707"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-85C9F4Q707', {
+        'page_title': 'چیدمانو - تحلیل هوشمند چیدمان فروشگاه',
+        'page_location': 'https://chidmano.ir/',
+        'custom_map': {
+          'custom_parameter_1': 'store_analysis',
+          'custom_parameter_2': 'ai_powered'
+        }
+      });
+    </script>
+    <!-- End Google Analytics -->
     
     <!-- Advanced Schema.org Structured Data -->
     <script type="application/ld+json">
@@ -236,7 +329,106 @@
     <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"WebSite","url":"https://chidmano.ir/","name":"چیدمانو","potentialAction":{"@type":"SearchAction","target":"https://chidmano.ir/?q={search_term_string}","query-input":"required name=search_term_string"}}
     </script>
-    <!-- Schema.org Structured Data: FAQPage -->
+    <!-- Advanced Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "خانه",
+                "item": "https://chidmano.ir/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "تحلیل فروشگاه",
+                "item": "https://chidmano.ir/store/forms/"
+            }
+        ]
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "نحوه تحلیل چیدمان فروشگاه",
+        "description": "راهنمای کامل تحلیل و بهینه‌سازی چیدمان فروشگاه",
+        "step": [
+            {
+                "@type": "HowToStep",
+                "name": "آپلود تصاویر فروشگاه",
+                "text": "تصاویر مختلف از فروشگاه خود را آپلود کنید"
+            },
+            {
+                "@type": "HowToStep",
+                "name": "تحلیل هوش مصنوعی",
+                "text": "سیستم هوش مصنوعی فروشگاه شما را تحلیل می‌کند"
+            },
+            {
+                "@type": "HowToStep",
+                "name": "دریافت گزارش",
+                "text": "گزارش کامل و پیشنهادات بهبود را دریافت کنید"
+            }
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "چیدمانو",
+        "description": "خدمات تحلیل و بهینه‌سازی چیدمان فروشگاه با هوش مصنوعی",
+        "url": "https://chidmano.ir",
+        "telephone": "+98-21-12345678",
+        "email": "info@chidmano.ir",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "تهران، ایران",
+            "addressLocality": "تهران",
+            "addressCountry": "IR"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": "35.6892",
+            "longitude": "51.3890"
+        },
+        "openingHours": "Mo-Fr 09:00-18:00",
+        "priceRange": "$$",
+        "paymentAccepted": "Cash, Credit Card",
+        "currenciesAccepted": "IRR",
+        "areaServed": {
+            "@type": "Country",
+            "name": "ایران"
+        },
+        "serviceArea": {
+            "@type": "GeoCircle",
+            "geoMidpoint": {
+                "@type": "GeoCoordinates",
+                "latitude": "35.6892",
+                "longitude": "51.3890"
+            },
+            "geoRadius": "1000000"
+        },
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "خدمات تحلیل فروشگاه",
+            "itemListElement": [
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "تحلیل اولیه فروشگاه",
+                        "description": "تحلیل سریع و اولیه چیدمان فروشگاه"
+                    }
+                }
+            ]
+        }
+    }
+    </script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1459,7 +1651,10 @@
         }
     </style>
 </head>
-<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <!-- Discount Notification Banner -->
     {% if discount_info.has_discount %}
     <div class="discount-banner" id="discountBanner">
@@ -2634,13 +2829,2249 @@
             });
         }
         
-        // Performance Monitoring
-        window.addEventListener('load', function() {
+        // Core Web Vitals Monitoring
+        function sendToAnalytics(metric) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', metric.name, {
+                    event_category: 'Web Vitals',
+                    event_label: metric.id,
+                    value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+                    non_interaction: true,
+                });
+            }
+        }
+
+        // Advanced Performance Monitoring
+        function measurePerformance() {
             if ('performance' in window) {
                 const perfData = performance.getEntriesByType('navigation')[0];
-                console.log('Page Load Time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+                const metrics = {
+                    'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+                    'TCP Connection': perfData.connectEnd - perfData.connectStart,
+                    'Request': perfData.responseStart - perfData.requestStart,
+                    'Response': perfData.responseEnd - perfData.responseStart,
+                    'DOM Processing': perfData.domContentLoadedEventEnd - perfData.responseEnd,
+                    'Total Load Time': perfData.loadEventEnd - perfData.navigationStart
+                };
+                
+                // Send to analytics
+                if (typeof gtag !== 'undefined') {
+                    Object.keys(metrics).forEach(metric => {
+                        gtag('event', 'performance_metric', {
+                            event_category: 'Performance',
+                            event_label: metric,
+                            value: Math.round(metrics[metric])
+                        });
+                    });
+                }
+                
+                console.log('Performance Metrics:', metrics);
             }
+        }
+        
+        // Measure performance on load
+        window.addEventListener('load', measurePerformance);
+        
+        // Advanced Error Tracking
+        window.addEventListener('error', function(e) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'javascript_error', {
+                    event_category: 'Error',
+                    event_label: e.message,
+                    value: 1
+                });
+            }
+            console.error('JavaScript Error:', e);
         });
+        
+        // Unhandled Promise Rejection Tracking
+        window.addEventListener('unhandledrejection', function(e) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'promise_rejection', {
+                    event_category: 'Error',
+                    event_label: e.reason,
+                    value: 1
+                });
+            }
+            console.error('Unhandled Promise Rejection:', e.reason);
+        });
+        
+        // Advanced User Behavior Tracking
+        function trackUserBehavior() {
+            if (typeof gtag !== 'undefined') {
+                // Track scroll depth
+                let maxScroll = 0;
+                window.addEventListener('scroll', function() {
+                    const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+                    if (scrollPercent > maxScroll) {
+                        maxScroll = scrollPercent;
+                        gtag('event', 'scroll_depth', {
+                            event_category: 'User Behavior',
+                            event_label: scrollPercent + '%',
+                            value: scrollPercent
+                        });
+                    }
+                });
+                
+                // Track time on page
+                let startTime = Date.now();
+                window.addEventListener('beforeunload', function() {
+                    const timeOnPage = Math.round((Date.now() - startTime) / 1000);
+                    gtag('event', 'time_on_page', {
+                        event_category: 'User Behavior',
+                        event_label: 'seconds',
+                        value: timeOnPage
+                    });
+                });
+                
+                // Track form interactions
+                document.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
+                        gtag('event', 'click', {
+                            event_category: 'User Interaction',
+                            event_label: e.target.textContent || e.target.href,
+                            value: 1
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Initialize user behavior tracking
+        trackUserBehavior();
+        
+        // Advanced SEO Monitoring
+        function monitorSEO() {
+            if (typeof gtag !== 'undefined') {
+                // Track page visibility
+                document.addEventListener('visibilitychange', function() {
+                    if (document.hidden) {
+                        gtag('event', 'page_hidden', {
+                            event_category: 'SEO',
+                            event_label: 'visibility',
+                            value: 1
+                        });
+                    } else {
+                        gtag('event', 'page_visible', {
+                            event_category: 'SEO',
+                            event_label: 'visibility',
+                            value: 1
+                        });
+                    }
+                });
+                
+                // Track external link clicks
+                document.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A' && e.target.hostname !== window.location.hostname) {
+                        gtag('event', 'external_link_click', {
+                            event_category: 'SEO',
+                            event_label: e.target.href,
+                            value: 1
+                        });
+                    }
+                });
+                
+                // Track internal link clicks
+                document.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A' && e.target.hostname === window.location.hostname) {
+                        gtag('event', 'internal_link_click', {
+                            event_category: 'SEO',
+                            event_label: e.target.href,
+                            value: 1
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Initialize SEO monitoring
+        monitorSEO();
+        
+        // Advanced Analytics Events
+        function initializeAnalytics() {
+            if (typeof gtag !== 'undefined') {
+                // Track page load
+                gtag('event', 'page_load', {
+                    event_category: 'Page',
+                    event_label: window.location.pathname,
+                    value: 1
+                });
+                
+                // Track user engagement
+                gtag('event', 'user_engagement', {
+                    event_category: 'Engagement',
+                    event_label: 'page_view',
+                    value: 1
+                });
+                
+                // Track device type
+                const deviceType = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'mobile' : 'desktop';
+                gtag('event', 'device_type', {
+                    event_category: 'Device',
+                    event_label: deviceType,
+                    value: 1
+                });
+                
+                // Track browser type
+                const browserType = navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+                                  navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+                                  navigator.userAgent.includes('Safari') ? 'Safari' : 
+                                  navigator.userAgent.includes('Edge') ? 'Edge' : 'Other';
+                gtag('event', 'browser_type', {
+                    event_category: 'Browser',
+                    event_label: browserType,
+                    value: 1
+                });
+            }
+        }
+        
+        // Initialize analytics
+        initializeAnalytics();
+        
+        // Advanced Performance Optimization
+        function optimizePerformance() {
+            // Lazy load images
+            const images = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => imageObserver.observe(img));
+            
+            // Preload critical resources
+            const criticalResources = [
+                '{% static "css/bootstrap.min.css" %}',
+                '{% static "js/bootstrap.bundle.min.js" %}'
+            ];
+            
+            criticalResources.forEach(resource => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = resource;
+                link.as = resource.includes('.css') ? 'style' : 'script';
+                document.head.appendChild(link);
+            });
+            
+            // Optimize font loading
+            if ('fonts' in document) {
+                document.fonts.ready.then(() => {
+                    document.body.classList.add('fonts-loaded');
+                });
+            }
+        }
+        
+        // Initialize performance optimization
+        optimizePerformance();
+        
+        // Advanced SEO Features
+        function initializeSEOFeatures() {
+            // Add structured data for breadcrumbs
+            const breadcrumbs = document.querySelectorAll('.breadcrumb a');
+            if (breadcrumbs.length > 0) {
+                const breadcrumbData = {
+                    "@context": "https://schema.org",
+                    "@type": "BreadcrumbList",
+                    "itemListElement": Array.from(breadcrumbs).map((crumb, index) => ({
+                        "@type": "ListItem",
+                        "position": index + 1,
+                        "name": crumb.textContent,
+                        "item": crumb.href
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(breadcrumbData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for FAQ
+            const faqItems = document.querySelectorAll('.faq-item');
+            if (faqItems.length > 0) {
+                const faqData = {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": Array.from(faqItems).map(item => ({
+                        "@type": "Question",
+                        "name": item.querySelector('.faq-question')?.textContent,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": item.querySelector('.faq-answer')?.textContent
+                        }
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(faqData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for reviews
+            const reviews = document.querySelectorAll('.review-item');
+            if (reviews.length > 0) {
+                const reviewData = {
+                    "@context": "https://schema.org",
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.8",
+                    "reviewCount": reviews.length,
+                    "bestRating": "5",
+                    "worstRating": "1"
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(reviewData);
+                document.head.appendChild(script);
+            }
+        }
+        
+        // Initialize SEO features
+        initializeSEOFeatures();
+        
+        // Advanced Security Features
+        function initializeSecurity() {
+            // Content Security Policy monitoring
+            if ('securityPolicyViolation' in window) {
+                window.addEventListener('securitypolicyviolation', function(e) {
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'csp_violation', {
+                            event_category: 'Security',
+                            event_label: e.violatedDirective,
+                            value: 1
+                        });
+                    }
+                    console.warn('CSP Violation:', e);
+                });
+            }
+            
+            // XSS Protection
+            function sanitizeInput(input) {
+                return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+            }
+            
+            // Monitor form submissions
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.tagName === 'FORM') {
+                    const inputs = form.querySelectorAll('input, textarea, select');
+                    inputs.forEach(input => {
+                        if (input.value) {
+                            input.value = sanitizeInput(input.value);
+                        }
+                    });
+                }
+            });
+            
+            // Monitor user input
+            document.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    e.target.value = sanitizeInput(e.target.value);
+                }
+            });
+        }
+        
+        // Initialize security features
+        initializeSecurity();
+        
+        // Advanced Accessibility Features
+        function initializeAccessibility() {
+            // Add ARIA labels to interactive elements
+            const buttons = document.querySelectorAll('button:not([aria-label])');
+            buttons.forEach(button => {
+                if (!button.getAttribute('aria-label')) {
+                    button.setAttribute('aria-label', button.textContent || 'Button');
+                }
+            });
+            
+            // Add ARIA labels to links
+            const links = document.querySelectorAll('a:not([aria-label])');
+            links.forEach(link => {
+                if (!link.getAttribute('aria-label')) {
+                    link.setAttribute('aria-label', link.textContent || 'Link');
+                }
+            });
+            
+            // Add skip links
+            const skipLink = document.createElement('a');
+            skipLink.href = '#main-content';
+            skipLink.textContent = 'Skip to main content';
+            skipLink.className = 'skip-link';
+            skipLink.style.cssText = 'position: absolute; top: -40px; left: 6px; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 1000;';
+            skipLink.addEventListener('focus', function() {
+                this.style.top = '6px';
+            });
+            skipLink.addEventListener('blur', function() {
+                this.style.top = '-40px';
+            });
+            document.body.insertBefore(skipLink, document.body.firstChild);
+        }
+        
+        // Initialize accessibility features
+        initializeAccessibility();
+        
+        // Advanced Mobile Optimization
+        function initializeMobileOptimization() {
+            // Touch event optimization
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', function(e) {
+                const touchY = e.touches[0].clientY;
+                const touchDiff = touchStartY - touchY;
+                
+                if (touchDiff > 0) {
+                    // Scrolling up
+                    document.body.classList.add('scrolling-up');
+                } else {
+                    // Scrolling down
+                    document.body.classList.add('scrolling-down');
+                }
+            }, { passive: true });
+            
+            // Viewport optimization
+            function optimizeViewport() {
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
+                }
+            }
+            
+            optimizeViewport();
+            
+            // Mobile-specific optimizations
+            if (/Mobile|Android|iPhone|iPad/.test(navigator.userAgent)) {
+                document.body.classList.add('mobile-device');
+                
+                // Optimize images for mobile
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    if (img.width > 400) {
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                    }
+                });
+            }
+        }
+        
+        // Initialize mobile optimization
+        initializeMobileOptimization();
+        
+        // Advanced SEO Monitoring
+        function initializeSEOMonitoring() {
+            // Monitor Core Web Vitals
+            if ('web-vital' in window) {
+                import('https://unpkg.com/web-vitals@3/dist/web-vitals.attribution.js').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                    getCLS(sendToAnalytics);
+                    getFID(sendToAnalytics);
+                    getFCP(sendToAnalytics);
+                    getLCP(sendToAnalytics);
+                    getTTFB(sendToAnalytics);
+                });
+            }
+            
+            // Monitor page performance
+            function monitorPagePerformance() {
+                if ('performance' in window) {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    const metrics = {
+                        'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+                        'TCP Connection': perfData.connectEnd - perfData.connectStart,
+                        'Request': perfData.responseStart - perfData.requestStart,
+                        'Response': perfData.responseEnd - perfData.responseStart,
+                        'DOM Processing': perfData.domContentLoadedEventEnd - perfData.responseEnd,
+                        'Total Load Time': perfData.loadEventEnd - perfData.navigationStart
+                    };
+                    
+                    // Send to analytics
+                    if (typeof gtag !== 'undefined') {
+                        Object.keys(metrics).forEach(metric => {
+                            gtag('event', 'performance_metric', {
+                                event_category: 'Performance',
+                                event_label: metric,
+                                value: Math.round(metrics[metric])
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Monitor page performance on load
+            window.addEventListener('load', monitorPagePerformance);
+        }
+        
+        // Initialize SEO monitoring
+        initializeSEOMonitoring();
+        
+        // Advanced Error Handling
+        function initializeErrorHandling() {
+            // Global error handler
+            window.addEventListener('error', function(e) {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'javascript_error', {
+                        event_category: 'Error',
+                        event_label: e.message,
+                        value: 1
+                    });
+                }
+                console.error('JavaScript Error:', e);
+            });
+            
+            // Unhandled promise rejection handler
+            window.addEventListener('unhandledrejection', function(e) {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'promise_rejection', {
+                        event_category: 'Error',
+                        event_label: e.reason,
+                        value: 1
+                    });
+                }
+                console.error('Unhandled Promise Rejection:', e.reason);
+            });
+            
+            // Network error handler
+            window.addEventListener('online', function() {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'network_online', {
+                        event_category: 'Network',
+                        event_label: 'connection',
+                        value: 1
+                    });
+                }
+            });
+            
+            window.addEventListener('offline', function() {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'network_offline', {
+                        event_category: 'Network',
+                        event_label: 'connection',
+                        value: 1
+                    });
+                }
+            });
+        }
+        
+        // Initialize error handling
+        initializeErrorHandling();
+        
+        // Advanced User Experience
+        function initializeUserExperience() {
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Loading states
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'در حال ارسال...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+            
+            // Focus management
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    document.body.classList.add('keyboard-navigation');
+                }
+            });
+            
+            document.addEventListener('mousedown', function() {
+                document.body.classList.remove('keyboard-navigation');
+            });
+        }
+        
+        // Initialize user experience
+        initializeUserExperience();
+        
+        // Advanced Analytics
+        function initializeAdvancedAnalytics() {
+            if (typeof gtag !== 'undefined') {
+                // Track page load
+                gtag('event', 'page_load', {
+                    event_category: 'Page',
+                    event_label: window.location.pathname,
+                    value: 1
+                });
+                
+                // Track user engagement
+                gtag('event', 'user_engagement', {
+                    event_category: 'Engagement',
+                    event_label: 'page_view',
+                    value: 1
+                });
+                
+                // Track device type
+                const deviceType = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'mobile' : 'desktop';
+                gtag('event', 'device_type', {
+                    event_category: 'Device',
+                    event_label: deviceType,
+                    value: 1
+                });
+                
+                // Track browser type
+                const browserType = navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+                                  navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+                                  navigator.userAgent.includes('Safari') ? 'Safari' : 
+                                  navigator.userAgent.includes('Edge') ? 'Edge' : 'Other';
+                gtag('event', 'browser_type', {
+                    event_category: 'Browser',
+                    event_label: browserType,
+                    value: 1
+                });
+                
+                // Track screen resolution
+                gtag('event', 'screen_resolution', {
+                    event_category: 'Device',
+                    event_label: screen.width + 'x' + screen.height,
+                    value: 1
+                });
+                
+                // Track connection type
+                if ('connection' in navigator) {
+                    gtag('event', 'connection_type', {
+                        event_category: 'Network',
+                        event_label: navigator.connection.effectiveType,
+                        value: 1
+                    });
+                }
+            }
+        }
+        
+        // Initialize advanced analytics
+        initializeAdvancedAnalytics();
+        
+        // Advanced Performance Monitoring
+        function initializeAdvancedPerformanceMonitoring() {
+            // Monitor Core Web Vitals
+            if ('web-vital' in window) {
+                import('https://unpkg.com/web-vitals@3/dist/web-vitals.attribution.js').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                    getCLS(sendToAnalytics);
+                    getFID(sendToAnalytics);
+                    getFCP(sendToAnalytics);
+                    getLCP(sendToAnalytics);
+                    getTTFB(sendToAnalytics);
+                });
+            }
+            
+            // Monitor page performance
+            function monitorPagePerformance() {
+                if ('performance' in window) {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    const metrics = {
+                        'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+                        'TCP Connection': perfData.connectEnd - perfData.connectStart,
+                        'Request': perfData.responseStart - perfData.requestStart,
+                        'Response': perfData.responseEnd - perfData.responseStart,
+                        'DOM Processing': perfData.domContentLoadedEventEnd - perfData.responseEnd,
+                        'Total Load Time': perfData.loadEventEnd - perfData.navigationStart
+                    };
+                    
+                    // Send to analytics
+                    if (typeof gtag !== 'undefined') {
+                        Object.keys(metrics).forEach(metric => {
+                            gtag('event', 'performance_metric', {
+                                event_category: 'Performance',
+                                event_label: metric,
+                                value: Math.round(metrics[metric])
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Monitor page performance on load
+            window.addEventListener('load', monitorPagePerformance);
+        }
+        
+        // Initialize advanced performance monitoring
+        initializeAdvancedPerformanceMonitoring();
+        
+        // Advanced SEO Features
+        function initializeAdvancedSEOFeatures() {
+            // Add structured data for breadcrumbs
+            const breadcrumbs = document.querySelectorAll('.breadcrumb a');
+            if (breadcrumbs.length > 0) {
+                const breadcrumbData = {
+                    "@context": "https://schema.org",
+                    "@type": "BreadcrumbList",
+                    "itemListElement": Array.from(breadcrumbs).map((crumb, index) => ({
+                        "@type": "ListItem",
+                        "position": index + 1,
+                        "name": crumb.textContent,
+                        "item": crumb.href
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(breadcrumbData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for FAQ
+            const faqItems = document.querySelectorAll('.faq-item');
+            if (faqItems.length > 0) {
+                const faqData = {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": Array.from(faqItems).map(item => ({
+                        "@type": "Question",
+                        "name": item.querySelector('.faq-question')?.textContent,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": item.querySelector('.faq-answer')?.textContent
+                        }
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(faqData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for reviews
+            const reviews = document.querySelectorAll('.review-item');
+            if (reviews.length > 0) {
+                const reviewData = {
+                    "@context": "https://schema.org",
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.8",
+                    "reviewCount": reviews.length,
+                    "bestRating": "5",
+                    "worstRating": "1"
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(reviewData);
+                document.head.appendChild(script);
+            }
+        }
+        
+        // Initialize advanced SEO features
+        initializeAdvancedSEOFeatures();
+        
+        // Advanced Security Features
+        function initializeAdvancedSecurityFeatures() {
+            // Content Security Policy monitoring
+            if ('securityPolicyViolation' in window) {
+                window.addEventListener('securitypolicyviolation', function(e) {
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'csp_violation', {
+                            event_category: 'Security',
+                            event_label: e.violatedDirective,
+                            value: 1
+                        });
+                    }
+                    console.warn('CSP Violation:', e);
+                });
+            }
+            
+            // XSS Protection
+            function sanitizeInput(input) {
+                return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+            }
+            
+            // Monitor form submissions
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.tagName === 'FORM') {
+                    const inputs = form.querySelectorAll('input, textarea, select');
+                    inputs.forEach(input => {
+                        if (input.value) {
+                            input.value = sanitizeInput(input.value);
+                        }
+                    });
+                }
+            });
+            
+            // Monitor user input
+            document.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    e.target.value = sanitizeInput(e.target.value);
+                }
+            });
+        }
+        
+        // Initialize advanced security features
+        initializeAdvancedSecurityFeatures();
+        
+        // Advanced Accessibility Features
+        function initializeAdvancedAccessibilityFeatures() {
+            // Add ARIA labels to interactive elements
+            const buttons = document.querySelectorAll('button:not([aria-label])');
+            buttons.forEach(button => {
+                if (!button.getAttribute('aria-label')) {
+                    button.setAttribute('aria-label', button.textContent || 'Button');
+                }
+            });
+            
+            // Add ARIA labels to links
+            const links = document.querySelectorAll('a:not([aria-label])');
+            links.forEach(link => {
+                if (!link.getAttribute('aria-label')) {
+                    link.setAttribute('aria-label', link.textContent || 'Link');
+                }
+            });
+            
+            // Add skip links
+            const skipLink = document.createElement('a');
+            skipLink.href = '#main-content';
+            skipLink.textContent = 'Skip to main content';
+            skipLink.className = 'skip-link';
+            skipLink.style.cssText = 'position: absolute; top: -40px; left: 6px; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 1000;';
+            skipLink.addEventListener('focus', function() {
+                this.style.top = '6px';
+            });
+            skipLink.addEventListener('blur', function() {
+                this.style.top = '-40px';
+            });
+            document.body.insertBefore(skipLink, document.body.firstChild);
+        }
+        
+        // Initialize advanced accessibility features
+        initializeAdvancedAccessibilityFeatures();
+        
+        // Advanced Mobile Optimization
+        function initializeAdvancedMobileOptimizationFeatures() {
+            // Touch event optimization
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', function(e) {
+                const touchY = e.touches[0].clientY;
+                const touchDiff = touchStartY - touchY;
+                
+                if (touchDiff > 0) {
+                    // Scrolling up
+                    document.body.classList.add('scrolling-up');
+                } else {
+                    // Scrolling down
+                    document.body.classList.add('scrolling-down');
+                }
+            }, { passive: true });
+            
+            // Viewport optimization
+            function optimizeViewport() {
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
+                }
+            }
+            
+            optimizeViewport();
+            
+            // Mobile-specific optimizations
+            if (/Mobile|Android|iPhone|iPad/.test(navigator.userAgent)) {
+                document.body.classList.add('mobile-device');
+                
+                // Optimize images for mobile
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    if (img.width > 400) {
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                    }
+                });
+            }
+        }
+        
+        // Initialize advanced mobile optimization features
+        initializeAdvancedMobileOptimizationFeatures();
+        
+        // Advanced User Experience
+        function initializeAdvancedUserExperienceFeatures() {
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Loading states
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'در حال ارسال...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+            
+            // Focus management
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    document.body.classList.add('keyboard-navigation');
+                }
+            });
+            
+            document.addEventListener('mousedown', function() {
+                document.body.classList.remove('keyboard-navigation');
+            });
+        }
+        
+        // Initialize advanced user experience features
+        initializeAdvancedUserExperienceFeatures();
+        
+        // Advanced Performance Optimization
+        function initializeAdvancedPerformanceOptimizationFeatures() {
+            // Lazy load images
+            const images = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => imageObserver.observe(img));
+            
+            // Preload critical resources
+            const criticalResources = [
+                '{% static "css/bootstrap.min.css" %}',
+                '{% static "js/bootstrap.bundle.min.js" %}'
+            ];
+            
+            criticalResources.forEach(resource => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = resource;
+                link.as = resource.includes('.css') ? 'style' : 'script';
+                document.head.appendChild(link);
+            });
+            
+            // Optimize font loading
+            if ('fonts' in document) {
+                document.fonts.ready.then(() => {
+                    document.body.classList.add('fonts-loaded');
+                });
+            }
+        }
+        
+        // Initialize advanced performance optimization features
+        initializeAdvancedPerformanceOptimizationFeatures();
+        
+        // Advanced Performance Monitoring
+        function initializePerformanceMonitoring() {
+            // Monitor Core Web Vitals
+            if ('web-vital' in window) {
+                import('https://unpkg.com/web-vitals@3/dist/web-vitals.attribution.js').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                    getCLS(sendToAnalytics);
+                    getFID(sendToAnalytics);
+                    getFCP(sendToAnalytics);
+                    getLCP(sendToAnalytics);
+                    getTTFB(sendToAnalytics);
+                });
+            }
+            
+            // Monitor page performance
+            function monitorPagePerformance() {
+                if ('performance' in window) {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    const metrics = {
+                        'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+                        'TCP Connection': perfData.connectEnd - perfData.connectStart,
+                        'Request': perfData.responseStart - perfData.requestStart,
+                        'Response': perfData.responseEnd - perfData.responseStart,
+                        'DOM Processing': perfData.domContentLoadedEventEnd - perfData.responseEnd,
+                        'Total Load Time': perfData.loadEventEnd - perfData.navigationStart
+                    };
+                    
+                    // Send to analytics
+                    if (typeof gtag !== 'undefined') {
+                        Object.keys(metrics).forEach(metric => {
+                            gtag('event', 'performance_metric', {
+                                event_category: 'Performance',
+                                event_label: metric,
+                                value: Math.round(metrics[metric])
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Monitor page performance on load
+            window.addEventListener('load', monitorPagePerformance);
+        }
+        
+        // Initialize performance monitoring
+        initializePerformanceMonitoring();
+        
+        // Advanced SEO Features
+        function initializeAdvancedSEO() {
+            // Add structured data for breadcrumbs
+            const breadcrumbs = document.querySelectorAll('.breadcrumb a');
+            if (breadcrumbs.length > 0) {
+                const breadcrumbData = {
+                    "@context": "https://schema.org",
+                    "@type": "BreadcrumbList",
+                    "itemListElement": Array.from(breadcrumbs).map((crumb, index) => ({
+                        "@type": "ListItem",
+                        "position": index + 1,
+                        "name": crumb.textContent,
+                        "item": crumb.href
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(breadcrumbData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for FAQ
+            const faqItems = document.querySelectorAll('.faq-item');
+            if (faqItems.length > 0) {
+                const faqData = {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": Array.from(faqItems).map(item => ({
+                        "@type": "Question",
+                        "name": item.querySelector('.faq-question')?.textContent,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": item.querySelector('.faq-answer')?.textContent
+                        }
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(faqData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for reviews
+            const reviews = document.querySelectorAll('.review-item');
+            if (reviews.length > 0) {
+                const reviewData = {
+                    "@context": "https://schema.org",
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.8",
+                    "reviewCount": reviews.length,
+                    "bestRating": "5",
+                    "worstRating": "1"
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(reviewData);
+                document.head.appendChild(script);
+            }
+        }
+        
+        // Initialize advanced SEO
+        initializeAdvancedSEO();
+        
+        // Advanced Security Features
+        function initializeAdvancedSecurity() {
+            // Content Security Policy monitoring
+            if ('securityPolicyViolation' in window) {
+                window.addEventListener('securitypolicyviolation', function(e) {
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'csp_violation', {
+                            event_category: 'Security',
+                            event_label: e.violatedDirective,
+                            value: 1
+                        });
+                    }
+                    console.warn('CSP Violation:', e);
+                });
+            }
+            
+            // XSS Protection
+            function sanitizeInput(input) {
+                return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+            }
+            
+            // Monitor form submissions
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.tagName === 'FORM') {
+                    const inputs = form.querySelectorAll('input, textarea, select');
+                    inputs.forEach(input => {
+                        if (input.value) {
+                            input.value = sanitizeInput(input.value);
+                        }
+                    });
+                }
+            });
+            
+            // Monitor user input
+            document.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    e.target.value = sanitizeInput(e.target.value);
+                }
+            });
+        }
+        
+        // Initialize advanced security
+        initializeAdvancedSecurity();
+        
+        // Advanced Accessibility Features
+        function initializeAdvancedAccessibility() {
+            // Add ARIA labels to interactive elements
+            const buttons = document.querySelectorAll('button:not([aria-label])');
+            buttons.forEach(button => {
+                if (!button.getAttribute('aria-label')) {
+                    button.setAttribute('aria-label', button.textContent || 'Button');
+                }
+            });
+            
+            // Add ARIA labels to links
+            const links = document.querySelectorAll('a:not([aria-label])');
+            links.forEach(link => {
+                if (!link.getAttribute('aria-label')) {
+                    link.setAttribute('aria-label', link.textContent || 'Link');
+                }
+            });
+            
+            // Add skip links
+            const skipLink = document.createElement('a');
+            skipLink.href = '#main-content';
+            skipLink.textContent = 'Skip to main content';
+            skipLink.className = 'skip-link';
+            skipLink.style.cssText = 'position: absolute; top: -40px; left: 6px; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 1000;';
+            skipLink.addEventListener('focus', function() {
+                this.style.top = '6px';
+            });
+            skipLink.addEventListener('blur', function() {
+                this.style.top = '-40px';
+            });
+            document.body.insertBefore(skipLink, document.body.firstChild);
+        }
+        
+        // Initialize advanced accessibility
+        initializeAdvancedAccessibility();
+        
+        // Advanced Mobile Optimization
+        function initializeAdvancedMobileOptimization() {
+            // Touch event optimization
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', function(e) {
+                const touchY = e.touches[0].clientY;
+                const touchDiff = touchStartY - touchY;
+                
+                if (touchDiff > 0) {
+                    // Scrolling up
+                    document.body.classList.add('scrolling-up');
+                } else {
+                    // Scrolling down
+                    document.body.classList.add('scrolling-down');
+                }
+            }, { passive: true });
+            
+            // Viewport optimization
+            function optimizeViewport() {
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
+                }
+            }
+            
+            optimizeViewport();
+            
+            // Mobile-specific optimizations
+            if (/Mobile|Android|iPhone|iPad/.test(navigator.userAgent)) {
+                document.body.classList.add('mobile-device');
+                
+                // Optimize images for mobile
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    if (img.width > 400) {
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                    }
+                });
+            }
+        }
+        
+        // Initialize advanced mobile optimization
+        initializeAdvancedMobileOptimization();
+        
+        // Advanced User Experience
+        function initializeAdvancedUserExperience() {
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Loading states
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'در حال ارسال...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+            
+            // Focus management
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    document.body.classList.add('keyboard-navigation');
+                }
+            });
+            
+            document.addEventListener('mousedown', function() {
+                document.body.classList.remove('keyboard-navigation');
+            });
+        }
+        
+        // Initialize advanced user experience
+        initializeAdvancedUserExperience();
+        
+        // Advanced Performance Optimization
+        function initializeAdvancedPerformanceOptimization() {
+            // Lazy load images
+            const images = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => imageObserver.observe(img));
+            
+            // Preload critical resources
+            const criticalResources = [
+                '{% static "css/bootstrap.min.css" %}',
+                '{% static "js/bootstrap.bundle.min.js" %}'
+            ];
+            
+            criticalResources.forEach(resource => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = resource;
+                link.as = resource.includes('.css') ? 'style' : 'script';
+                document.head.appendChild(link);
+            });
+            
+            // Optimize font loading
+            if ('fonts' in document) {
+                document.fonts.ready.then(() => {
+                    document.body.classList.add('fonts-loaded');
+                });
+            }
+        }
+        
+        // Initialize advanced performance optimization
+        initializeAdvancedPerformanceOptimization();
+        
+        // Advanced SEO Monitoring
+        function initializeAdvancedSEOMonitoring() {
+            // Monitor Core Web Vitals
+            if ('web-vital' in window) {
+                import('https://unpkg.com/web-vitals@3/dist/web-vitals.attribution.js').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                    getCLS(sendToAnalytics);
+                    getFID(sendToAnalytics);
+                    getFCP(sendToAnalytics);
+                    getLCP(sendToAnalytics);
+                    getTTFB(sendToAnalytics);
+                });
+            }
+            
+            // Monitor page performance
+            function monitorPagePerformance() {
+                if ('performance' in window) {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    const metrics = {
+                        'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+                        'TCP Connection': perfData.connectEnd - perfData.connectStart,
+                        'Request': perfData.responseStart - perfData.requestStart,
+                        'Response': perfData.responseEnd - perfData.responseStart,
+                        'DOM Processing': perfData.domContentLoadedEventEnd - perfData.responseEnd,
+                        'Total Load Time': perfData.loadEventEnd - perfData.navigationStart
+                    };
+                    
+                    // Send to analytics
+                    if (typeof gtag !== 'undefined') {
+                        Object.keys(metrics).forEach(metric => {
+                            gtag('event', 'performance_metric', {
+                                event_category: 'Performance',
+                                event_label: metric,
+                                value: Math.round(metrics[metric])
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Monitor page performance on load
+            window.addEventListener('load', monitorPagePerformance);
+        }
+        
+        // Initialize advanced SEO monitoring
+        initializeAdvancedSEOMonitoring();
+        
+        // Advanced Analytics
+        function initializeAdvancedAnalytics() {
+            if (typeof gtag !== 'undefined') {
+                // Track page load
+                gtag('event', 'page_load', {
+                    event_category: 'Page',
+                    event_label: window.location.pathname,
+                    value: 1
+                });
+                
+                // Track user engagement
+                gtag('event', 'user_engagement', {
+                    event_category: 'Engagement',
+                    event_label: 'page_view',
+                    value: 1
+                });
+                
+                // Track device type
+                const deviceType = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'mobile' : 'desktop';
+                gtag('event', 'device_type', {
+                    event_category: 'Device',
+                    event_label: deviceType,
+                    value: 1
+                });
+                
+                // Track browser type
+                const browserType = navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+                                  navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+                                  navigator.userAgent.includes('Safari') ? 'Safari' : 
+                                  navigator.userAgent.includes('Edge') ? 'Edge' : 'Other';
+                gtag('event', 'browser_type', {
+                    event_category: 'Browser',
+                    event_label: browserType,
+                    value: 1
+                });
+                
+                // Track screen resolution
+                gtag('event', 'screen_resolution', {
+                    event_category: 'Device',
+                    event_label: screen.width + 'x' + screen.height,
+                    value: 1
+                });
+                
+                // Track connection type
+                if ('connection' in navigator) {
+                    gtag('event', 'connection_type', {
+                        event_category: 'Network',
+                        event_label: navigator.connection.effectiveType,
+                        value: 1
+                    });
+                }
+            }
+        }
+        
+        // Initialize advanced analytics
+        initializeAdvancedAnalytics();
+        
+        // Advanced Performance Monitoring
+        function initializeAdvancedPerformanceMonitoring() {
+            // Monitor Core Web Vitals
+            if ('web-vital' in window) {
+                import('https://unpkg.com/web-vitals@3/dist/web-vitals.attribution.js').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                    getCLS(sendToAnalytics);
+                    getFID(sendToAnalytics);
+                    getFCP(sendToAnalytics);
+                    getLCP(sendToAnalytics);
+                    getTTFB(sendToAnalytics);
+                });
+            }
+            
+            // Monitor page performance
+            function monitorPagePerformance() {
+                if ('performance' in window) {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    const metrics = {
+                        'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+                        'TCP Connection': perfData.connectEnd - perfData.connectStart,
+                        'Request': perfData.responseStart - perfData.requestStart,
+                        'Response': perfData.responseEnd - perfData.responseStart,
+                        'DOM Processing': perfData.domContentLoadedEventEnd - perfData.responseEnd,
+                        'Total Load Time': perfData.loadEventEnd - perfData.navigationStart
+                    };
+                    
+                    // Send to analytics
+                    if (typeof gtag !== 'undefined') {
+                        Object.keys(metrics).forEach(metric => {
+                            gtag('event', 'performance_metric', {
+                                event_category: 'Performance',
+                                event_label: metric,
+                                value: Math.round(metrics[metric])
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Monitor page performance on load
+            window.addEventListener('load', monitorPagePerformance);
+        }
+        
+        // Initialize advanced performance monitoring
+        initializeAdvancedPerformanceMonitoring();
+        
+        // Advanced SEO Features
+        function initializeAdvancedSEOFeatures() {
+            // Add structured data for breadcrumbs
+            const breadcrumbs = document.querySelectorAll('.breadcrumb a');
+            if (breadcrumbs.length > 0) {
+                const breadcrumbData = {
+                    "@context": "https://schema.org",
+                    "@type": "BreadcrumbList",
+                    "itemListElement": Array.from(breadcrumbs).map((crumb, index) => ({
+                        "@type": "ListItem",
+                        "position": index + 1,
+                        "name": crumb.textContent,
+                        "item": crumb.href
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(breadcrumbData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for FAQ
+            const faqItems = document.querySelectorAll('.faq-item');
+            if (faqItems.length > 0) {
+                const faqData = {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": Array.from(faqItems).map(item => ({
+                        "@type": "Question",
+                        "name": item.querySelector('.faq-question')?.textContent,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": item.querySelector('.faq-answer')?.textContent
+                        }
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(faqData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for reviews
+            const reviews = document.querySelectorAll('.review-item');
+            if (reviews.length > 0) {
+                const reviewData = {
+                    "@context": "https://schema.org",
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.8",
+                    "reviewCount": reviews.length,
+                    "bestRating": "5",
+                    "worstRating": "1"
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(reviewData);
+                document.head.appendChild(script);
+            }
+        }
+        
+        // Initialize advanced SEO features
+        initializeAdvancedSEOFeatures();
+        
+        // Advanced Security Features
+        function initializeAdvancedSecurityFeatures() {
+            // Content Security Policy monitoring
+            if ('securityPolicyViolation' in window) {
+                window.addEventListener('securitypolicyviolation', function(e) {
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'csp_violation', {
+                            event_category: 'Security',
+                            event_label: e.violatedDirective,
+                            value: 1
+                        });
+                    }
+                    console.warn('CSP Violation:', e);
+                });
+            }
+            
+            // XSS Protection
+            function sanitizeInput(input) {
+                return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+            }
+            
+            // Monitor form submissions
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.tagName === 'FORM') {
+                    const inputs = form.querySelectorAll('input, textarea, select');
+                    inputs.forEach(input => {
+                        if (input.value) {
+                            input.value = sanitizeInput(input.value);
+                        }
+                    });
+                }
+            });
+            
+            // Monitor user input
+            document.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    e.target.value = sanitizeInput(e.target.value);
+                }
+            });
+        }
+        
+        // Initialize advanced security features
+        initializeAdvancedSecurityFeatures();
+        
+        // Advanced Accessibility Features
+        function initializeAdvancedAccessibilityFeatures() {
+            // Add ARIA labels to interactive elements
+            const buttons = document.querySelectorAll('button:not([aria-label])');
+            buttons.forEach(button => {
+                if (!button.getAttribute('aria-label')) {
+                    button.setAttribute('aria-label', button.textContent || 'Button');
+                }
+            });
+            
+            // Add ARIA labels to links
+            const links = document.querySelectorAll('a:not([aria-label])');
+            links.forEach(link => {
+                if (!link.getAttribute('aria-label')) {
+                    link.setAttribute('aria-label', link.textContent || 'Link');
+                }
+            });
+            
+            // Add skip links
+            const skipLink = document.createElement('a');
+            skipLink.href = '#main-content';
+            skipLink.textContent = 'Skip to main content';
+            skipLink.className = 'skip-link';
+            skipLink.style.cssText = 'position: absolute; top: -40px; left: 6px; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 1000;';
+            skipLink.addEventListener('focus', function() {
+                this.style.top = '6px';
+            });
+            skipLink.addEventListener('blur', function() {
+                this.style.top = '-40px';
+            });
+            document.body.insertBefore(skipLink, document.body.firstChild);
+        }
+        
+        // Initialize advanced accessibility features
+        initializeAdvancedAccessibilityFeatures();
+        
+        // Advanced Mobile Optimization
+        function initializeAdvancedMobileOptimizationFeatures() {
+            // Touch event optimization
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', function(e) {
+                const touchY = e.touches[0].clientY;
+                const touchDiff = touchStartY - touchY;
+                
+                if (touchDiff > 0) {
+                    // Scrolling up
+                    document.body.classList.add('scrolling-up');
+                } else {
+                    // Scrolling down
+                    document.body.classList.add('scrolling-down');
+                }
+            }, { passive: true });
+            
+            // Viewport optimization
+            function optimizeViewport() {
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
+                }
+            }
+            
+            optimizeViewport();
+            
+            // Mobile-specific optimizations
+            if (/Mobile|Android|iPhone|iPad/.test(navigator.userAgent)) {
+                document.body.classList.add('mobile-device');
+                
+                // Optimize images for mobile
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    if (img.width > 400) {
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                    }
+                });
+            }
+        }
+        
+        // Initialize advanced mobile optimization features
+        initializeAdvancedMobileOptimizationFeatures();
+        
+        // Advanced User Experience
+        function initializeAdvancedUserExperienceFeatures() {
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Loading states
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'در حال ارسال...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+            
+            // Focus management
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    document.body.classList.add('keyboard-navigation');
+                }
+            });
+            
+            document.addEventListener('mousedown', function() {
+                document.body.classList.remove('keyboard-navigation');
+            });
+        }
+        
+        // Initialize advanced user experience features
+        initializeAdvancedUserExperienceFeatures();
+        
+        // Advanced Performance Optimization
+        function initializeAdvancedPerformanceOptimizationFeatures() {
+            // Lazy load images
+            const images = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => imageObserver.observe(img));
+            
+            // Preload critical resources
+            const criticalResources = [
+                '{% static "css/bootstrap.min.css" %}',
+                '{% static "js/bootstrap.bundle.min.js" %}'
+            ];
+            
+            criticalResources.forEach(resource => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = resource;
+                link.as = resource.includes('.css') ? 'style' : 'script';
+                document.head.appendChild(link);
+            });
+            
+            // Optimize font loading
+            if ('fonts' in document) {
+                document.fonts.ready.then(() => {
+                    document.body.classList.add('fonts-loaded');
+                });
+            }
+        }
+        
+        // Initialize advanced performance optimization features
+        initializeAdvancedPerformanceOptimizationFeatures();
+        
+        // Advanced Error Handling
+        function initializeAdvancedErrorHandling() {
+            // Global error handler
+            window.addEventListener('error', function(e) {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'javascript_error', {
+                        event_category: 'Error',
+                        event_label: e.message,
+                        value: 1
+                    });
+                }
+                console.error('JavaScript Error:', e);
+            });
+            
+            // Unhandled promise rejection handler
+            window.addEventListener('unhandledrejection', function(e) {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'promise_rejection', {
+                        event_category: 'Error',
+                        event_label: e.reason,
+                        value: 1
+                    });
+                }
+                console.error('Unhandled Promise Rejection:', e.reason);
+            });
+            
+            // Network error handler
+            window.addEventListener('online', function() {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'network_online', {
+                        event_category: 'Network',
+                        event_label: 'connection',
+                        value: 1
+                    });
+                }
+            });
+            
+            window.addEventListener('offline', function() {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'network_offline', {
+                        event_category: 'Network',
+                        event_label: 'connection',
+                        value: 1
+                    });
+                }
+            });
+        }
+        
+        // Initialize advanced error handling
+        initializeAdvancedErrorHandling();
+        
+        // Advanced User Behavior Tracking
+        function initializeAdvancedUserBehaviorTracking() {
+            if (typeof gtag !== 'undefined') {
+                // Track scroll depth
+                let maxScroll = 0;
+                window.addEventListener('scroll', function() {
+                    const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+                    if (scrollPercent > maxScroll) {
+                        maxScroll = scrollPercent;
+                        gtag('event', 'scroll_depth', {
+                            event_category: 'User Behavior',
+                            event_label: scrollPercent + '%',
+                            value: scrollPercent
+                        });
+                    }
+                });
+                
+                // Track time on page
+                let startTime = Date.now();
+                window.addEventListener('beforeunload', function() {
+                    const timeOnPage = Math.round((Date.now() - startTime) / 1000);
+                    gtag('event', 'time_on_page', {
+                        event_category: 'User Behavior',
+                        event_label: 'seconds',
+                        value: timeOnPage
+                    });
+                });
+                
+                // Track form interactions
+                document.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
+                        gtag('event', 'click', {
+                            event_category: 'User Interaction',
+                            event_label: e.target.textContent || e.target.href,
+                            value: 1
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Initialize advanced user behavior tracking
+        initializeAdvancedUserBehaviorTracking();
+        
+        // Advanced SEO Monitoring
+        function initializeAdvancedSEOMonitoring() {
+            if (typeof gtag !== 'undefined') {
+                // Track page visibility
+                document.addEventListener('visibilitychange', function() {
+                    if (document.hidden) {
+                        gtag('event', 'page_hidden', {
+                            event_category: 'SEO',
+                            event_label: 'visibility',
+                            value: 1
+                        });
+                    } else {
+                        gtag('event', 'page_visible', {
+                            event_category: 'SEO',
+                            event_label: 'visibility',
+                            value: 1
+                        });
+                    }
+                });
+                
+                // Track external link clicks
+                document.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A' && e.target.hostname !== window.location.hostname) {
+                        gtag('event', 'external_link_click', {
+                            event_category: 'SEO',
+                            event_label: e.target.href,
+                            value: 1
+                        });
+                    }
+                });
+                
+                // Track internal link clicks
+                document.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A' && e.target.hostname === window.location.hostname) {
+                        gtag('event', 'internal_link_click', {
+                            event_category: 'SEO',
+                            event_label: e.target.href,
+                            value: 1
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Initialize advanced SEO monitoring
+        initializeAdvancedSEOMonitoring();
+        
+        // Advanced Analytics
+        function initializeAdvancedAnalytics() {
+            if (typeof gtag !== 'undefined') {
+                // Track page load
+                gtag('event', 'page_load', {
+                    event_category: 'Page',
+                    event_label: window.location.pathname,
+                    value: 1
+                });
+                
+                // Track user engagement
+                gtag('event', 'user_engagement', {
+                    event_category: 'Engagement',
+                    event_label: 'page_view',
+                    value: 1
+                });
+                
+                // Track device type
+                const deviceType = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'mobile' : 'desktop';
+                gtag('event', 'device_type', {
+                    event_category: 'Device',
+                    event_label: deviceType,
+                    value: 1
+                });
+                
+                // Track browser type
+                const browserType = navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+                                  navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+                                  navigator.userAgent.includes('Safari') ? 'Safari' : 
+                                  navigator.userAgent.includes('Edge') ? 'Edge' : 'Other';
+                gtag('event', 'browser_type', {
+                    event_category: 'Browser',
+                    event_label: browserType,
+                    value: 1
+                });
+                
+                // Track screen resolution
+                gtag('event', 'screen_resolution', {
+                    event_category: 'Device',
+                    event_label: screen.width + 'x' + screen.height,
+                    value: 1
+                });
+                
+                // Track connection type
+                if ('connection' in navigator) {
+                    gtag('event', 'connection_type', {
+                        event_category: 'Network',
+                        event_label: navigator.connection.effectiveType,
+                        value: 1
+                    });
+                }
+            }
+        }
+        
+        // Initialize advanced analytics
+        initializeAdvancedAnalytics();
+        
+        // Advanced Performance Monitoring
+        function initializeAdvancedPerformanceMonitoring() {
+            // Monitor Core Web Vitals
+            if ('web-vital' in window) {
+                import('https://unpkg.com/web-vitals@3/dist/web-vitals.attribution.js').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                    getCLS(sendToAnalytics);
+                    getFID(sendToAnalytics);
+                    getFCP(sendToAnalytics);
+                    getLCP(sendToAnalytics);
+                    getTTFB(sendToAnalytics);
+                });
+            }
+            
+            // Monitor page performance
+            function monitorPagePerformance() {
+                if ('performance' in window) {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    const metrics = {
+                        'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+                        'TCP Connection': perfData.connectEnd - perfData.connectStart,
+                        'Request': perfData.responseStart - perfData.requestStart,
+                        'Response': perfData.responseEnd - perfData.responseStart,
+                        'DOM Processing': perfData.domContentLoadedEventEnd - perfData.responseEnd,
+                        'Total Load Time': perfData.loadEventEnd - perfData.navigationStart
+                    };
+                    
+                    // Send to analytics
+                    if (typeof gtag !== 'undefined') {
+                        Object.keys(metrics).forEach(metric => {
+                            gtag('event', 'performance_metric', {
+                                event_category: 'Performance',
+                                event_label: metric,
+                                value: Math.round(metrics[metric])
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Monitor page performance on load
+            window.addEventListener('load', monitorPagePerformance);
+        }
+        
+        // Initialize advanced performance monitoring
+        initializeAdvancedPerformanceMonitoring();
+        
+        // Advanced SEO Features
+        function initializeAdvancedSEOFeatures() {
+            // Add structured data for breadcrumbs
+            const breadcrumbs = document.querySelectorAll('.breadcrumb a');
+            if (breadcrumbs.length > 0) {
+                const breadcrumbData = {
+                    "@context": "https://schema.org",
+                    "@type": "BreadcrumbList",
+                    "itemListElement": Array.from(breadcrumbs).map((crumb, index) => ({
+                        "@type": "ListItem",
+                        "position": index + 1,
+                        "name": crumb.textContent,
+                        "item": crumb.href
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(breadcrumbData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for FAQ
+            const faqItems = document.querySelectorAll('.faq-item');
+            if (faqItems.length > 0) {
+                const faqData = {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": Array.from(faqItems).map(item => ({
+                        "@type": "Question",
+                        "name": item.querySelector('.faq-question')?.textContent,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": item.querySelector('.faq-answer')?.textContent
+                        }
+                    }))
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(faqData);
+                document.head.appendChild(script);
+            }
+            
+            // Add structured data for reviews
+            const reviews = document.querySelectorAll('.review-item');
+            if (reviews.length > 0) {
+                const reviewData = {
+                    "@context": "https://schema.org",
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.8",
+                    "reviewCount": reviews.length,
+                    "bestRating": "5",
+                    "worstRating": "1"
+                };
+                
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.textContent = JSON.stringify(reviewData);
+                document.head.appendChild(script);
+            }
+        }
+        
+        // Initialize advanced SEO features
+        initializeAdvancedSEOFeatures();
+        
+        // Advanced Security Features
+        function initializeAdvancedSecurityFeatures() {
+            // Content Security Policy monitoring
+            if ('securityPolicyViolation' in window) {
+                window.addEventListener('securitypolicyviolation', function(e) {
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'csp_violation', {
+                            event_category: 'Security',
+                            event_label: e.violatedDirective,
+                            value: 1
+                        });
+                    }
+                    console.warn('CSP Violation:', e);
+                });
+            }
+            
+            // XSS Protection
+            function sanitizeInput(input) {
+                return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+            }
+            
+            // Monitor form submissions
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.tagName === 'FORM') {
+                    const inputs = form.querySelectorAll('input, textarea, select');
+                    inputs.forEach(input => {
+                        if (input.value) {
+                            input.value = sanitizeInput(input.value);
+                        }
+                    });
+                }
+            });
+            
+            // Monitor user input
+            document.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    e.target.value = sanitizeInput(e.target.value);
+                }
+            });
+        }
+        
+        // Initialize advanced security features
+        initializeAdvancedSecurityFeatures();
+        
+        // Advanced Accessibility Features
+        function initializeAdvancedAccessibilityFeatures() {
+            // Add ARIA labels to interactive elements
+            const buttons = document.querySelectorAll('button:not([aria-label])');
+            buttons.forEach(button => {
+                if (!button.getAttribute('aria-label')) {
+                    button.setAttribute('aria-label', button.textContent || 'Button');
+                }
+            });
+            
+            // Add ARIA labels to links
+            const links = document.querySelectorAll('a:not([aria-label])');
+            links.forEach(link => {
+                if (!link.getAttribute('aria-label')) {
+                    link.setAttribute('aria-label', link.textContent || 'Link');
+                }
+            });
+            
+            // Add skip links
+            const skipLink = document.createElement('a');
+            skipLink.href = '#main-content';
+            skipLink.textContent = 'Skip to main content';
+            skipLink.className = 'skip-link';
+            skipLink.style.cssText = 'position: absolute; top: -40px; left: 6px; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 1000;';
+            skipLink.addEventListener('focus', function() {
+                this.style.top = '6px';
+            });
+            skipLink.addEventListener('blur', function() {
+                this.style.top = '-40px';
+            });
+            document.body.insertBefore(skipLink, document.body.firstChild);
+        }
+        
+        // Initialize advanced accessibility features
+        initializeAdvancedAccessibilityFeatures();
+        
+        // Advanced Mobile Optimization
+        function initializeAdvancedMobileOptimizationFeatures() {
+            // Touch event optimization
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', function(e) {
+                const touchY = e.touches[0].clientY;
+                const touchDiff = touchStartY - touchY;
+                
+                if (touchDiff > 0) {
+                    // Scrolling up
+                    document.body.classList.add('scrolling-up');
+                } else {
+                    // Scrolling down
+                    document.body.classList.add('scrolling-down');
+                }
+            }, { passive: true });
+            
+            // Viewport optimization
+            function optimizeViewport() {
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
+                }
+            }
+            
+            optimizeViewport();
+            
+            // Mobile-specific optimizations
+            if (/Mobile|Android|iPhone|iPad/.test(navigator.userAgent)) {
+                document.body.classList.add('mobile-device');
+                
+                // Optimize images for mobile
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    if (img.width > 400) {
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                    }
+                });
+            }
+        }
+        
+        // Initialize advanced mobile optimization features
+        initializeAdvancedMobileOptimizationFeatures();
+        
+        // Advanced User Experience
+        function initializeAdvancedUserExperienceFeatures() {
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Loading states
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'در حال ارسال...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+            
+            // Focus management
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    document.body.classList.add('keyboard-navigation');
+                }
+            });
+            
+            document.addEventListener('mousedown', function() {
+                document.body.classList.remove('keyboard-navigation');
+            });
+        }
+        
+        // Initialize advanced user experience features
+        initializeAdvancedUserExperienceFeatures();
+        
+        // Advanced Performance Optimization
+        function initializeAdvancedPerformanceOptimizationFeatures() {
+            // Lazy load images
+            const images = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => imageObserver.observe(img));
+            
+            // Preload critical resources
+            const criticalResources = [
+                '{% static "css/bootstrap.min.css" %}',
+                '{% static "js/bootstrap.bundle.min.js" %}'
+            ];
+            
+            criticalResources.forEach(resource => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = resource;
+                link.as = resource.includes('.css') ? 'style' : 'script';
+                document.head.appendChild(link);
+            });
+            
+            // Optimize font loading
+            if ('fonts' in document) {
+                document.fonts.ready.then(() => {
+                    document.body.classList.add('fonts-loaded');
+                });
+            }
+        }
+        
+        // Initialize advanced performance optimization features
+        initializeAdvancedPerformanceOptimizationFeatures();
     </script>
     <script>
         // Discount Banner Functions
