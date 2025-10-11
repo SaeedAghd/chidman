@@ -3322,13 +3322,18 @@ def find_or_create_store_analysis(order, user):
 def order_analysis_results(request, order_id):
     """صفحه نتایج تحلیل بر اساس سفارش - نسخه بهبود یافته"""
     try:
+        logger.info(f"🔍 Accessing order_analysis_results for order_id: {order_id}, user: {request.user.username}")
+        
         # هر کاربر فقط Order های خودش را ببیند
         order = get_object_or_404(Order, order_number=order_id, user=request.user)
+        logger.info(f"✅ Order found: {order.order_number}")
         
         # پیدا کردن StoreAnalysis مرتبط
         store_analysis = find_or_create_store_analysis(order, request.user)
+        logger.info(f"✅ StoreAnalysis found/created: {store_analysis.id if store_analysis else 'None'}")
         
         if not store_analysis:
+            logger.warning(f"⚠️ No StoreAnalysis found for order: {order_id}")
             messages.error(request, 'تحلیل مورد نظر یافت نشد. لطفاً ابتدا فرم تحلیل را تکمیل کنید.')
             return redirect('store_analysis:store_analysis_form')
         
@@ -3552,9 +3557,11 @@ def order_analysis_results(request, order_id):
             logger.error(f"Error generating friendly analysis: {e}")
             context['show_friendly'] = False
         
+        logger.info(f"✅ Rendering results page for order: {order_id}")
         return render(request, 'store_analysis/modern_analysis_results.html', context)
         
     except Exception as e:
+        logger.error(f"❌ Error in order_analysis_results: {str(e)}", exc_info=True)
         messages.error(request, f'خطا در بارگذاری نتایج: {str(e)}')
         return redirect('store_analysis:user_dashboard')
 
