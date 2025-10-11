@@ -7002,35 +7002,14 @@ def payment_failed(request, order_id):
 
 @login_required
 def ai_consultant_list(request):
-    """لیست تحلیل‌ها برای انتخاب مشاور"""
-    try:
-        # دریافت تحلیل‌های کاربر که تکمیل شده‌اند (شامل preliminary_completed)
-        analyses = StoreAnalysis.objects.filter(
-            user=request.user,
-            status__in=['completed', 'preliminary_completed']
-        ).order_by('-created_at')
-        
-        context = {
-            'analyses': analyses
-        }
-        
-        return render(request, 'store_analysis/ai_consultant_list.html', context)
-        
-    except Exception as e:
-        logger.error(f"Error in ai_consultant_list: {e}")
-        messages.error(request, 'خطا در بارگذاری لیست تحلیل‌ها')
-        return redirect('store_analysis:user_dashboard')
+    """لیست تحلیل‌ها برای انتخاب مشاور - Redirect به داشبورد"""
+    return redirect('store_analysis:user_dashboard')
 
 @login_required
 def ai_consultant(request, analysis_id):
-    """صفحه مشاور هوش مصنوعی"""
-    try:
-        analysis = get_object_or_404(StoreAnalysis, id=analysis_id, user=request.user)
-        
-        # بررسی اینکه تحلیل تکمیل شده باشد (شامل preliminary_completed)
-        if analysis.status not in ['completed', 'preliminary_completed']:
-            messages.error(request, 'تحلیل شما هنوز تکمیل نشده است')
-            return redirect('store_analysis:user_dashboard')
+    """صفحه مشاور هوش مصنوعی - Redirect به چت جدید"""
+    # Redirect به صفحه چت جدید
+    return redirect('store_analysis:ai_consultant_chat', analysis_id=analysis_id)
         
         # ایجاد یا دریافت جلسه مشاوره
         consultant_service = AIConsultantService()
