@@ -97,12 +97,16 @@ class AIAnalysisService:
                 customer_analysis
             )
             
+            # 6. فرمت کردن گزارش نهایی به متن روان و حرفه‌ای (گام ۱ راهکار پیشنهادی)
+            formatted_text = self._format_final_report(final_report, store_data)
+            
             logger.info(f"تحلیل AI تکمیل شد برای فروشگاه: {store_data.get('store_name', 'نامشخص')}")
             
             return {
                 'status': 'completed',
                 'timestamp': timezone.now().isoformat(),
                 'store_name': store_data.get('store_name', 'نامشخص'),
+                'formatted_text': formatted_text,  # متن فرمت شده برای نمایش
                 'analysis_summary': final_report['summary'],
                 'detailed_analysis': final_report['detailed'],
                 'recommendations': final_report['recommendations'],
@@ -385,6 +389,86 @@ class AIAnalysisService:
                 'improvement_potential': 95.0 - metrics['overall_performance']
             }
         }
+    
+    def _format_final_report(self, report: Dict[str, Any], store_data: Dict[str, Any]) -> str:
+        """
+        بازنویسی خروجی به زبان فارسی روان و ساختارمند
+        
+        این متد تمام داده‌های تحلیلی را به یک گزارش حرفه‌ای و خوانا تبدیل می‌کند.
+        Uncle Bob: "این یک Adapter Pattern است که presentation را از business logic جدا می‌کند"
+        """
+        try:
+            # استخراج داده‌های کلیدی
+            name = store_data.get("store_name", "فروشگاه شما")
+            store_type = store_data.get("store_type", "عمومی")
+            score = report.get("metrics", {}).get("overall_performance", 70)
+            summary = report.get("summary", "تحلیل انجام شد")
+            recs = report.get("recommendations", [])
+            improvements = report.get("improvements", {})
+            
+            # فرمت کردن توصیه‌ها
+            formatted_recs = ""
+            for i, rec in enumerate(recs[:10], 1):  # حداکثر 10 توصیه
+                if isinstance(rec, dict):
+                    title = rec.get('title', rec.get('recommendation', f'توصیه {i}'))
+                    desc = rec.get('description', rec.get('details', ''))
+                    priority = rec.get('priority', '')
+                    priority_icon = {'بالا': '🔴', 'متوسط': '🟡', 'پایین': '🟢'}.get(priority, '📌')
+                    formatted_recs += f"\n{priority_icon} {i}. {title}"
+                    if desc:
+                        formatted_recs += f"\n   {desc}"
+                else:
+                    formatted_recs += f"\n📌 {i}. {rec}"
+            
+            # فرمت کردن پیش‌بینی بهبودها
+            improvements_text = ""
+            if isinstance(improvements, dict):
+                for key, value in improvements.items():
+                    if isinstance(value, (int, float)):
+                        improvements_text += f"\n• {key}: +{value}%"
+                    elif isinstance(value, dict):
+                        improvement_val = value.get('improvement', value.get('value', ''))
+                        if improvement_val:
+                            improvements_text += f"\n• {key}: {improvement_val}"
+            
+            # تولید گزارش نهایی
+            final_text = f"""
+{'='*60}
+🛍️ گزارش تحلیلی هوشمند فروشگاه {name}
+{'='*60}
+
+📋 مشخصات فروشگاه:
+   • نام: {name}
+   • نوع: {store_type}
+   • امتیاز کلی: {score:.1f}/100
+
+{'='*60}
+📊 خلاصه اجرایی:
+{'='*60}
+
+{summary.strip()}
+
+{'='*60}
+✅ توصیه‌های کلیدی برای بهبود:
+{'='*60}
+{formatted_recs.strip()}
+
+{'='*60}
+📈 پیش‌بینی بهبودها پس از اجرای توصیه‌ها:
+{'='*60}
+{improvements_text.strip() if improvements_text else '• افزایش کلی عملکرد فروشگاه'}
+
+{'='*60}
+📅 تاریخ تحلیل: {timezone.now().strftime('%Y/%m/%d - %H:%M')}
+💡 این گزارش توسط سیستم هوش مصنوعی چیدمانو تولید شده است
+{'='*60}
+            """
+            
+            return final_text.strip()
+            
+        except Exception as e:
+            logger.error(f"خطا در فرمت کردن گزارش نهایی: {str(e)}")
+            return f"گزارش تحلیلی فروشگاه {store_data.get('store_name', 'نامشخص')}"
 
 # تابع کمکی برای استفاده در views
 def perform_ai_analysis_for_order(order_id: str, store_data: Dict[str, Any]) -> Dict[str, Any]:
