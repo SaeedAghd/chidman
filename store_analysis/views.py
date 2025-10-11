@@ -4253,11 +4253,15 @@ def check_processing_status(request, pk):
     })
 
 def _convert_ollama_results_to_text(results):
-    """تبدیل نتایج Ollama به متن برای PDF"""
+    """تبدیل نتایج تحلیل به متن قابل خواندن برای PDF"""
     try:
         text_content = ""
         
-        # اضافه کردن تحلیل اصلی
+        # اگر تحلیل از Liara AI است، از final_report استفاده کن
+        if 'final_report' in results:
+            return results['final_report']
+        
+        # اگر analysis_text از Ollama/local است
         if 'analysis_text' in results:
             text_content += f"## تحلیل هوشمند فروشگاه\n\n{results['analysis_text']}\n\n"
         
