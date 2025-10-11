@@ -461,6 +461,203 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 🆕 بخش مواد و بافت (Materials & Textures) - پیشنهاد هیئت مشاوره -->
+                <div class="section-divider">
+                    <div class="divider-icon">🏗️</div>
+                    <h3 class="divider-title">مواد و بافت فروشگاه</h3>
+                    <p class="divider-description">جنس مواد استفاده شده تأثیر مستقیمی روی احساس مشتری دارد</p>
+                </div>
+                
+                <!-- اطلاعات تحلیل مواد -->
+                <div class="analysis-info">
+                    <div class="info-icon">🧱</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این بخش</h4>
+                        <p>تحلیل مواد با <strong>Material Science Database</strong>، <strong>Sensory Psychology</strong>، و <strong>Acoustic Analysis AI</strong> برای بهینه‌سازی تجربه حسی مشتری.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <!-- کف‌پوش -->
+                    <div class="form-field">
+                        <label class="form-label required">جنس کف‌پوش</label>
+                        <select name="floor_material" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="ceramic">سرامیک (سرد، سخت، سهل‌التمیز)</option>
+                            <option value="wood">چوب (گرم، دلنشین، طبیعی)</option>
+                            <option value="laminate">لمینت (اقتصادی، متنوع)</option>
+                            <option value="carpet">موکت (گرم، صدا‌گیر، راحت)</option>
+                            <option value="vinyl">وینیل (ضدآب، مقاوم، مدرن)</option>
+                            <option value="concrete">بتن (صنعتی، مدرن، سرد)</option>
+                            <option value="stone">سنگ (مجلل، مقاوم، سرد)</option>
+                            <option value="mixed">ترکیبی</option>
+                        </select>
+                        <div class="field-hint">💡 نوع کف‌پوش روی حس گرما، راحتی، و صدا تأثیر دارد</div>
+                    </div>
+                    
+                    <!-- دیوارها -->
+                    <div class="form-field">
+                        <label class="form-label required">پوشش دیوارها</label>
+                        <select name="wall_material" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="paint">رنگ (اقتصادی، تنوع رنگ بالا)</option>
+                            <option value="wallpaper">کاغذ دیواری (مدرن، طرح‌دار)</option>
+                            <option value="wood">چوب (گرم، طبیعی، مجلل)</option>
+                            <option value="brick">آجر (صنعتی، خام، مدرن)</option>
+                            <option value="stone">سنگ (لوکس، مقاوم)</option>
+                            <option value="plaster">گچ (کلاسیک، ساده)</option>
+                            <option value="metal">فلز (صنعتی، مدرن، سرد)</option>
+                            <option value="mixed">ترکیبی</option>
+                        </select>
+                        <div class="field-hint">💡 پوشش دیوار روی نور، صدا، و احساس فضا تأثیر دارد</div>
+                    </div>
+                    
+                    <!-- سقف -->
+                    <div class="form-field">
+                        <label class="form-label required">نوع سقف</label>
+                        <select name="ceiling_type" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="normal">ساده (معمولی، اقتصادی)</option>
+                            <option value="false">کاذب (مدرن، امکان نورپردازی)</option>
+                            <option value="exposed">تیرها و سیم‌کشی باز (صنعتی)</option>
+                            <option value="wood">چوبی (گرم، طبیعی)</option>
+                            <option value="metal">فلزی (مدرن، سرد)</option>
+                            <option value="mixed">ترکیبی</option>
+                        </select>
+                        <div class="field-hint">💡 سقف روی ارتفاع احساسی فضا و نورپردازی تأثیر دارد</div>
+                    </div>
+                    
+                    <!-- رنگ غالب کف -->
+                    <div class="form-field">
+                        <label class="form-label">رنگ غالب کف</label>
+                        <input type="text" name="floor_color" class="form-control" placeholder="مثلاً: قهوه‌ای روشن، خاکستری، سفید">
+                    </div>
+                    
+                    <!-- رنگ غالب دیوار -->
+                    <div class="form-field">
+                        <label class="form-label">رنگ غالب دیوار</label>
+                        <input type="text" name="wall_color" class="form-control" placeholder="مثلاً: سفید، کرم، خاکستری">
+                    </div>
+                    
+                    <!-- رنگ سقف -->
+                    <div class="form-field">
+                        <label class="form-label">رنگ سقف</label>
+                        <input type="text" name="ceiling_color" class="form-control" placeholder="مثلاً: سفید، مشکی، چوبی">
+                    </div>
+                </div>
+                
+                <!-- بافت و احساس -->
+                <div class="form-field">
+                    <label class="form-label">احساس کلی فضا</label>
+                    <select name="overall_ambiance" class="form-control">
+                        <option value="">انتخاب کنید</option>
+                        <option value="warm">گرم و دلنشین (چوب، رنگ‌های گرم)</option>
+                        <option value="cold">سرد و مدرن (فلز، شیشه، سفید)</option>
+                        <option value="industrial">صنعتی (آجر، بتون، فلز)</option>
+                        <option value="luxury">مجلل (سنگ، طلا، براق)</option>
+                        <option value="minimalist">مینیمال (ساده، تمیز، کم‌رنگ)</option>
+                        <option value="traditional">سنتی (چوب، رنگ‌های طبیعی)</option>
+                        <option value="eclectic">ترکیبی و متنوع</option>
+                    </select>
+                    <div class="field-hint">💡 احساس فضا روی نوع مشتریانی که جذب می‌شوند تأثیر دارد</div>
+                </div>
+                
+                <!-- 🆕 بخش Experience Zones - پیشنهاد ایکیا -->
+                <div class="section-divider">
+                    <div class="divider-icon">🎪</div>
+                    <h3 class="divider-title">نواحی تجربه و رفاه مشتری</h3>
+                    <p class="divider-description">فضاهای ویژه برای افزایش تجربه مشتری و زمان ماندگاری</p>
+                </div>
+                
+                <!-- اطلاعات تحلیل Experience Zones -->
+                <div class="analysis-info">
+                    <div class="info-icon">🎯</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این بخش</h4>
+                        <p>تحلیل نواحی تجربه با <strong>Customer Journey Mapping</strong>، <strong>Dwell Time Analysis</strong>، و <strong>اصول Experiential Retail</strong> (ایکیا، اپل استور).</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <!-- منطقه امتحان محصول -->
+                    <div class="form-field">
+                        <label class="form-label">آیا منطقه آزمایش/امتحان محصول دارید؟</label>
+                        <select name="has_test_zone" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes_full">بله، منطقه کاملی دارم</option>
+                            <option value="yes_partial">بله، فضای کوچکی دارم</option>
+                            <option value="no_planning">نه، ولی می‌خواهم اضافه کنم</option>
+                            <option value="no">نه، نیازی ندارم</option>
+                        </select>
+                        <div class="field-hint">💡 مثال: اتاق پرو، نشستن روی مبل، تست دوچرخه</div>
+                    </div>
+                    
+                    <!-- منطقه استراحت -->
+                    <div class="form-field">
+                        <label class="form-label">آیا منطقه استراحت برای مشتریان دارید؟</label>
+                        <select name="has_rest_area" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes_seating">بله، نیمکت/صندلی دارم</option>
+                            <option value="yes_cafe">بله، کافی‌شاپ یا بوفه دارم</option>
+                            <option value="yes_water">بله، فقط آب یا نوشیدنی دارم</option>
+                            <option value="no_planning">نه، ولی می‌خواهم اضافه کنم</option>
+                            <option value="no">نه، فضا ندارم</option>
+                        </select>
+                        <div class="field-hint">💡 استراحت = زمان بیشتر = خرید بیشتر</div>
+                    </div>
+                    
+                    <!-- منطقه کودکان -->
+                    <div class="form-field">
+                        <label class="form-label">آیا منطقه بازی یا سرگرمی کودکان دارید؟</label>
+                        <select name="has_kids_zone" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes_full">بله، اتاق بازی کامل</option>
+                            <option value="yes_toys">بله، فضای کوچک با اسباب‌بازی</option>
+                            <option value="yes_screen">بله، تلویزیون یا تبلت</option>
+                            <option value="no_planning">نه، ولی می‌خواهم اضافه کنم</option>
+                            <option value="no">نه، مشتریان من کودک ندارند</option>
+                        </select>
+                        <div class="field-hint">💡 والدین راحت = خرید آرام‌تر = سبد خرید پرتر</div>
+                    </div>
+                    
+                    <!-- Wi-Fi رایگان -->
+                    <div class="form-field">
+                        <label class="form-label">آیا Wi-Fi رایگان دارید؟</label>
+                        <select name="has_wifi" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes_free">بله، رایگان برای همه</option>
+                            <option value="yes_password">بله، با رمز عبور</option>
+                            <option value="no_planning">نه، ولی می‌خواهم اضافه کنم</option>
+                            <option value="no">نه</option>
+                        </select>
+                        <div class="field-hint">💡 Wi-Fi = مشتریان بیشتر می‌مانند و در شبکه‌های اجتماعی شما را تگ می‌کنند</div>
+                    </div>
+                    
+                    <!-- شارژر موبایل -->
+                    <div class="form-field">
+                        <label class="form-label">آیا پریز یا شارژر موبایل دارید؟</label>
+                        <select name="has_charging" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes">بله</option>
+                            <option value="no_planning">نه، ولی می‌خواهم اضافه کنم</option>
+                            <option value="no">نه</option>
+                        </select>
+                    </div>
+                    
+                    <!-- سرویس بهداشتی -->
+                    <div class="form-field">
+                        <label class="form-label">آیا سرویس بهداشتی برای مشتریان دارید؟</label>
+                        <select name="has_restroom" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes_clean">بله، تمیز و استاندارد</option>
+                            <option value="yes_basic">بله، ساده</option>
+                            <option value="no_planning">نه، ولی می‌خواهم اضافه کنم</option>
+                            <option value="no">نه، قانوناً ملزم نیستم</option>
+                        </select>
+                        <div class="field-hint">💡 سرویس تمیز = احساس حرفه‌ای بودن</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Step 4: Customer Behavior -->
@@ -1356,6 +1553,182 @@
                     <div class="motivation-text">
                         <p>⏳ <strong>در حال آپلود فایل‌های شما...</strong></p>
                         <p>لطفاً صبور باشید. آپلود تصاویر و ویدیوها ممکن است چند دقیقه طول بکشد. پس از تکمیل آپلود، تحلیل جامع فروشگاه شما شروع خواهد شد.</p>
+                    </div>
+                </div>
+                
+                <!-- 🆕 بخش رقیب‌سنجی و بازار - پیشنهاد والمارت -->
+                <div class="section-divider">
+                    <div class="divider-icon">🏆</div>
+                    <h3 class="divider-title">تحلیل رقابتی و بازار محلی</h3>
+                    <p class="divider-description">شناخت رقبا و موقعیت بازار برای موفقیت بیشتر</p>
+                </div>
+                
+                <!-- اطلاعات تحلیل رقابتی -->
+                <div class="analysis-info">
+                    <div class="info-icon">🔍</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این بخش</h4>
+                        <p>تحلیل رقابتی با <strong>Market Intelligence Tools</strong>، <strong>Competitive Analysis Framework</strong>، و <strong>SWOT Analysis AI</strong> برای شناسایی فرصت‌ها و تهدیدها.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <!-- تعداد رقبای مستقیم -->
+                    <div class="form-field">
+                        <label class="form-label">تعداد رقبای مستقیم در محدوده 500 متری</label>
+                        <input type="number" name="direct_competitors_count" class="form-control" placeholder="مثلاً: 3" min="0" max="50">
+                        <div class="field-hint">💡 فروشگاه‌هایی که محصولات مشابه شما را می‌فروشند</div>
+                    </div>
+                    
+                    <!-- نام رقبای اصلی -->
+                    <div class="form-field">
+                        <label class="form-label">نام رقبای اصلی (حداکثر 3 فروشگاه)</label>
+                        <input type="text" name="main_competitors" class="form-control" placeholder="مثلاً: فروشگاه آرمان، مرکز خرید پارس، ...">
+                        <div class="field-hint">💡 نام رقبای اصلی را با ویرگول از هم جدا کنید</div>
+                    </div>
+                    
+                    <!-- نقطه قوت رقبا -->
+                    <div class="form-field">
+                        <label class="form-label">بزرگترین نقطه قوت رقبای شما چیست؟</label>
+                        <select name="competitors_strength" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="price">قیمت پایین‌تر</option>
+                            <option value="variety">تنوع کالا بیشتر</option>
+                            <option value="location">موقعیت مکانی بهتر</option>
+                            <option value="design">طراحی و چیدمان زیباتر</option>
+                            <option value="service">خدمات بهتر به مشتری</option>
+                            <option value="brand">برند قوی‌تر</option>
+                            <option value="parking">پارکینگ بهتر</option>
+                            <option value="other">سایر موارد</option>
+                        </select>
+                        <div class="field-hint">💡 ما به شما کمک می‌کنیم این شکاف را پر کنید</div>
+                    </div>
+                    
+                    <!-- نقطه قوت شما نسبت به رقبا -->
+                    <div class="form-field">
+                        <label class="form-label">بزرگترین نقطه قوت شما نسبت به رقبا چیست؟</label>
+                        <select name="your_strength" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="price">قیمت پایین‌تر</option>
+                            <option value="quality">کیفیت بالاتر</option>
+                            <option value="variety">تنوع کالا بیشتر</option>
+                            <option value="service">خدمات بهتر</option>
+                            <option value="expertise">تخصص و دانش بیشتر</option>
+                            <option value="trust">اعتماد مشتریان</option>
+                            <option value="warranty">گارانتی و ضمانت</option>
+                            <option value="other">سایر موارد</option>
+                        </select>
+                        <div class="field-hint">💡 ما این نقطه قوت را برجسته‌تر می‌کنیم</div>
+                    </div>
+                </div>
+                
+                <!-- 🆕 بخش تحلیل فصلی - پیشنهاد والمارت -->
+                <div class="section-divider">
+                    <div class="divider-icon">📅</div>
+                    <h3 class="divider-title">برنامه‌ریزی فصلی و رویدادها</h3>
+                    <p class="divider-description">چیدمان بهینه برای مناسبت‌ها و فصول مختلف</p>
+                </div>
+                
+                <!-- اطلاعات تحلیل فصلی -->
+                <div class="analysis-info">
+                    <div class="info-icon">🗓️</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این بخش</h4>
+                        <p>تحلیل فصلی با <strong>Seasonal Trend Analysis</strong>، <strong>Event Calendar AI</strong>، و <strong>Sales Forecasting Models</strong> برای پیش‌بینی و آماده‌سازی فروشگاه.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <!-- فصل پرفروش -->
+                    <div class="form-field">
+                        <label class="form-label">کدام فصل/ماه پرفروش‌ترین برای شماست؟</label>
+                        <select name="peak_season" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="spring">بهار (فروردین، اردیبهشت، خرداد)</option>
+                            <option value="summer">تابستان (تیر، مرداد، شهریور)</option>
+                            <option value="autumn">پاییز (مهر، آبان، آذر)</option>
+                            <option value="winter">زمستان (دی، بهمن، اسفند)</option>
+                            <option value="nowruz">نوروز (اسفند و فروردین)</option>
+                            <option value="back_to_school">بازگشت به مدرسه (شهریور و مهر)</option>
+                            <option value="yalda">شب یلدا (آذر)</option>
+                            <option value="all_year">یکسان در تمام سال</option>
+                        </select>
+                        <div class="field-hint">💡 برای فصل پرفروش، چیدمان ویژه طراحی می‌کنیم</div>
+                    </div>
+                    
+                    <!-- رویدادهای مهم -->
+                    <div class="form-field">
+                        <label class="form-label">کدام رویدادها برای فروش شما مهم‌اند؟</label>
+                        <div class="checkbox-group">
+                            <div class="modern-checkbox">
+                                <input type="checkbox" id="event_nowruz" name="important_events" value="nowruz">
+                                <label for="event_nowruz">
+                                    <span class="checkmark"></span>
+                                    <span class="label-text">نوروز و عید</span>
+                                </label>
+                            </div>
+                            <div class="modern-checkbox">
+                                <input type="checkbox" id="event_yalda" name="important_events" value="yalda">
+                                <label for="event_yalda">
+                                    <span class="checkmark"></span>
+                                    <span class="label-text">شب یلدا</span>
+                                </label>
+                            </div>
+                            <div class="modern-checkbox">
+                                <input type="checkbox" id="event_school" name="important_events" value="school">
+                                <label for="event_school">
+                                    <span class="checkmark"></span>
+                                    <span class="label-text">بازگشت به مدرسه</span>
+                                </label>
+                            </div>
+                            <div class="modern-checkbox">
+                                <input type="checkbox" id="event_summer" name="important_events" value="summer">
+                                <label for="event_summer">
+                                    <span class="checkmark"></span>
+                                    <span class="label-text">تعطیلات تابستان</span>
+                                </label>
+                            </div>
+                            <div class="modern-checkbox">
+                                <input type="checkbox" id="event_religious" name="important_events" value="religious">
+                                <label for="event_religious">
+                                    <span class="checkmark"></span>
+                                    <span class="label-text">مناسبت‌های مذهبی</span>
+                                </label>
+                            </div>
+                            <div class="modern-checkbox">
+                                <input type="checkbox" id="event_sales" name="important_events" value="sales">
+                                <label for="event_sales">
+                                    <span class="checkmark"></span>
+                                    <span class="label-text">فروش‌های ویژه (Black Friday, جمعه سیاه)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="field-hint">💡 برای هر رویداد، چیدمان و تزئینات ویژه پیشنهاد می‌دهیم</div>
+                    </div>
+                    
+                    <!-- تغییر چیدمان فصلی -->
+                    <div class="form-field">
+                        <label class="form-label">آیا چیدمان خود را برای فصول مختلف تغییر می‌دهید؟</label>
+                        <select name="seasonal_changes" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes_full">بله، کاملاً تغییر می‌دهم</option>
+                            <option value="yes_partial">بله، تغییرات جزئی</option>
+                            <option value="no_want">نه، ولی می‌خواهم شروع کنم</option>
+                            <option value="no">نه، ثابت می‌ماند</option>
+                        </select>
+                        <div class="field-hint">💡 تغییر فصلی = فروش بیشتر + مشتریان جدید</div>
+                    </div>
+                    
+                    <!-- محصولات فصلی -->
+                    <div class="form-field">
+                        <label class="form-label">آیا محصولات فصلی (موسمی) دارید؟</label>
+                        <select name="seasonal_products" class="form-control">
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes_major">بله، بخش عمده‌ای از کالاهایم فصلی است</option>
+                            <option value="yes_some">بله، بخش کوچکی فصلی است</option>
+                            <option value="no">نه، همیشه یکسان است</option>
+                        </select>
+                        <div class="field-hint">💡 مثال: لباس تابستانی، لوازم تحریر مهر، هدایای نوروز</div>
                     </div>
                 </div>
             </div>

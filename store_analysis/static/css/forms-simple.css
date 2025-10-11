@@ -854,6 +854,45 @@ body {
     display: block;
 }
 
+/* ===== SECTION DIVIDER (for sub-sections) ===== */
+.section-divider {
+    margin: 3rem 0 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 16px;
+    border-left: 5px solid #667eea;
+    text-align: center;
+}
+
+.divider-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    animation: bounce 2s infinite;
+}
+
+.divider-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0.5rem 0;
+}
+
+.divider-description {
+    font-size: 1rem;
+    color: #4a5568;
+    margin: 0.5rem 0 0 0;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
 .section-header {
     text-align: center;
     margin-bottom: var(--space-8);

@@ -7010,31 +7010,6 @@ def ai_consultant(request, analysis_id):
     """صفحه مشاور هوش مصنوعی - Redirect به چت جدید"""
     # Redirect به صفحه چت جدید
     return redirect('store_analysis:ai_consultant_chat', analysis_id=analysis_id)
-        
-        # ایجاد یا دریافت جلسه مشاوره
-        consultant_service = AIConsultantService()
-        session = consultant_service.create_consultant_session(request.user, analysis)
-        
-        # دریافت سوالات قبلی
-        questions = AIConsultantQuestion.objects.filter(session=session).order_by('-created_at')
-        
-        # وضعیت جلسه
-        session_status = consultant_service.get_session_status(session)
-        
-        context = {
-            'analysis': analysis,
-            'session': session,
-            'questions': questions,
-            'session_status': session_status,
-            'consultant_service': consultant_service
-        }
-        
-        return render(request, 'store_analysis/ai_consultant.html', context)
-        
-    except Exception as e:
-        logger.error(f"Error in ai_consultant: {e}")
-        messages.error(request, 'خطا در بارگذاری مشاور هوش مصنوعی')
-        return redirect('store_analysis:user_dashboard')
 
 @login_required
 def ask_consultant_question(request, session_id):
