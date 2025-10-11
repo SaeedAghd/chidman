@@ -2466,6 +2466,17 @@ class StoreAnalysisAI:
                 if liara_result and liara_result.get('final_report'):
                     logger.info("✅ تحلیل Liara AI (GPT-4.1) موفقیت‌آمیز بود")
                     
+                    # پاکسازی final_report برای نمایش صحیح
+                    final_report = liara_result.get('final_report', '')
+                    
+                    # حذف escape characters
+                    final_report = final_report.replace('\\n', '\n')
+                    final_report = final_report.replace('\\u200c', '\u200c')
+                    final_report = final_report.replace('\\t', '\t')
+                    
+                    # حذف quote های اضافی در ابتدا و انتهای متن
+                    final_report = final_report.strip("'\"")
+                    
                     # محاسبه کیفیت واقعی بر اساس تحلیل
                     quality = 85.0  # پایه برای Liara AI
                     if images and len(images) > 0:
@@ -2474,7 +2485,7 @@ class StoreAnalysisAI:
                         quality += 5.0  # تحلیل کامل
                     
                     return {
-                        'analysis_text': liara_result.get('final_report', ''),
+                        'analysis_text': final_report,
                         'detailed_analyses': liara_result.get('detailed_analyses', {}),
                         'ai_models_used': liara_result.get('ai_models_used', ['gpt-4.1']),
                         'source': 'liara_ai',
