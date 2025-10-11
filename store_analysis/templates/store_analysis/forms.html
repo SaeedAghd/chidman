@@ -70,7 +70,7 @@
         </div>
         <div class="step-item" data-step="4">
             <div class="step-circle">4</div>
-            <div class="step-label">رفتار مشتری</div>
+            <div class="step-label">مشتری و امنیت</div>
         </div>
         <div class="step-item" data-step="5">
             <div class="step-circle">5</div>
@@ -82,7 +82,7 @@
         </div>
         <div class="step-item" data-step="7">
             <div class="step-circle">7</div>
-            <div class="step-label">امنیت و اهداف</div>
+            <div class="step-label">اهداف و خروجی</div>
         </div>
     </div>
 
@@ -660,23 +660,30 @@
                 </div>
             </div>
 
-            <!-- Step 4: Customer Behavior -->
+            <!-- Step 4: Customer Behavior & Security -->
             <div class="form-section" data-step="4">
                 <div class="section-header">
                     <div class="section-icon">👥</div>
-                    <h2 class="section-title">رفتار مشتریان</h2>
-                    <p class="section-description">اطلاعات مربوط به رفتار و الگوی خرید مشتریان</p>
+                    <h2 class="section-title">مشتری و امنیت</h2>
+                    <p class="section-description">رفتار مشتریان و سیستم‌های امنیتی فروشگاه</p>
                     <div class="motivation-text">
-                        <span class="motivation-emoji">🧠</span>
-                        <span>درک رفتار مشتریان کلید موفقیت فروشگاه شماست!</span>
+                        <span class="motivation-emoji">❤️</span>
+                        <span>مشتری راضی + امنیت = فروش بیشتر!</span>
                     </div>
+                </div>
+                
+                <!-- 👥 بخش رفتار مشتری -->
+                <div class="section-divider">
+                    <div class="divider-icon">👥</div>
+                    <h3 class="divider-title">رفتار و تجربه مشتری</h3>
+                    <p class="divider-description">شناخت مشتریان و نحوه تعامل آنها با فروشگاه</p>
                 </div>
                 
                 <!-- اطلاعات تحلیل -->
                 <div class="analysis-info">
                     <div class="info-icon">👥</div>
                     <div class="info-content">
-                        <h4>منابع تحلیل این گام</h4>
+                        <h4>منابع تحلیل این بخش</h4>
                         <p>تحلیل رفتار با <strong>Machine Learning Algorithms</strong>، <strong>Customer Journey Analytics</strong>، و <strong>Behavioral Psychology Models</strong> برای بهینه‌سازی تجربه مشتری.</p>
                     </div>
                 </div>
@@ -793,6 +800,57 @@
                         </div>
                         <div class="file-preview-container" id="store-photos-input-preview">
                             <!-- پیش‌نمایش عکس‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 🔒 بخش امنیت و نظارت -->
+                <div class="section-divider">
+                    <div class="divider-icon">🛡️</div>
+                    <h3 class="divider-title">امنیت و نظارت</h3>
+                    <p class="divider-description">سیستم‌های امنیتی و نظارتی فروشگاه</p>
+                </div>
+                
+                <!-- اطلاعات تحلیل امنیت -->
+                <div class="analysis-info">
+                    <div class="info-icon">🔒</div>
+                    <div class="info-content">
+                        <h4>منابع تحلیل این بخش</h4>
+                        <p>تحلیل امنیت با <strong>Security Analytics AI</strong>، <strong>Video Analysis Algorithms</strong>، و <strong>Risk Assessment Models</strong> برای بهینه‌سازی سیستم‌های امنیتی.</p>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label required">دوربین نظارتی</label>
+                        <select name="has_cameras" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            <option value="yes">دارم</option>
+                            <option value="no">ندارم</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">تعداد دوربین</label>
+                        <input type="number" name="camera_count" class="form-control" placeholder="4" min="0" max="100">
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="form-label">مکان‌های نصب دوربین</label>
+                        <textarea name="camera_locations" class="form-control" rows="3" placeholder="ورودی، صندوق، انبار،..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label">فیلم نظارتی</label>
+                    <div class="file-upload-container">
+                    <div class="file-upload">
+                            <input type="file" name="surveillance_footage" accept="video/*" id="surveillance-footage-input">
+                        <div class="file-upload-text">🎥 فیلم نظارتی را آپلود کنید</div>
+                            <div class="file-upload-hint">فرمت‌های مجاز: MP4, MOV, AVI (حداکثر 50MB)</div>
+                        </div>
+                        <div class="file-preview-container" id="surveillance-footage-input-preview">
+                            <!-- پیش‌نمایش ویدیو اینجا نمایش داده می‌شود -->
                         </div>
                     </div>
                 </div>
@@ -913,8 +971,8 @@
             <div class="form-section" data-step="6">
                 <div class="section-header">
                     <div class="section-icon">🏆</div>
-                    <h2 class="section-title">تحلیل رقابتی و بازار محلی</h2>
-                    <p class="section-description">شناخت رقبا و موقعیت بازار برای موفقیت بیشتر</p>
+                    <h2 class="section-title">تحلیل رقابتی و بازار</h2>
+                    <p class="section-description">شناخت رقبا، موقعیت بازار و برنامه‌ریزی فصلی</p>
                     <div class="motivation-text">
                         <span class="motivation-emoji">💪</span>
                         <span>شناخت رقبا = برتری رقابتی شما!</span>
@@ -1091,81 +1149,23 @@
                 </div>
             </div>
 
-            <!-- Step 7: Security & Goals -->
+            <!-- Step 7: Goals and Output -->
             <div class="form-section" data-step="7">
                 <div class="section-header">
-                    <div class="section-icon">🔒</div>
-                    <h2 class="section-title">امنیت و اهداف</h2>
-                    <p class="section-description">امنیت فروشگاه و اهداف بهینه‌سازی</p>
+                    <div class="section-icon">🎯</div>
+                    <h2 class="section-title">اهداف و خروجی</h2>
+                    <p class="section-description">اهداف بهینه‌سازی و نحوه دریافت گزارش</p>
                     <div class="motivation-text">
                         <span class="motivation-emoji">🚀</span>
                         <span>آخرین مرحله! شما در آستانه تحول فروشگاه خود هستید!</span>
                     </div>
                 </div>
                 
-                <!-- 🔒 بخش امنیت و نظارت -->
-                <div class="section-divider">
-                    <div class="divider-icon">🛡️</div>
-                    <h3 class="divider-title">امنیت و نظارت</h3>
-                    <p class="divider-description">سیستم‌های امنیتی و نظارتی فروشگاه</p>
-                </div>
-                
-                <!-- اطلاعات تحلیل امنیت -->
-                <div class="analysis-info">
-                    <div class="info-icon">🔒</div>
-                    <div class="info-content">
-                        <h4>منابع تحلیل این بخش</h4>
-                        <p>تحلیل امنیت با <strong>Security Analytics AI</strong>، <strong>Video Analysis Algorithms</strong>، و <strong>Risk Assessment Models</strong> برای بهینه‌سازی سیستم‌های امنیتی.</p>
-                    </div>
-                </div>
-                
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label class="form-label required">دوربین نظارتی</label>
-                        <select name="has_cameras" class="form-control" required>
-                            <option value="">انتخاب کنید</option>
-                            <option value="yes">دارم</option>
-                            <option value="no">ندارم</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label class="form-label">تعداد دوربین</label>
-                        <input type="number" name="camera_count" class="form-control" placeholder="4" min="0" max="100">
-                    </div>
-                    
-                    <div class="form-field">
-                        <label class="form-label">مکان‌های نصب دوربین</label>
-                        <textarea name="camera_locations" class="form-control" rows="3" placeholder="ورودی، صندوق، انبار،..."></textarea>
-                    </div>
-                </div>
-                
-                <div class="form-field">
-                    <label class="form-label">فیلم نظارتی</label>
-                    <div class="file-upload-container">
-                    <div class="file-upload">
-                            <input type="file" name="surveillance_footage" accept="video/*" id="surveillance-footage-input">
-                        <div class="file-upload-text">🎥 فیلم نظارتی را آپلود کنید</div>
-                            <div class="file-upload-hint">فرمت‌های مجاز: MP4, MOV, AVI (حداکثر 50MB)</div>
-                        </div>
-                        <div class="file-preview-container" id="surveillance-footage-input-preview">
-                            <!-- پیش‌نمایش ویدیو اینجا نمایش داده می‌شود -->
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 🎯 بخش اهداف و خروجی -->
-                <div class="section-divider">
-                    <div class="divider-icon">🎯</div>
-                    <h3 class="divider-title">اهداف و خروجی</h3>
-                    <p class="divider-description">اهداف بهینه‌سازی و نحوه دریافت گزارش</p>
-                </div>
-                
                 <!-- اطلاعات تحلیل -->
                 <div class="analysis-info">
                     <div class="info-icon">🎯</div>
                     <div class="info-content">
-                        <h4>منابع تحلیل این بخش</h4>
+                        <h4>منابع تحلیل این گام</h4>
                         <p>تولید گزارش با <strong>Advanced Analytics Engine</strong>، <strong>Business Intelligence Tools</strong>، و <strong>Custom Report Generator</strong> برای ارائه راهکارهای عملی و قابل اجرا.</p>
                             </div>
                             </div>
