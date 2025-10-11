@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views
 from . import payment_views
+from . import chat_views
 from django.http import HttpResponse
 
 app_name = 'store_analysis'
@@ -38,6 +39,10 @@ urlpatterns = [
         path('<int:pk>/insights/', views.analysis_insights, name='analysis_insights'),
         path('<int:pk>/ml/', views.advanced_ml_analysis, name='advanced_ml_analysis'),
         path('<int:pk>/ai/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
+        
+        # AI Consultant (چت‌بات هوشمند)
+        path('<int:analysis_id>/chat/', chat_views.ai_consultant_chat, name='ai_consultant_chat'),
+        path('<int:analysis_id>/chat/send/', chat_views.ai_consultant_send, name='ai_consultant_send'),
         path('<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
         path('<int:pk>/generate-ai/', views.generate_ai_report, name='generate_ai_report'),
         path('<int:pk>/reprocess-ollama/', views.reprocess_analysis_with_ollama, name='reprocess_analysis_with_ollama'),

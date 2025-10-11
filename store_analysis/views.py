@@ -4272,7 +4272,29 @@ def _convert_ollama_results_to_text(results):
         
         # اگر تحلیل از Liara AI است، از final_report استفاده کن
         if 'final_report' in results:
-            return results['final_report']
+            # پاکسازی و فرمت کردن final_report
+            report = results['final_report']
+            
+            # حذف escape characters
+            report = report.replace('\\n', '\n')
+            report = report.replace('\\u200c', '\u200c')
+            
+            # حذف JSON syntax اگر هست
+            import re
+            # حذف ' و " اضافی در ابتدا و انتهای متن
+            report = report.strip("'\"")
+            
+            # اگر متن شامل store_info و... است، فقط final_report را استخراج کن
+            if 'final_report' in report or 'store_info' in report:
+                try:
+                    import json
+                    data = json.loads(report)
+                    if isinstance(data, dict) and 'final_report' in data:
+                        report = data['final_report']
+                except:
+                    pass
+            
+            return report
         
         # اگر analysis_text از Ollama/local است
         if 'analysis_text' in results:

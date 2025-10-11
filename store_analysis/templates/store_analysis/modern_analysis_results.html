@@ -1184,6 +1184,14 @@
                             <small class="text-muted">این صفحه به طور خودکار بروزرسانی می‌شود</small>
                         </div>
                         {% else %}
+                        <!-- مشاور هوشمند AI (دکمه جدید) -->
+                        <a href="{% url 'store_analysis:ai_consultant_chat' store_analysis.id %}" 
+                           class="btn btn-gradient"
+                           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                            <i class="fas fa-robot"></i>
+                            💬 مشاور هوشمند
+                        </a>
+                        
                         <!-- دانلود گزارش -->
                         <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}?type=pdf" 
                            class="btn btn-primary"

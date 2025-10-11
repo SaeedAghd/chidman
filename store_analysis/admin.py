@@ -12,7 +12,8 @@ from django.http import HttpResponse
 import csv
 from datetime import datetime, timedelta
 from .models import (
-    Payment, PaymentLog, ServicePackage, UserSubscription
+    Payment, PaymentLog, ServicePackage, UserSubscription,
+    ChatSession, ChatMessage
 )
 
 # --- Custom Filters ---
@@ -373,6 +374,38 @@ class UserSubscriptionAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False)
         self.message_user(request, f'{updated} اشتراک غیرفعال شد.')
     deactivate_subscriptions.short_description = 'غیرفعال کردن اشتراک‌ها'
+
+
+# --- Chat Session & Chat Message Admin ---
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    """مدیریت پیام‌های چت"""
+    list_display = ('session', 'role', 'content_preview', 'ai_model', 'processing_time', 'created_at')
+    list_filter = ('role', 'ai_model', 'created_at')
+    search_fields = ('content', 'session__user__username', 'session__store_analysis__store_name')
+    readonly_fields = ('session', 'role', 'content', 'ai_model', 'processing_time', 'tokens_used', 'created_at')
+    date_hierarchy = 'created_at'
+    
+    def content_preview(self, obj):
+        """نمایش پیش‌نمایش محتوا"""
+        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
+    content_preview.short_description = 'محتوا'
+
+
+@admin.register(ChatSession)
+class ChatSessionAdmin(admin.ModelAdmin):
+    """مدیریت جلسات چت"""
+    list_display = ('user', 'store_analysis', 'title', 'messages_count', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('user__username', 'store_analysis__store_name', 'title')
+    readonly_fields = ('id', 'user', 'store_analysis', 'created_at', 'updated_at')
+    date_hierarchy = 'created_at'
+    
+    def messages_count(self, obj):
+        """تعداد پیام‌ها"""
+        return obj.get_messages_count()
+    messages_count.short_description = 'تعداد پیام‌ها'
+
 
 # --- Admin Site Configuration ---
 admin.site.site_header = "مدیریت چیدمانو"

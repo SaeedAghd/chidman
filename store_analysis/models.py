@@ -1257,4 +1257,67 @@ class PromotionalBanner(models.Model):
     class Meta:
         verbose_name = 'بنر تبلیغاتی'
         verbose_name_plural = 'بنرهای تبلیغاتی'
+
+
+class ChatSession(models.Model):
+    """
+    Chat Session - ذخیره جلسات چت بین کاربر و AI Consultant
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_sessions', verbose_name='کاربر')
+    store_analysis = models.ForeignKey(StoreAnalysis, on_delete=models.CASCADE, related_name='chat_sessions', verbose_name='تحلیل فروشگاه')
+    
+    title = models.CharField(max_length=200, default='مشاوره جدید', verbose_name='عنوان جلسه')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='آخرین بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'جلسه چت'
+        verbose_name_plural = 'جلسات چت'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+    
+    def get_messages_count(self):
+        """تعداد پیام‌های جلسه"""
+        return self.messages.count()
+    
+    def get_last_message(self):
+        """آخرین پیام"""
+        return self.messages.order_by('-created_at').first()
+
+
+class ChatMessage(models.Model):
+    """
+    Chat Message - ذخیره پیام‌های چت
+    """
+    ROLE_CHOICES = [
+        ('user', 'کاربر'),
+        ('assistant', 'دستیار هوشمند'),
+        ('system', 'سیستم'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages', verbose_name='جلسه چت')
+    
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name='نقش')
+    content = models.TextField(verbose_name='محتوای پیام')
+    
+    # متادیتا
+    ai_model = models.CharField(max_length=50, blank=True, null=True, verbose_name='مدل AI')
+    processing_time = models.FloatField(blank=True, null=True, verbose_name='زمان پردازش (ثانیه)')
+    tokens_used = models.IntegerField(blank=True, null=True, verbose_name='تعداد توکن')
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    
+    class Meta:
+        verbose_name = 'پیام چت'
+        verbose_name_plural = 'پیام‌های چت'
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"{self.role}: {self.content[:50]}..."
         ordering = ['-priority', '-created_at']
