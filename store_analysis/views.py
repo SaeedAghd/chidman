@@ -5899,25 +5899,20 @@ def admin_discounts(request):
 
 @login_required
 def admin_settings(request):
-    """تنظیمات سیستم - با فایل پشتیبان JSON"""
+    """تنظیمات سیستم - با Django Cache"""
     if not request.user.is_staff:
         messages.error(request, 'دسترسی غیرمجاز')
         return redirect('home')
     
-    import json
-    import os
-    from django.conf import settings as django_settings
-    
-    # مسیر فایل تنظیمات موقت
-    settings_file = os.path.join(django_settings.BASE_DIR, 'admin_settings.json')
+    from django.core.cache import cache
     
     # مقادیر پیش‌فرض
     default_settings = {
         'site_name': 'چیدمانو',
         'site_description': 'پلتفرم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه‌ها',
-        'support_email': 'support@chidmano.ir',
-        'contact_phone': '021-12345678',
-        'address': 'تهران، ایران',
+        'support_email': 'info@chidmano.ir',
+        'contact_phone': '0920-2658678',
+        'address': 'البرز، کرج، میدان مودب',
         'smtp_server': 'smtp.gmail.com',
         'smtp_port': '587',
         'sender_email': 'noreply@chidmano.ir',
@@ -5951,30 +5946,27 @@ def admin_settings(request):
                 'max_payment_amount': request.POST.get('max_payment_amount', default_settings['max_payment_amount'])
             }
             
-            # ذخیره در فایل JSON
+            # ذخیره در cache (بدون محدودیت زمانی)
             try:
-                with open(settings_file, 'w', encoding='utf-8') as f:
-                    json.dump(current_settings, f, ensure_ascii=False, indent=2)
-                logger.info(f"✅ Admin settings saved to file by {request.user.username}")
+                cache.set('admin_settings', current_settings, timeout=None)
+                logger.info(f"✅ Admin settings saved to cache by {request.user.username}")
+                logger.info(f"📋 Settings: {current_settings}")
                 messages.success(request, 'تنظیمات با موفقیت ذخیره شد')
             except Exception as e:
-                logger.error(f"❌ Error saving settings to file: {e}")
+                logger.error(f"❌ Error saving settings to cache: {e}")
                 messages.error(request, f'خطا در ذخیره تنظیمات: {str(e)}')
             
             return redirect('store_analysis:admin_settings')
         
-        # خواندن تنظیمات فعلی
-        current_settings = default_settings.copy()
+        # خواندن تنظیمات فعلی از cache
+        current_settings = cache.get('admin_settings', default_settings.copy())
         
-        # بارگذاری از فایل اگر وجود داشته باشد
-        if os.path.exists(settings_file):
-            try:
-                with open(settings_file, 'r', encoding='utf-8') as f:
-                    saved_settings = json.load(f)
-                    current_settings.update(saved_settings)
-                logger.info("✅ Settings loaded from file")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not load settings from file: {e}")
+        # اگر تنظیمات در cache نبود، از مقادیر پیش‌فرض استفاده می‌کنیم
+        if current_settings is None:
+            current_settings = default_settings.copy()
+            logger.info("⚠️ No settings in cache, using defaults")
+        else:
+            logger.info(f"✅ Settings loaded from cache: {current_settings}")
         
         context = {
             'title': 'تنظیمات سیستم',

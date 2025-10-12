@@ -191,9 +191,7 @@ def simple_home(request):
     """صفحه اصلی فوق‌العاده جذاب و حرفه‌ای"""
     # دریافت اطلاعات تخفیف
     from store_analysis.views import get_discount_context, create_discount_notification
-    import json
-    import os
-    from django.conf import settings as django_settings
+    from django.core.cache import cache
     
     # ایجاد اطلاعیه تخفیف خودکار
     create_discount_notification()
@@ -201,27 +199,14 @@ def simple_home(request):
     # دریافت context تخفیف
     discount_info = get_discount_context()
     
-    # دریافت تنظیمات سیستم از فایل JSON
-    settings_file = os.path.join(django_settings.BASE_DIR, 'admin_settings.json')
+    # دریافت تنظیمات سیستم از cache
+    saved_settings = cache.get('admin_settings', {})
     
-    # مقادیر پیش‌فرض
-    site_name = 'چیدمانو'
-    contact_phone = '021-12345678'
-    support_email = 'info@chidmano.ir'
-    address = 'تهران، ایران'
-    
-    # بارگذاری از فایل اگر وجود داشته باشد
-    if os.path.exists(settings_file):
-        try:
-            with open(settings_file, 'r', encoding='utf-8') as f:
-                saved_settings = json.load(f)
-                site_name = saved_settings.get('site_name', site_name)
-                contact_phone = saved_settings.get('contact_phone', contact_phone)
-                support_email = saved_settings.get('support_email', support_email)
-                address = saved_settings.get('address', address)
-        except Exception as e:
-            # در صورت خطا از مقادیر پیش‌فرض استفاده می‌شود
-            pass
+    # مقادیر پیش‌فرض (با اطلاعات واقعی که ارائه دادید)
+    site_name = saved_settings.get('site_name', 'چیدمانو')
+    contact_phone = saved_settings.get('contact_phone', '0920-2658678')
+    support_email = saved_settings.get('support_email', 'info@chidmano.ir')
+    address = saved_settings.get('address', 'البرز، کرج، میدان مودب')
     
     context = {
         'hero_title': 'تحلیل هوشمند فروشگاه شما',
