@@ -62,30 +62,22 @@
     }
     </script>
     
-    <!-- Google Analytics - Disabled for Development -->
-    {% if not debug %}
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-85C9F4Q707"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);} 
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX', {
-            'page_title': document.title,
-            'page_location': window.location.href,
-            'custom_map': {
-                'custom_parameter_1': 'user_type',
-                'custom_parameter_2': 'page_category'
-            }
-        });
-        
-        // Track page views
-        gtag('event', 'page_view', {
-            'page_title': document.title,
-            'page_location': window.location.href,
-            'page_path': window.location.pathname
-        });
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-85C9F4Q707');
+      
+      // Track page views
+      gtag('event', 'page_view', {
+          'page_title': document.title,
+          'page_location': window.location.href,
+          'page_path': window.location.pathname
+      });
     </script>
-    {% endif %}
     
     <!-- Modern UI Framework -->
     <link rel="stylesheet" href="{% static 'css/modern-ui.css' %}?v=1.5">
