@@ -340,15 +340,11 @@ USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 
 # Payment - PayPing
-# PayPing Settings
-PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', 'EB28E90039CB8FCD97F3D778FC7644917A1391217F9E47046EA864EA25331445-1')
-PAYPING_SANDBOX = os.getenv('PAYPING_SANDBOX', 'True').lower() == 'true'  # ✅ فعلاً در حالت تست (تا PayPing فعال شود)
+# PayPing Settings - Token تست برای پرداخت و کیف پول
+PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', '17D62CFE490EA7C6BF20090BEA12A49FEB4482B02F8534696215A6DE23DF684A-1')
+PAYPING_SANDBOX = os.getenv('PAYPING_SANDBOX', 'True').lower() == 'true'  # ✅ حالت تست
 PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/')
 PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
-
-# ⚠️ توجه: PayPing درگاه شما را هنوز فعال نکرده است
-# لطفاً به پنل PayPing بروید و وضعیت درگاه را بررسی کنید
-# پس از فعال شدن، PAYPING_SANDBOX را به False تغییر دهید
 
 # AI Analysis Settings
 AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour

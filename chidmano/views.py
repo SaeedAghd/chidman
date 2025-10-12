@@ -204,9 +204,9 @@ def simple_home(request):
     
     # مقادیر واقعی - اطلاعات تماس چیدمانو
     site_name = saved_settings.get('site_name', 'چیدمانو')
-    contact_phone = saved_settings.get('contact_phone', '021-12345678')
+    contact_phone = saved_settings.get('contact_phone', '0920-2658678')
     support_email = saved_settings.get('support_email', 'info@chidmano.ir')
-    address = saved_settings.get('address', 'تهران، ایران')
+    address = saved_settings.get('address', 'البرز - کرج - بلوار موذن')
     
     context = {
         'hero_title': 'تحلیل هوشمند فروشگاه شما',
