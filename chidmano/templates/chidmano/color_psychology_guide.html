@@ -4,337 +4,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ff6b35">
+    <meta name="theme-color" content="#e74c3c">
     
-    <!-- SEO Meta Tags -->
     <title>روانشناسی رنگ در چیدمان فروشگاه — تأثیر رنگ‌ها بر فروش | چیدمانو</title>
     <meta name="description" content="راهنمای کامل روانشناسی رنگ در فروشگاه: چگونه رنگ‌ها بر رفتار مشتری تأثیر می‌گذارند و بهترین ترکیبات رنگی برای افزایش فروش.">
-    <meta name="keywords" content="روانشناسی رنگ, چیدمان فروشگاه, رنگ فروشگاه, تأثیر رنگ بر فروش, طراحی فروشگاه">
     <link rel="canonical" href="https://chidmano.ir/guide/color-psychology/">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="روانشناسی رنگ در چیدمان فروشگاه — تأثیر رنگ‌ها بر فروش">
-    <meta property="og:description" content="راهنمای کامل روانشناسی رنگ در فروشگاه: چگونه رنگ‌ها بر رفتار مشتری تأثیر می‌گذارند و بهترین ترکیبات رنگی برای افزایش فروش.">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="https://chidmano.ir/guide/color-psychology/">
-    <meta property="og:image" content="https://chidmano.ir{% static 'images/guides/color-psychology.jpg' %}">
-    <meta property="og:site_name" content="چیدمانو">
-    
-    <!-- Schema.org Structured Data -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": "روانشناسی رنگ در چیدمان فروشگاه — تأثیر رنگ‌ها بر فروش",
-        "description": "راهنمای کامل روانشناسی رنگ در فروشگاه: چگونه رنگ‌ها بر رفتار مشتری تأثیر می‌گذارند و بهترین ترکیبات رنگی برای افزایش فروش.",
-        "image": "https://chidmano.ir{% static 'images/guides/color-psychology.jpg' %}",
-        "author": {
-            "@type": "Organization",
-            "name": "چیدمانو"
-        },
-        "publisher": {
-            "@type": "Organization",
-            "name": "چیدمانو",
-            "logo": {
-                "@type": "ImageObject",
-                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
-            }
-        },
-        "datePublished": "2025-09-26",
-        "mainEntityOfPage": "https://chidmano.ir/guide/color-psychology/"
-    }
-    </script>
-    
-    <!-- CSS -->
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/landing-page.css' %}" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
     
     <style>
-        @font-face {
-            font-family: 'VazirLocal';
-            font-family: 'Vazirmatn', sans-serif;
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
-        }
-        
-        body {
-            font-family: 'VazirLocal', Vazirmatn, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .guide-header {
-            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
-            color: white;
-            padding: 100px 0 80px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .guide-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('{% static "images/guides/color-psychology.jpg" %}') center/cover;
-            opacity: 0.1;
-            z-index: 0;
-        }
-        
-        .guide-header .container {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .guide-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .guide-subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .content-section {
-            padding: 60px 0;
-            background-color: #f8f9fa;
-        }
-        
-        .section-title {
-            font-size: 2rem;
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 10px;
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, #ff6b35, #e55a2b);
-            border-radius: 2px;
-        }
-        
-        .color-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
-        }
-        
-        .color-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .color-sample {
-            width: 100%;
-            height: 80px;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        
-        .guide-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 15px;
-            margin: 1.5rem 0;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-        
-        .cta-section {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
-            padding: 60px 0;
-            text-align: center;
-            border-radius: 20px;
-            margin: 3rem 0;
-        }
-        
-        .btn-cta {
-            background: linear-gradient(90deg, #ff6b35 0%, #e55a2b 100%);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .btn-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            color: white;
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#e74c3c;--primary-dark:#c0392b;--dark:#2c3e50;--white:#fff;--shadow:0 .5rem 1rem rgba(0,0,0,.15)}
+        body{font-family:'Vazirmatn','Tahoma',sans-serif!important;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);color:var(--dark);line-height:1.8;-webkit-font-smoothing:antialiased}
+        .header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;padding:1.5rem 0;box-shadow:var(--shadow);position:sticky;top:0;z-index:1000}
+        .header-content{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+        .logo{display:flex;align-items:center;gap:.75rem;font-size:1.75rem;font-weight:800;text-decoration:none;color:#fff}
+        .logo img{width:45px;height:45px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,.2)}
+        .header-nav{display:flex;gap:1.5rem;flex-wrap:wrap}
+        .nav-link{color:#fff;text-decoration:none;font-weight:600;padding:.5rem 1rem;border-radius:8px;transition:.3s}
+        .nav-link:hover{background:rgba(255,255,255,.2);transform:translateY(-2px)}
+        .btn-cta{background:#fff!important;color:var(--primary)!important;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+        .hero{background:linear-gradient(135deg,rgba(231,76,60,.1) 0%,rgba(192,57,43,.1) 100%);padding:4rem 2rem;text-align:center;border-bottom:3px solid var(--primary)}
+        .hero h1{font-size:2.5rem;font-weight:800;color:var(--dark);margin-bottom:1.5rem}
+        .hero h1 .highlight{color:var(--primary)}
+        .hero p{font-size:1.25rem;color:#495057;margin-bottom:2rem}
+        .container{max-width:1000px;margin:3rem auto;padding:0 2rem}
+        .content-card{background:#fff;border-radius:16px;padding:3rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+        .content-card h2{font-size:2rem;font-weight:700;color:var(--dark);margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:3px solid var(--primary)}
+        .content-card h3{font-size:1.5rem;font-weight:600;color:var(--dark);margin:2rem 0 1rem}
+        .content-card p{font-size:1.125rem;line-height:1.9;color:#495057;margin-bottom:1.5rem}
+        .color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;margin:2rem 0}
+        .color-card{background:#fff;border-radius:12px;padding:2rem;box-shadow:var(--shadow);transition:.3s;border-top:4px solid}
+        .color-card:hover{transform:translateY(-5px);box-shadow:0 1rem 3rem rgba(0,0,0,.175)}
+        .color-card.red{border-top-color:#e74c3c}
+        .color-card.blue{border-top-color:#3498db}
+        .color-card.green{border-top-color:#27ae60}
+        .color-card.yellow{border-top-color:#f39c12}
+        .color-card h4{font-size:1.25rem;font-weight:700;margin-bottom:1rem}
+        .cta-section{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;padding:4rem 2rem;text-align:center;border-radius:16px;margin:3rem 0}
+        .cta-button{display:inline-block;background:#fff;color:var(--primary);font-size:1.25rem;font-weight:700;padding:1rem 3rem;border-radius:50px;text-decoration:none;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+        .cta-button:hover{transform:translateY(-5px);box-shadow:0 12px 30px rgba(0,0,0,.3)}
+        .footer{background:var(--dark);color:#fff;padding:2rem;text-align:center}
+        .footer a{color:var(--primary);text-decoration:none;font-weight:600}
+        @media(max-width:768px){.hero h1{font-size:2rem}.content-card{padding:2rem 1.5rem}.color-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-    {% include 'chidmano/navbar.html' %}
-
-    <header class="guide-header text-center">
-        <div class="container">
-            <h1 class="guide-title">روانشناسی رنگ در چیدمان فروشگاه</h1>
-            <p class="guide-subtitle">تأثیر رنگ‌ها بر رفتار مشتری و راهکارهای افزایش فروش</p>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'landing' %}" class="logo">
+                <img src="{% static 'images/logo_optimized.png' %}" alt="چیدمانو">
+                <span>چیدمانو</span>
+            </a>
+            <nav class="header-nav">
+                <a href="{% url 'landing' %}" class="nav-link">خانه</a>
+                <a href="{% url 'store_analysis:education_library' %}" class="nav-link">آموزش‌ها</a>
+                <a href="{% url 'store_analysis:support_center' %}" class="nav-link">پشتیبانی</a>
+                <a href="{% url 'store_analysis:forms' %}" class="nav-link btn-cta">تحلیل رایگان</a>
+            </nav>
         </div>
     </header>
 
-    <main>
-        <section class="content-section">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-10">
-                        <h2 class="section-title">مقدمه: قدرت رنگ‌ها در فروشگاه</h2>
-                        <p class="lead">رنگ‌ها یکی از قوی‌ترین ابزارهای روانشناسی در فروشگاه هستند. تحقیقات نشان می‌دهد که 85% از تصمیمات خرید بر اساس رنگ گرفته می‌شود.</p>
-                        
-                        <img src="{% static 'images/guides/color-psychology.jpg' %}" alt="روانشناسی رنگ در فروشگاه" class="guide-image">
-                        
-                        <h3 class="section-title">رنگ‌های گرم و تأثیر آن‌ها</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="color-card">
-                                    <div class="color-sample" style="background: linear-gradient(135deg, #ff6b35, #e55a2b);">
-                                        قرمز - انرژی و فوریت
-                                    </div>
-                                    <h4>قرمز</h4>
-                                    <p><strong>تأثیر:</strong> ایجاد احساس فوریت و تحریک خرید</p>
-                                    <p><strong>کاربرد:</strong> تخفیف‌ها، محصولات فوری، دکمه‌های خرید</p>
-                                    <p><strong>نکته:</strong> استفاده بیش از حد می‌تواند اضطراب ایجاد کند</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="color-card">
-                                    <div class="color-sample" style="background: linear-gradient(135deg, #ffa726, #ff9800);">
-                                        نارنجی - شادی و خلاقیت
-                                    </div>
-                                    <h4>نارنجی</h4>
-                                    <p><strong>تأثیر:</strong> ایجاد احساس شادی و انرژی مثبت</p>
-                                    <p><strong>کاربرد:</strong> بخش کودکان، محصولات خلاقانه</p>
-                                    <p><strong>نکته:</strong> رنگ مناسبی برای برندهای جوان و پویا</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h3 class="section-title">رنگ‌های سرد و تأثیر آن‌ها</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="color-card">
-                                    <div class="color-sample" style="background: linear-gradient(135deg, #2196f3, #1976d2);">
-                                        آبی - اعتماد و آرامش
-                                    </div>
-                                    <h4>آبی</h4>
-                                    <p><strong>تأثیر:</strong> ایجاد اعتماد و احساس آرامش</p>
-                                    <p><strong>کاربرد:</strong> بخش‌های بهداشتی، محصولات تکنولوژی</p>
-                                    <p><strong>نکته:</strong> رنگ مناسبی برای برندهای قابل اعتماد</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="color-card">
-                                    <div class="color-sample" style="background: linear-gradient(135deg, #4caf50, #388e3c);">
-                                        سبز - طبیعت و سلامتی
-                                    </div>
-                                    <h4>سبز</h4>
-                                    <p><strong>تأثیر:</strong> ارتباط با طبیعت و احساس سلامتی</p>
-                                    <p><strong>کاربرد:</strong> محصولات ارگانیک، بخش طبی</p>
-                                    <p><strong>نکته:</strong> رنگ مناسبی برای محصولات پایدار</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h3 class="section-title">رنگ‌های خنثی و تأثیر آن‌ها</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-4 mb-4">
-                                <div class="color-card">
-                                    <div class="color-sample" style="background: linear-gradient(135deg, #424242, #212121);">
-                                        مشکی - لوکس و قدرت
-                                    </div>
-                                    <h4>مشکی</h4>
-                                    <p><strong>تأثیر:</strong> ایجاد احساس لوکس و قدرت</p>
-                                    <p><strong>کاربرد:</strong> محصولات لوکس، برندهای پریمیوم</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4 mb-4">
-                                <div class="color-card">
-                                    <div class="color-sample" style="background: linear-gradient(135deg, #9e9e9e, #757575);">
-                                        خاکستری - تعادل و حرفه‌ای
-                                    </div>
-                                    <h4>خاکستری</h4>
-                                    <p><strong>تأثیر:</strong> ایجاد تعادل و احساس حرفه‌ای</p>
-                                    <p><strong>کاربرد:</strong> بخش‌های اداری، محصولات تکنولوژی</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4 mb-4">
-                                <div class="color-card">
-                                    <div class="color-sample" style="background: linear-gradient(135deg, #ffffff, #f5f5f5); color: #333;">
-                                        سفید - تمیزی و سادگی
-                                    </div>
-                                    <h4>سفید</h4>
-                                    <p><strong>تأثیر:</strong> ایجاد احساس تمیزی و سادگی</p>
-                                    <p><strong>کاربرد:</strong> بخش‌های بهداشتی، محصولات پزشکی</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h3 class="section-title">راهکارهای عملی استفاده از رنگ</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="color-card">
-                                    <h4>🎯 قانون 60-30-10</h4>
-                                    <p><strong>60% رنگ اصلی:</strong> رنگ غالب در فضای فروشگاه</p>
-                                    <p><strong>30% رنگ ثانویه:</strong> رنگ مکمل برای تعادل</p>
-                                    <p><strong>10% رنگ تاکیدی:</strong> رنگ برای جلب توجه</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="color-card">
-                                    <h4>🌈 ترکیبات رنگی موفق</h4>
-                                    <p><strong>قرمز + سفید:</strong> برای بخش تخفیف‌ها</p>
-                                    <p><strong>آبی + سبز:</strong> برای بخش طبی و سلامتی</p>
-                                    <p><strong>نارنجی + زرد:</strong> برای بخش کودکان</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="cta-section">
-                            <h3>آیا می‌خواهید رنگ‌بندی فروشگاه خود را بهینه کنید؟</h3>
-                            <p>با تحلیل هوشمند چیدمانو، بهترین ترکیبات رنگی برای فروشگاه خود را پیدا کنید.</p>
-                            <a href="/store/forms/submit/" class="btn-cta">🚀 شروع تحلیل رایگان</a>
-                        </div>
-                    </div>
+    <section class="hero">
+        <h1><span class="highlight">روانشناسی رنگ</span> در چیدمان فروشگاه</h1>
+        <p>تأثیر رنگ‌ها بر رفتار مشتری و راهکارهای افزایش فروش</p>
+    </section>
+
+    <div class="container">
+        <div class="content-card">
+            <h2>🎨 قدرت رنگ‌ها در فروش</h2>
+            <p>رنگ‌ها یکی از قوی‌ترین ابزارهای روانشناسی در فروشگاه هستند. تحقیقات نشان می‌دهد که <strong>85% از تصمیمات خرید</strong> بر اساس رنگ گرفته می‌شود!</p>
+            
+            <div class="color-grid">
+                <div class="color-card red">
+                    <h4>🔴 قرمز - انرژی و فوریت</h4>
+                    <p><strong>تأثیر:</strong> افزایش ضربان قلب، احساس فوریت، تحریک اشتها<br>
+                    <strong>استفاده:</strong> تخفیف‌ها، فست‌فود، فروش فوری<br>
+                    <strong>نکته:</strong> بیش از حد استفاده نکنید - خسته‌کننده است</p>
+                </div>
+                
+                <div class="color-card blue">
+                    <h4>🔵 آبی - اعتماد و آرامش</h4>
+                    <p><strong>تأثیر:</strong> اعتماد‌سازی، آرامش، حرفه‌ای بودن<br>
+                    <strong>استفاده:</strong> بانک‌ها، تکنولوژی، محصولات بهداشتی<br>
+                    <strong>نکته:</strong> برای محصولات گران‌قیمت عالی است</p>
+                </div>
+                
+                <div class="color-card green">
+                    <h4>🟢 سبز - سلامت و طبیعت</h4>
+                    <p><strong>تأثیر:</strong> آرامش، سلامت، تازگی، محیط‌زیست<br>
+                    <strong>استفاده:</strong> محصولات ارگانیک، داروخانه، میوه‌فروشی<br>
+                    <strong>نکته:</strong> برای بخش میوه و سبزی ضروری است</p>
+                </div>
+                
+                <div class="color-card yellow">
+                    <h4>🟡 زرد - شادی و توجه</h4>
+                    <p><strong>تأثیر:</strong> شادی، خوش‌بینی، جلب توجه سریع<br>
+                    <strong>استفاده:</strong> تابلوها، برچسب قیمت، بخش کودکان<br>
+                    <strong>نکته:</strong> با نارنجی ترکیب کنید برای افزایش فروش</p>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
 
-    {% include 'chidmano/footer.html' %}
+        <div class="content-card">
+            <h2>💡 ترکیبات رنگی برتر</h2>
+            <h3>✅ ترکیبات موفق</h3>
+            <p><strong>🔴 قرمز + سفید:</strong> فروشگاه‌های مواد غذایی (مثل KFC)<br>
+            <strong>🔵 آبی + سفید:</strong> فروشگاه‌های تکنولوژی و الکترونیک<br>
+            <strong>🟢 سبز + قهوه‌ای:</strong> فروشگاه‌های ارگانیک و طبیعی<br>
+            <strong>🟡 زرد + قرمز:</strong> فست‌فود و تخفیف‌ها (مثل McDonald's)</p>
+            
+            <h3>❌ ترکیبات ناموفق</h3>
+            <p><strong>❌ قرمز + سبز:</strong> خسته‌کننده برای چشم<br>
+            <strong>❌ آبی + زرد روشن:</strong> خوانایی پایین<br>
+            <strong>❌ بنفش + نارنجی:</strong> ناهماهنگ و آشفته</p>
+        </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+        <div class="cta-section">
+            <h2>🚀 رنگ‌بندی فروشگاه خود را بهینه کنید</h2>
+            <p>با تحلیل رایگان چیدمانو، رنگ‌بندی فروشگاه شما را تحلیل کنید و بهترین پیشنهادات رنگی برای افزایش فروش دریافت کنید.</p>
+            <a href="{% url 'store_analysis:forms' %}" class="cta-button">تحلیل رایگان فروشگاه من 🎨</a>
+        </div>
+
+        <div class="content-card">
+            <h2>❓ سوالات متداول</h2>
+            <h3>چه رنگی برای فروشگاه من مناسب است؟</h3>
+            <p>بستگی به نوع فروشگاه دارد. برای مواد غذایی از قرمز و زرد، برای پوشاک از سفید و خاکستری، و برای ارگانیک از سبز استفاده کنید.</p>
+            
+            <h3>آیا باید همه فروشگاه را یک رنگ کنم؟</h3>
+            <p>خیر! از یک رنگ اصلی با 2-3 رنگ فرعی استفاده کنید. این باعث تنوع و جلوگیری از خستگی چشم می‌شود.</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 <a href="{% url 'landing' %}">چیدمانو</a> - تمامی حقوق محفوظ است</p>
+    </footer>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-85C9F4Q707"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-85C9F4Q707')</script>
 </body>
 </html>

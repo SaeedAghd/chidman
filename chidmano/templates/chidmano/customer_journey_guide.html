@@ -4,360 +4,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ff6b35">
+    <meta name="theme-color" content="#9b59b6">
     
-    <!-- SEO Meta Tags -->
-    <title>مسیر مشتری در فروشگاه — راهنمای بهینه‌سازی Customer Journey | چیدمانو</title>
-    <meta name="description" content="راهنمای کامل مسیر مشتری در فروشگاه: تحلیل رفتار خریداران، بهینه‌سازی مسیر حرکت و افزایش فروش با طراحی Customer Journey.">
-    <meta name="keywords" content="مسیر مشتری, customer journey, رفتار مشتری, تحلیل فروشگاه, بهینه‌سازی فروش">
+    <title>مسیر مشتری در فروشگاه — بهینه‌سازی Customer Journey | چیدمانو</title>
+    <meta name="description" content="راهنمای جامع مسیر مشتری در فروشگاه: تحلیل رفتار، نقاط درد و راهکارهای بهبود تجربه مشتری برای افزایش فروش.">
     <link rel="canonical" href="https://chidmano.ir/guide/customer-journey/">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="مسیر مشتری در فروشگاه — راهنمای بهینه‌سازی Customer Journey">
-    <meta property="og:description" content="راهنمای کامل مسیر مشتری در فروشگاه: تحلیل رفتار خریداران، بهینه‌سازی مسیر حرکت و افزایش فروش با طراحی Customer Journey.">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="https://chidmano.ir/guide/customer-journey/">
-    <meta property="og:image" content="https://chidmano.ir{% static 'images/guides/customer-journey.jpg' %}">
-    <meta property="og:site_name" content="چیدمانو">
-    
-    <!-- Schema.org Structured Data -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": "مسیر مشتری در فروشگاه — راهنمای بهینه‌سازی Customer Journey",
-        "description": "راهنمای کامل مسیر مشتری در فروشگاه: تحلیل رفتار خریداران، بهینه‌سازی مسیر حرکت و افزایش فروش با طراحی Customer Journey.",
-        "image": "https://chidmano.ir{% static 'images/guides/customer-journey.jpg' %}",
-        "author": {
-            "@type": "Organization",
-            "name": "چیدمانو"
-        },
-        "publisher": {
-            "@type": "Organization",
-            "name": "چیدمانو",
-            "logo": {
-                "@type": "ImageObject",
-                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
-            }
-        },
-        "datePublished": "2025-09-26",
-        "mainEntityOfPage": "https://chidmano.ir/guide/customer-journey/"
-    }
-    </script>
-    
-    <!-- CSS -->
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/landing-page.css' %}" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
     
     <style>
-        @font-face {
-            font-family: 'VazirLocal';
-            font-family: 'Vazirmatn', sans-serif;
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
-        }
-        
-        body {
-            font-family: 'VazirLocal', Vazirmatn, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .guide-header {
-            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
-            color: white;
-            padding: 100px 0 80px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .guide-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('{% static "images/guides/customer-journey.jpg" %}') center/cover;
-            opacity: 0.1;
-            z-index: 0;
-        }
-        
-        .guide-header .container {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .guide-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .guide-subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .content-section {
-            padding: 60px 0;
-            background-color: #f8f9fa;
-        }
-        
-        .section-title {
-            font-size: 2rem;
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 10px;
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, #ff6b35, #e55a2b);
-            border-radius: 2px;
-        }
-        
-        .journey-step {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
-            position: relative;
-        }
-        
-        .journey-step:hover {
-            transform: translateY(-5px);
-        }
-        
-        .journey-step::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(135deg, #ff6b35, #e55a2b);
-            border-radius: 2px;
-        }
-        
-        .step-number {
-            background: linear-gradient(135deg, #ff6b35, #e55a2b);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-        
-        .guide-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 15px;
-            margin: 1.5rem 0;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-        
-        .cta-section {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
-            padding: 60px 0;
-            text-align: center;
-            border-radius: 20px;
-            margin: 3rem 0;
-        }
-        
-        .btn-cta {
-            background: linear-gradient(90deg, #ff6b35 0%, #e55a2b 100%);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .btn-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            color: white;
-        }
-        
-        .tip-box {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            border: 1px solid #2196f3;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .tip-box h4 {
-            color: #1976d2;
-            margin-bottom: 1rem;
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#9b59b6;--primary-dark:#8e44ad;--dark:#2c3e50;--white:#fff;--shadow:0 .5rem 1rem rgba(0,0,0,.15)}
+        body{font-family:'Vazirmatn','Tahoma',sans-serif!important;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);color:var(--dark);line-height:1.8;-webkit-font-smoothing:antialiased}
+        .header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;padding:1.5rem 0;box-shadow:var(--shadow);position:sticky;top:0;z-index:1000}
+        .header-content{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+        .logo{display:flex;align-items:center;gap:.75rem;font-size:1.75rem;font-weight:800;text-decoration:none;color:#fff}
+        .logo img{width:45px;height:45px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,.2)}
+        .header-nav{display:flex;gap:1.5rem;flex-wrap:wrap}
+        .nav-link{color:#fff;text-decoration:none;font-weight:600;padding:.5rem 1rem;border-radius:8px;transition:.3s}
+        .nav-link:hover{background:rgba(255,255,255,.2);transform:translateY(-2px)}
+        .btn-cta{background:#fff!important;color:var(--primary)!important;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+        .hero{background:linear-gradient(135deg,rgba(155,89,182,.1) 0%,rgba(142,68,173,.1) 100%);padding:4rem 2rem;text-align:center;border-bottom:3px solid var(--primary)}
+        .hero h1{font-size:2.5rem;font-weight:800;color:var(--dark);margin-bottom:1.5rem}
+        .hero h1 .highlight{color:var(--primary)}
+        .hero p{font-size:1.25rem;color:#495057;margin-bottom:2rem}
+        .container{max-width:1000px;margin:3rem auto;padding:0 2rem}
+        .content-card{background:#fff;border-radius:16px;padding:3rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+        .content-card h2{font-size:2rem;font-weight:700;color:var(--dark);margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:3px solid var(--primary)}
+        .content-card h3{font-size:1.5rem;font-weight:600;color:var(--dark);margin:2rem 0 1rem}
+        .content-card p{font-size:1.125rem;line-height:1.9;color:#495057;margin-bottom:1.5rem}
+        .content-card ul{list-style:none;padding:0}
+        .content-card li{font-size:1.125rem;padding:.75rem 0 .75rem 2rem;position:relative}
+        .content-card li::before{content:'✓';position:absolute;right:0;color:#27ae60;font-weight:700;font-size:1.25rem}
+        .journey-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem;margin:2rem 0}
+        .journey-card{background:#fff;border-radius:12px;padding:2rem;box-shadow:var(--shadow);transition:.3s;border-top:4px solid var(--primary)}
+        .journey-card:hover{transform:translateY(-5px)}
+        .journey-number{display:inline-block;background:var(--primary);color:#fff;width:40px;height:40px;border-radius:50%;text-align:center;line-height:40px;font-weight:700;margin-bottom:1rem}
+        .journey-card h4{font-size:1.25rem;font-weight:700;margin-bottom:1rem}
+        .cta-section{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;padding:4rem 2rem;text-align:center;border-radius:16px;margin:3rem 0}
+        .cta-button{display:inline-block;background:#fff;color:var(--primary);font-size:1.25rem;font-weight:700;padding:1rem 3rem;border-radius:50px;text-decoration:none;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+        .cta-button:hover{transform:translateY(-5px)}
+        .footer{background:var(--dark);color:#fff;padding:2rem;text-align:center}
+        .footer a{color:var(--primary);text-decoration:none;font-weight:600}
+        @media(max-width:768px){.hero h1{font-size:2rem}.content-card{padding:2rem 1.5rem}.journey-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-    {% include 'chidmano/navbar.html' %}
-
-    <header class="guide-header text-center">
-        <div class="container">
-            <h1 class="guide-title">مسیر مشتری در فروشگاه</h1>
-            <p class="guide-subtitle">راهنمای بهینه‌سازی Customer Journey برای افزایش فروش</p>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'landing' %}" class="logo">
+                <img src="{% static 'images/logo_optimized.png' %}" alt="چیدمانو">
+                <span>چیدمانو</span>
+            </a>
+            <nav class="header-nav">
+                <a href="{% url 'landing' %}" class="nav-link">خانه</a>
+                <a href="{% url 'store_analysis:education_library' %}" class="nav-link">آموزش‌ها</a>
+                <a href="{% url 'store_analysis:support_center' %}" class="nav-link">پشتیبانی</a>
+                <a href="{% url 'store_analysis:forms' %}" class="nav-link btn-cta">تحلیل رایگان</a>
+            </nav>
         </div>
     </header>
 
-    <main>
-        <section class="content-section">
+    <section class="hero">
+        <h1><span class="highlight">مسیر مشتری</span> در فروشگاه</h1>
+        <p>بهینه‌سازی تجربه خرید برای افزایش فروش و رضایت مشتری</p>
+    </section>
+
             <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-10">
-                        <h2 class="section-title">مقدمه: درک مسیر مشتری</h2>
-                        <p class="lead">مسیر مشتری (Customer Journey) شامل تمام مراحلی است که مشتری از ورود تا خروج از فروشگاه طی می‌کند. درک این مسیر کلید موفقیت در فروش است.</p>
-                        
-                        <img src="{% static 'images/guides/customer-journey.jpg' %}" alt="مسیر مشتری در فروشگاه" class="guide-image">
-                        
-                        <h3 class="section-title">مراحل اصلی مسیر مشتری</h3>
-                        
-                        <div class="journey-step">
-                            <div class="step-number">1</div>
-                            <h4>ورود و اولین تأثیر</h4>
-                            <p><strong>مدت زمان:</strong> 3-5 ثانیه</p>
-                            <p><strong>هدف:</strong> جلب توجه و ایجاد انگیزه برای ورود</p>
-                            <p><strong>عوامل مؤثر:</strong> ویترین، نورپردازی، رنگ‌بندی، موسیقی</p>
-                            <p><strong>راهکار:</strong> ایجاد فضای جذاب و دعوت‌کننده در ورودی فروشگاه</p>
+        <div class="content-card">
+            <h2>🚶 مراحل سفر مشتری</h2>
+            <p>مسیر مشتری در فروشگاه از لحظه ورود تا خروج، 5 مرحله کلیدی دارد که هر کدام می‌تواند بر تصمیم خرید تأثیر بگذارد:</p>
+            
+            <div class="journey-grid">
+                <div class="journey-card">
+                    <span class="journey-number">1</span>
+                    <h4>ورود و اولین تماس</h4>
+                    <p><strong>3 ثانیه اول حیاتی است!</strong><br>
+                    ویترین جذاب، ورودی تمیز، و موسیقی آرام باعث احساس خوب می‌شود.<br><br>
+                    <strong>نکته:</strong> 70% تصمیم به خرید در 10 متر اول گرفته می‌شود.</p>
                         </div>
                         
-                        <div class="journey-step">
-                            <div class="step-number">2</div>
-                            <h4>کاوش و جستجو</h4>
-                            <p><strong>مدت زمان:</strong> 5-15 دقیقه</p>
-                            <p><strong>هدف:</strong> هدایت مشتری به محصولات مورد نظر</p>
-                            <p><strong>عوامل مؤثر:</strong> چیدمان، علائم راهنما، دسته‌بندی محصولات</p>
-                            <p><strong>راهکار:</strong> طراحی مسیرهای منطقی و واضح برای حرکت</p>
+                <div class="journey-card">
+                    <span class="journey-number">2</span>
+                    <h4>کشف و کاوش</h4>
+                    <p><strong>مشتری دنبال چیزی می‌گردد</strong><br>
+                    تابلوهای راهنما، دسته‌بندی واضح، و فضای کافی برای حرکت ضروری است.<br><br>
+                    <strong>نکته:</strong> مشتریان معمولاً به سمت راست حرکت می‌کنند.</p>
                         </div>
                         
-                        <div class="journey-step">
-                            <div class="step-number">3</div>
+                <div class="journey-card">
+                    <span class="journey-number">3</span>
                             <h4>بررسی و مقایسه</h4>
-                            <p><strong>مدت زمان:</strong> 2-10 دقیقه</p>
-                            <p><strong>هدف:</strong> کمک به تصمیم‌گیری مشتری</p>
-                            <p><strong>عوامل مؤثر:</strong> اطلاعات محصول، قیمت، کیفیت</p>
-                            <p><strong>راهکار:</strong> ارائه اطلاعات کامل و مقایسه‌ای محصولات</p>
+                    <p><strong>مشتری محصولات را مقایسه می‌کند</strong><br>
+                    برچسب قیمت واضح، امکان لمس محصول، و نورپردازی مناسب کمک می‌کند.<br><br>
+                    <strong>نکته:</strong> 68% تصمیمات خرید اینجا گرفته می‌شود.</p>
                         </div>
                         
-                        <div class="journey-step">
-                            <div class="step-number">4</div>
-                            <h4>تصمیم‌گیری و خرید</h4>
-                            <p><strong>مدت زمان:</strong> 1-5 دقیقه</p>
-                            <p><strong>هدف:</strong> تسهیل فرآیند خرید</p>
-                            <p><strong>عوامل مؤثر:</strong> صندوق، روش‌های پرداخت، خدمات مشتری</p>
-                            <p><strong>راهکار:</strong> کاهش زمان انتظار و بهبود تجربه پرداخت</p>
+                <div class="journey-card">
+                    <span class="journey-number">4</span>
+                    <h4>تصمیم‌گیری</h4>
+                    <p><strong>لحظه خرید!</strong><br>
+                    محصولات وسوسه‌انگیز نزدیک صندوق، تخفیف‌های ویژه، و خدمات سریع.<br><br>
+                    <strong>نکته:</strong> 60% فروش تکانشی اینجا اتفاق می‌افتد.</p>
                         </div>
                         
-                        <div class="journey-step">
-                            <div class="step-number">5</div>
-                            <h4>خروج و خاطره</h4>
-                            <p><strong>مدت زمان:</strong> 30 ثانیه - 2 دقیقه</p>
-                            <p><strong>هدف:</strong> ایجاد خاطره مثبت و انگیزه بازگشت</p>
-                            <p><strong>عوامل مؤثر:</strong> بسته‌بندی، تشکر، پیشنهادات آینده</p>
-                            <p><strong>راهکار:</strong> ارائه خدمات پس از فروش و ایجاد ارتباط</p>
-                        </div>
-                        
-                        <h3 class="section-title">نقاط درد مشتری و راه‌حل‌ها</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="journey-step">
-                                    <h4>🚫 مشکل: گیجی در فروشگاه</h4>
-                                    <p><strong>علت:</strong> چیدمان نامنظم، عدم وجود علائم راهنما</p>
-                                    <p><strong>راه‌حل:</strong> طراحی مسیرهای واضح و استفاده از علائم</p>
+                <div class="journey-card">
+                    <span class="journey-number">5</span>
+                    <h4>خروج و بازگشت</h4>
+                    <p><strong>آخرین تأثیر مهم است</strong><br>
+                    خداحافظی گرم، بسته‌بندی زیبا، و کارت وفاداری باعث بازگشت می‌شود.<br><br>
+                    <strong>نکته:</strong> مشتری راضی 5 نفر جدید می‌آورد!</p>
                                 </div>
+                            </div>
+                        </div>
+                        
+        <div class="content-card">
+            <h2>📊 نقاط درد مشتری</h2>
+            <h3>مشکلات رایج که باید رفع کنید:</h3>
+            <ul>
+                <li><strong>پیدا نکردن محصول:</strong> تابلوهای واضح و دسته‌بندی منطقی</li>
+                <li><strong>صف طولانی در صندوق:</strong> صندوق بیشتر یا self-checkout</li>
+                <li><strong>قیمت نامشخص:</strong> برچسب قیمت روی همه محصولات</li>
+                <li><strong>فضای شلوغ:</strong> فاصله کافی بین قفسه‌ها (حداقل 120 سانتی‌متر)</li>
+                <li><strong>نور ضعیف:</strong> نورپردازی کافی برای خواندن برچسب‌ها</li>
+            </ul>
+                        </div>
+                        
+        <div class="cta-section">
+            <h2>🚀 مسیر مشتری خود را بهینه کنید</h2>
+            <p>با تحلیل رایگان چیدمانو، مسیر حرکت مشتریان را تحلیل کنید و نقاط ضعف را شناسایی کنید.</p>
+            <a href="{% url 'store_analysis:forms' %}" class="cta-button">تحلیل رایگان فروشگاه من 🎯</a>
                             </div>
                             
-                            <div class="col-md-6 mb-4">
-                                <div class="journey-step">
-                                    <h4>⏰ مشکل: انتظار طولانی</h4>
-                                    <p><strong>علت:</strong> صندوق‌های کم، فرآیند پیچیده پرداخت</p>
-                                    <p><strong>راه‌حل:</strong> افزایش صندوق‌ها و ساده‌سازی پرداخت</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="journey-step">
-                                    <h4>🔍 مشکل: عدم یافتن محصول</h4>
-                                    <p><strong>علت:</strong> دسته‌بندی نامناسب، عدم وجود راهنما</p>
-                                    <p><strong>راه‌حل:</strong> بهبود دسته‌بندی و آموزش پرسنل</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="journey-step">
-                                    <h4>💰 مشکل: عدم شفافیت قیمت</h4>
-                                    <p><strong>علت:</strong> برچسب‌های نامشخص، عدم نمایش تخفیف‌ها</p>
-                                    <p><strong>راه‌حل:</strong> برچسب‌گذاری واضح و نمایش قیمت‌ها</p>
-                                </div>
+        <div class="content-card">
+            <h2>❓ سوالات متداول</h2>
+            <h3>چطور مسیر مشتری را تحلیل کنم؟</h3>
+            <p>با نصب دوربین، نقشه گرما (heatmap)، یا حتی مشاهده ساده رفتار مشتریان می‌توانید مسیر حرکت را شناسایی کنید.</p>
+            
+            <h3>زمان ماندگاری مشتری چقدر باشد؟</h3>
+            <p>هرچه بیشتر، بهتر! برای سوپرمارکت 15-25 دقیقه، برای پوشاک 20-40 دقیقه ایده‌آل است.</p>
                             </div>
                         </div>
                         
-                        <div class="tip-box">
-                            <h4>💡 نکته طلایی</h4>
-                            <p>مشتریان در فروشگاه‌های بهینه‌سازی شده 40% بیشتر خرید می‌کنند و 60% احتمال بازگشت بیشتری دارند.</p>
-                        </div>
-                        
-                        <h3 class="section-title">ابزارهای تحلیل مسیر مشتری</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-4 mb-4">
-                                <div class="journey-step">
-                                    <h4>📊 نقشه‌های حرارتی</h4>
-                                    <p>شناسایی نقاط داغ و سرد در فروشگاه</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4 mb-4">
-                                <div class="journey-step">
-                                    <h4>📱 سنسورهای ترافیک</h4>
-                                    <p>اندازه‌گیری تعداد و زمان توقف مشتریان</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4 mb-4">
-                                <div class="journey-step">
-                                    <h4>🤖 هوش مصنوعی چیدمانو</h4>
-                                    <p>تحلیل پیشرفته رفتار مشتری و پیشنهاد بهینه‌سازی</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="cta-section">
-                            <h3>آیا می‌خواهید مسیر مشتری فروشگاه خود را بهینه کنید؟</h3>
-                            <p>با تحلیل هوشمند چیدمانو، مسیر مشتری فروشگاه خود را شناسایی و بهینه کنید.</p>
-                            <a href="/store/forms/submit/" class="btn-cta">🚀 شروع تحلیل رایگان</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+    <footer class="footer">
+        <p>© 2025 <a href="{% url 'landing' %}">چیدمانو</a> - تمامی حقوق محفوظ است</p>
+    </footer>
 
-    {% include 'chidmano/footer.html' %}
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-85C9F4Q707"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-85C9F4Q707')</script>
 </body>
 </html>
