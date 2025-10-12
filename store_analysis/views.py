@@ -6878,20 +6878,7 @@ def forms_submit(request):
                 analysis_data=form_data
             )
             
-            # تولید تحلیل اولیه رایگان
-            try:
-                from .services.preliminary_analysis_service import PreliminaryAnalysisService
-                preliminary_service = PreliminaryAnalysisService()
-                preliminary_text = preliminary_service.generate_preliminary_analysis(form_data)
-                store_analysis.preliminary_analysis = preliminary_text
-                store_analysis.status = 'preliminary_completed'
-                store_analysis.save()
-                logger.info(f"✅ تحلیل اولیه برای {store_analysis.store_name} تولید شد")
-            except Exception as e:
-                logger.error(f"خطا در تولید تحلیل اولیه: {e}")
-            
-            # همه تحلیل‌های جامع پولی هستند - هدایت به صفحه پرداخت
-            # محاسبه هزینه (200,000 تومان برای تحلیل جامع)
+            # محاسبه هزینه (2,000,000 تومان برای تحلیل جامع - با 100% تخفیف تا پایان سال)
             cost_breakdown = calculate_analysis_cost(form_data)
             
             # ایجاد سفارش
@@ -6914,12 +6901,17 @@ def forms_submit(request):
             store_analysis.recommendations = ""
             store_analysis.save()
             
-            # کاربر اول تحلیل اولیه را می‌بیند، بعد می‌تواند برای جامع پرداخت کند
+            # ذخیره analysis_id در session برای استفاده در صفحه پرداخت
+            request.session['analysis_id'] = store_analysis.id
+            
+            logger.info(f"✅ Analysis {store_analysis.id} created for order {order.order_number}")
+            
+            # هدایت به صفحه پرداخت
             return JsonResponse({
                 'success': True,
-                'message': 'با تشکر! تحلیل اولیه رایگان شما آماده است.',
-                'redirect_url': f'/store/analysis/{store_analysis.id}/results/',
-                'has_preliminary': True
+                'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                'redirect_url': f'/store/payment/{order.order_number}/',
+                'payment_required': True
             })
             
         except Exception as e:
