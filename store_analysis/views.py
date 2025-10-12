@@ -5899,62 +5899,83 @@ def admin_discounts(request):
 
 @login_required
 def admin_settings(request):
-    """تنظیمات سیستم"""
+    """تنظیمات سیستم - با فایل پشتیبان JSON"""
     if not request.user.is_staff:
         messages.error(request, 'دسترسی غیرمجاز')
         return redirect('home')
     
-    try:
-        from .models import SystemSettings
-        
-        if request.method == 'POST':
-            try:
-                # دریافت تنظیمات از فرم و ذخیره در دیتابیس
-                settings_to_save = [
-                    ('site_name', request.POST.get('site_name', 'چیدمانو'), 'نام سایت'),
-                    ('site_description', request.POST.get('site_description', ''), 'توضیحات سایت'),
-                    ('support_email', request.POST.get('support_email', 'support@chidmano.ir'), 'ایمیل پشتیبانی'),
-                    ('contact_phone', request.POST.get('contact_phone', '021-12345678'), 'شماره تماس'),
-                    ('address', request.POST.get('address', 'تهران، ایران'), 'آدرس'),
-                    ('smtp_server', request.POST.get('smtp_server', 'smtp.gmail.com'), 'SMTP سرور'),
-                    ('smtp_port', request.POST.get('smtp_port', '587'), 'پورت SMTP'),
-                    ('sender_email', request.POST.get('sender_email', 'noreply@chidmano.ir'), 'ایمیل فرستنده'),
-                    ('max_concurrent_analyses', request.POST.get('max_concurrent_analyses', '5'), 'حداکثر تحلیل همزمان'),
-                    ('analysis_timeout', request.POST.get('analysis_timeout', '300'), 'زمان‌بندی تحلیل'),
-                    ('max_login_attempts', request.POST.get('max_login_attempts', '5'), 'حداکثر تلاش ورود'),
-                    ('account_lockout_time', request.POST.get('account_lockout_time', '15'), 'زمان قفل حساب'),
-                    ('session_timeout', request.POST.get('session_timeout', '24'), 'مدت اعتبار جلسه'),
-                    ('min_payment_amount', request.POST.get('min_payment_amount', '10000'), 'حداقل مبلغ پرداخت'),
-                    ('max_payment_amount', request.POST.get('max_payment_amount', '10000000'), 'حداکثر مبلغ پرداخت'),
-                ]
-                
-                # ذخیره تنظیمات در دیتابیس
-                for key, value, description in settings_to_save:
-                    SystemSettings.set_setting(key, value, description)
-                
-                # لاگ کردن تغییرات
-                logger.info(f"Admin settings updated by {request.user.username}")
-                
-                messages.success(request, 'تنظیمات با موفقیت ذخیره شد')
-                return redirect('store_analysis:admin_settings')
-                
-            except Exception as e:
-                logger.error(f"Error saving admin settings: {e}")
-                messages.error(request, f'خطا در ذخیره تنظیمات: {str(e)}')
-                return redirect('store_analysis:admin_settings')
-        
-        # دریافت تنظیمات فعلی از دیتابیس
-        current_settings = {}
-        settings_keys = [
-            'site_name', 'site_description', 'support_email', 'contact_phone', 'address',
-            'smtp_server', 'smtp_port', 'sender_email', 'max_concurrent_analyses',
-            'analysis_timeout', 'max_login_attempts', 'account_lockout_time',
-            'session_timeout', 'min_payment_amount', 'max_payment_amount'
-        ]
-        
-        for key in settings_keys:
-            current_settings[key] = SystemSettings.get_setting(key, '')
+    import json
+    import os
+    from django.conf import settings as django_settings
     
+    # مسیر فایل تنظیمات موقت
+    settings_file = os.path.join(django_settings.BASE_DIR, 'admin_settings.json')
+    
+    # مقادیر پیش‌فرض
+    default_settings = {
+        'site_name': 'چیدمانو',
+        'site_description': 'پلتفرم هوشمند تحلیل و بهینه‌سازی چیدمان فروشگاه‌ها',
+        'support_email': 'support@chidmano.ir',
+        'contact_phone': '021-12345678',
+        'address': 'تهران، ایران',
+        'smtp_server': 'smtp.gmail.com',
+        'smtp_port': '587',
+        'sender_email': 'noreply@chidmano.ir',
+        'max_concurrent_analyses': '5',
+        'analysis_timeout': '300',
+        'max_login_attempts': '5',
+        'account_lockout_time': '15',
+        'session_timeout': '24',
+        'min_payment_amount': '10000',
+        'max_payment_amount': '10000000'
+    }
+    
+    try:
+        if request.method == 'POST':
+            # دریافت تنظیمات از فرم
+            current_settings = {
+                'site_name': request.POST.get('site_name', default_settings['site_name']),
+                'site_description': request.POST.get('site_description', default_settings['site_description']),
+                'support_email': request.POST.get('support_email', default_settings['support_email']),
+                'contact_phone': request.POST.get('contact_phone', default_settings['contact_phone']),
+                'address': request.POST.get('address', default_settings['address']),
+                'smtp_server': request.POST.get('smtp_server', default_settings['smtp_server']),
+                'smtp_port': request.POST.get('smtp_port', default_settings['smtp_port']),
+                'sender_email': request.POST.get('sender_email', default_settings['sender_email']),
+                'max_concurrent_analyses': request.POST.get('max_concurrent_analyses', default_settings['max_concurrent_analyses']),
+                'analysis_timeout': request.POST.get('analysis_timeout', default_settings['analysis_timeout']),
+                'max_login_attempts': request.POST.get('max_login_attempts', default_settings['max_login_attempts']),
+                'account_lockout_time': request.POST.get('account_lockout_time', default_settings['account_lockout_time']),
+                'session_timeout': request.POST.get('session_timeout', default_settings['session_timeout']),
+                'min_payment_amount': request.POST.get('min_payment_amount', default_settings['min_payment_amount']),
+                'max_payment_amount': request.POST.get('max_payment_amount', default_settings['max_payment_amount'])
+            }
+            
+            # ذخیره در فایل JSON
+            try:
+                with open(settings_file, 'w', encoding='utf-8') as f:
+                    json.dump(current_settings, f, ensure_ascii=False, indent=2)
+                logger.info(f"✅ Admin settings saved to file by {request.user.username}")
+                messages.success(request, 'تنظیمات با موفقیت ذخیره شد')
+            except Exception as e:
+                logger.error(f"❌ Error saving settings to file: {e}")
+                messages.error(request, f'خطا در ذخیره تنظیمات: {str(e)}')
+            
+            return redirect('store_analysis:admin_settings')
+        
+        # خواندن تنظیمات فعلی
+        current_settings = default_settings.copy()
+        
+        # بارگذاری از فایل اگر وجود داشته باشد
+        if os.path.exists(settings_file):
+            try:
+                with open(settings_file, 'r', encoding='utf-8') as f:
+                    saved_settings = json.load(f)
+                    current_settings.update(saved_settings)
+                logger.info("✅ Settings loaded from file")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not load settings from file: {e}")
+        
         context = {
             'title': 'تنظیمات سیستم',
             'settings': current_settings
@@ -5963,8 +5984,8 @@ def admin_settings(request):
         return render(request, 'store_analysis/admin/settings.html', context)
         
     except Exception as e:
-        logger.error(f"Error in admin_settings view: {e}")
-        messages.error(request, 'خطا در بارگذاری صفحه تنظیمات')
+        logger.error(f"❌ Error in admin_settings view: {e}", exc_info=True)
+        messages.error(request, f'خطا در بارگذاری صفحه تنظیمات: {str(e)}')
         return redirect('store_analysis:admin_dashboard')
 
 

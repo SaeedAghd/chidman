@@ -103,6 +103,9 @@ celerybeat.pid
 .env.local
 .env.production
 
+# Admin settings (temporary file-based storage)
+admin_settings.json
+
 # Virtual environments
 venv/
 .venv/
