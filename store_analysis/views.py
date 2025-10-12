@@ -6995,30 +6995,8 @@ def forms_submit(request):
     """پردازش فرم تک صفحه‌ای تحلیل فروشگاه - بهینه‌سازی شده"""
     if request.method == 'POST':
         try:
-            # بررسی محدودیت تحلیل برای کاربران رایگان (غیرفعال برای ادمین‌ها)
-            if not request.user.is_staff:
-                # فقط تحلیل‌های موفق را بشمار (تحلیل‌های ناموفق نباید محدودیت ایجاد کنند)
-                successful_analyses_count = StoreAnalysis.objects.filter(
-                    user=request.user, 
-                    status='completed'
-                ).count()
-                
-                # اگر کاربر تحلیل موفق قبلی دارد و پلن رایگان است
-                if successful_analyses_count >= 1:
-                    # بررسی اینکه آیا کاربر پلن پولی دارد یا نه
-                    from .models import UserSubscription
-                    has_paid_subscription = UserSubscription.objects.filter(
-                        user=request.user, 
-                        is_active=True
-                    ).exists()
-                    
-                    if not has_paid_subscription:
-                        return JsonResponse({
-                            'success': False,
-                            'message': 'شما در طرح رایگان فقط یک تحلیل موفق می‌توانید انجام دهید. برای تحلیل‌های بیشتر، لطفاً پلن پولی تهیه کنید.',
-                            'redirect_url': '/store/payment-packages/',
-                            'upgrade_required': True
-                        })
+            # ✅ محدودیت تحلیل رایگان حذف شد - همه درخواست‌ها به صفحه پرداخت می‌روند
+            # (سرویس اکنون پولی است)
             
             # دریافت داده‌های فرم به صورت ساده
             form_data = request.POST.dict()
