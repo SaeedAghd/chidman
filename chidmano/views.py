@@ -191,6 +191,7 @@ def simple_home(request):
     """صفحه اصلی فوق‌العاده جذاب و حرفه‌ای"""
     # دریافت اطلاعات تخفیف
     from store_analysis.views import get_discount_context, create_discount_notification
+    from store_analysis.models import SystemSettings
     
     # ایجاد اطلاعیه تخفیف خودکار
     create_discount_notification()
@@ -198,10 +199,27 @@ def simple_home(request):
     # دریافت context تخفیف
     discount_info = get_discount_context()
     
+    # دریافت تنظیمات سیستم
+    try:
+        site_name = SystemSettings.get_setting('site_name', 'چیدمانو')
+        contact_phone = SystemSettings.get_setting('contact_phone', '021-12345678')
+        support_email = SystemSettings.get_setting('support_email', 'info@chidmano.ir')
+        address = SystemSettings.get_setting('address', 'تهران، ایران')
+    except Exception as e:
+        # اگر SystemSettings موجود نبود، از مقادیر پیش‌فرض استفاده می‌کنیم
+        site_name = 'چیدمانو'
+        contact_phone = '021-12345678'
+        support_email = 'info@chidmano.ir'
+        address = 'تهران، ایران'
+    
     context = {
         'hero_title': 'تحلیل هوشمند فروشگاه شما',
         'hero_subtitle': 'با هوش مصنوعی پیشرفته، فروشگاه خود را به سطح جهانی برسانید',
         'discount_info': discount_info,
+        'site_name': site_name,
+        'contact_phone': contact_phone,
+        'support_email': support_email,
+        'address': address,
         'features': [
             {
                 'icon': '🚀',
