@@ -5404,7 +5404,8 @@ def admin_users(request):
     staff_users = User.objects.filter(is_staff=True).count()
     recent_users = User.objects.filter(date_joined__gte=timezone.now() - timedelta(days=7)).count()
     
-    # Pagination
+    # Pagination با ordering
+    users = users.order_by('-date_joined')  # رفع UnorderedObjectListWarning
     paginator = Paginator(users, 20)
     page_number = request.GET.get('page')
     users_page = paginator.get_page(page_number)
@@ -5552,9 +5553,18 @@ def admin_analysis_detail(request, analysis_id):
             messages.error(request, 'تحلیل مورد نظر یافت نشد')
             return redirect('store_analysis:admin_analyses')
     
-    # اطلاعات مرتبط
-    store_basic_info = StoreBasicInfo.objects.filter(user=analysis.user).first()
-    analysis_result = StoreAnalysisResult.objects.filter(store_analysis=analysis).first()
+    # اطلاعات مرتبط - با try-except برای مشکلات migration
+    try:
+        store_basic_info = StoreBasicInfo.objects.filter(user=analysis.user).first()
+    except Exception as e:
+        logger.warning(f"خطا در دریافت StoreBasicInfo: {e}")
+        store_basic_info = None
+    
+    try:
+        analysis_result = StoreAnalysisResult.objects.filter(store_analysis=analysis).first()
+    except Exception as e:
+        logger.warning(f"خطا در دریافت StoreAnalysisResult: {e}")
+        analysis_result = None
     
     context = {
         'analysis': analysis,

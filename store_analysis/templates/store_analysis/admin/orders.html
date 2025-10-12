@@ -146,9 +146,15 @@
                     <td>{{ order.created_at|date:"Y/m/d H:i" }}</td>
                     <td>
                         <div style="display: flex; gap: 8px;">
+                            {% if order.order_id %}
                             <a href="{% url 'store_analysis:admin_order_detail' order.order_id %}" class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            {% else %}
+                            <span class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem; opacity: 0.5; cursor: not-allowed;" title="شماره سفارش موجود نیست">
+                                <i class="fas fa-eye-slash"></i>
+                            </span>
+                            {% endif %}
                             <a href="#" class="btn-admin btn-warning" style="padding: 5px 10px; font-size: 0.8rem;">
                                 <i class="fas fa-edit"></i>
                             </a>
