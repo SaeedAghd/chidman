@@ -1,6 +1,7 @@
 {% extends "store_analysis/admin/base.html" %}
 {% load static %}
 
+{% block admin_content %}
 <script>
 // CSRF Token
 const csrfToken = '{{ csrf_token }}';
@@ -140,7 +141,6 @@ const csrfToken = '{{ csrf_token }}';
     }
 </style>
 
-{% block admin_content %}
 <!-- Header -->
 <div class="admin-header">
     <div class="page-title">
