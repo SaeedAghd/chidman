@@ -693,10 +693,17 @@
                             <div class="action-icon">⚖️</div>
                             <div class="action-label">مقایسه فروشگاه‌ها</div>
                         </a>
-                        <a href="{% url 'store_analysis:ai_consultant_list' %}" class="action-button" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        {% if recent_analyses %}
+                        <a href="{% url 'store_analysis:ai_consultant_chat' recent_analyses.0.id %}" class="action-button" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                             <div class="action-icon">🤖</div>
                             <div class="action-label">مشاور هوش مصنوعی</div>
                         </a>
+                        {% else %}
+                        <a href="{% url 'store_analysis:forms' %}" class="action-button" style="background: linear-gradient(135deg, #999 0%, #666 100%); opacity: 0.6;">
+                            <div class="action-icon">🤖</div>
+                            <div class="action-label">مشاور هوشمند (ابتدا تحلیل کنید)</div>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
