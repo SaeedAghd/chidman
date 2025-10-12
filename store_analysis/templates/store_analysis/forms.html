@@ -2039,19 +2039,16 @@ function closeWelcomePopup() {
   }
 }
 
-// نمایش popup فقط برای بار اول
+// نمایش popup همیشه (برای هر بار ورود به فرم)
 document.addEventListener('DOMContentLoaded', function() {
-  const hasSeenPopup = localStorage.getItem('welcomePopupShown');
   const popup = document.getElementById('welcomePopup');
   
-  if (!hasSeenPopup && popup) {
+  if (popup) {
     // نمایش popup با تاخیر کوتاه برای انیمیشن
     setTimeout(() => {
       popup.style.display = 'flex';
       popup.classList.add('fade-in');
     }, 500);
-  } else if (popup) {
-    popup.style.display = 'none';
   }
 });
 
