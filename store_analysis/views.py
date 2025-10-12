@@ -2702,9 +2702,9 @@ def payment_page(request, order_id):
                 store_analysis.preliminary_analysis = "تحلیل اولیه: فروشگاه شما نیاز به بررسی دقیق‌تر دارد. پس از پرداخت، تحلیل کامل انجام خواهد شد."
                 store_analysis.save()
         
-        # محاسبه هزینه‌ها - همیشه از object استفاده کن
+        # محاسبه هزینه‌ها - استفاده از calculate_analysis_cost
         try:
-            cost_breakdown = calculate_analysis_cost_for_object(store_analysis)
+            cost_breakdown = calculate_analysis_cost(store_analysis.analysis_data or {})
         except Exception as e:
             logger.error(f"Error calculating cost: {e}")
             # fallback به محاسبه ساده با تخفیف 100% - خطا را لاگ کن اما ادامه بده
@@ -6421,7 +6421,7 @@ def analysis_payment_page(request, pk):
         return redirect('store_analysis:order_analysis_results', order_id=analysis.order.order_number)
     
     # محاسبه هزینه تحلیل
-    cost = calculate_analysis_cost_for_object(analysis)
+    cost = calculate_analysis_cost(analysis.analysis_data or {})
     
     # ایجاد Order جدید
     order = Order.objects.create(
