@@ -151,22 +151,36 @@ class PayPingGateway:
 
         Notes:
         - PayPing amount is in Rials. If we receive Toman, convert by x10.
+        - payer_identity is REQUIRED and must be a valid mobile number
+        - payer_name is recommended for better UX
+        - clientRefId must be unique for each transaction
         """
         try:
-            # ساده: فرض می‌کنیم amount بر حسب تومان است → تبدیل به ریال
+            # تبدیل تومان به ریال (PayPing فقط ریال قبول می‌کند)
             rial_amount = int(amount) * 10
+
+            # Validate payer_identity
+            if not payer_identity:
+                logger.error("PayPing requires payer_identity (mobile number)")
+                return {"status": "error", "message": "شماره موبایل الزامی است"}
+            
+            # Generate unique clientRefId
+            if not client_ref_id:
+                client_ref_id = f"CHIDMANO_{int(timezone.now().timestamp())}_{uuid.uuid4().hex[:8]}"
 
             payload = {
                 "amount": rial_amount,
                 "description": description or "پرداخت سفارش چیدمانو",
                 "returnUrl": callback_url,
-                "payerIdentity": payer_identity or "09123456789",  # Required field
-                "clientRefId": client_ref_id or f"CHIDMANO_{int(timezone.now().timestamp())}",
+                "payerIdentity": str(payer_identity),  # شماره موبایل کاربر (الزامی)
+                "clientRefId": str(client_ref_id),  # شناسه یکتا تراکنش (الزامی)
             }
+            
+            # Add payer name if provided (recommended)
             if payer_name:
                 payload["payerName"] = str(payer_name)
-            if client_ref_id:
-                payload["clientRefId"] = str(client_ref_id)
+            
+            logger.info(f"PayPing payment request: amount={rial_amount} Rials, payer={payer_identity}, client_ref={client_ref_id}")
 
             headers = {
                 "Authorization": f"Bearer {self.token}",
@@ -199,25 +213,47 @@ class PayPingGateway:
                 data = resp.json()
                 code = data.get("code")
                 if code:
+                    logger.info(f"✅ PayPing payment created successfully: code={code}")
                     return {
                         "status": "success",
                         "authority": code,
                         "payment_url": f"https://api.payping.ir/v2/pay/gotoipg/{code}",
                     }
 
-            # error branch
+            # Error handling - PayPing specific error codes
+            error_messages = {
+                400: "داده‌های ارسالی نامعتبر است",
+                401: "توکن احراز هویت نامعتبر است",
+                402: "حساب کاربری شما مسدود شده است",
+                403: "دسترسی به این عملیات ندارید",
+                404: "درگاه پرداخت فعال برای پذیرنده یافت نشد",
+                500: "خطای سرور PayPing - لطفاً بعداً تلاش کنید",
+            }
+            
             try:
                 err = resp.json()
-                message = err.get("message") or err.get("error") or str(err)
-                logger.error(f"PayPing API error: {err}")
+                message = err.get("message") or err.get("error") or error_messages.get(resp.status_code, str(err))
+                logger.error(f"❌ PayPing API error ({resp.status_code}): {err}")
                 
-                # If token invalid, return error (do not mock) so caller can surface message
-                if "درگاه پرداخت فعال برای پذیرنده یافت نشد" in str(err):
-                    return {"status": "error", "message": "درگاه پرداخت فعال برای پذیرنده یافت نشد. لطفاً توکن تست/پذیرنده را در PayPing فعال کنید."}
+                # Special handling for specific errors
+                if resp.status_code == 404 or "درگاه پرداخت فعال" in str(err):
+                    return {
+                        "status": "error", 
+                        "message": "درگاه پرداخت فعال نیست. لطفاً با پشتیبانی تماس بگیرید.",
+                        "code": "GATEWAY_NOT_ACTIVE"
+                    }
+                elif resp.status_code == 401:
+                    return {
+                        "status": "error",
+                        "message": "خطای احراز هویت درگاه پرداخت",
+                        "code": "AUTHENTICATION_ERROR"
+                    }
+                    
             except Exception:
-                message = resp.text
-                logger.error(f"PayPing HTTP error: {resp.status_code} - {resp.text}")
-            return {"status": "error", "message": message or "خطا در ایجاد درخواست پرداخت"}
+                message = error_messages.get(resp.status_code, resp.text)
+                logger.error(f"❌ PayPing HTTP error: {resp.status_code} - {resp.text}")
+                
+            return {"status": "error", "message": message or "خطا در ارتباط با درگاه پرداخت", "code": f"HTTP_{resp.status_code}"}
 
         except Exception as e:
             logger.error(f"PayPing payment request error: {e}")

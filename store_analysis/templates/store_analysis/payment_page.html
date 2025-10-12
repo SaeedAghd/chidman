@@ -700,263 +700,45 @@
                 <h2 class="payment-title">روش پرداخت</h2>
             </div>
             
-            <form id="paymentForm" method="post" action="{% url 'store_analysis:process_payment' order.order_number %}">
+            <!-- نمایش قیمت با تخفیف -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; color: white; text-align: center;">
+                <div style="font-size: 0.9rem; opacity: 0.9; text-decoration: line-through; margin-bottom: 0.5rem;">
+                    قیمت اصلی: {{ cost_breakdown.total|floatformat:0 }} تومان
+                </div>
+                <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+                    {{ order.final_amount|floatformat:0 }} تومان
+                </div>
+                <div style="font-size: 1.1rem; opacity: 0.95; background: rgba(255, 255, 255, 0.2); display: inline-block; padding: 0.5rem 1rem; border-radius: 8px;">
+                    🎉 تخفیف افتتاحیه: {{ cost_breakdown.discount_percentage|default:90 }}%
+                </div>
+            </div>
+            
+            <div class="security-badge">
+                <i class="fas fa-shield-alt"></i>
+                <p>✅ پرداخت امن از طریق درگاه PayPing - پذیرفتن تمامی کارت‌های بانکی</p>
+            </div>
+            
+            <!-- دکمه پرداخت واحد و واضح -->
+            <form id="paymentForm" method="get" action="{% url 'store_analysis:payping_payment' order.order_number %}">
                 {% csrf_token %}
                 
-                <div class="payment-options">
-                    {% for method in payment_methods %}
-                    <div class="payment-option" onclick="selectPaymentMethod('{{ method.id }}')">
-                        <input type="radio" name="payment_method" value="{{ method.id }}" id="payment_{{ method.id }}" required>
-                        <div class="payment-option-content">
-                            <div class="payment-option-icon">
-                                <i class="{{ method.icon }}"></i>
-                            </div>
-                            <div class="payment-option-info">
-                                <h4>{{ method.name }}</h4>
-                                <p>پرداخت امن و سریع</p>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <div class="security-badge">
-                    <i class="fas fa-shield-alt"></i>
-                    <p>پرداخت شما با بالاترین استانداردهای امنیتی محافظت می‌شود</p>
-                </div>
-                
-                {% if order.final_amount == 0 %}
-                <!-- برای مبلغ صفر - گزینه کیف پول -->
-                <div class="zero-amount-section" style="background: #f8f9fa; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; text-align: center;">
-                    <div style="color: #28a745; font-size: 3rem; margin-bottom: 1rem;">
-                        <i class="fas fa-gift"></i>
-                    </div>
-                    <h3 style="color: #28a745; margin-bottom: 1rem;">🎉 به مناسبت افتتاحیه، تحلیل شما رایگان است!</h3>
-                    <p style="color: #6c757d; margin-bottom: 2rem;">برای ادامه، لطفاً کیف پول خود را شارژ کنید تا از خدمات آینده استفاده کنید</p>
-                    
-                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                        <button type="button" onclick="rechargeWallet()" class="payment-button" style="background: #17a2b8; max-width: 300px;">
-                            <i class="fas fa-wallet"></i>
-                            شارژ کیف پول
-                        </button>
-                        <button type="button" onclick="proceedWithFreeAnalysis()" class="payment-button" style="background: #28a745; max-width: 300px;">
-                            <i class="fas fa-check"></i>
-                            ادامه با تحلیل رایگان
-                        </button>
-                    </div>
-                </div>
-                {% else %}
-                <!-- برای مبلغ غیر صفر - پرداخت عادی -->
                 <button type="submit" class="payment-button" id="paymentButton">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-credit-card"></i>
                     پرداخت {{ order.final_amount|floatformat:0 }} تومان
                 </button>
-
-                <div style="margin-top: 10px; text-align:center">
-                    <button type="button" onclick="alert('PayPing button clicked!'); directPayPingPayment(event)" 
-                            class="payment-button" style="display:inline-block; background: #28a745;">
-                        <i class="fas fa-bolt"></i>
-                        پرداخت آنلاین مستقیم (PayPing)
-                    </button>
-                </div>
-                {% endif %}
+                
+                <p style="text-align: center; margin-top: 1rem; color: #718096; font-size: 0.9rem;">
+                    🔒 پرداخت توسط PayPing محافظت می‌شود<br>
+                    بعد از پرداخت، به صفحه نتایج هدایت می‌شوید
+                </p>
             </form>
         </div>
     </div>
 </div>
 
 <script>
-function proceedWithFreeAnalysis() {
-    // نمایش loading
-    showLoadingOverlay();
-    
-    // ارسال درخواست پرداخت رایگان
-    fetch(`/store/payment/{{ order.order_number }}/process/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: 'payment_method=free'
-    })
-    .then(response => {
-        if (response.ok) {
-            // هدایت به صفحه نتایج
-            window.location.href = `/store/order/{{ order.order_number }}/results/`;
-        } else {
-            hideLoadingOverlay();
-            alert('خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.');
-        }
-    })
-    .catch(error => {
-        hideLoadingOverlay();
-        console.error('Error:', error);
-        alert('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.');
-    });
-}
-
-function rechargeWallet() {
-    // هدایت به صفحه شارژ کیف پول
-    window.location.href = '/store/wallet/deposit/';
-}
-
-function showLoadingOverlay() {
-    const overlay = document.createElement('div');
-    overlay.id = 'loadingOverlay';
-    overlay.className = 'loading-overlay';
-    overlay.innerHTML = `
-        <div class="loading-container">
-            <div class="loading-spinner"></div>
-            <h3 class="loading-title">در حال پردازش...</h3>
-            <p class="loading-text">لطفاً صبر کنید</p>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-}
-
-function hideLoadingOverlay() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-function selectPaymentMethod(methodId) {
-    // Remove selected class from all options
-    document.querySelectorAll('.payment-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    
-    // Add selected class to clicked option
-    document.getElementById('payment_' + methodId).closest('.payment-option').classList.add('selected');
-    
-    // Check the radio button
-    document.getElementById('payment_' + methodId).checked = true;
-}
-
-// Direct PayPing payment function
-function directPayPingPayment(event) {
-    console.log('directPayPingPayment called with event:', event);
-    
-    // Prevent any default behavior
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    
-    // Show professional loading state
-    showLoadingState();
-    
-    // Show loading state on button
-    const button = event ? event.target : document.querySelector('button[onclick*="directPayPingPayment"]');
-    console.log('Button found:', button);
-    
-    if (button) {
-        const originalText = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = '<div class="loading-spinner"></div> در حال هدایت به PayPing...';
-    }
-    
-    // Redirect to PayPing
-    const paypingUrl = "{% url 'store_analysis:payping_payment' order.order_number %}";
-    console.log('PayPing URL:', paypingUrl);
-    console.log('Order number:', '{{ order.order_number }}');
-    
-    // Add a small delay to show loading state
-    setTimeout(() => {
-        console.log('About to redirect to:', paypingUrl);
-        try {
-            window.top.location.assign(paypingUrl);
-        } catch (e) {
-            window.location.assign(paypingUrl);
-        }
-    }, 500);
-}
-
-// Function to recharge wallet
-function rechargeWallet() {
-    // Redirect to wallet dashboard for recharge
-    window.location.href = "{% url 'store_analysis:wallet_dashboard' %}";
-}
-
-// Function to proceed with free analysis
-function proceedWithFreeAnalysis() {
-    // Show professional loading state
-    showLoadingState();
-    
-    // Submit the form to process payment with zero amount
-    const form = document.getElementById('paymentForm');
-    if (form) {
-        // Create a hidden input for payment method
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'payment_method';
-        hiddenInput.value = 'free';
-        form.appendChild(hiddenInput);
-        
-        // Submit the form
-        form.submit();
-    }
-}
-
-// Professional Loading State Functions
-function showLoadingState() {
-    const loadingHTML = `
-        <div class="loading-overlay" id="loadingOverlay">
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
-                <div class="loading-title">در حال پردازش تحلیل جامع</div>
-                <div class="loading-subtitle">
-                    تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد.<br>
-                    برای دیدن نتیجه، حدود 1 ساعت دیگر به کارتابل مراجعه کنید.<br>
-                    <strong>از صبر و شکیبایی شما متشکریم!</strong>
-                </div>
-                <div class="loading-progress">
-                    <div class="loading-progress-bar"></div>
-                </div>
-                <div class="loading-steps">
-                    <div class="loading-step active" id="step1">✓ تأیید پرداخت</div>
-                    <div class="loading-step" id="step2">🔄 تولید تحلیل جامع</div>
-                    <div class="loading-step" id="step3">📊 آماده‌سازی گزارش تفصیلی</div>
-                    <div class="loading-step" id="step4">🎯 انتقال به صفحه نتایج</div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', loadingHTML);
-    
-    // Simulate progress steps
-    setTimeout(() => {
-        document.getElementById('step1').classList.add('completed');
-        document.getElementById('step2').classList.add('active');
-    }, 1000);
-    
-    setTimeout(() => {
-        document.getElementById('step2').classList.add('completed');
-        document.getElementById('step3').classList.add('active');
-    }, 3000);
-    
-    setTimeout(() => {
-        document.getElementById('step3').classList.add('completed');
-        document.getElementById('step4').classList.add('active');
-    }, 5000);
-}
-
-function hideLoadingState() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-// Auto-select first payment method and animations
+// ساده‌سازی JavaScript - فقط loading state
 document.addEventListener('DOMContentLoaded', function() {
-    const firstPaymentMethod = document.querySelector('.payment-option');
-    if (firstPaymentMethod) {
-        firstPaymentMethod.click();
-    }
-    
     // Add animation to package features
     const featureItems = document.querySelectorAll('.feature-item');
     featureItems.forEach((item, index) => {
@@ -971,43 +753,38 @@ document.addEventListener('DOMContentLoaded', function() {
         item.classList.add('fade-in-up');
     });
     
-    // Form submission handling
+    // Form submission handling - نمایش loading
     const paymentForm = document.getElementById('paymentForm');
-    if (paymentForm) {
+    const paymentButton = document.getElementById('paymentButton');
+    
+    if (paymentForm && paymentButton) {
         paymentForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent default form submission
-            
-            // Show professional loading state
-            showLoadingState();
-            
-            const paymentButton = document.getElementById('paymentButton');
+            // نمایش loading state
             paymentButton.disabled = true;
-            paymentButton.innerHTML = '<div class="loading-spinner"></div> در حال پردازش...';
-
-            // هدایت هوشمند بر اساس روش پرداخت انتخابی
-            const selected = document.querySelector('input[name="payment_method"]:checked');
+            paymentButton.innerHTML = '<div class="loading-spinner"></div> در حال هدایت به درگاه پرداخت...';
             
-            if (selected) {
-                if (selected.value === 'online') {
-                    // هدایت مستقیم به PayPing
-                    window.location.href = "{% url 'store_analysis:payping_payment' order.order_number %}";
-                } else if (selected.value === 'wallet') {
-                    // هدایت به کیف پول
-                    window.location.href = "{% url 'store_analysis:wallet_payment' order.order_number %}";
-                } else {
-                    // روش پرداخت نامشخص
-                    paymentButton.disabled = false;
-                    paymentButton.innerHTML = '<i class="fas fa-lock"></i> پرداخت {{ cost_breakdown.final|floatformat:0 }} تومان';
-                    alert('لطفاً روش پرداخت را انتخاب کنید');
-                }
-            } else {
-                // هیچ روش پرداختی انتخاب نشده
-                paymentButton.disabled = false;
-                paymentButton.innerHTML = '<i class="fas fa-lock"></i> پرداخت {{ cost_breakdown.final|floatformat:0 }} تومان';
-                alert('لطفاً روش پرداخت را انتخاب کنید');
-            }
+            // نمایش overlay
+            showLoadingOverlay();
         });
     }
 });
+
+// Loading overlay function
+function showLoadingOverlay() {
+    const loadingHTML = `
+        <div class="loading-overlay" id="loadingOverlay" style="display: flex;">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <div class="loading-title">🔐 در حال انتقال به درگاه امن PayPing</div>
+                <div class="loading-subtitle" style="font-size: 1rem; color: #666;">
+                    لطفاً صبر کنید. در حال هدایت شما به صفحه پرداخت...<br>
+                    <strong style="color: #667eea;">✓ اتصال امن برقرار شد</strong>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', loadingHTML);
+}
 </script>
 {% endblock %}

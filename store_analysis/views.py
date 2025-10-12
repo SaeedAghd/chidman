@@ -39,58 +39,72 @@ from .utils import generate_initial_ai_analysis, color_name_to_hex
 from decimal import Decimal
 
 def calculate_analysis_cost(form_data):
-    """محاسبه هزینه تحلیل بر اساس داده‌های فرم"""
+    """
+    محاسبه هزینه تحلیل بر اساس داده‌های فرم
+    
+    قیمت‌گذاری افتتاحیه:
+    - قیمت پایه: 2,000,000 تومان
+    - تخفیف افتتاحیه: 90% (1,800,000 تومان)
+    - قیمت نهایی: 200,000 تومان
+    """
     try:
-        # هزینه ثابت برای تحلیل جامع: 2,000,000 تومان
-        # تحلیل اولیه رایگان: 200,000 تومان (با تخفیف 100%)
-        base_cost = Decimal('2000000')  # 2,000,000 تومان
+        # 💰 قیمت پایه: 2 میلیون تومان
+        base_cost = Decimal('2000000')
         
-        # فعلاً بدون هزینه اضافی - همه تحلیل‌های جامع 200,000 تومان
+        # فعلاً بدون هزینه اضافی - همه چیز flat rate
         additional_cost = Decimal('0')
-        
-        # نوع فروشگاه و اندازه تأثیری در قیمت ندارد (فعلاً)
-        # در آینده می‌توان بر اساس نیاز اضافه کرد
-        
-        # هزینه خدمات اضافی (غیرفعال)
-        # if form_data.get('layout_analysis') == 'on':
-        #     additional_cost += Decimal('100000')
-        # خدمات اضافی غیرفعال (همه چیز در 200,000 تومان)
-        # if form_data.get('traffic_analysis') == 'on':
-        #     additional_cost += Decimal('50000')
         
         total = base_cost + additional_cost
         
-        # تخفیف (اگر وجود داشته باشد)
-        discount = Decimal('0')
-        if form_data.get('discount_code'):
-            discount = Decimal('50000')  # 50,000 تومان تخفیف
-        
-        # تخفیف 100% برای دوره راه‌اندازی (فعلاً رایگان)
+        # 🎉 تخفیف افتتاحیه: 90%
         from datetime import datetime
         current_date = datetime.now()
         launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
         
-        if current_date <= launch_end_date:
-            discount = total  # تخفیف 100% - فعلاً رایگان
+        discount = Decimal('0')
+        discount_percentage = 0
         
-        final = max(Decimal('0'), total - discount)  # حداقل 0
+        if current_date <= launch_end_date:
+            # تخفیف 90% افتتاحیه
+            discount_percentage = 90
+            discount = total * Decimal('0.90')  # 1,800,000 تومان تخفیف
+        
+        # محاسبه قیمت نهایی
+        final = total - discount  # 200,000 تومان
         
         return {
-            'base': float(base_cost),
-            'additional': float(additional_cost),
-            'total': float(total),
-            'discount': float(discount),
-            'final': float(final)
+            'base': float(base_cost),  # 2,000,000
+            'additional': float(additional_cost),  # 0
+            'total': float(total),  # 2,000,000
+            'discount': float(discount),  # 1,800,000
+            'discount_percentage': discount_percentage,  # 90
+            'final': float(final),  # 200,000
+            'breakdown': [
+                {
+                    'item': '💎 تحلیل حرفه‌ای با AI',
+                    'amount': base_cost,
+                    'description': 'تحلیل جامع با هوش مصنوعی پیشرفته'
+                }
+            ]
         }
         
     except Exception as e:
         logger.error(f"Error calculating analysis cost: {str(e)}")
+        # Fallback به قیمت پایه
         return {
-            'base': 500000.0,
+            'base': 2000000.0,
             'additional': 0.0,
-            'total': 500000.0,
-            'discount': 0.0,
-            'final': 500000.0
+            'total': 2000000.0,
+            'discount': 1800000.0,
+            'discount_percentage': 90,
+            'final': 200000.0,
+            'breakdown': [
+                {
+                    'item': '💎 تحلیل حرفه‌ای با AI',
+                    'amount': 2000000.0,
+                    'description': 'تحلیل جامع با هوش مصنوعی'
+                }
+            ]
         }
 
 def create_discount_notification():
@@ -2928,9 +2942,26 @@ def process_payment(request, order_id):
 
 @login_required
 def payping_payment(request, order_id):
-    """پرداخت از طریق PayPing"""
+    """پرداخت از طریق PayPing - کامل و حرفه‌ای"""
     try:
         order = get_object_or_404(Order, order_number=order_id, user=request.user)
+        
+        # دریافت شماره موبایل کاربر (الزامی برای PayPing)
+        try:
+            user_profile = request.user.userprofile
+            payer_identity = user_profile.phone
+        except:
+            # اگر پروفایل ندارد، از username استفاده کن
+            payer_identity = request.user.username
+        
+        # دریافت نام کاربر (توصیه شده برای UX بهتر)
+        payer_name = request.user.get_full_name() or request.user.username
+        
+        # Validate payer_identity
+        if not payer_identity or len(str(payer_identity)) < 10:
+            logger.error(f"Invalid payer_identity for user {request.user.id}: {payer_identity}")
+            messages.error(request, 'شماره موبایل شما در سیستم ثبت نشده است. لطفاً ابتدا پروفایل خود را تکمیل کنید.')
+            return redirect('store_analysis:user_dashboard')
         
         # استفاده از درگاه PayPing
         from .payment_gateways import PaymentGatewayManager
@@ -2940,30 +2971,28 @@ def payping_payment(request, order_id):
         
         if not payping:
             logger.error(f"PayPing gateway not available. Token: {getattr(settings, 'PAYPING_TOKEN', 'NOT_SET')[:10]}...")
-            messages.error(request, 'درگاه PayPing در دسترس نیست. لطفاً از روش دیگری استفاده کنید.')
-            return redirect('store_analysis:wallet_dashboard')
+            messages.error(request, 'درگاه پرداخت در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید یا با پشتیبانی تماس بگیرید.')
+            return redirect('store_analysis:payment_page', order_id=order_id)
         
-        logger.info(f"PayPing gateway initialized successfully for order {order_id}")
+        logger.info(f"🔹 PayPing payment initiated for order {order_id} by user {request.user.username} (mobile: {payer_identity})")
         
-        # ایجاد درخواست پرداخت
+        # ایجاد درخواست پرداخت با اطلاعات کامل
         callback_url = request.build_absolute_uri(
             reverse('store_analysis:payping_callback', args=[order.order_number])
         )
         
-        logger.info(f"PayPing callback URL: {callback_url}")
+        logger.info(f"📞 PayPing callback URL: {callback_url}")
         
         payment_request = payping.create_payment_request(
             amount=int(order.final_amount),
-            description=f'پرداخت سفارش {order.order_number} - تحلیل فروشگاه',
+            description=f'تحلیل حرفه‌ای فروشگاه - سفارش {order.order_number}',
             callback_url=callback_url,
-            client_ref_id=str(order.order_number)
+            payer_identity=str(payer_identity),  # شماره موبایل کاربر (الزامی)
+            payer_name=str(payer_name),  # نام کاربر (توصیه شده)
+            client_ref_id=f"ORD_{order.order_number}"  # شناسه یکتا
         )
         
-        logger.info(f"PayPing payment request result: {payment_request}")
-        
-        # Debug: Check payment request status
-        logger.info(f"Payment request status: {payment_request.get('status')}")
-        logger.info(f"Payment request keys: {list(payment_request.keys())}")
+        logger.info(f"💳 PayPing payment request result: {payment_request}")
         
         if payment_request.get('status') == 'success':
             # ذخیره اطلاعات پرداخت
@@ -2977,17 +3006,30 @@ def payping_payment(request, order_id):
                 transaction_id=payment_request['authority']
             )
             
+            logger.info(f"✅ Payment record created: {payment.id}, redirecting to PayPing...")
+            
             # هدایت به صفحه پرداخت PayPing
             return redirect(payment_request['payment_url'])
         else:
+            # مدیریت خطاها
             error_msg = payment_request.get('message', 'خطای نامشخص در ایجاد درخواست پرداخت')
-            logger.error(f"PayPing payment error: {payment_request}")
-            messages.error(request, f'❌ خطا در ایجاد درخواست پرداخت: {error_msg}')
-            return redirect('store_analysis:wallet_dashboard')
+            error_code = payment_request.get('code', 'UNKNOWN')
+            
+            logger.error(f"❌ PayPing payment failed: {error_code} - {error_msg}")
+            
+            # پیام خطای کاربرپسند
+            if error_code == 'GATEWAY_NOT_ACTIVE':
+                messages.error(request, '⚠️ درگاه پرداخت موقتاً غیرفعال است. لطفاً با پشتیبانی تماس بگیرید.')
+            elif error_code == 'AUTHENTICATION_ERROR':
+                messages.error(request, '⚠️ خطا در احراز هویت درگاه پرداخت. لطفاً با پشتیبانی تماس بگیرید.')
+            else:
+                messages.error(request, f'❌ {error_msg}')
+            
+            return redirect('store_analysis:payment_page', order_id=order_id)
             
     except Exception as e:
-        logger.error(f"PayPing payment exception: {e}")
-        messages.error(request, f'❌ خطا در پردازش پرداخت: {str(e)}')
+        logger.error(f"💥 PayPing payment exception: {e}", exc_info=True)
+        messages.error(request, '❌ خطای غیرمنتظره در پردازش پرداخت. لطفاً دوباره تلاش کنید.')
         return redirect('store_analysis:payment_page', order_id=order_id)
 
 @login_required
@@ -3157,102 +3199,125 @@ def test_advanced_analysis(request):
 
 @login_required
 def payping_callback(request, order_id):
-    """بازگشت از PayPing"""
+    """بازگشت از PayPing - Callback Handler کامل و حرفه‌ای"""
     try:
         order = get_object_or_404(Order, order_number=order_id, user=request.user)
-        # PayPing returns refId (query string)
-        authority = request.GET.get('refId') or request.GET.get('refid') or request.GET.get('RefId')
-        status = request.GET.get('status') or request.GET.get('Status')
         
-        if authority:
-            # تایید پرداخت PayPing
-            from .payment_gateways import PaymentGatewayManager
+        # PayPing returns: refid, clientrefid
+        refid = request.GET.get('refid') or request.GET.get('refId') or request.GET.get('RefId')
+        clientrefid = request.GET.get('clientrefid') or request.GET.get('clientRefId')
+        
+        logger.info(f"🔔 PayPing callback received for order {order_id}: refid={refid}, clientrefid={clientrefid}")
+        
+        # Check if payment was cancelled by user
+        if not refid:
+            logger.warning(f"❌ Payment cancelled by user for order {order_id}")
+            messages.warning(request, '⚠️ پرداخت توسط شما لغو شد. در صورت تمایل می‌توانید مجدداً اقدام به پرداخت کنید.')
+            return redirect('store_analysis:payment_page', order_id=order_id)
+        
+        # Verify payment with PayPing
+        from .payment_gateways import PaymentGatewayManager
+        
+        gateway_manager = PaymentGatewayManager()
+        payping = gateway_manager.get_gateway('payping')
+        
+        if not payping:
+            logger.error(f"❌ PayPing gateway not available in callback for order {order_id}")
+            messages.error(request, '❌ خطا در تایید پرداخت. لطفاً با پشتیبانی تماس بگیرید.')
+            return redirect('store_analysis:user_dashboard')
+        
+        logger.info(f"🔍 Verifying payment: refid={refid}, amount={order.final_amount}")
+        
+        verification_result = payping.verify_payment(
+            authority=refid,
+            amount=int(order.final_amount)
+        )
+        
+        logger.info(f"✅ Verification result: {verification_result}")
+        
+        if verification_result.get('status') == 'success':
+            # ✅ پرداخت موفق - ثبت در دیتابیس
+            logger.info(f"💚 Payment verified successfully for order {order_id}")
             
-            gateway_manager = PaymentGatewayManager()
-            payping = gateway_manager.get_gateway('payping')
-            
-            verification_result = payping.verify_payment(
-                authority=authority,
-                amount=int(order.final_amount)
-            )
-            
-            if verification_result['status'] == 'success':
-                # پرداخت موفق
-                payment = Payment.objects.get(
-                    user=request.user,
-                    transaction_id=authority
-                )
-                payment.status = 'completed'
-                payment.save()
-                
-                # به‌روزرسانی وضعیت سفارش
-                order.status = 'paid'
-                order.payment_method = 'payping'
-                order.transaction_id = authority
-                order.save()
-                
-                # واریز مبلغ به کیف پول کاربر (اختیاری)
-                try:
-                    wallet, created = Wallet.objects.get_or_create(
-                        user=request.user,
-                        defaults={'balance': 0, 'is_active': True}
-                    )
-                    # واریز 5% از مبلغ به عنوان پاداش
-                    bonus_amount = int(order.final_amount * 0.05)
-                    wallet.deposit(bonus_amount, f'پاداش پرداخت سفارش {order.order_number}')
-                except Exception:
-                    pass  # اگر واریز پاداش ناموفق بود، ادامه بده
-                
-                messages.success(request, f'✅ پرداخت سفارش {order.order_number} با موفقیت انجام شد!')
+            # Check for duplicate transaction
+            existing_payment = Payment.objects.filter(transaction_id=refid).first()
+            if existing_payment:
+                logger.warning(f"⚠️ Duplicate payment detected: {refid} - already processed")
+                messages.success(request, '✅ پرداخت شما قبلاً ثبت شده است. در حال هدایت به نتایج...')
                 return redirect('store_analysis:order_analysis_results', order_id=order_id)
-            else:
-                # اگر تایید ناموفق بود، شبیه‌سازی پرداخت موفق
-                messages.info(request, 'تایید پرداخت ناموفق بود. پرداخت شبیه‌سازی شده است.')
-                
-                # شبیه‌سازی پرداخت موفق
-                store_analysis = StoreAnalysis.objects.filter(order=order).first()
-                payment = Payment.objects.create(
-                    user=request.user,
-                    store_analysis=store_analysis,
-                    amount=order.final_amount,
-                    payment_method='online',
-                    status='completed',
-                    transaction_id=f'TXN_CALLBACK_{uuid.uuid4().hex[:8].upper()}'
-                )
-                order.status = 'paid'
-                order.payment_method = 'payping_test'
-                order.transaction_id = payment.transaction_id
-                order.save()
-                
-                return redirect('store_analysis:order_analysis_results', order_id=order_id)
-        else:
-            messages.error(request, '❌ پرداخت لغو شد')
             
-        return redirect('store_analysis:payment_page', order_id=order_id)
-        
-    except Exception as e:
-        logger.error(f"PayPing callback error: {e}")
-        # در صورت خطا، شبیه‌سازی پرداخت موفق
-        messages.warning(request, '⚠️ خطا در تایید پرداخت. پرداخت شبیه‌سازی شده است.')
-        
-        try:
+            # ثبت پرداخت موفق
             store_analysis = StoreAnalysis.objects.filter(order=order).first()
             payment = Payment.objects.create(
                 user=request.user,
                 store_analysis=store_analysis,
                 amount=order.final_amount,
-                payment_method='online',
+                payment_method='payping',
                 status='completed',
-                transaction_id=f'TXN_ERROR_{uuid.uuid4().hex[:8].upper()}'
+                transaction_id=refid
             )
+            
+            # به‌روزرسانی وضعیت سفارش
             order.status = 'paid'
-            order.payment_method = 'payping_test'
-            order.transaction_id = payment.transaction_id
+            order.payment_method = 'payping'
+            order.transaction_id=refid
             order.save()
             
+            # به‌روزرسانی وضعیت تحلیل
+            if store_analysis:
+                store_analysis.status = 'payment_completed'
+                store_analysis.save()
+                logger.info(f"📊 StoreAnalysis {store_analysis.id} status updated to payment_completed")
+            
+            # واریز پاداش به کیف پول (اختیاری)
+            try:
+                wallet, created = Wallet.objects.get_or_create(
+                    user=request.user,
+                    defaults={'balance': 0, 'is_active': True}
+                )
+                # واریز 5% پاداش
+                bonus_amount = Decimal(order.final_amount) * Decimal('0.05')
+                wallet.deposit(bonus_amount, f'🎁 پاداش پرداخت سفارش {order.order_number}')
+                logger.info(f"🎁 Bonus deposited: {bonus_amount} Toman for order {order_id}")
+            except Exception as wallet_error:
+                logger.warning(f"⚠️ Wallet bonus failed: {wallet_error}")
+            
+            messages.success(request, f'✅ پرداخت با موفقیت انجام شد! سفارش شما در حال پردازش است.')
+            
+            # هدایت به صفحه نتایج
             return redirect('store_analysis:order_analysis_results', order_id=order_id)
-        except Exception:
+            
+        else:
+            # ❌ پرداخت ناموفق یا خطا در تایید
+            error_msg = verification_result.get('message', 'خطا در تایید پرداخت')
+            logger.error(f"❌ Payment verification failed for order {order_id}: {error_msg}")
+            
+            # ثبت پرداخت ناموفق
+            try:
+                store_analysis = StoreAnalysis.objects.filter(order=order).first()
+                Payment.objects.create(
+                    user=request.user,
+                    store_analysis=store_analysis,
+                    amount=order.final_amount,
+                    payment_method='payping',
+                    status='failed',
+                    transaction_id=refid or f'FAILED_{uuid.uuid4().hex[:8]}'
+                )
+            except Exception as pay_error:
+                logger.error(f"❌ Failed to record failed payment: {pay_error}")
+            
+            messages.error(request, f'❌ پرداخت ناموفق: {error_msg}')
             return redirect('store_analysis:payment_page', order_id=order_id)
+            
+    except Order.DoesNotExist:
+        logger.error(f"❌ Order not found in callback: {order_id}")
+        messages.error(request, '❌ سفارش یافت نشد')
+        return redirect('store_analysis:user_dashboard')
+        
+    except Exception as e:
+        logger.error(f"💥 PayPing callback exception for order {order_id}: {e}", exc_info=True)
+        messages.error(request, '❌ خطای غیرمنتظره در پردازش پرداخت. لطفاً با پشتیبانی تماس بگیرید.')
+        return redirect('store_analysis:user_dashboard')
 
 def find_or_create_store_analysis(order, user):
     """پیدا کردن یا ایجاد StoreAnalysis برای Order - نسخه بهبود یافته"""
