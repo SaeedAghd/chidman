@@ -131,6 +131,7 @@ urlpatterns = [
     path('payment/detail/<int:payment_id>/', payment_views.payment_detail, name='payment_detail'),
     path('subscriptions/', payment_views.user_subscriptions, name='user_subscriptions'),
     
-    # PayPing Callback URL
+    # PayPing Callback URLs
     path('payment/<str:order_id>/payping/callback/', views.payping_callback, name='payping_callback'),
+    path('wallet/payping/callback/<str:wallet_tx_id>/', views.wallet_payping_callback, name='wallet_payping_callback'),
 ]
