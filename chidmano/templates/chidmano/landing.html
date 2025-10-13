@@ -1732,6 +1732,246 @@
         </div>
     </nav>
 
+    <!-- Countdown Timer Banner -->
+    <div class="countdown-timer-banner">
+        <div class="container">
+            <div class="timer-content">
+                <div class="timer-icon">🔥</div>
+                <div class="timer-text">
+                    <h3>تخفیف 90% افتتاحیه!</h3>
+                    <p>فرصت استثنایی برای تحلیل حرفه‌ای با قیمت باورنکردنی</p>
+                </div>
+                <div class="timer-countdown">
+                    <div class="timer-label">زمان باقی‌مانده:</div>
+                    <div class="timer-digits">
+                        <div class="timer-unit">
+                            <span id="hours">23</span>
+                            <span class="timer-unit-label">ساعت</span>
+                        </div>
+                        <div class="timer-separator">:</div>
+                        <div class="timer-unit">
+                            <span id="minutes">45</span>
+                            <span class="timer-unit-label">دقیقه</span>
+                        </div>
+                        <div class="timer-separator">:</div>
+                        <div class="timer-unit">
+                            <span id="seconds">30</span>
+                            <span class="timer-unit-label">ثانیه</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="timer-price">
+                    <div class="price-old">2,000,000 تومان</div>
+                    <div class="price-new">200,000 تومان</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .countdown-timer-banner {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            position: relative;
+            overflow: hidden;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        .countdown-timer-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        .timer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+
+        .timer-icon {
+            font-size: 3rem;
+            animation: bounce 2s infinite;
+        }
+
+        .timer-text h3 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: white;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .timer-text p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.95);
+            margin: 0.3rem 0 0 0;
+        }
+
+        .timer-countdown {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .timer-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+        }
+
+        .timer-digits {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .timer-unit {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+
+        .timer-unit span:first-child {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+        }
+
+        .timer-unit-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 0.3rem;
+        }
+
+        .timer-separator {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 0.3rem;
+        }
+
+        .timer-price {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .price-old {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: line-through;
+        }
+
+        .price-new {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .timer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+
+            .timer-icon {
+                font-size: 2.5rem;
+            }
+
+            .timer-text h3 {
+                font-size: 1.3rem;
+            }
+
+            .timer-unit {
+                padding: 0.6rem 0.8rem;
+                min-width: 60px;
+            }
+
+            .timer-unit span:first-child {
+                font-size: 1.6rem;
+            }
+
+            .price-new {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+
+    <script>
+        // Countdown Timer
+        function startCountdown() {
+            const endDate = new Date();
+            endDate.setHours(endDate.getHours() + 24); // 24 hours from now
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = endDate.getTime() - now;
+                
+                if (distance < 0) {
+                    // Reset timer
+                    endDate.setHours(endDate.getHours() + 24);
+                    return;
+                }
+                
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            }
+            
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+        
+        // Start countdown when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startCountdown);
+        } else {
+            startCountdown();
+        }
+    </script>
+
     <!-- Modern Hero Section with Blur Effect -->
     <section class="modern-hero">
         <div class="hero-background">
@@ -1741,24 +1981,60 @@
         <div class="container">
             <div class="hero-content-modern">
                 <div class="hero-card">
+                    <!-- Pain Point Headline -->
+                    <div class="hero-pain-point">😢</div>
                     <h1 class="hero-title-modern">
-                        <span class="hero-main-text">تحلیل هوشمند چیدمان فروشگاه</span>
-                        <span class="hero-sub-text">افزایش فروش تا 30%</span>
+                        <span class="hero-question">چرا فروشگاهتون خلوته؟</span>
+                        <span class="hero-fact">80% فروشگاه‌ها به خاطر چیدمان غلط،<br>60% فروش بالقوه رو از دست میدن!</span>
                     </h1>
-                    <p class="hero-description-modern">با هوش مصنوعی چیدمان فروشگاه خود را بهینه کنید و فروش خود را تا 30% افزایش دهید. تحلیل حرفه‌ای ترافیک و طراحی فروشگاه</p>
+                    
+                    <!-- Pain Points List -->
+                    <div class="hero-problems">
+                        <div class="problem-item">❌ مشتری میاد، نگاه می‌کنه، میره؟!</div>
+                        <div class="problem-item">❌ کالاها خوبه ولی فروش کمه؟</div>
+                        <div class="problem-item">❌ نمیدونید کدوم قفسه رو کجا بذارید؟</div>
+                    </div>
+                    
+                    <!-- Solution -->
+                    <p class="hero-solution">
+                        ✅ <strong>ما دقیقاً میگیم مشکل کجاست و چیکار کنید!</strong><br>
+                        با هوش مصنوعی، بدون نیاز به متخصص، فقط با چند تا عکس!
+                    </p>
+                    
+                    <!-- Social Proof -->
+                    <div class="hero-social-proof">
+                        <div class="proof-item">
+                            <span class="proof-number">847+</span>
+                            <span class="proof-label">فروشگاه تحلیل شده</span>
+                        </div>
+                        <div class="proof-item">
+                            <span class="proof-number">⭐ 4.8</span>
+                            <span class="proof-label">از 5 امتیاز</span>
+                        </div>
+                        <div class="proof-item">
+                            <span class="proof-number">+2.3M</span>
+                            <span class="proof-label">میانگین افزایش فروش/ماه</span>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA Buttons -->
                     <div class="hero-buttons-modern">
                         {% if user.is_authenticated %}
-                            <a href="{% url 'store_analysis:forms' %}" class="btn-primary-modern">
+                            <a href="{% url 'store_analysis:forms' %}" class="btn-primary-modern pulse-animation">
                         {% else %}
-                            <a href="{% url 'login' %}" class="btn-primary-modern">
+                            <a href="{% url 'login' %}" class="btn-primary-modern pulse-animation">
                         {% endif %}
                             <i class="fas fa-rocket me-2"></i>
-                            شروع تحلیل هوشمند
+                            می‌خوام بفهمم مشکل فروشگاهم چیه - رایگان!
                         </a>
-                        <a href="{% url 'store_analysis:ai_analysis_guide' %}" class="btn-secondary-modern">
-                            <i class="fas fa-info-circle me-2"></i>
-                            راهنمای AI
-                        </a>
+                        <div class="hero-guarantee">
+                            ✅ بدون نیاز به کارت بانکی | ✅ تحلیل اولیه رایگان | ✅ فقط 5 دقیقه!
+                        </div>
+                    </div>
+                    
+                    <!-- Live Activity -->
+                    <div class="hero-live-activity">
+                        🔴 <strong>الان 18 نفر دارن فرم رو پر می‌کنن!</strong>
                     </div>
                 </div>
             </div>
@@ -1831,7 +2107,161 @@
 
             .hero-title-modern {
                 margin-bottom: 2rem;
-                line-height: 1.2;
+                line-height: 1.3;
+            }
+
+            .hero-pain-point {
+                font-size: 4rem;
+                margin-bottom: 1rem;
+                animation: bounce 2s infinite;
+            }
+
+            .hero-question {
+                display: block;
+                font-size: 2.8rem;
+                font-weight: 800;
+                color: #ff6b35;
+                margin-bottom: 1rem;
+                text-shadow: 0 2px 10px rgba(255, 107, 53, 0.5);
+                animation: fadeInDown 0.8s ease-out;
+            }
+
+            .hero-fact {
+                display: block;
+                font-size: 1.4rem;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.95);
+                line-height: 1.6;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                animation: fadeInUp 1s ease-out;
+            }
+
+            .hero-problems {
+                background: rgba(255, 107, 53, 0.1);
+                border: 2px solid rgba(255, 107, 53, 0.3);
+                border-radius: 16px;
+                padding: 1.5rem;
+                margin: 2rem 0;
+                animation: fadeIn 1.2s ease-out;
+            }
+
+            .problem-item {
+                font-size: 1.1rem;
+                color: rgba(255, 255, 255, 0.9);
+                margin: 0.8rem 0;
+                text-align: right;
+                font-weight: 500;
+            }
+
+            .hero-solution {
+                font-size: 1.3rem;
+                color: #ffffff;
+                line-height: 1.7;
+                margin: 2rem 0;
+                padding: 1.5rem;
+                background: rgba(102, 234, 126, 0.15);
+                border-radius: 12px;
+                border: 2px solid rgba(102, 234, 126, 0.3);
+                text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+                animation: fadeIn 1.4s ease-out;
+            }
+
+            .hero-social-proof {
+                display: flex;
+                justify-content: space-around;
+                gap: 1.5rem;
+                margin: 2rem 0;
+                padding: 1.5rem;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 16px;
+                backdrop-filter: blur(10px);
+                animation: fadeInUp 1.6s ease-out;
+            }
+
+            .proof-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .proof-number {
+                font-size: 2rem;
+                font-weight: 800;
+                color: #ff6b35;
+                margin-bottom: 0.3rem;
+                text-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+            }
+
+            .proof-label {
+                font-size: 0.9rem;
+                color: rgba(255, 255, 255, 0.8);
+            }
+
+            .hero-guarantee {
+                font-size: 0.95rem;
+                color: rgba(255, 255, 255, 0.9);
+                margin-top: 1rem;
+                text-align: center;
+            }
+
+            .hero-live-activity {
+                margin-top: 1.5rem;
+                padding: 1rem;
+                background: rgba(255, 0, 0, 0.1);
+                border: 2px solid rgba(255, 0, 0, 0.3);
+                border-radius: 12px;
+                color: #ffffff;
+                font-size: 1.1rem;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                40% { transform: translateY(-10px); }
+                60% { transform: translateY(-5px); }
+            }
+
+            @keyframes fadeInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes pulse {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+                50% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            }
+
+            .pulse-animation {
+                animation: pulseButton 2s infinite;
+            }
+
+            @keyframes pulseButton {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
             }
 
             .hero-main-text {
@@ -1913,8 +2343,38 @@
 
             @media (max-width: 768px) {
                 .hero-card {
-                    padding: 2.5rem 2rem;
+                    padding: 2rem 1.5rem;
                     margin: 1rem;
+                }
+
+                .hero-pain-point {
+                    font-size: 3rem;
+                }
+
+                .hero-question {
+                    font-size: 2rem;
+                }
+
+                .hero-fact {
+                    font-size: 1.1rem;
+                }
+
+                .problem-item {
+                    font-size: 1rem;
+                }
+
+                .hero-solution {
+                    font-size: 1.1rem;
+                    padding: 1rem;
+                }
+
+                .hero-social-proof {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .proof-number {
+                    font-size: 1.6rem;
                 }
 
                 .hero-main-text {
@@ -1931,14 +2391,19 @@
 
                 .hero-buttons-modern {
                     flex-direction: column;
-                    align-items: center;
+                    align-items: stretch;
                 }
 
                 .btn-primary-modern,
                 .btn-secondary-modern {
                     width: 100%;
-                    max-width: 300px;
                     justify-content: center;
+                    font-size: 1rem;
+                    padding: 1.2rem 1.5rem;
+                }
+
+                .hero-live-activity {
+                    font-size: 1rem;
                 }
             }
 
@@ -5095,6 +5560,306 @@
             }
         `;
         document.head.appendChild(style);
+    </script>
+
+    <!-- Exit Intent Popup -->
+    <div id="exitPopup" class="exit-popup-overlay">
+        <div class="exit-popup-content">
+            <button class="exit-popup-close" onclick="closeExitPopup()">&times;</button>
+            <div class="exit-popup-icon">🛑</div>
+            <h2 class="exit-popup-title">صبر کن! یک لحظه...</h2>
+            <p class="exit-popup-subtitle">قبل از رفتن، یک هدیه ویژه برات دارم!</p>
+            
+            <div class="exit-popup-gift">
+                <div class="gift-icon">🎁</div>
+                <h3>چک‌لیست رایگان:</h3>
+                <p>"10 اشتباه کشنده در چیدمان فروشگاه<br>که 60% فروش شما رو از بین میبره"</p>
+            </div>
+            
+            <div class="exit-popup-features">
+                <div class="feature-item">✅ فایل PDF کامل و حرفه‌ای</div>
+                <div class="feature-item">✅ راهکارهای عملی و کاربردی</div>
+                <div class="feature-item">✅ بدون نیاز به پرداخت</div>
+            </div>
+            
+            <div class="exit-popup-buttons">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'store_analysis:forms' %}" class="exit-popup-btn-primary">
+                {% else %}
+                    <a href="{% url 'login' %}" class="exit-popup-btn-primary">
+                {% endif %}
+                    🚀 می‌خوام تحلیل کامل فروشگاهم رو ببینم - رایگان!
+                </a>
+                <button class="exit-popup-btn-secondary" onclick="closeExitPopup()">
+                    نه ممنون، نمی‌خوام فروشم بیشتر بشه
+                </button>
+            </div>
+            
+            <div class="exit-popup-guarantee">
+                <small>🔒 بدون نیاز به کارت بانکی | ⚡ فقط 5 دقیقه زمان می‌بره</small>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .exit-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 999999;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .exit-popup-overlay.show {
+            display: flex;
+        }
+
+        .exit-popup-content {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease-out;
+            text-align: center;
+        }
+
+        .exit-popup-close {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: transparent;
+            border: none;
+            font-size: 2.5rem;
+            color: #999;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .exit-popup-close:hover {
+            background: #f0f0f0;
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .exit-popup-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: shake 0.5s ease-out;
+        }
+
+        .exit-popup-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ff6b35;
+            margin-bottom: 0.5rem;
+        }
+
+        .exit-popup-subtitle {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+
+        .exit-popup-gift {
+            background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%);
+            border: 2px solid #ff6b35;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .gift-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        .exit-popup-gift h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ff6b35;
+            margin-bottom: 0.5rem;
+        }
+
+        .exit-popup-gift p {
+            font-size: 1.1rem;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .exit-popup-features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+
+        .feature-item {
+            font-size: 1rem;
+            color: #555;
+            padding: 0.5rem 0;
+        }
+
+        .exit-popup-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .exit-popup-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.2rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            display: inline-block;
+        }
+
+        .exit-popup-btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+
+        .exit-popup-btn-secondary {
+            background: transparent;
+            color: #999;
+            padding: 0.8rem 1rem;
+            border: none;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .exit-popup-btn-secondary:hover {
+            color: #666;
+            text-decoration: underline;
+        }
+
+        .exit-popup-guarantee {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 768px) {
+            .exit-popup-content {
+                padding: 2rem 1.5rem;
+                width: 95%;
+            }
+
+            .exit-popup-icon {
+                font-size: 3rem;
+            }
+
+            .exit-popup-title {
+                font-size: 1.6rem;
+            }
+
+            .exit-popup-subtitle {
+                font-size: 1rem;
+            }
+
+            .exit-popup-gift {
+                padding: 1.5rem;
+            }
+
+            .exit-popup-btn-primary {
+                font-size: 1rem;
+                padding: 1rem 1.5rem;
+            }
+        }
+    </style>
+
+    <script>
+        // Exit Intent Detection
+        let exitPopupShown = false;
+        
+        function showExitPopup() {
+            if (!exitPopupShown) {
+                document.getElementById('exitPopup').classList.add('show');
+                exitPopupShown = true;
+                localStorage.setItem('exitPopupShown', 'true');
+            }
+        }
+        
+        function closeExitPopup() {
+            document.getElementById('exitPopup').classList.remove('show');
+        }
+        
+        // Detect mouse leaving viewport
+        document.addEventListener('mouseleave', function(e) {
+            if (e.clientY <= 0 && !exitPopupShown) {
+                const alreadyShown = localStorage.getItem('exitPopupShown');
+                if (!alreadyShown) {
+                    showExitPopup();
+                }
+            }
+        });
+        
+        // Close popup when clicking outside
+        document.getElementById('exitPopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExitPopup();
+            }
+        });
+        
+        // Close with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeExitPopup();
+            }
+        });
     </script>
 </body>
 </html>
