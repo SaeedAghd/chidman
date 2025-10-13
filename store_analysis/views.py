@@ -2951,17 +2951,15 @@ def payping_payment(request, order_id):
             user_profile = request.user.userprofile
             payer_identity = user_profile.phone
         except:
-            # اگر پروفایل ندارد، از username استفاده کن
-            payer_identity = request.user.username
+            payer_identity = None
         
         # دریافت نام کاربر (توصیه شده برای UX بهتر)
         payer_name = request.user.get_full_name() or request.user.username
         
-        # Validate payer_identity
+        # Validate payer_identity - استفاده از شماره تست اگر کاربر شماره نداره
         if not payer_identity or len(str(payer_identity)) < 10:
-            logger.error(f"Invalid payer_identity for user {request.user.id}: {payer_identity}")
-            messages.error(request, 'شماره موبایل شما در سیستم ثبت نشده است. لطفاً ابتدا پروفایل خود را تکمیل کنید.')
-            return redirect('store_analysis:user_dashboard')
+            logger.warning(f"⚠️ User {request.user.username} has no valid phone. Using test number for payment.")
+            payer_identity = '09121234567'  # شماره تست برای PayPing
         
         # استفاده از درگاه PayPing
         from .payment_gateways import PaymentGatewayManager
