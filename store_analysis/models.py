@@ -1036,7 +1036,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='کاربر')
     
     # اطلاعات شخصی
-    phone = models.CharField(max_length=20, blank=True, verbose_name='شماره تلفن')
+    phone = models.CharField(max_length=11, verbose_name='شماره موبایل', help_text='شماره موبایل برای پرداخت و ارسال پیامک الزامی است')
     address = models.TextField(blank=True, verbose_name='آدرس')
     birth_date = models.DateField(blank=True, null=True, verbose_name='تاریخ تولد')
     

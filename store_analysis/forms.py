@@ -211,9 +211,21 @@ class CustomUserCreationForm(UserCreationForm):
         })
     )
     
+    phone = forms.CharField(
+        max_length=11,
+        required=True,
+        label='شماره موبایل',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '09123456789',
+            'pattern': '09[0-9]{9}',
+            'title': 'شماره موبایل باید با 09 شروع شود و 11 رقم باشد'
+        })
+    )
+    
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
+        fields = ('username', 'first_name', 'last_name', 'email', 'phone', 'password1', 'password2')
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -232,6 +244,32 @@ class CustomUserCreationForm(UserCreationForm):
             'placeholder': 'رمز عبور را مجدداً وارد کنید'
         })
     
+    def clean_phone(self):
+        """اعتبارسنجی شماره موبایل"""
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            # حذف فاصله‌ها و خط تیره
+            phone = phone.replace(' ', '').replace('-', '')
+            
+            # بررسی طول
+            if len(phone) != 11:
+                raise forms.ValidationError('شماره موبایل باید 11 رقم باشد')
+            
+            # بررسی شروع با 09
+            if not phone.startswith('09'):
+                raise forms.ValidationError('شماره موبایل باید با 09 شروع شود')
+            
+            # بررسی عددی بودن
+            if not phone.isdigit():
+                raise forms.ValidationError('شماره موبایل باید فقط شامل اعداد باشد')
+            
+            # بررسی تکراری نبودن
+            from store_analysis.models import UserProfile
+            if UserProfile.objects.filter(phone=phone).exists():
+                raise forms.ValidationError('این شماره موبایل قبلاً ثبت شده است')
+        
+        return phone
+    
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
@@ -245,4 +283,10 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
+            # ایجاد UserProfile با شماره موبایل
+            from store_analysis.models import UserProfile
+            UserProfile.objects.create(
+                user=user,
+                phone=self.cleaned_data['phone']
+            )
         return user

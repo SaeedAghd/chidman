@@ -20,42 +20,33 @@ from datetime import timedelta
 logger = logging.getLogger(__name__)
 
 def signup_view(request):
-    """View for user registration with email verification"""
+    """View for user registration with phone number requirement"""
+    from store_analysis.forms import CustomUserCreationForm
+    
     try:
         if request.method == 'POST':
-            form = UserCreationForm(request.POST)
+            form = CustomUserCreationForm(request.POST)
             if form.is_valid():
-                # دریافت ایمیل از فرم
-                email = request.POST.get('email')
-                if not email:
-                    messages.error(request, 'لطفاً ایمیل خود را وارد کنید.')
-                    return render(request, 'store_analysis/signup.html', {'form': form})
-
-                # بررسی وجود ایمیل
-                if User.objects.filter(email=email).exists():
-                    messages.error(request, 'این ایمیل قبلاً ثبت شده است.')
-                    return render(request, 'store_analysis/signup.html', {'form': form})
-
-                # ایجاد کاربر
-                user = form.save(commit=False)
-                user.email = email
-                user.is_active = True  # فعال کردن مستقیم برای تست
-                user.save()
-
-                # ورود مستقیم برای تست
+                # فرم خودش UserProfile رو با شماره موبایل ایجاد می‌کنه
+                user = form.save()
+                
+                # ورود مستقیم
                 login(request, user)
-                messages.success(request, f'حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.username}!')
+                messages.success(request, f'✅ حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.get_full_name() or user.username}!')
                 return redirect('store_analysis:user_dashboard')
             else:
-                messages.error(request, 'خطا در ثبت‌نام. لطفاً اطلاعات را بررسی کنید.')
+                # نمایش خطاهای فرم
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{error}')
                 return render(request, 'store_analysis/signup.html', {'form': form})
         else:
-            form = UserCreationForm()
+            form = CustomUserCreationForm()
             return render(request, 'store_analysis/signup.html', {'form': form})
     except Exception as e:
         logger.error(f"Error in signup_view: {e}")
         messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
-        return render(request, 'store_analysis/signup.html', {'form': UserCreationForm()})
+        return render(request, 'store_analysis/signup.html', {'form': CustomUserCreationForm()})
 
 def verify_email_view(request, user_id):
     """Fallback view: email verification is disabled; prevent server error."""
