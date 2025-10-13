@@ -9,6 +9,143 @@
 <!-- CSS اصلی فرم -->
 <link rel="stylesheet" href="{% static 'css/forms-simple.css' %}">
 
+<style>
+/* ===== Welcome Popup Styles ===== */
+.welcome-popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.welcome-popup-overlay.fade-in {
+  opacity: 1 !important;
+}
+
+.welcome-popup-overlay.fade-out {
+  opacity: 0;
+}
+
+.welcome-popup {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.popup-icon {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.popup-title {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.popup-content {
+  margin-bottom: 2rem;
+}
+
+.popup-message {
+  color: #555;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.popup-tips {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.tip-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.popup-guide {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.guide-link {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.guide-link:hover {
+  color: #2980b9;
+  transform: translateX(-3px);
+}
+
+.popup-button {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.popup-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.popup-button:active {
+  transform: translateY(0);
+}
+</style>
+
 {% endblock %}
 
 {% block content %}
@@ -2061,9 +2198,7 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
-<style>
-/* ===== Welcome Popup Styles ===== */
-.welcome-popup-overlay {
+{% endblock %}
   display: none;
   position: fixed;
   top: 0;
