@@ -199,7 +199,10 @@ def get_discount_context():
             'discount_type': 'none',
             'discount_end_date': None
         }
-    """محاسبه هزینه تحلیل برای StoreAnalysis object - نسخه بهبود یافته با تخفیف‌ها"""
+
+# این فانکشن دیگر استفاده نمی‌شود - قیمت‌گذاری در calculate_analysis_cost هاردکد شده
+def calculate_analysis_cost_OLD_DATABASE_VERSION(analysis):
+    """محاسبه هزینه تحلیل برای StoreAnalysis object - نسخه قدیمی که از database استفاده می‌کرد"""
     try:
         # دریافت تنظیمات قیمت از دیتابیس
         from .models import SystemSettings

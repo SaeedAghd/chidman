@@ -189,15 +189,32 @@ def dashboard_view(request):
 
 def simple_home(request):
     """صفحه اصلی فوق‌العاده جذاب و حرفه‌ای"""
-    # دریافت اطلاعات تخفیف
-    from store_analysis.views import get_discount_context, create_discount_notification
     from django.core.cache import cache
+    from datetime import datetime
     
-    # ایجاد اطلاعیه تخفیف خودکار
-    create_discount_notification()
+    # تخفیف افتتاحیه - هاردکد شده (بدون نیاز به دیتابیس)
+    current_date = datetime.now()
+    launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
     
-    # دریافت context تخفیف
-    discount_info = get_discount_context()
+    # محاسبه تخفیف افتتاحیه
+    if current_date <= launch_end_date:
+        discount_info = {
+            'has_discount': True,
+            'discount_percentage': 90,
+            'discount_title': 'تخفیف ویژه افتتاحیه 90%',
+            'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۹۰٪ افتتاحیه. همین حالا سفارش دهید!',
+            'discount_type': 'opening',
+            'discount_end_date': launch_end_date
+        }
+    else:
+        discount_info = {
+            'has_discount': False,
+            'discount_percentage': 0,
+            'discount_title': '',
+            'discount_message': '',
+            'discount_type': 'none',
+            'discount_end_date': None
+        }
     
     # دریافت تنظیمات سیستم از cache
     saved_settings = cache.get('admin_settings', {})
