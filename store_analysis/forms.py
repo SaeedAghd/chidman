@@ -283,10 +283,14 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
-            # ایجاد UserProfile با شماره موبایل
+            # ایجاد UserProfile با شماره موبایل - بدون address برای سازگاری با PostgreSQL
             from store_analysis.models import UserProfile
-            UserProfile.objects.create(
-                user=user,
-                phone=self.cleaned_data['phone']
-            )
+            from django.db import connection
+            
+            # استفاده از raw SQL برای جلوگیری از خطای address
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO store_analysis_userprofile (user_id, phone, legal_agreement_accepted, newsletter_subscription, email_notifications, sms_notifications, bio, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())",
+                    [user.id, self.cleaned_data['phone'], False, True, True, False, '']
+                )
         return user
