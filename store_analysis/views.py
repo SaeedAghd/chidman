@@ -4645,17 +4645,21 @@ def accept_legal_agreement(request):
                 if request.user.is_authenticated:
                     try:
                         from .models import UserProfile
-                        profile, created = UserProfile.objects.get_or_create(
-                            user=request.user,
-                            defaults={
-                                'legal_agreement_accepted': True,
-                                'legal_agreement_date': timezone.now()
-                            }
-                        )
-                        if not created:
+                        from django.db import connection
+                        
+                        # بررسی وجود UserProfile
+                        try:
+                            profile = UserProfile.objects.get(user=request.user)
                             profile.legal_agreement_accepted = True
                             profile.legal_agreement_date = timezone.now()
                             profile.save()
+                        except UserProfile.DoesNotExist:
+                            # ایجاد UserProfile با raw SQL برای جلوگیری از خطای address
+                            with connection.cursor() as cursor:
+                                cursor.execute(
+                                    "INSERT INTO store_analysis_userprofile (user_id, phone, legal_agreement_accepted, legal_agreement_date, newsletter_subscription, email_notifications, sms_notifications, bio, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())",
+                                    [request.user.id, '', True, timezone.now(), True, True, False, '']
+                                )
 
                         logger.info(f"Legal agreement accepted for user {request.user.id}")
                         
