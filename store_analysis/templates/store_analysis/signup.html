@@ -51,36 +51,93 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="email" class="form-label fw-semibold">
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
                                 <i class="fas fa-envelope me-2 text-primary"></i>ایمیل
+                                <span class="text-danger">*</span>
                             </label>
                             <input type="email" 
                                    class="form-control form-control-lg rounded-3" 
-                                   id="email" 
-                                   name="email" 
+                                   id="{{ form.email.id_for_label }}" 
+                                   name="{{ form.email.name }}" 
                                    placeholder="example@email.com"
                                    required
-                                   autocomplete="email">
+                                   autocomplete="email"
+                                   value="{{ form.email.value|default:'' }}">
                             <div class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
-                                کد تایید به این ایمیل ارسال خواهد شد
+                                ایمیل برای ارتباط و دریافت گزارش‌ها الزامی است
                             </div>
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-2">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <div class="mb-4">
-                            <label for="phone" class="form-label fw-semibold">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-user me-2 text-primary"></i>نام
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg rounded-3" 
+                                   id="{{ form.first_name.id_for_label }}" 
+                                   name="{{ form.first_name.name }}" 
+                                   placeholder="نام خود را وارد کنید"
+                                   required
+                                   autocomplete="given-name"
+                                   value="{{ form.first_name.value|default:'' }}">
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-2">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {% for error in form.first_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-user me-2 text-primary"></i>نام خانوادگی
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg rounded-3" 
+                                   id="{{ form.last_name.id_for_label }}" 
+                                   name="{{ form.last_name.name }}" 
+                                   placeholder="نام خانوادگی خود را وارد کنید"
+                                   required
+                                   autocomplete="family-name"
+                                   value="{{ form.last_name.value|default:'' }}">
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-2">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {% for error in form.last_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label fw-semibold">
                                 <i class="fas fa-mobile-alt me-2 text-primary"></i>شماره موبایل
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="tel" 
                                    class="form-control form-control-lg rounded-3" 
-                                   id="phone" 
-                                   name="phone" 
+                                   id="{{ form.phone.id_for_label }}" 
+                                   name="{{ form.phone.name }}" 
                                    placeholder="09123456789"
                                    pattern="09[0-9]{9}"
                                    maxlength="11"
                                    required
-                                   autocomplete="tel">
+                                   autocomplete="tel"
+                                   value="{{ form.phone.value|default:'' }}">
                             <div class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
                                 شماره موبایل برای پرداخت و ارسال پیامک الزامی است

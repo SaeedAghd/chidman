@@ -26,6 +26,10 @@ def signup_view(request):
     try:
         if request.method == 'POST':
             form = CustomUserCreationForm(request.POST)
+            
+            # لاگ کردن داده‌های دریافتی برای دیباگ
+            logger.info(f"📥 Signup POST data: {request.POST}")
+            
             if form.is_valid():
                 # فرم خودش UserProfile رو با شماره موبایل ایجاد می‌کنه
                 user = form.save()
@@ -35,16 +39,23 @@ def signup_view(request):
                 messages.success(request, f'✅ حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.get_full_name() or user.username}!')
                 return redirect('store_analysis:user_dashboard')
             else:
+                # لاگ کردن خطاهای فرم
+                logger.error(f"❌ Form validation errors: {form.errors}")
+                logger.error(f"❌ Form data: {form.data}")
+                
                 # نمایش خطاهای فرم
                 for field, errors in form.errors.items():
+                    field_label = form.fields.get(field).label if field in form.fields else field
                     for error in errors:
-                        messages.error(request, f'{error}')
+                        messages.error(request, f'{field_label}: {error}')
                 return render(request, 'store_analysis/signup.html', {'form': form})
         else:
             form = CustomUserCreationForm()
             return render(request, 'store_analysis/signup.html', {'form': form})
     except Exception as e:
         logger.error(f"Error in signup_view: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         messages.error(request, 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.')
         return render(request, 'store_analysis/signup.html', {'form': CustomUserCreationForm()})
 
