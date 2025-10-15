@@ -140,9 +140,12 @@ class PayPingGateway:
     def __init__(self, token: str, sandbox: bool = False):
         self.token = token or getattr(settings, 'PAYPING_TOKEN', '')
         self.sandbox = bool(sandbox)
+        self.mock_mode = getattr(settings, 'PAYPING_MOCK_MODE', False)
+        
         # Select base URLs by environment
         self.base_url = self.SANDBOX_BASE_URL if self.sandbox else self.PROD_BASE_URL
         self.verify_url = self.SANDBOX_VERIFY_URL if self.sandbox else self.PROD_VERIFY_URL
+        
         if not self.token:
             # Use test token for development
             self.token = "test_token_for_development"
@@ -150,8 +153,11 @@ class PayPingGateway:
         
         # Keep provided token as-is (don't auto-switch to mock). Only use mock if no token provided.
         
-        env_label = "SANDBOX" if self.sandbox else "PRODUCTION"
-        logger.info(f"PayPing gateway initialized [{env_label}] with token: {self.token[:20]}...")
+        if self.mock_mode:
+            logger.info(f"PayPing gateway initialized [MOCK MODE] - All payments will be simulated")
+        else:
+            env_label = "SANDBOX" if self.sandbox else "PRODUCTION"
+            logger.info(f"PayPing gateway initialized [{env_label}] with token: {self.token[:20]}...")
 
     def create_payment_request(self, amount, description, callback_url, payer_identity=None, payer_name=None, client_ref_id=None):
         """Create payment request on PayPing
@@ -163,6 +169,20 @@ class PayPingGateway:
         - clientRefId must be unique for each transaction
         """
         try:
+            # Mock Mode - Simulate successful payment
+            if self.mock_mode:
+                logger.info(f"🎭 MOCK MODE: Simulating PayPing payment - Amount: {amount} Toman")
+                
+                # Generate mock payment code
+                mock_code = f"MOCK_{uuid.uuid4().hex[:8].upper()}"
+                
+                return {
+                    "status": "success",
+                    "authority": mock_code,
+                    "payment_url": f"https://mock-payping.ir/pay/{mock_code}",
+                    "mock_mode": True
+                }
+            
             # تبدیل تومان به ریال (PayPing فقط ریال قبول می‌کند)
             rial_amount = int(amount) * 10
 
@@ -286,6 +306,14 @@ class PayPingGateway:
     def verify_payment(self, authority, amount):
         """Verify payment on PayPing"""
         try:
+            # Mock Mode - Simulate successful verification
+            if self.mock_mode:
+                logger.info(f"🎭 MOCK MODE: Simulating PayPing verification - Authority: {authority}")
+                return {
+                    "status": "success",
+                    "message": "پرداخت با موفقیت تایید شد (Mock Mode)"
+                }
+            
             # Mock verification for development
             if self.token == "test_token_for_development":
                 logger.info("Using mock PayPing verification for development")
