@@ -7508,7 +7508,7 @@ def deposit_to_wallet(request):
                 
                 if payment_request.get('status') == 'success':
                     # ✅ به‌روزرسانی payment با authority از PayPing
-                    payment.transaction_id = payment_request['authority']
+                    payment.authority = payment_request['authority']
                     payment.save()
                     
                     logger.info(f"✅ Wallet payment request successful: authority={payment_request['authority']}")
@@ -8139,10 +8139,10 @@ def mock_payment_success(request, authority):
     try:
         logger.info(f"🎭 MOCK: Payment success callback for authority: {authority}")
         
-        # Find payment by transaction_id (authority)
+        # Find payment by authority
         from .models import Payment
         try:
-            payment = Payment.objects.get(transaction_id=authority)
+            payment = Payment.objects.get(authority=authority)
             logger.info(f"🎭 MOCK: Found payment {payment.id} for authority {authority}")
             
             # Update payment status

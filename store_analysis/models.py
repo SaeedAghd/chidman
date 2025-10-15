@@ -34,6 +34,7 @@ class Payment(models.Model):
     order_id = models.CharField(max_length=100, unique=True, verbose_name='شناسه سفارش')
     payment_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه پرداخت')
     transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
+    authority = models.CharField(max_length=100, blank=True, null=True, verbose_name='کد مرجع درگاه')
     
     # User and customer info
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
