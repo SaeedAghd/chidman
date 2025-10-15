@@ -146,39 +146,15 @@
     </div>
     
     <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px;">
-        <!-- Debug Info - Enhanced -->
-        <div style="background: rgba(255, 255, 0, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #ffd700;">
-            <strong style="color: #ffd700; font-size: 16px;">🔍 اطلاعات Debug:</strong><br>
-            <div style="color: #000000; margin-top: 10px; font-family: monospace; font-weight: bold;">
-                <div>Ticket ID: <strong>{{ debug_info.ticket_id|default:"N/A" }}</strong></div>
-                <div>Description Exists: <strong>{{ debug_info.description_exists|default:"N/A" }}</strong></div>
-                <div>Description Length: <strong>{{ debug_info.description_length|default:"N/A" }}</strong></div>
-                <div>Messages Count: <strong>{{ debug_info.messages_count|default:"N/A" }}</strong></div>
-                <div>Raw Description: <strong>"{{ ticket.description|default:"EMPTY" }}"</strong></div>
-            </div>
-        </div>
         
         <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line; min-height: 50px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px;">
             {% if ticket.description and ticket.description.strip %}
                 <div style="background: rgba(0, 255, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                    <strong>✅ متن تیکت موجود است ({{ debug_info.description_length }} کاراکتر):</strong>
+                    <strong>✅ متن تیکت موجود است:</strong>
                 </div>
                 <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 5px; border: 1px solid rgba(0, 255, 0, 0.3);">
-                    <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                        <strong>متن اصلی:</strong><br>
-                        {{ ticket.description }}
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                        <strong>متن با HTML:</strong><br>
-                        {{ ticket.description|safe }}
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                        <strong>متن با Linebreaks:</strong><br>
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 5px;">
                         {{ ticket.description|linebreaks }}
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px;">
-                        <strong>متن خام (Raw):</strong><br>
-                        <pre style="color: #000000; background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 5px;">{{ ticket.description }}</pre>
                     </div>
                 </div>
             {% elif ticket.description %}

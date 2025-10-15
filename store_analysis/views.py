@@ -5970,23 +5970,10 @@ def admin_ticket_detail(request, ticket_id):
         
         return redirect('store_analysis:admin_ticket_detail', ticket_id=ticket_id)
     
-    # Debug: بررسی وجود تیکت و داده‌هایش
-    logger.info(f"🔍 DEBUG: Ticket ID: {ticket_id}")
-    logger.info(f"🔍 DEBUG: Ticket found: {ticket}")
-    logger.info(f"🔍 DEBUG: Ticket description: '{ticket.description}'")
-    logger.info(f"🔍 DEBUG: Ticket description length: {len(ticket.description) if ticket.description else 0}")
-    logger.info(f"🔍 DEBUG: Ticket messages count: {ticket_messages.count()}")
-    
     context = {
         'ticket': ticket,
         'ticket_messages': ticket_messages,
-        'title': f'تیکت: {ticket.subject}',
-        'debug_info': {
-            'ticket_id': ticket_id,
-            'description_exists': bool(ticket.description),
-            'description_length': len(ticket.description) if ticket.description else 0,
-            'messages_count': ticket_messages.count(),
-        }
+        'title': f'تیکت: {ticket.subject}'
     }
     
     return render(request, 'store_analysis/admin/ticket_detail.html', context)
