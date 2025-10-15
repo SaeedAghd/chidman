@@ -160,7 +160,9 @@ class AdvancedSEOMiddleware(MiddlewareMixin):
         # Permissions Policy
         response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
         
-        # Content Security Policy (enhanced)
+        # Content Security Policy (enhanced) - with cache busting
+        import time
+        csp_timestamp = int(time.time())
         csp = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://connect.facebook.net; "
@@ -171,6 +173,7 @@ class AdvancedSEOMiddleware(MiddlewareMixin):
             "frame-src 'none';"
         )
         response['Content-Security-Policy'] = csp
+        response['X-CSP-Timestamp'] = str(csp_timestamp)  # Cache busting header
 
 class SEOLoggingMiddleware(MiddlewareMixin):
     """Middleware برای لاگ کردن اطلاعات SEO"""

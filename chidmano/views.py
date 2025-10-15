@@ -191,6 +191,7 @@ def dashboard_view(request):
 
 def simple_home(request):
     """صفحه اصلی فوق‌العاده جذاب و حرفه‌ای"""
+    import time
     from django.core.cache import cache
     from datetime import datetime
     
@@ -235,6 +236,7 @@ def simple_home(request):
         'contact_phone': contact_phone,
         'support_email': support_email,
         'address': address,
+        'timestamp': int(time.time()),  # Cache busting timestamp
         'features': [
             {
                 'icon': '🚀',

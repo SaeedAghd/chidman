@@ -163,7 +163,8 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         if request.is_secure():
             response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
         
-        # Content Security Policy (enhanced)
+        # Content Security Policy (enhanced) - with cache busting
+        csp_timestamp = int(time.time())
         csp = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; "
@@ -174,6 +175,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             "frame-src 'none';"
         )
         response['Content-Security-Policy'] = csp
+        response['X-CSP-Timestamp'] = str(csp_timestamp)  # Cache busting header
         
         # Remove server information
         if 'Server' in response:
