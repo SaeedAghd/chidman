@@ -85,7 +85,7 @@ MIDDLEWARE = [
     'chidmano.middleware.RateLimitMiddleware',  # Rate Limiting
     'store_analysis.middleware.AnalyticsMiddleware',  # Analytics tracking
     'chidmano.middleware.CSPMiddleware',  # برای حل مشکل CSP ویدیوها
-    'chidmano.middleware.CacheAndTimingMiddleware',
+    # 'chidmano.middleware.CacheAndTimingMiddleware',  # Temporarily disabled
     'chidmano.seo_middleware.SEOMiddleware',  # SEO optimization
     'chidmano.seo_middleware.AdvancedSEOMiddleware',  # Advanced SEO
     'chidmano.middleware.SecurityHeadersMiddleware',  # Security Headers
