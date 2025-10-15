@@ -349,7 +349,7 @@ PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/st
 PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
 
 # Mock mode for testing when PayPing token has restrictions
-PAYPING_MOCK_MODE = os.getenv('PAYPING_MOCK_MODE', 'True').lower() == 'true'
+PAYPING_MOCK_MODE = os.getenv('PAYPING_MOCK_MODE', 'False').lower() == 'true'
 
 # AI Analysis Settings
 AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour
