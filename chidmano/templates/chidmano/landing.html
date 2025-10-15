@@ -23,6 +23,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https: https://www.google-analytics.com https://ssl.google-analytics.com https://trustseal.enamad.ir; connect-src 'self' https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://*.google-analytics.com; frame-src 'none';" data-csp-timestamp="{{ timestamp }}">
     <meta name="theme-color" content="#667eea">
+    
+    <!-- DNS Prefetch for eNamad -->
+    <link rel="dns-prefetch" href="//trustseal.enamad.ir">
+    <link rel="preconnect" href="https://trustseal.enamad.ir" crossorigin>
     <!-- Enhanced SEO Meta Tags -->
     <meta name="description" content="تحلیل هوشمند چیدمان فروشگاه با هوش مصنوعی پیشرفته - افزایش فروش تا 30% با بهینه‌سازی چیدمان، طراحی حرفه‌ای و تحلیل ترافیک مشتریان. گزارش جامع و مشاوره تخصصی">
     <meta name="keywords" content="تحلیل چیدمان فروشگاه, بهینه‌سازی فروشگاه, چیدمان فروشگاه, افزایش فروش, طراحی فروشگاه, تحلیل ترافیک فروشگاه, هوش مصنوعی فروشگاه, نرم‌افزار فروشگاه, چیدمانو, تحلیل فروشگاه, طراحی داخلی فروشگاه, چیدمان قفسه, روانشناسی فروش, تجربه مشتری">
@@ -3192,72 +3196,18 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="mb-3">
-                        <!-- eNamad Trust Seal - نسخه بهبود یافته با Fallback -->
+                        <!-- eNamad Trust Seal - کد رسمی با مدیریت خطا -->
                         <div id="enamad-container" style="min-height: 60px; display: flex; align-items: center; justify-content: center;">
-                            <!-- Primary eNamad Image -->
-                            <a id="enamad-link" 
-                               referrerpolicy='origin' 
-                               target='_blank' 
-                               href='https://trustseal.enamad.ir/?id=4447419&Code=1W5N8K8akuho2iRV1FQ1hkvTpSTLzJEz'
-                               style="display: none;">
-                                <img id="enamad-img" 
-                                     referrerpolicy='origin' 
+                            <!-- eNamad Official Code -->
+                            <a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=4447419&Code=1W5N8K8akuho2iRV1FQ1hkvTpSTLzJEz'>
+                                <img referrerpolicy='origin' 
                                      src='https://trustseal.enamad.ir/logo.aspx?id=4447419&Code=1W5N8K8akuho2iRV1FQ1hkvTpSTLzJEz' 
                                      alt='نماد اعتماد الکترونیکی' 
                                      style='cursor:pointer; max-width: 100px; height: auto;' 
                                      code='1W5N8K8akuho2iRV1FQ1hkvTpSTLzJEz'
-                                     onload="showEnamad()"
-                                     onerror="hideEnamad()">
+                                     onerror="this.style.display='none'">
                             </a>
-                            
-                            <!-- Fallback eNamad Placeholder -->
-                            <div id="enamad-fallback" style="display: none; text-align: center; padding: 10px; border: 2px dashed #ccc; border-radius: 5px; background: #f9f9f9;">
-                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">نماد اعتماد الکترونیکی</div>
-                                <div style="font-size: 10px; color: #999;">در حال بارگذاری...</div>
-                            </div>
-                            
-                            <!-- Static eNamad Badge (Backup) -->
-                            <div id="enamad-static" style="display: none; text-align: center; padding: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <div>✓ نماد اعتماد</div>
-                                <div style="font-size: 9px; opacity: 0.9;">الکترونیکی</div>
-                            </div>
                         </div>
-                        
-                        <!-- eNamad Loading Script -->
-                        <script>
-                        function showEnamad() {
-                            document.getElementById('enamad-link').style.display = 'block';
-                            document.getElementById('enamad-fallback').style.display = 'none';
-                            document.getElementById('enamad-static').style.display = 'none';
-                        }
-                        
-                        function hideEnamad() {
-                            document.getElementById('enamad-link').style.display = 'none';
-                            document.getElementById('enamad-fallback').style.display = 'none';
-                            document.getElementById('enamad-static').style.display = 'block';
-                        }
-                        
-                        // Show fallback initially
-                        document.getElementById('enamad-fallback').style.display = 'block';
-                        
-                        // Timeout fallback - if eNamad doesn't load in 5 seconds, show static badge
-                        setTimeout(function() {
-                            if (document.getElementById('enamad-img').style.display === 'none' || 
-                                !document.getElementById('enamad-img').complete) {
-                                hideEnamad();
-                            }
-                        }, 5000);
-                        
-                        // Preload eNamad image
-                        var enamadImg = new Image();
-                        enamadImg.onload = function() {
-                            document.getElementById('enamad-img').src = enamadImg.src;
-                        };
-                        enamadImg.onerror = function() {
-                            hideEnamad();
-                        };
-                        enamadImg.src = 'https://trustseal.enamad.ir/logo.aspx?id=4447419&Code=1W5N8K8akuho2iRV1FQ1hkvTpSTLzJEz';
-                        </script>
                     </div>
                     <p class="mb-0">&copy; 2025 {{ site_name|default:'چیدمانو' }}. تمامی حقوق محفوظ است.</p>
                 </div>
