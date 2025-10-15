@@ -146,7 +146,18 @@
     </div>
     
     <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px;">
-        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line;">{{ ticket.description }}</div>
+        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line; min-height: 50px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px;">
+            {% if ticket.description %}
+                <div style="background: rgba(0, 255, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <strong>✅ متن تیکت موجود است:</strong>
+                </div>
+                {{ ticket.description }}
+            {% else %}
+                <div style="color: #ff6b6b; font-style: italic; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 5px;">
+                    ⚠️ متن تیکت یافت نشد!
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
