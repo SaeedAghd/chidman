@@ -205,15 +205,29 @@ class PayPingGateway:
                     "payment_url": f"https://chidmano.ir/store/payment/success/?authority={mock_code}",
                 }
 
-            resp = requests.post(
-                self.base_url,
-                json=payload,
-                headers=headers,
-                timeout=15,
-                allow_redirects=True,
-            )
+            def _post(url):
+                try:
+                    r = requests.post(
+                        url,
+                        json=payload,
+                        headers=headers,
+                        timeout=15,
+                        allow_redirects=True,
+                    )
+                    logger.info(f"PayPing API response ({url}): {r.status_code} - {r.text}")
+                    return r
+                except Exception as ex:
+                    logger.error(f"PayPing request error ({url}): {ex}")
+                    raise
 
-            logger.info(f"PayPing API response: {resp.status_code} - {resp.text}")
+            # First try with configured environment
+            resp = _post(self.base_url)
+
+            # If sandbox is enabled but we got unauthorized or client error, retry on production endpoint automatically
+            if self.sandbox and resp.status_code in (401, 403, 404, 500):
+                logger.warning("PayPing sandbox request failed; retrying on production endpoint as fallback")
+                prod_url = self.PROD_BASE_URL
+                resp = _post(prod_url)
 
             # PayPing returns 201 on success with {"code":"..."}
             if resp.status_code in (200, 201):
@@ -288,12 +302,24 @@ class PayPingGateway:
             
             logger.info(f"PayPing verification request: {payload}")
             
-            resp = requests.post(
-                self.verify_url,
-                json=payload,
-                headers=headers,
-                timeout=15,
-            )
+            def _post_verify(url):
+                try:
+                    r = requests.post(
+                        url,
+                        json=payload,
+                        headers=headers,
+                        timeout=15,
+                    )
+                    logger.info(f"PayPing verification response ({url}): {r.status_code} - {r.text}")
+                    return r
+                except Exception as ex:
+                    logger.error(f"PayPing verify error ({url}): {ex}")
+                    raise
+
+            resp = _post_verify(self.verify_url)
+            if self.sandbox and resp.status_code in (401, 403, 404, 500):
+                logger.warning("PayPing sandbox verify failed; retrying on production endpoint as fallback")
+                resp = _post_verify(self.PROD_VERIFY_URL)
             
             logger.info(f"PayPing verification response: {resp.status_code} - {resp.text}")
 
