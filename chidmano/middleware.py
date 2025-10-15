@@ -119,8 +119,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         'libwww-perl',
         'lwp-trivial',
         'java/',
-        'bot',
-        'crawler',
+        # Remove 'bot' and 'crawler' to allow legitimate search engine bots
         'spider',
         'scraper',
     ]
@@ -228,6 +227,28 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             return False
         
         user_agent_lower = user_agent.lower()
+        
+        # Allow legitimate search engine bots
+        legitimate_bots = [
+            'googlebot',
+            'bingbot',
+            'slurp',  # Yahoo
+            'duckduckbot',
+            'baiduspider',
+            'yandexbot',
+            'facebookexternalhit',
+            'twitterbot',
+            'linkedinbot',
+            'whatsapp',
+            'telegrambot',
+            'applebot',
+            'ia_archiver',  # Internet Archive
+        ]
+        
+        # Check if it's a legitimate bot
+        for bot in legitimate_bots:
+            if bot in user_agent_lower:
+                return False
         
         # Check for suspicious patterns
         for pattern in self.SUSPICIOUS_USER_AGENTS:
