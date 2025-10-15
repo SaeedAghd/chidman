@@ -146,28 +146,36 @@
     </div>
     
     <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px;">
-        <!-- Debug Info -->
-        <div style="background: rgba(255, 255, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 0, 0.3);">
-            <strong style="color: #ffd700;">🔍 اطلاعات Debug:</strong><br>
-            <small style="color: rgba(255, 255, 255, 0.8);">
-                Ticket ID: {{ debug_info.ticket_id }}<br>
-                Description Exists: {{ debug_info.description_exists }}<br>
-                Description Length: {{ debug_info.description_length }}<br>
-                Messages Count: {{ debug_info.messages_count }}
-            </small>
+        <!-- Debug Info - Enhanced -->
+        <div style="background: rgba(255, 255, 0, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #ffd700;">
+            <strong style="color: #ffd700; font-size: 16px;">🔍 اطلاعات Debug:</strong><br>
+            <div style="color: rgba(255, 255, 255, 0.9); margin-top: 10px; font-family: monospace;">
+                <div>Ticket ID: <strong>{{ debug_info.ticket_id|default:"N/A" }}</strong></div>
+                <div>Description Exists: <strong>{{ debug_info.description_exists|default:"N/A" }}</strong></div>
+                <div>Description Length: <strong>{{ debug_info.description_length|default:"N/A" }}</strong></div>
+                <div>Messages Count: <strong>{{ debug_info.messages_count|default:"N/A" }}</strong></div>
+                <div>Raw Description: <strong>"{{ ticket.description|default:"EMPTY" }}"</strong></div>
+            </div>
         </div>
         
         <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line; min-height: 50px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px;">
-            {% if ticket.description %}
+            {% if ticket.description and ticket.description.strip %}
                 <div style="background: rgba(0, 255, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
                     <strong>✅ متن تیکت موجود است ({{ debug_info.description_length }} کاراکتر):</strong>
                 </div>
                 <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 5px; border: 1px solid rgba(0, 255, 0, 0.3);">
-                    {{ ticket.description }}
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                        <strong>متن اصلی:</strong><br>
+                        {{ ticket.description }}
+                    </div>
+                </div>
+            {% elif ticket.description %}
+                <div style="color: #ffa500; font-style: italic; background: rgba(255, 165, 0, 0.1); padding: 10px; border-radius: 5px;">
+                    ⚠️ متن تیکت خالی است! (فقط فاصله یا کاراکترهای نامرئی)
                 </div>
             {% else %}
                 <div style="color: #ff6b6b; font-style: italic; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 5px;">
-                    ⚠️ متن تیکت یافت نشد! (طول: {{ debug_info.description_length }})
+                    ⚠️ متن تیکت یافت نشد! (None یا خالی)
                 </div>
             {% endif %}
         </div>
