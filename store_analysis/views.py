@@ -7436,17 +7436,9 @@ def deposit_to_wallet(request):
                 
                 logger.info(f"💰 Wallet deposit request - User: {request.user.username}, Amount: {amount}")
                 
-                # ✅ Validation - حداقل و حداکثر
+                # ✅ Validation - فقط مثبت بودن مبلغ
                 if amount <= 0:
                     messages.error(request, '❌ مبلغ باید مثبت باشد')
-                    return redirect('store_analysis:wallet_dashboard')
-                
-                if amount < 10000:
-                    messages.error(request, '❌ حداقل مبلغ شارژ کیف پول 10,000 تومان است')
-                    return redirect('store_analysis:wallet_dashboard')
-                
-                if amount > 50000000:  # حداکثر 50 میلیون تومان
-                    messages.error(request, '❌ حداکثر مبلغ شارژ کیف پول 50,000,000 تومان است')
                     return redirect('store_analysis:wallet_dashboard')
                 
                 # ✅ دریافت اطلاعات کاربر برای PayPing
