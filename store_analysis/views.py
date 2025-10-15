@@ -8139,10 +8139,10 @@ def mock_payment_success(request, authority):
     try:
         logger.info(f"🎭 MOCK: Payment success callback for authority: {authority}")
         
-        # Find payment by authority
+        # Find payment by transaction_id (authority)
         from .models import Payment
         try:
-            payment = Payment.objects.get(authority=authority)
+            payment = Payment.objects.get(transaction_id=authority)
             logger.info(f"🎭 MOCK: Found payment {payment.id} for authority {authority}")
             
             # Update payment status
