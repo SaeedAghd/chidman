@@ -132,11 +132,17 @@ class ZarinpalGateway:
 class PayPingGateway:
     """PayPing Payment Gateway"""
 
-    BASE_URL = "https://api.payping.ir/v2/pay"
-    VERIFY_URL = "https://api.payping.ir/v2/pay/verify"
+    PROD_BASE_URL = "https://api.payping.ir/v2/pay"
+    PROD_VERIFY_URL = "https://api.payping.ir/v2/pay/verify"
+    SANDBOX_BASE_URL = "https://sandbox-api.payping.ir/v2/pay"
+    SANDBOX_VERIFY_URL = "https://sandbox-api.payping.ir/v2/pay/verify"
 
-    def __init__(self, token: str):
+    def __init__(self, token: str, sandbox: bool = False):
         self.token = token or getattr(settings, 'PAYPING_TOKEN', '')
+        self.sandbox = bool(sandbox)
+        # Select base URLs by environment
+        self.base_url = self.SANDBOX_BASE_URL if self.sandbox else self.PROD_BASE_URL
+        self.verify_url = self.SANDBOX_VERIFY_URL if self.sandbox else self.PROD_VERIFY_URL
         if not self.token:
             # Use test token for development
             self.token = "test_token_for_development"
@@ -144,7 +150,8 @@ class PayPingGateway:
         
         # Keep provided token as-is (don't auto-switch to mock). Only use mock if no token provided.
         
-        logger.info(f"PayPing gateway initialized with token: {self.token[:20]}...")
+        env_label = "SANDBOX" if self.sandbox else "PRODUCTION"
+        logger.info(f"PayPing gateway initialized [{env_label}] with token: {self.token[:20]}...")
 
     def create_payment_request(self, amount, description, callback_url, payer_identity=None, payer_name=None, client_ref_id=None):
         """Create payment request on PayPing
@@ -199,7 +206,7 @@ class PayPingGateway:
                 }
 
             resp = requests.post(
-                self.BASE_URL,
+                self.base_url,
                 json=payload,
                 headers=headers,
                 timeout=15,
@@ -214,10 +221,11 @@ class PayPingGateway:
                 code = data.get("code")
                 if code:
                     logger.info(f"✅ PayPing payment created successfully: code={code}")
+                    goto_base = "https://sandbox-api.payping.ir" if self.sandbox else "https://api.payping.ir"
                     return {
                         "status": "success",
                         "authority": code,
-                        "payment_url": f"https://api.payping.ir/v2/pay/gotoipg/{code}",
+                        "payment_url": f"{goto_base}/v2/pay/gotoipg/{code}",
                     }
 
             # Error handling - PayPing specific error codes
@@ -281,7 +289,7 @@ class PayPingGateway:
             logger.info(f"PayPing verification request: {payload}")
             
             resp = requests.post(
-                self.VERIFY_URL,
+                self.verify_url,
                 json=payload,
                 headers=headers,
                 timeout=15,
@@ -318,13 +326,14 @@ class PaymentGatewayManager:
         # PayPing (default)
         try:
             payping_token = getattr(settings, 'PAYPING_TOKEN', '')
+            payping_sandbox = getattr(settings, 'PAYPING_SANDBOX', True)
             if payping_token:
-                self.gateways['payping'] = PayPingGateway(token=payping_token)
+                self.gateways['payping'] = PayPingGateway(token=payping_token, sandbox=payping_sandbox)
                 logger.info("PayPing gateway initialized successfully")
             else:
                 logger.warning("PayPing token not found in settings")
                 # Create gateway with real token
-                self.gateways['payping'] = PayPingGateway(token=getattr(settings, 'PAYPING_TOKEN', ''))
+                self.gateways['payping'] = PayPingGateway(token=getattr(settings, 'PAYPING_TOKEN', ''), sandbox=payping_sandbox)
                 logger.info("PayPing gateway created with real token")
         except Exception as e:
             logger.warning(f"PayPing not configured: {e}")
