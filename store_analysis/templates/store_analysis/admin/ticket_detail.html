@@ -146,26 +146,8 @@
     </div>
     
     <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px;">
-        
-        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line; min-height: 50px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px;">
-            {% if ticket.description and ticket.description.strip %}
-                <div style="background: rgba(0, 255, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                    <strong>✅ متن تیکت موجود است:</strong>
-                </div>
-                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 5px; border: 1px solid rgba(0, 255, 0, 0.3);">
-                    <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 5px;">
-                        {{ ticket.description|linebreaks }}
-                    </div>
-                </div>
-            {% elif ticket.description %}
-                <div style="color: #ffa500; font-style: italic; background: rgba(255, 165, 0, 0.1); padding: 10px; border-radius: 5px;">
-                    ⚠️ متن تیکت خالی است! (فقط فاصله یا کاراکترهای نامرئی)
-                </div>
-            {% else %}
-                <div style="color: #ff6b6b; font-style: italic; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 5px;">
-                    ⚠️ متن تیکت یافت نشد! (None یا خالی)
-                </div>
-            {% endif %}
+        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line;">
+            {{ ticket.description|linebreaks }}
         </div>
     </div>
 </div>
