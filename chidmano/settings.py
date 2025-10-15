@@ -343,7 +343,7 @@ FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 
 # Payment - PayPing
 # PayPing Settings - Token جدید برای پرداخت و کیف پول
-PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', 'EC2E87ECE8D72EE75A9757247BAD61CF59EA01030C0EACA557D5E7B468F35DC4-1')
+PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', 'F0936F0E72CD01580921BA4ED9D8D740D8924C98895D48A32E387FCD9C1EEFBF-1')
 PAYPING_SANDBOX = os.getenv('PAYPING_SANDBOX', 'True').lower() == 'true'  # ✅ حالت تست
 PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/')
 PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
