@@ -146,15 +146,28 @@
     </div>
     
     <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px;">
+        <!-- Debug Info -->
+        <div style="background: rgba(255, 255, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 0, 0.3);">
+            <strong style="color: #ffd700;">🔍 اطلاعات Debug:</strong><br>
+            <small style="color: rgba(255, 255, 255, 0.8);">
+                Ticket ID: {{ debug_info.ticket_id }}<br>
+                Description Exists: {{ debug_info.description_exists }}<br>
+                Description Length: {{ debug_info.description_length }}<br>
+                Messages Count: {{ debug_info.messages_count }}
+            </small>
+        </div>
+        
         <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.8; white-space: pre-line; min-height: 50px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px;">
             {% if ticket.description %}
                 <div style="background: rgba(0, 255, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                    <strong>✅ متن تیکت موجود است:</strong>
+                    <strong>✅ متن تیکت موجود است ({{ debug_info.description_length }} کاراکتر):</strong>
                 </div>
-                {{ ticket.description }}
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 5px; border: 1px solid rgba(0, 255, 0, 0.3);">
+                    {{ ticket.description }}
+                </div>
             {% else %}
                 <div style="color: #ff6b6b; font-style: italic; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 5px;">
-                    ⚠️ متن تیکت یافت نشد!
+                    ⚠️ متن تیکت یافت نشد! (طول: {{ debug_info.description_length }})
                 </div>
             {% endif %}
         </div>
