@@ -8133,3 +8133,37 @@ def generate_professional_persian_pdf_report(analysis):
         logger.error(f"PDF generation error details: {type(e).__name__}: {e}")
         return None
 
+
+def mock_payment_success(request, authority):
+    """Mock payment success for testing"""
+    try:
+        logger.info(f"🎭 MOCK: Payment success callback for authority: {authority}")
+        
+        # Find payment by authority
+        from .models import Payment
+        try:
+            payment = Payment.objects.get(authority=authority)
+            logger.info(f"🎭 MOCK: Found payment {payment.id} for authority {authority}")
+            
+            # Update payment status
+            payment.status = 'completed'
+            payment.save()
+            
+            logger.info(f"🎭 MOCK: Payment {payment.id} marked as completed")
+            
+            # Add success message
+            messages.success(request, f'✅ پرداخت با موفقیت انجام شد! (Mock Mode)')
+            
+            # Redirect to wallet dashboard
+            return redirect('store_analysis:wallet_dashboard')
+            
+        except Payment.DoesNotExist:
+            logger.error(f"🎭 MOCK: Payment not found for authority: {authority}")
+            messages.error(request, '❌ تراکنش یافت نشد')
+            return redirect('store_analysis:wallet_dashboard')
+            
+    except Exception as e:
+        logger.error(f"🎭 MOCK: Error in payment success callback: {str(e)}")
+        messages.error(request, '❌ خطا در پردازش پرداخت')
+        return redirect('store_analysis:wallet_dashboard')
+

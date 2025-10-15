@@ -134,4 +134,7 @@ urlpatterns = [
     # PayPing Callback URLs
     path('payment/<str:order_id>/payping/callback/', views.payping_callback, name='payping_callback'),
     path('wallet/payping/callback/<str:wallet_tx_id>/', views.wallet_payping_callback, name='wallet_payping_callback'),
+    
+    # Mock testing endpoints
+    path('mock/payment/success/<str:authority>/', views.mock_payment_success, name='mock_payment_success'),
 ]
