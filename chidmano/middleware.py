@@ -4,11 +4,61 @@ Security Headers Middleware for enhanced security
 
 import logging
 from django.utils.deprecation import MiddlewareMixin
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
+from django.utils import timezone
 import time
+import json
 
 logger = logging.getLogger(__name__)
+
+class UltraLightHealthMiddleware(MiddlewareMixin):
+    """Ultra-light health check middleware"""
+    
+    def process_request(self, request):
+        if request.path == '/health/':
+            return HttpResponse('OK', content_type='text/plain')
+        return None
+
+class CanonicalHostRedirectMiddleware(MiddlewareMixin):
+    """Redirect to canonical host"""
+    
+    def process_request(self, request):
+        if not request.is_secure() and not settings.DEBUG:
+            return HttpResponseRedirect(f"https://{request.get_host()}{request.get_full_path()}")
+        return None
+
+class NoIndexPrivatePathsMiddleware(MiddlewareMixin):
+    """Add noindex to private paths"""
+    
+    def process_response(self, request, response):
+        private_paths = ['/admin/', '/api/', '/store/admin/']
+        if any(request.path.startswith(path) for path in private_paths):
+            response['X-Robots-Tag'] = 'noindex, nofollow'
+        return response
+
+class CSPMiddleware(MiddlewareMixin):
+    """Content Security Policy middleware"""
+    
+    def process_response(self, request, response):
+        # CSP header is already handled by SecurityHeadersMiddleware
+        return response
+
+class CacheAndTimingMiddleware(MiddlewareMixin):
+    """Cache and timing middleware"""
+    
+    def process_response(self, request, response):
+        # Add cache headers for static content
+        if request.path.startswith('/static/'):
+            response['Cache-Control'] = 'public, max-age=31536000'
+        elif request.path.startswith('/media/'):
+            response['Cache-Control'] = 'public, max-age=86400'
+        else:
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        
+        # Add timing header
+        response['X-Response-Time'] = str(time.time())
+        return response
 
 class SecurityHeadersMiddleware(MiddlewareMixin):
     """
