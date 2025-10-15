@@ -7466,13 +7466,38 @@ def deposit_to_wallet(request):
                 logger.info(f"💳 Creating wallet deposit: tx_id={wallet_tx_id}, amount={amount}, user={request.user.username}")
                 
                 # ✅ ایجاد Payment record برای tracking
-                payment = Payment.objects.create(
-                    user=request.user,
-                    amount=amount,
-                    payment_method='payping_wallet',
-                    status='pending',
-                    transaction_id=wallet_tx_id
-                )
+                try:
+                    payment = Payment.objects.create(
+                        user=request.user,
+                        amount=amount,
+                        payment_method='payping_wallet',
+                        status='pending',
+                        transaction_id=wallet_tx_id
+                    )
+                except Exception as db_error:
+                    logger.error(f"💥 Database error creating payment: {str(db_error)}")
+                    # Try to add authority column if missing
+                    if 'authority' in str(db_error):
+                        logger.info("🔧 Attempting to add missing authority column...")
+                        try:
+                            from django.db import connection
+                            with connection.cursor() as cursor:
+                                cursor.execute("ALTER TABLE store_analysis_payment ADD COLUMN authority VARCHAR(100) NULL")
+                            logger.info("✅ Authority column added successfully")
+                            # Retry payment creation
+                            payment = Payment.objects.create(
+                                user=request.user,
+                                amount=amount,
+                                payment_method='payping_wallet',
+                                status='pending',
+                                transaction_id=wallet_tx_id
+                            )
+                        except Exception as alter_error:
+                            logger.error(f"💥 Failed to add authority column: {str(alter_error)}")
+                            messages.error(request, '❌ خطا در ایجاد تراکنش. لطفاً دوباره تلاش کنید.')
+                            return redirect('store_analysis:wallet_dashboard')
+                    else:
+                        raise db_error
                 
                 # ✅ استفاده از PayPing Gateway (استاندارد جدید)
                 from .payment_gateways import PaymentGatewayManager
