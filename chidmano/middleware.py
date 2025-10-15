@@ -79,8 +79,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         '/test/',
         '/debug/',
         '/api/v1/admin',
-        '/admin/',
-        '/administrator/',
+        # do not include '/admin/' or '/store/admin/' here to avoid blocking legitimate admin dashboards
         '/login.php',
         '/index.php',
         '/shell.php',
@@ -135,6 +134,16 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         
         # Get client IP
         client_ip = self.get_client_ip(request)
+
+        # Allow authenticated staff access to application admin dashboard paths
+        # Block non-staff users explicitly (403) without logging as suspicious
+        if request.path.startswith('/store/admin/'):
+            user = getattr(request, 'user', None)
+            if user is None or not (user.is_authenticated and user.is_staff):
+                logger.warning(f"Unauthorized admin dashboard access: {request.path} from {client_ip} - User-Agent: {request.META.get('HTTP_USER_AGENT', 'Unknown')}")
+                return HttpResponse("Forbidden", status=403)
+            # Authenticated staff: permit request to proceed
+            return None
         
         # Check for suspicious patterns
         if self.is_suspicious_request(request):
