@@ -999,9 +999,16 @@ class StoreAnalysisResult(models.Model):
 class TicketMessage(models.Model):
     """مدل پیام‌های تیکت پشتیبانی"""
     
+    MESSAGE_TYPE_CHOICES = [
+        ('user', 'کاربر'),
+        ('admin', 'ادمین'),
+        ('system', 'سیستم'),
+    ]
+    
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE, related_name='messages', verbose_name='تیکت')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='فرستنده')
     content = models.TextField(verbose_name='محتوای پیام')
+    message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE_CHOICES, default='user', verbose_name='نوع پیام')
     
     # پیوست‌ها
     attachments = models.JSONField(default=list, verbose_name='پیوست‌ها')

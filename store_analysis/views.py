@@ -4373,7 +4373,8 @@ def ticket_detail(request, ticket_id):
                 TicketMessage.objects.create(
                     ticket=ticket,
                     sender=request.user,
-                    content=content
+                    content=content,
+                    message_type='admin' if request.user.is_staff else 'user'
                 )
                 
                 # به‌روزرسانی وضعیت تیکت
@@ -5956,7 +5957,8 @@ def admin_ticket_detail(request, ticket_id):
                 TicketMessage.objects.create(
                     ticket=ticket,
                     sender=request.user,
-                    content=message_text
+                    content=message_text,
+                    message_type='admin' if request.user.is_staff else 'user'
                 )
                 messages.success(request, 'پاسخ ارسال شد')
         elif action == 'close':
