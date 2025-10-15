@@ -218,13 +218,15 @@ class PayPingGateway:
                     return r
                 except Exception as ex:
                     logger.error(f"PayPing request error ({url}): {ex}")
-                    raise
+                    return None
 
             # First try with configured environment
             resp = _post(self.base_url)
 
-            # If sandbox is enabled but we got unauthorized or client error, retry on production endpoint automatically
-            if self.sandbox and resp.status_code in (401, 403, 404, 500):
+            # If sandbox is enabled but we got unauthorized/client/server error OR network error, retry on production endpoint automatically
+            if self.sandbox and (
+                resp is None or resp.status_code in (401, 403, 404, 500)
+            ):
                 logger.warning("PayPing sandbox request failed; retrying on production endpoint as fallback")
                 prod_url = self.PROD_BASE_URL
                 resp = _post(prod_url)
@@ -314,10 +316,10 @@ class PayPingGateway:
                     return r
                 except Exception as ex:
                     logger.error(f"PayPing verify error ({url}): {ex}")
-                    raise
+                    return None
 
             resp = _post_verify(self.verify_url)
-            if self.sandbox and resp.status_code in (401, 403, 404, 500):
+            if self.sandbox and (resp is None or resp.status_code in (401, 403, 404, 500)):
                 logger.warning("PayPing sandbox verify failed; retrying on production endpoint as fallback")
                 resp = _post_verify(self.PROD_VERIFY_URL)
             
