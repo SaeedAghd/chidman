@@ -24,6 +24,12 @@ if __name__ == "__main__":
         print("🔄 Running all migrations...")
         call_command('migrate', interactive=False, verbosity=1)
         print("✅ All migrations applied successfully")
+        
+        # Add authority column if needed
+        print("🔧 Adding authority column if needed...")
+        call_command('add_authority_column')
+        print("✅ Authority column check completed")
+        
     except Exception as migrate_error:
         print(f"⚠️ Migration warning: {migrate_error}")
         print("⚠️ Continuing anyway - the app might still work")
