@@ -179,7 +179,7 @@ class PayPingGateway:
                 return {
                     "status": "success",
                     "authority": mock_code,
-                    "payment_url": f"https://mock-payping.ir/pay/{mock_code}",
+                    "payment_url": f"https://chidmano.ir/store/mock/payment/success/{mock_code}/",
                     "mock_mode": True
                 }
             
