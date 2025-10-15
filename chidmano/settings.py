@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan
 # Payment Gateway Settings
 PAYMENT_GATEWAY = {
     'PING_PAYMENT': {
-        'MERCHANT_ID': 'ADCA58BCD11E654DE22B4677E14D51B379738F188767A8BD1A41FFADD07A5B83-1',  # تستی برای کاربران تکراری
+        'MERCHANT_ID': '7DF9DCCE0D75419789003B00D44E561EC16094F068C2E72A4AD28E3DBF4DC5E8-1',  # به‌روزرسانی طبق درخواست کاربر
         'API_KEY': os.getenv('PING_API_KEY', 'EB28E90039CB8FCD97F3D778FC7644917A1391217F9E47046EA864EA25331445-1'),
         'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/'),
         'RETURN_URL': os.getenv('PING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/'),
