@@ -3270,18 +3270,7 @@ def payping_callback(request, order_id):
                 store_analysis.save()
                 logger.info(f"📊 StoreAnalysis {store_analysis.id} status updated to payment_completed")
             
-            # واریز پاداش به کیف پول (اختیاری)
-            try:
-                wallet, created = Wallet.objects.get_or_create(
-                    user=request.user,
-                    defaults={'balance': 0, 'is_active': True}
-                )
-                # واریز 5% پاداش
-                bonus_amount = Decimal(order.final_amount) * Decimal('0.05')
-                wallet.deposit(bonus_amount, f'🎁 پاداش پرداخت سفارش {order.order_number}')
-                logger.info(f"🎁 Bonus deposited: {bonus_amount} Toman for order {order_id}")
-            except Exception as wallet_error:
-                logger.warning(f"⚠️ Wallet bonus failed: {wallet_error}")
+            # کیف‌پول حذف شده - پاداش حذف شد
             
             messages.success(request, f'✅ پرداخت با موفقیت انجام شد! سفارش شما در حال پردازش است.')
             
@@ -5983,51 +5972,7 @@ def admin_ticket_detail(request, ticket_id):
     return render(request, 'store_analysis/admin/ticket_detail.html', context)
 
 
-@login_required
-def admin_wallets(request):
-    """مدیریت کیف پول‌ها"""
-    if not request.user.is_staff:
-        messages.error(request, 'دسترسی غیرمجاز')
-        return redirect('home')
-    
-    from django.core.paginator import Paginator
-    from django.db.models import Count, Q, Sum
-    
-    # فیلتر و جستجو
-    search = request.GET.get('search', '')
-    
-    wallets = Wallet.objects.select_related('user').all().order_by('-created_at')
-    
-    if search:
-        wallets = wallets.filter(
-            Q(user__username__icontains=search) |
-            Q(user__email__icontains=search)
-        )
-    
-    # آمار کیف پول‌ها
-    total_wallets = Wallet.objects.count()
-    total_balance = Wallet.objects.aggregate(
-        total=Sum('balance')
-    )['total'] or 0
-    active_wallets = Wallet.objects.filter(balance__gt=0).count()
-    
-    # Pagination
-    paginator = Paginator(wallets, 20)
-    page_number = request.GET.get('page')
-    wallets_page = paginator.get_page(page_number)
-    
-    context = {
-        'wallets': wallets_page,
-        'total_wallets': total_wallets,
-        'total_balance': float(total_balance),
-        'active_wallets': active_wallets,
-        'search': search,
-        'title': 'مدیریت کیف پول‌ها'
-    }
-    
-    return render(request, 'store_analysis/admin/wallets.html', context)
-
-
+# کیف‌پول حذف شده
 
 
 @login_required
