@@ -15,7 +15,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, Wallet, WalletTransaction, SupportTicket, FAQService, Order, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile, AnalysisRequest, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, PricingPlan, AIConsultantService, AIConsultantQuestion, AIConsultantSession, AIConsultantPayment, Transaction
+from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, SupportTicket, FAQService, Order, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile, AnalysisRequest, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, PricingPlan, AIConsultantService, AIConsultantQuestion, AIConsultantSession, AIConsultantPayment, Transaction
 from django.contrib.auth.models import User
 # Admin views moved to chidmano.admin_dashboard
 from .ai_analysis import StoreAnalysisAI
