@@ -63,13 +63,7 @@ urlpatterns = [
     ])),
     
     # کیف پول و پرداخت
-    path('wallet/', include([
-        path('', views.wallet_dashboard, name='wallet_dashboard'),
-        path('deposit/', views.deposit_to_wallet, name='deposit_to_wallet'),
-        path('payment/<str:order_id>/', views.wallet_payment, name='wallet_payment'),
-        path('withdraw/', views.withdraw_from_wallet, name='withdraw_from_wallet'),
-        path('transactions/', views.wallet_transactions, name='wallet_transactions'),
-    ])),
+    # کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
     
     # آموزش و مقالات
     path('education/', include([
@@ -109,8 +103,7 @@ urlpatterns = [
         path('orders/<str:order_id>/', views.admin_order_detail, name='admin_order_detail'),
         path('tickets/', views.admin_tickets, name='admin_tickets'),
         path('tickets/<str:ticket_id>/', views.admin_ticket_detail, name='admin_ticket_detail'),
-        path('wallets/', views.admin_wallets, name='admin_wallets'),
-        path('wallets/<int:wallet_id>/', views.admin_wallet_detail, name='admin_wallet_detail'),
+        # کیف‌پول حذف شده
         path('pricing/', views.admin_pricing_management, name='admin_pricing'),
         path('discounts/', views.admin_discounts, name='admin_discounts'),
         path('settings/', views.admin_settings, name='admin_settings'),
@@ -133,7 +126,7 @@ urlpatterns = [
     
     # PayPing Callback URLs
     path('payment/<str:order_id>/payping/callback/', views.payping_callback, name='payping_callback'),
-    path('wallet/payping/callback/<str:wallet_tx_id>/', views.wallet_payping_callback, name='wallet_payping_callback'),
+    # کیف‌پول حذف شده
     
     # Mock testing endpoints
     path('mock/payment/success/<str:authority>/', views.mock_payment_success, name='mock_payment_success'),

@@ -2986,7 +2986,7 @@ def payping_payment(request, order_id):
         
         payment_request = payping.create_payment_request(
             amount=int(order.final_amount),
-            description=f'تحلیل حرفه‌ای فروشگاه - سفارش {order.order_number}',
+            description=f'پرداخت بابت تحلیل حرفه‌ای فروشگاه - سفارش {order.order_number}',
             callback_url=callback_url,
             payer_identity=str(payer_identity),  # شماره موبایل کاربر (الزامی)
             payer_name=str(payer_name),  # نام کاربر (توصیه شده)
@@ -3321,8 +3321,10 @@ def payping_callback(request, order_id):
         return redirect('store_analysis:user_dashboard')
 
 
-@login_required
-def wallet_payping_callback(request, wallet_tx_id):
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
+
+# @login_required
+# def wallet_payping_callback(request, wallet_tx_id):
     """بازگشت از PayPing برای شارژ کیف پول - Callback Handler استاندارد"""
     try:
         # PayPing returns: refid, clientrefid
@@ -7327,468 +7329,31 @@ def consultant_payment_failed(request, session_id):
 # ==================== سیستم کیف پول ====================
 
 @login_required
-def wallet_dashboard(request):
-    """داشبورد کیف پول کاربر"""
-    try:
-        # بررسی وجود مدل‌های کیف پول
-        try:
-            # دریافت یا ایجاد کیف پول
-            wallet, created = Wallet.objects.get_or_create(
-                user=request.user,
-                defaults={'balance': 0, 'currency': 'IRR', 'is_active': True}
-            )
-            
-            # دریافت آخرین تراکنش‌ها
-            recent_transactions = WalletTransaction.objects.filter(wallet=wallet)[:10]
-            
-            # آمار تراکنش‌ها
-            from django.db import models
-            total_deposits = WalletTransaction.objects.filter(
-                wallet=wallet, 
-                transaction_type='deposit'
-            ).aggregate(total=models.Sum('amount'))['total'] or 0
-            
-            total_withdrawals = WalletTransaction.objects.filter(
-                wallet=wallet, 
-                transaction_type__in=['withdrawal', 'payment']
-            ).aggregate(total=models.Sum('amount'))['total'] or 0
-            
-        except Exception as wallet_error:
-            logger.warning(f"Wallet models not available: {wallet_error}")
-            # داده‌های پیش‌فرض
-            wallet = None
-            created = False
-            recent_transactions = []
-            total_deposits = 0
-            total_withdrawals = 0
-        
-        context = {
-            'wallet': wallet,
-            'recent_transactions': recent_transactions,
-            'total_deposits': total_deposits,
-            'total_withdrawals': total_withdrawals,
-            'created': created,
-            'error': wallet is None
-        }
-        
-        return render(request, 'store_analysis/wallet_dashboard.html', context)
-        
-    except Exception as e:
-        logger.error(f"خطا در wallet_dashboard: {e}")
-        messages.error(request, f'خطا در بارگذاری کیف پول: {str(e)}')
-        # داده‌های پیش‌فرض در صورت خطا
-        context = {
-            'wallet': None,
-            'recent_transactions': [],
-            'total_deposits': 0,
-            'total_withdrawals': 0,
-            'created': False,
-            'error': True
-        }
-        return render(request, 'store_analysis/wallet_dashboard.html', context)
-
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
-def wallet_transactions(request):
-    """لیست تراکنش‌های کیف پول"""
-    try:
-        wallet = get_object_or_404(Wallet, user=request.user)
-        
-        # فیلترها
-        transaction_type = request.GET.get('type', '')
-        status = request.GET.get('status', '')
-        
-        # دریافت تراکنش‌ها
-        transactions = Transaction.objects.filter(wallet=wallet)
-        
-        if transaction_type:
-            transactions = transactions.filter(transaction_type=transaction_type)
-        
-        if status:
-            transactions = transactions.filter(status=status)
-        
-        # صفحه‌بندی
-        paginator = Paginator(transactions, 20)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
-        context = {
-            'wallet': wallet,
-            'page_obj': page_obj,
-            'transaction_type': transaction_type,
-            'status': status,
-            'transaction_types': Transaction.TRANSACTION_TYPES,
-            'status_choices': Transaction.STATUS_CHOICES,
-        }
-        
-        return render(request, 'store_analysis/wallet_transactions.html', context)
-        
-    except Exception as e:
-        messages.error(request, f'خطا در بارگذاری تراکنش‌ها: {str(e)}')
-        return redirect('store_analysis:wallet_dashboard')
-
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
-def deposit_to_wallet(request):
-    """واریز به کیف پول - هدایت به PayPing (کارشناس PayPing)"""
-    try:
-        if request.method == 'POST':
-            try:
-                amount = Decimal(request.POST.get('amount', 0))
-                
-                logger.info(f"💰 Wallet deposit request - User: {request.user.username}, Amount: {amount}")
-                
-                # ✅ Validation - مبلغ مثبت و حداقل
-                if amount <= 0:
-                    messages.error(request, '❌ مبلغ باید مثبت باشد')
-                    return redirect('store_analysis:wallet_dashboard')
-                
-                if amount < 10000:
-                    messages.error(request, '❌ حداقل مبلغ شارژ کیف پول 10,000 تومان است')
-                    return redirect('store_analysis:wallet_dashboard')
-                
-                # ✅ دریافت اطلاعات کاربر برای PayPing
-                try:
-                    user_profile = request.user.userprofile
-                    payer_identity = user_profile.phone
-                except:
-                    payer_identity = None
-                
-                # ✅ اگر شماره موبایل نبود، از شماره تستی استفاده کن
-                if not payer_identity or len(str(payer_identity)) < 10:
-                    # برای تست: شماره موبایل پیش‌فرض
-                    payer_identity = '09121234567'
-                    logger.warning(f"⚠️ Using default phone for wallet deposit: {request.user.username}")
-                
-                payer_name = request.user.get_full_name() or request.user.username
-                
-                # ✅ تولید شناسه یکتا برای تراکنش
-                wallet_tx_id = f"WALLET_{int(timezone.now().timestamp())}_{request.user.id}_{uuid.uuid4().hex[:8].upper()}"
-                
-                logger.info(f"💳 Creating wallet deposit: tx_id={wallet_tx_id}, amount={amount}, user={request.user.username}")
-                
-                # ✅ ایجاد Payment record برای tracking
-                try:
-                    payment = Payment.objects.create(
-                        user=request.user,
-                        amount=amount,
-                        payment_method='payping_wallet',
-                        status='pending',
-                        transaction_id=wallet_tx_id
-                    )
-                except Exception as db_error:
-                    logger.error(f"💥 Database error creating payment: {str(db_error)}")
-                    # Try to add authority column if missing
-                    if 'authority' in str(db_error):
-                        logger.info("🔧 Attempting to add missing authority column...")
-                        try:
-                            from django.db import connection
-                            with connection.cursor() as cursor:
-                                cursor.execute("ALTER TABLE store_analysis_payment ADD COLUMN authority VARCHAR(100) NULL")
-                            logger.info("✅ Authority column added successfully")
-                            # Retry payment creation
-                            payment = Payment.objects.create(
-                                user=request.user,
-                                amount=amount,
-                                payment_method='payping_wallet',
-                                status='pending',
-                                transaction_id=wallet_tx_id
-                            )
-                        except Exception as alter_error:
-                            logger.error(f"💥 Failed to add authority column: {str(alter_error)}")
-                            messages.error(request, '❌ خطا در ایجاد تراکنش. لطفاً دوباره تلاش کنید.')
-                            return redirect('store_analysis:wallet_dashboard')
-                    else:
-                        raise db_error
-                
-                # ✅ استفاده از PayPing Gateway (استاندارد جدید)
-                from .payment_gateways import PaymentGatewayManager
-                
-                gateway_manager = PaymentGatewayManager()
-                payping = gateway_manager.get_gateway('payping')
-                
-                if not payping:
-                    logger.error("❌ PayPing gateway not available for wallet deposit")
-                    messages.error(request, 'درگاه پرداخت در دسترس نیست. لطفاً بعداً تلاش کنید.')
-                    payment.status = 'failed'
-                    payment.save()
-                    return redirect('store_analysis:wallet_dashboard')
-                
-                # ✅ ایجاد Callback URL برای wallet
-                callback_url = request.build_absolute_uri(
-                    reverse('store_analysis:wallet_payping_callback', args=[wallet_tx_id])
-                )
-                
-                logger.info(f"📞 Wallet callback URL: {callback_url}")
-                
-                # ✅ ایجاد درخواست پرداخت PayPing با تمام اطلاعات
-                payment_request = payping.create_payment_request(
-                    amount=int(amount),
-                    description=f'شارژ کیف پول چیدمانو - {amount:,.0f} تومان',
-                    callback_url=callback_url,
-                    payer_identity=str(payer_identity),
-                    payer_name=str(payer_name),
-                    client_ref_id=wallet_tx_id
-                )
-                
-                logger.info(f"💳 PayPing response for wallet: {payment_request}")
-                
-                if payment_request.get('status') == 'success':
-                    # ✅ به‌روزرسانی payment با authority از PayPing
-                    payment.authority = payment_request['authority']
-                    payment.save()
-                    
-                    logger.info(f"✅ Wallet payment request successful: authority={payment_request['authority']}")
-                    
-                    # ✅ هدایت به درگاه PayPing
-                    return redirect(payment_request['payment_url'])
-                else:
-                    # ❌ خطا در ایجاد درخواست
-                    error_msg = payment_request.get('message', 'خطای نامشخص')
-                    error_code = payment_request.get('code', 'UNKNOWN')
-                    
-                    logger.error(f"❌ Wallet PayPing failed: {error_code} - {error_msg}")
-                    
-                    payment.status = 'failed'
-                    payment.save()
-                    
-                    # نمایش پیام خطای مناسب
-                    if error_code == 'GATEWAY_NOT_ACTIVE':
-                        messages.error(request, '⚠️ درگاه پرداخت موقتاً غیرفعال است. لطفاً با پشتیبانی تماس بگیرید.')
-                    elif error_code == 'AUTHENTICATION_ERROR':
-                        messages.error(request, '⚠️ خطا در احراز هویت درگاه پرداخت.')
-                    else:
-                        messages.error(request, f'❌ خطا در ایجاد درخواست پرداخت: {error_msg}')
-                    
-                    return redirect('store_analysis:wallet_dashboard')
-                
-            except ValueError as e:
-                logger.error(f"❌ ValueError in wallet deposit: {e}")
-                messages.error(request, f'❌ خطا در مقدار ورودی: {str(e)}')
-                return redirect('store_analysis:wallet_dashboard')
-            except Exception as e:
-                logger.error(f"💥 Unexpected error in wallet deposit: {e}", exc_info=True)
-                messages.error(request, '❌ خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.')
-                return redirect('store_analysis:wallet_dashboard')
-        
-        # ✅ GET request - نمایش صفحه شارژ کیف پول
-        from .models import Wallet
-        
-        wallet, created = Wallet.objects.get_or_create(
-            user=request.user,
-            defaults={'balance': 0, 'is_active': True}
-        )
-        
-        # دریافت آخرین تراکنش‌های کیف پول
-        recent_payments = Payment.objects.filter(
-            user=request.user,
-            payment_method__in=['payping_wallet', 'wallet']
-        ).order_by('-created_at')[:10]
-        
-        return render(request, 'store_analysis/deposit_to_wallet.html', {
-            'wallet': wallet,
-            'recent_payments': recent_payments,
-            'user': request.user
-        })
-            
-    except Exception as e:
-        logger.error(f"💥 Fatal error in deposit_to_wallet: {e}", exc_info=True)
-        messages.error(request, 'خطا در بارگذاری صفحه واریز')
-        return redirect('store_analysis:wallet_dashboard')
-
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
-def withdraw_from_wallet(request):
-    """برداشت از کیف پول"""
-    if request.method == 'POST':
-        try:
-            amount = Decimal(request.POST.get('amount', 0))
-            description = request.POST.get('description', 'برداشت دستی')
-            
-            if amount <= 0:
-                messages.error(request, 'مبلغ باید مثبت باشد')
-                return redirect('store_analysis:wallet_dashboard')
-            
-            wallet = get_object_or_404(Wallet, user=request.user)
-            
-            # برداشت
-            new_balance = wallet.withdraw(amount, description)
-            
-            messages.success(request, f'مبلغ {amount:,} تومان با موفقیت برداشت شد. موجودی جدید: {new_balance:,} تومان')
-            return redirect('store_analysis:wallet_dashboard')
-            
-        except ValueError as e:
-            messages.error(request, str(e))
-        except Exception as e:
-            messages.error(request, f'خطا در برداشت: {str(e)}')
-    
-    return render(request, 'store_analysis/withdraw_from_wallet.html')
-
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
-def wallet_payment(request, order_id):
-    """پرداخت از کیف پول"""
-    try:
-        order = get_object_or_404(Order, order_number=order_id, user=request.user)
-        wallet = get_object_or_404(Wallet, user=request.user)
-        
-        if request.method == 'POST':
-            # بررسی موجودی
-            if not wallet.can_withdraw(order.final_amount):
-                messages.error(request, 'موجودی کیف پول کافی نیست')
-                return redirect('store_analysis:order_detail', order_id=order_id)
-            
-            # برداشت از کیف پول
-            wallet.withdraw(order.final_amount, f'پرداخت سفارش {order.order_number}')
-            
-            # ایجاد پرداخت
-            payment = Payment.objects.create(
-                order=order,
-                amount=order.final_amount,
-                payment_method='wallet',
-                status='completed',
-            transaction_id=f'WALLET_{order.order_number}_{timezone.now().strftime("%Y%m%d%H%M%S")}'
-            )
-            
-            # تغییر وضعیت سفارش
-            order.status = 'paid'
-            order.save()
-            
-            messages.success(request, f'✅ پرداخت سفارش {order.order_number} با موفقیت انجام شد')
-            return redirect('store_analysis:order_detail', order_id=order_id)
-        
-        context = {
-            'order': order,
-            'wallet': wallet,
-        }
-        
-        return render(request, 'store_analysis/wallet_payment.html', context)
-        
-    except Exception as e:
-        messages.error(request, f'خطا در پرداخت: {str(e)}')
-        return redirect('store_analysis:user_dashboard')
-
-
-# ==================== مدیریت کیف پول برای ادمین ====================
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_wallet_management(request):
-    """مدیریت کیف پول‌ها برای ادمین"""
-    try:
-        # فیلترها
-        username = request.GET.get('username', '')
-        min_balance = request.GET.get('min_balance', '')
-        max_balance = request.GET.get('max_balance', '')
-        
-        # دریافت کیف پول‌ها
-        wallets = Wallet.objects.select_related('user').all().order_by('-created_at')
-        
-        if username:
-            wallets = wallets.filter(user__username__icontains=username)
-        
-        if min_balance:
-            wallets = wallets.filter(balance__gte=min_balance)
-        
-        if max_balance:
-            wallets = wallets.filter(balance__lte=max_balance)
-        
-        # آمار کلی
-        from django.db import models
-        total_wallets = Wallet.objects.count()
-        total_balance = Wallet.objects.aggregate(total=models.Sum('balance'))['total'] or 0
-        active_wallets = Wallet.objects.filter(is_active=True).count()
-        
-        # صفحه‌بندی
-        paginator = Paginator(wallets, 20)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
-        context = {
-            'page_obj': page_obj,
-            'username': username,
-            'min_balance': min_balance,
-            'max_balance': max_balance,
-            'total_wallets': total_wallets,
-            'total_balance': total_balance,
-            'active_wallets': active_wallets,
-        }
-        
-        return render(request, 'store_analysis/admin/wallet_management.html', context)
-        
-    except Exception as e:
-        messages.error(request, f'خطا در بارگذاری مدیریت کیف پول: {str(e)}')
-        return redirect('store_analysis:admin_dashboard')
-
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_wallet_detail(request, wallet_id):
-    """جزئیات کیف پول برای ادمین"""
-    try:
-        wallet = get_object_or_404(Wallet, id=wallet_id)
-        
-        # تراکنش‌های کیف پول
-        transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
-        
-        # آمار تراکنش‌ها
-        from django.db import models
-        transaction_stats = {
-            'total_deposits': transactions.filter(transaction_type='deposit').aggregate(total=models.Sum('amount'))['total'] or 0,
-            'total_withdrawals': transactions.filter(transaction_type__in=['withdraw', 'payment']).aggregate(total=models.Sum('amount'))['total'] or 0,
-            'total_transactions': transactions.count(),
-        }
-        
-        context = {
-            'wallet': wallet,
-            'transactions': transactions[:50],  # آخرین 50 تراکنش
-            'transaction_stats': transaction_stats,
-        }
-        
-        return render(request, 'store_analysis/admin/wallet_detail.html', context)
-        
-    except Exception as e:
-        messages.error(request, f'خطا در بارگذاری جزئیات کیف پول: {str(e)}')
-        return redirect('store_analysis:admin_wallets')
-
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def admin_adjust_wallet(request, wallet_id):
-    """تنظیم موجودی کیف پول توسط ادمین"""
-    if request.method == 'POST':
-        try:
-            wallet = get_object_or_404(Wallet, id=wallet_id)
-            action = request.POST.get('action')  # 'add' or 'subtract'
-            amount = Decimal(request.POST.get('amount', 0))
-            description = request.POST.get('description', '')
-            
-            if amount <= 0:
-                messages.error(request, 'مبلغ باید مثبت باشد')
-                return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
-            
-            if action == 'add':
-                new_balance = wallet.deposit(amount, f'تنظیم ادمین: {description}')
-                messages.success(request, f'مبلغ {amount:,} تومان اضافه شد. موجودی جدید: {new_balance:,} تومان')
-            elif action == 'subtract':
-                if not wallet.can_withdraw(amount):
-                    messages.error(request, 'موجودی کافی نیست')
-                    return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
-                
-                new_balance = wallet.withdraw(amount, f'تنظیم ادمین: {description}')
-                messages.success(request, f'مبلغ {amount:,} تومان کسر شد. موجودی جدید: {new_balance:,} تومان')
-            else:
-                messages.error(request, 'عملیات نامعتبر')
-            
-            return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
-            
-        except ValueError as e:
-            messages.error(request, str(e))
-        except Exception as e:
-            messages.error(request, f'خطا در تنظیم موجودی: {str(e)}')
-    
-    return redirect('store_analysis:admin_wallet_detail', wallet_id=wallet_id)
-
+# کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 @login_required
 def test_payping_connection(request):
