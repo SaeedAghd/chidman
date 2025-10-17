@@ -46,6 +46,32 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'  # Default to False for pr
 if os.getenv('RENDER'):
     DEBUG = True  # Enable debug on Render for troubleshooting
 
+# Production Security Settings
+if not DEBUG:
+    # Security Settings for Production
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Session Security
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Strict'
+    
+    # CSRF Security
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SAMESITE = 'Strict'
+    
+    # X-Frame-Options
+    X_FRAME_OPTIONS = 'DENY'
+    
+    # Content Security Policy
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.liara.ir,*.liara.app,*.liara.run,chidmano.liara.app,chidmano.liara.run,chidmano.ir,www.chidmano.ir').split(',')
 
 # Security settings for production - removed duplicate and conflicting settings
@@ -80,7 +106,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'chidmano.middleware.CanonicalHostRedirectMiddleware',
+    # 'chidmano.middleware.CanonicalHostRedirectMiddleware',  # Temporarily disabled for local testing
     'chidmano.middleware.NoIndexPrivatePathsMiddleware',
     'chidmano.middleware.RateLimitMiddleware',  # Rate Limiting
     'store_analysis.middleware.AnalyticsMiddleware',  # Analytics tracking

@@ -854,6 +854,7 @@ class StoreAnalysisResult(models.Model):
     """مدل نتایج تحلیل فروشگاه"""
     
     store_analysis = models.OneToOneField(StoreAnalysis, on_delete=models.CASCADE, verbose_name='تحلیل فروشگاه')
+    analysis_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تحلیل')
     
     # نتایج کلی
     overall_score = models.FloatField(default=0, verbose_name='امتیاز کلی')
