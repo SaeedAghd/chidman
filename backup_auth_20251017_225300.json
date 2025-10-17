@@ -1,0 +1,1730 @@
+[
+{
+  "model": "auth.permission",
+  "pk": 1,
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": 1,
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 2,
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": 1,
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 3,
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": 1,
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 4,
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": 1,
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 5,
+  "fields": {
+    "name": "Can add permission",
+    "content_type": 2,
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 6,
+  "fields": {
+    "name": "Can change permission",
+    "content_type": 2,
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 7,
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": 2,
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 8,
+  "fields": {
+    "name": "Can view permission",
+    "content_type": 2,
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 9,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 3,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 10,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 3,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 11,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 3,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 12,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 3,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 13,
+  "fields": {
+    "name": "Can add user",
+    "content_type": 4,
+    "codename": "add_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 14,
+  "fields": {
+    "name": "Can change user",
+    "content_type": 4,
+    "codename": "change_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 15,
+  "fields": {
+    "name": "Can delete user",
+    "content_type": 4,
+    "codename": "delete_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 16,
+  "fields": {
+    "name": "Can view user",
+    "content_type": 4,
+    "codename": "view_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 17,
+  "fields": {
+    "name": "Can add content type",
+    "content_type": 5,
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 18,
+  "fields": {
+    "name": "Can change content type",
+    "content_type": 5,
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 19,
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": 5,
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 20,
+  "fields": {
+    "name": "Can view content type",
+    "content_type": 5,
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 21,
+  "fields": {
+    "name": "Can add session",
+    "content_type": 6,
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 22,
+  "fields": {
+    "name": "Can change session",
+    "content_type": 6,
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 23,
+  "fields": {
+    "name": "Can delete session",
+    "content_type": 6,
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 24,
+  "fields": {
+    "name": "Can view session",
+    "content_type": 6,
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 25,
+  "fields": {
+    "name": "Can add پرداخت",
+    "content_type": 7,
+    "codename": "add_payment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 26,
+  "fields": {
+    "name": "Can change پرداخت",
+    "content_type": 7,
+    "codename": "change_payment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 27,
+  "fields": {
+    "name": "Can delete پرداخت",
+    "content_type": 7,
+    "codename": "delete_payment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 28,
+  "fields": {
+    "name": "Can view پرداخت",
+    "content_type": 7,
+    "codename": "view_payment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 29,
+  "fields": {
+    "name": "Can add لاگ پرداخت",
+    "content_type": 8,
+    "codename": "add_paymentlog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 30,
+  "fields": {
+    "name": "Can change لاگ پرداخت",
+    "content_type": 8,
+    "codename": "change_paymentlog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 31,
+  "fields": {
+    "name": "Can delete لاگ پرداخت",
+    "content_type": 8,
+    "codename": "delete_paymentlog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 32,
+  "fields": {
+    "name": "Can view لاگ پرداخت",
+    "content_type": 8,
+    "codename": "view_paymentlog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 33,
+  "fields": {
+    "name": "Can add بسته خدمات",
+    "content_type": 9,
+    "codename": "add_servicepackage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 34,
+  "fields": {
+    "name": "Can change بسته خدمات",
+    "content_type": 9,
+    "codename": "change_servicepackage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 35,
+  "fields": {
+    "name": "Can delete بسته خدمات",
+    "content_type": 9,
+    "codename": "delete_servicepackage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 36,
+  "fields": {
+    "name": "Can view بسته خدمات",
+    "content_type": 9,
+    "codename": "view_servicepackage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 37,
+  "fields": {
+    "name": "Can add اشتراک کاربر",
+    "content_type": 10,
+    "codename": "add_usersubscription"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 38,
+  "fields": {
+    "name": "Can change اشتراک کاربر",
+    "content_type": 10,
+    "codename": "change_usersubscription"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 39,
+  "fields": {
+    "name": "Can delete اشتراک کاربر",
+    "content_type": 10,
+    "codename": "delete_usersubscription"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 40,
+  "fields": {
+    "name": "Can view اشتراک کاربر",
+    "content_type": 10,
+    "codename": "view_usersubscription"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 41,
+  "fields": {
+    "name": "Can add کیف پول",
+    "content_type": 11,
+    "codename": "add_wallet"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 42,
+  "fields": {
+    "name": "Can change کیف پول",
+    "content_type": 11,
+    "codename": "change_wallet"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 43,
+  "fields": {
+    "name": "Can delete کیف پول",
+    "content_type": 11,
+    "codename": "delete_wallet"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 44,
+  "fields": {
+    "name": "Can view کیف پول",
+    "content_type": 11,
+    "codename": "view_wallet"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 45,
+  "fields": {
+    "name": "Can add تیکت پشتیبانی",
+    "content_type": 12,
+    "codename": "add_supportticket"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 46,
+  "fields": {
+    "name": "Can change تیکت پشتیبانی",
+    "content_type": 12,
+    "codename": "change_supportticket"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 47,
+  "fields": {
+    "name": "Can delete تیکت پشتیبانی",
+    "content_type": 12,
+    "codename": "delete_supportticket"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 48,
+  "fields": {
+    "name": "Can view تیکت پشتیبانی",
+    "content_type": 12,
+    "codename": "view_supportticket"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 49,
+  "fields": {
+    "name": "Can add تحلیل فروشگاه",
+    "content_type": 13,
+    "codename": "add_storeanalysis"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 50,
+  "fields": {
+    "name": "Can change تحلیل فروشگاه",
+    "content_type": 13,
+    "codename": "change_storeanalysis"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 51,
+  "fields": {
+    "name": "Can delete تحلیل فروشگاه",
+    "content_type": 13,
+    "codename": "delete_storeanalysis"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 52,
+  "fields": {
+    "name": "Can view تحلیل فروشگاه",
+    "content_type": 13,
+    "codename": "view_storeanalysis"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 53,
+  "fields": {
+    "name": "Can add سوال متداول",
+    "content_type": 14,
+    "codename": "add_faqservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 54,
+  "fields": {
+    "name": "Can change سوال متداول",
+    "content_type": 14,
+    "codename": "change_faqservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 55,
+  "fields": {
+    "name": "Can delete سوال متداول",
+    "content_type": 14,
+    "codename": "delete_faqservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 56,
+  "fields": {
+    "name": "Can view سوال متداول",
+    "content_type": 14,
+    "codename": "view_faqservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 57,
+  "fields": {
+    "name": "Can add تراکنش کیف پول",
+    "content_type": 15,
+    "codename": "add_wallettransaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 58,
+  "fields": {
+    "name": "Can change تراکنش کیف پول",
+    "content_type": 15,
+    "codename": "change_wallettransaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 59,
+  "fields": {
+    "name": "Can delete تراکنش کیف پول",
+    "content_type": 15,
+    "codename": "delete_wallettransaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 60,
+  "fields": {
+    "name": "Can view تراکنش کیف پول",
+    "content_type": 15,
+    "codename": "view_wallettransaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 61,
+  "fields": {
+    "name": "Can add سفارش",
+    "content_type": 16,
+    "codename": "add_order"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 62,
+  "fields": {
+    "name": "Can change سفارش",
+    "content_type": 16,
+    "codename": "change_order"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 63,
+  "fields": {
+    "name": "Can delete سفارش",
+    "content_type": 16,
+    "codename": "delete_order"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 64,
+  "fields": {
+    "name": "Can view سفارش",
+    "content_type": 16,
+    "codename": "view_order"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 65,
+  "fields": {
+    "name": "Can add آمار سایت",
+    "content_type": 17,
+    "codename": "add_sitestats"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 66,
+  "fields": {
+    "name": "Can change آمار سایت",
+    "content_type": 17,
+    "codename": "change_sitestats"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 67,
+  "fields": {
+    "name": "Can delete آمار سایت",
+    "content_type": 17,
+    "codename": "delete_sitestats"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 68,
+  "fields": {
+    "name": "Can view آمار سایت",
+    "content_type": 17,
+    "codename": "view_sitestats"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 69,
+  "fields": {
+    "name": "Can add تنظیمات سیستم",
+    "content_type": 18,
+    "codename": "add_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 70,
+  "fields": {
+    "name": "Can change تنظیمات سیستم",
+    "content_type": 18,
+    "codename": "change_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 71,
+  "fields": {
+    "name": "Can delete تنظیمات سیستم",
+    "content_type": 18,
+    "codename": "delete_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 72,
+  "fields": {
+    "name": "Can view تنظیمات سیستم",
+    "content_type": 18,
+    "codename": "view_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 73,
+  "fields": {
+    "name": "Can add نتیجه تحلیل فروشگاه",
+    "content_type": 19,
+    "codename": "add_storeanalysisresult"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 74,
+  "fields": {
+    "name": "Can change نتیجه تحلیل فروشگاه",
+    "content_type": 19,
+    "codename": "change_storeanalysisresult"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 75,
+  "fields": {
+    "name": "Can delete نتیجه تحلیل فروشگاه",
+    "content_type": 19,
+    "codename": "delete_storeanalysisresult"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 76,
+  "fields": {
+    "name": "Can view نتیجه تحلیل فروشگاه",
+    "content_type": 19,
+    "codename": "view_storeanalysisresult"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 77,
+  "fields": {
+    "name": "Can add کد تخفیف",
+    "content_type": 20,
+    "codename": "add_discountcode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 78,
+  "fields": {
+    "name": "Can change کد تخفیف",
+    "content_type": 20,
+    "codename": "change_discountcode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 79,
+  "fields": {
+    "name": "Can delete کد تخفیف",
+    "content_type": 20,
+    "codename": "delete_discountcode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 80,
+  "fields": {
+    "name": "Can view کد تخفیف",
+    "content_type": 20,
+    "codename": "view_discountcode"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 81,
+  "fields": {
+    "name": "Can add پیام تیکت",
+    "content_type": 21,
+    "codename": "add_ticketmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 82,
+  "fields": {
+    "name": "Can change پیام تیکت",
+    "content_type": 21,
+    "codename": "change_ticketmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 83,
+  "fields": {
+    "name": "Can delete پیام تیکت",
+    "content_type": 21,
+    "codename": "delete_ticketmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 84,
+  "fields": {
+    "name": "Can view پیام تیکت",
+    "content_type": 21,
+    "codename": "view_ticketmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 85,
+  "fields": {
+    "name": "Can add اطلاعات پایه فروشگاه",
+    "content_type": 22,
+    "codename": "add_storebasicinfo"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 86,
+  "fields": {
+    "name": "Can change اطلاعات پایه فروشگاه",
+    "content_type": 22,
+    "codename": "change_storebasicinfo"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 87,
+  "fields": {
+    "name": "Can delete اطلاعات پایه فروشگاه",
+    "content_type": 22,
+    "codename": "delete_storebasicinfo"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 88,
+  "fields": {
+    "name": "Can view اطلاعات پایه فروشگاه",
+    "content_type": 22,
+    "codename": "view_storebasicinfo"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 89,
+  "fields": {
+    "name": "Can add بازدید صفحه",
+    "content_type": 23,
+    "codename": "add_pageview"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 90,
+  "fields": {
+    "name": "Can change بازدید صفحه",
+    "content_type": 23,
+    "codename": "change_pageview"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 91,
+  "fields": {
+    "name": "Can delete بازدید صفحه",
+    "content_type": 23,
+    "codename": "delete_pageview"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 92,
+  "fields": {
+    "name": "Can view بازدید صفحه",
+    "content_type": 23,
+    "codename": "view_pageview"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 93,
+  "fields": {
+    "name": "Can add پروفایل کاربر",
+    "content_type": 24,
+    "codename": "add_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 94,
+  "fields": {
+    "name": "Can change پروفایل کاربر",
+    "content_type": 24,
+    "codename": "change_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 95,
+  "fields": {
+    "name": "Can delete پروفایل کاربر",
+    "content_type": 24,
+    "codename": "delete_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 96,
+  "fields": {
+    "name": "Can view پروفایل کاربر",
+    "content_type": 24,
+    "codename": "view_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 97,
+  "fields": {
+    "name": "Can add کلمه کلیدی SEO",
+    "content_type": 25,
+    "codename": "add_seokeyword"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 98,
+  "fields": {
+    "name": "Can change کلمه کلیدی SEO",
+    "content_type": 25,
+    "codename": "change_seokeyword"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 99,
+  "fields": {
+    "name": "Can delete کلمه کلیدی SEO",
+    "content_type": 25,
+    "codename": "delete_seokeyword"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 100,
+  "fields": {
+    "name": "Can view کلمه کلیدی SEO",
+    "content_type": 25,
+    "codename": "view_seokeyword"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 101,
+  "fields": {
+    "name": "Can add متریک SEO",
+    "content_type": 26,
+    "codename": "add_seometrics"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 102,
+  "fields": {
+    "name": "Can change متریک SEO",
+    "content_type": 26,
+    "codename": "change_seometrics"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 103,
+  "fields": {
+    "name": "Can delete متریک SEO",
+    "content_type": 26,
+    "codename": "delete_seometrics"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 104,
+  "fields": {
+    "name": "Can view متریک SEO",
+    "content_type": 26,
+    "codename": "view_seometrics"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 105,
+  "fields": {
+    "name": "Can add لینک داخلی",
+    "content_type": 27,
+    "codename": "add_internallink"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 106,
+  "fields": {
+    "name": "Can change لینک داخلی",
+    "content_type": 27,
+    "codename": "change_internallink"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 107,
+  "fields": {
+    "name": "Can delete لینک داخلی",
+    "content_type": 27,
+    "codename": "delete_internallink"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 108,
+  "fields": {
+    "name": "Can view لینک داخلی",
+    "content_type": 27,
+    "codename": "view_internallink"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 109,
+  "fields": {
+    "name": "Can add مقاله وبلاگ",
+    "content_type": 28,
+    "codename": "add_blogpost"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 110,
+  "fields": {
+    "name": "Can change مقاله وبلاگ",
+    "content_type": 28,
+    "codename": "change_blogpost"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 111,
+  "fields": {
+    "name": "Can delete مقاله وبلاگ",
+    "content_type": 28,
+    "codename": "delete_blogpost"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 112,
+  "fields": {
+    "name": "Can view مقاله وبلاگ",
+    "content_type": 28,
+    "codename": "view_blogpost"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 113,
+  "fields": {
+    "name": "Can add سرویس مشاوره هوش مصنوعی",
+    "content_type": 29,
+    "codename": "add_aiconsultantservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 114,
+  "fields": {
+    "name": "Can change سرویس مشاوره هوش مصنوعی",
+    "content_type": 29,
+    "codename": "change_aiconsultantservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 115,
+  "fields": {
+    "name": "Can delete سرویس مشاوره هوش مصنوعی",
+    "content_type": 29,
+    "codename": "delete_aiconsultantservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 116,
+  "fields": {
+    "name": "Can view سرویس مشاوره هوش مصنوعی",
+    "content_type": 29,
+    "codename": "view_aiconsultantservice"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 117,
+  "fields": {
+    "name": "Can add پلن قیمت‌گذاری",
+    "content_type": 30,
+    "codename": "add_pricingplan"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 118,
+  "fields": {
+    "name": "Can change پلن قیمت‌گذاری",
+    "content_type": 30,
+    "codename": "change_pricingplan"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 119,
+  "fields": {
+    "name": "Can delete پلن قیمت‌گذاری",
+    "content_type": 30,
+    "codename": "delete_pricingplan"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 120,
+  "fields": {
+    "name": "Can view پلن قیمت‌گذاری",
+    "content_type": 30,
+    "codename": "view_pricingplan"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 121,
+  "fields": {
+    "name": "Can add تراکنش",
+    "content_type": 31,
+    "codename": "add_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 122,
+  "fields": {
+    "name": "Can change تراکنش",
+    "content_type": 31,
+    "codename": "change_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 123,
+  "fields": {
+    "name": "Can delete تراکنش",
+    "content_type": 31,
+    "codename": "delete_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 124,
+  "fields": {
+    "name": "Can view تراکنش",
+    "content_type": 31,
+    "codename": "view_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 125,
+  "fields": {
+    "name": "Can add ترافیک فروشگاه",
+    "content_type": 32,
+    "codename": "add_storetraffic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 126,
+  "fields": {
+    "name": "Can change ترافیک فروشگاه",
+    "content_type": 32,
+    "codename": "change_storetraffic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 127,
+  "fields": {
+    "name": "Can delete ترافیک فروشگاه",
+    "content_type": 32,
+    "codename": "delete_storetraffic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 128,
+  "fields": {
+    "name": "Can view ترافیک فروشگاه",
+    "content_type": 32,
+    "codename": "view_storetraffic"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 129,
+  "fields": {
+    "name": "Can add نظارت فروشگاه",
+    "content_type": 33,
+    "codename": "add_storesurveillance"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 130,
+  "fields": {
+    "name": "Can change نظارت فروشگاه",
+    "content_type": 33,
+    "codename": "change_storesurveillance"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 131,
+  "fields": {
+    "name": "Can delete نظارت فروشگاه",
+    "content_type": 33,
+    "codename": "delete_storesurveillance"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 132,
+  "fields": {
+    "name": "Can view نظارت فروشگاه",
+    "content_type": 33,
+    "codename": "view_storesurveillance"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 133,
+  "fields": {
+    "name": "Can add محصولات فروشگاه",
+    "content_type": 34,
+    "codename": "add_storeproducts"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 134,
+  "fields": {
+    "name": "Can change محصولات فروشگاه",
+    "content_type": 34,
+    "codename": "change_storeproducts"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 135,
+  "fields": {
+    "name": "Can delete محصولات فروشگاه",
+    "content_type": 34,
+    "codename": "delete_storeproducts"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 136,
+  "fields": {
+    "name": "Can view محصولات فروشگاه",
+    "content_type": 34,
+    "codename": "view_storeproducts"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 137,
+  "fields": {
+    "name": "Can add چیدمان فروشگاه",
+    "content_type": 35,
+    "codename": "add_storelayout"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 138,
+  "fields": {
+    "name": "Can change چیدمان فروشگاه",
+    "content_type": 35,
+    "codename": "change_storelayout"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 139,
+  "fields": {
+    "name": "Can delete چیدمان فروشگاه",
+    "content_type": 35,
+    "codename": "delete_storelayout"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 140,
+  "fields": {
+    "name": "Can view چیدمان فروشگاه",
+    "content_type": 35,
+    "codename": "view_storelayout"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 141,
+  "fields": {
+    "name": "Can add طراحی فروشگاه",
+    "content_type": 36,
+    "codename": "add_storedesign"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 142,
+  "fields": {
+    "name": "Can change طراحی فروشگاه",
+    "content_type": 36,
+    "codename": "change_storedesign"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 143,
+  "fields": {
+    "name": "Can delete طراحی فروشگاه",
+    "content_type": 36,
+    "codename": "delete_storedesign"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 144,
+  "fields": {
+    "name": "Can view طراحی فروشگاه",
+    "content_type": 36,
+    "codename": "view_storedesign"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 145,
+  "fields": {
+    "name": "Can add درخواست تحلیل",
+    "content_type": 37,
+    "codename": "add_analysisrequest"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 146,
+  "fields": {
+    "name": "Can change درخواست تحلیل",
+    "content_type": 37,
+    "codename": "change_analysisrequest"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 147,
+  "fields": {
+    "name": "Can delete درخواست تحلیل",
+    "content_type": 37,
+    "codename": "delete_analysisrequest"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 148,
+  "fields": {
+    "name": "Can view درخواست تحلیل",
+    "content_type": 37,
+    "codename": "view_analysisrequest"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 149,
+  "fields": {
+    "name": "Can add جلسه مشاوره هوش مصنوعی",
+    "content_type": 38,
+    "codename": "add_aiconsultantsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 150,
+  "fields": {
+    "name": "Can change جلسه مشاوره هوش مصنوعی",
+    "content_type": 38,
+    "codename": "change_aiconsultantsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 151,
+  "fields": {
+    "name": "Can delete جلسه مشاوره هوش مصنوعی",
+    "content_type": 38,
+    "codename": "delete_aiconsultantsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 152,
+  "fields": {
+    "name": "Can view جلسه مشاوره هوش مصنوعی",
+    "content_type": 38,
+    "codename": "view_aiconsultantsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 153,
+  "fields": {
+    "name": "Can add سوال مشاوره هوش مصنوعی",
+    "content_type": 39,
+    "codename": "add_aiconsultantquestion"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 154,
+  "fields": {
+    "name": "Can change سوال مشاوره هوش مصنوعی",
+    "content_type": 39,
+    "codename": "change_aiconsultantquestion"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 155,
+  "fields": {
+    "name": "Can delete سوال مشاوره هوش مصنوعی",
+    "content_type": 39,
+    "codename": "delete_aiconsultantquestion"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 156,
+  "fields": {
+    "name": "Can view سوال مشاوره هوش مصنوعی",
+    "content_type": 39,
+    "codename": "view_aiconsultantquestion"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 157,
+  "fields": {
+    "name": "Can add پرداخت مشاوره هوش مصنوعی",
+    "content_type": 40,
+    "codename": "add_aiconsultantpayment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 158,
+  "fields": {
+    "name": "Can change پرداخت مشاوره هوش مصنوعی",
+    "content_type": 40,
+    "codename": "change_aiconsultantpayment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 159,
+  "fields": {
+    "name": "Can delete پرداخت مشاوره هوش مصنوعی",
+    "content_type": 40,
+    "codename": "delete_aiconsultantpayment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 160,
+  "fields": {
+    "name": "Can view پرداخت مشاوره هوش مصنوعی",
+    "content_type": 40,
+    "codename": "view_aiconsultantpayment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 161,
+  "fields": {
+    "name": "Can add دفتر تلفن",
+    "content_type": 41,
+    "codename": "add_phonebook"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 162,
+  "fields": {
+    "name": "Can change دفتر تلفن",
+    "content_type": 41,
+    "codename": "change_phonebook"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 163,
+  "fields": {
+    "name": "Can delete دفتر تلفن",
+    "content_type": 41,
+    "codename": "delete_phonebook"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 164,
+  "fields": {
+    "name": "Can view دفتر تلفن",
+    "content_type": 41,
+    "codename": "view_phonebook"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 165,
+  "fields": {
+    "name": "Can add بنر تبلیغاتی",
+    "content_type": 42,
+    "codename": "add_promotionalbanner"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 166,
+  "fields": {
+    "name": "Can change بنر تبلیغاتی",
+    "content_type": 42,
+    "codename": "change_promotionalbanner"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 167,
+  "fields": {
+    "name": "Can delete بنر تبلیغاتی",
+    "content_type": 42,
+    "codename": "delete_promotionalbanner"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 168,
+  "fields": {
+    "name": "Can view بنر تبلیغاتی",
+    "content_type": 42,
+    "codename": "view_promotionalbanner"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 169,
+  "fields": {
+    "name": "Can add تنظیمات سیستم",
+    "content_type": 43,
+    "codename": "add_discountnotification"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 170,
+  "fields": {
+    "name": "Can change تنظیمات سیستم",
+    "content_type": 43,
+    "codename": "change_discountnotification"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 171,
+  "fields": {
+    "name": "Can delete تنظیمات سیستم",
+    "content_type": 43,
+    "codename": "delete_discountnotification"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 172,
+  "fields": {
+    "name": "Can view تنظیمات سیستم",
+    "content_type": 43,
+    "codename": "view_discountnotification"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 173,
+  "fields": {
+    "name": "Can add جلسه چت",
+    "content_type": 44,
+    "codename": "add_chatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 174,
+  "fields": {
+    "name": "Can change جلسه چت",
+    "content_type": 44,
+    "codename": "change_chatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 175,
+  "fields": {
+    "name": "Can delete جلسه چت",
+    "content_type": 44,
+    "codename": "delete_chatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 176,
+  "fields": {
+    "name": "Can view جلسه چت",
+    "content_type": 44,
+    "codename": "view_chatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 177,
+  "fields": {
+    "name": "Can add پیام چت",
+    "content_type": 45,
+    "codename": "add_chatmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 178,
+  "fields": {
+    "name": "Can change پیام چت",
+    "content_type": 45,
+    "codename": "change_chatmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 179,
+  "fields": {
+    "name": "Can delete پیام چت",
+    "content_type": 45,
+    "codename": "delete_chatmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 180,
+  "fields": {
+    "name": "Can view پیام چت",
+    "content_type": 45,
+    "codename": "view_chatmessage"
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$jkM5k2WdA7N7pwdFSNPMsm$IWfrjjTkU0i+JvlPcj0Z18clpSTHWyDpop6MtmdELOY=",
+    "last_login": "2025-10-04T05:55:20.573Z",
+    "is_superuser": false,
+    "username": "elham",
+    "first_name": "",
+    "last_name": "",
+    "email": "elham\"gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-10-01T05:13:05.578Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$u9HCjlrwqhmT2obn8xkBTF$MdLVIxH0Sg5yj5U8nKauiC8wXWs/3W81rZroEosalR0=",
+    "last_login": "2025-10-10T20:33:15.149Z",
+    "is_superuser": true,
+    "username": "saeed",
+    "first_name": "",
+    "last_name": "",
+    "email": "saeed@example.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-10-01T05:26:48.846Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "test_user",
+    "first_name": "",
+    "last_name": "",
+    "email": "test@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-10-08T22:27:00.932Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 4,
+  "fields": {
+    "password": "",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "perfect_test_user",
+    "first_name": "",
+    "last_name": "",
+    "email": "perfect@test.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-10-08T22:43:05.078Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 5,
+  "fields": {
+    "password": "",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "quick_test_user",
+    "first_name": "",
+    "last_name": "",
+    "email": "quick@test.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-10-08T23:12:12.361Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$SAd9TZlZUXMhtBuhPXNVIQ$wZ2RLE6jgYgUPiyTX+HAQBYLucUW1AO7i6vflgmRrG0=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@example.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-10-08T23:31:12.611Z",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]
