@@ -2,6 +2,9 @@
   "platform": "django",
   "python": "3.11",
   "framework": "Django",
+  "django": {
+    "settingsFile": "chidmano/settings.py"
+  },
   "build": {
     "buildCommand": "python manage.py collectstatic --noinput && python manage.py migrate --no-input",
     "files": [
