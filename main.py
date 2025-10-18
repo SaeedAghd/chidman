@@ -25,10 +25,8 @@ if __name__ == "__main__":
         call_command('migrate', interactive=False, verbosity=1)
         print("✅ All migrations applied successfully")
         
-        # Add authority column if needed
-        print("🔧 Adding authority column if needed...")
-        call_command('add_authority_column')
-        print("✅ Authority column check completed")
+        # Skip custom commands that might not exist
+        print("🔧 Skipping custom commands...")
         
     except Exception as migrate_error:
         print(f"⚠️ Migration warning: {migrate_error}")

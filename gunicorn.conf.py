@@ -5,8 +5,8 @@ import multiprocessing
 bind = "0.0.0.0:8000"
 backlog = 2048
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Worker processes - use 1 for Liara to avoid memory issues
+workers = 1
 worker_class = "sync"
 worker_connections = 1000
 timeout = 300  # 5 minutes for AI processing

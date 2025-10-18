@@ -142,7 +142,7 @@ nbclient==0.9.0
 nbformat==5.9.2
 nest-asyncio==1.6.0
 networkx==3.2.1
-numpy>=1.25.0
+numpy==1.25.0
 ollama==0.5.3
 openai==1.102.0
 openapi-core==0.18.2
@@ -183,6 +183,8 @@ pydantic==2.11.9
 pydantic_core==2.33.2
 pyee==12.1.1
 # pygame==2.6.1  # Not needed for web deployment
+# pywin32==308  # Windows only - removed for Linux deployment
+# win32_setctime==1.2.0  # Windows only - removed for Linux deployment
 Pygments==2.16.1
 PyJWT==2.8.0
 pylance==0.9.0
