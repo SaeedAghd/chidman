@@ -243,6 +243,9 @@ class CustomUserCreationForm(UserCreationForm):
             'class': 'form-control',
             'placeholder': 'رمز عبور را مجدداً وارد کنید'
         })
+        
+        # اصلاح validation برای username
+        self.fields['username'].validators = []
     
     def clean_phone(self):
         """اعتبارسنجی شماره موبایل"""

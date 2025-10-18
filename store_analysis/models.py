@@ -947,7 +947,7 @@ class UserProfile(models.Model):
     
     # اطلاعات شخصی
     phone = models.CharField(max_length=11, verbose_name='شماره موبایل', help_text='شماره موبایل برای پرداخت و ارسال پیامک الزامی است')
-    address = models.TextField(blank=True, null=True, default='', verbose_name='آدرس')
+    address = models.TextField(blank=True, null=True, verbose_name='آدرس')
     birth_date = models.DateField(blank=True, null=True, verbose_name='تاریخ تولد')
     
     # تنظیمات حساب
