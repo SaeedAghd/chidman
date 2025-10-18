@@ -7173,8 +7173,9 @@ def buy_basic(request):
             status='pending'
         )
         
-        # هدایت به صفحه پرداخت
-        return redirect('store_analysis:payment_page', order_id=order.order_number)
+        # تحلیل اولیه رایگان است - مستقیماً به صفحه موفقیت
+        messages.success(request, '✅ سفارش شما با موفقیت ثبت شد! تحلیل رایگان شما در حال پردازش است.')
+        return redirect('store_analysis:user_dashboard')
     
     context = {
         'product_name': 'تحلیل اولیه فروشگاه',
