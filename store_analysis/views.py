@@ -2900,8 +2900,9 @@ def process_payment(request, order_id):
                     store_analysis.preliminary_analysis = initial_analysis
                     store_analysis.save()
                 
-                # هدایت به صفحه نتایج
-                return redirect('store_analysis:order_analysis_results', order_id=order.order_number)
+                # هدایت به صفحه فرم تحلیل
+                messages.success(request, 'پرداخت موفق! حالا فرم تحلیل فروشگاه را تکمیل کنید.')
+                return redirect('store_analysis:forms')
             
             # شبیه‌سازی پرداخت موفق (برای سایر روش‌ها)
             # در واقعیت باید با درگاه پرداخت ارتباط برقرار شود
@@ -2934,7 +2935,7 @@ def process_payment(request, order_id):
                 store_analysis.save()
             
             # هدایت به صفحه نتایج
-            return redirect('store_analysis:order_analysis_results', order_id=order.order_number)
+            return redirect('store_analysis:forms')
             
         except Exception as e:
             messages.error(request, f'❌ خطا در پردازش پرداخت: {str(e)}')
@@ -3244,8 +3245,8 @@ def payping_callback(request, order_id):
             existing_payment = Payment.objects.filter(transaction_id=refid).first()
             if existing_payment:
                 logger.warning(f"⚠️ Duplicate payment detected: {refid} - already processed")
-                messages.success(request, '✅ پرداخت شما قبلاً ثبت شده است. در حال هدایت به نتایج...')
-                return redirect('store_analysis:order_analysis_results', order_id=order_id)
+                messages.success(request, '✅ پرداخت شما قبلاً ثبت شده است. در حال هدایت به فرم تحلیل...')
+                return redirect('store_analysis:forms')
             
             # ثبت پرداخت موفق
             store_analysis = StoreAnalysis.objects.filter(order=order).first()
@@ -3275,7 +3276,7 @@ def payping_callback(request, order_id):
             messages.success(request, f'✅ پرداخت با موفقیت انجام شد! سفارش شما در حال پردازش است.')
             
             # هدایت به صفحه نتایج
-            return redirect('store_analysis:order_analysis_results', order_id=order_id)
+            return redirect('store_analysis:forms')
             
         else:
             # ❌ پرداخت ناموفق یا خطا در تایید
@@ -6372,7 +6373,7 @@ def analysis_payment_page(request, pk):
     # اگر تحلیل قبلاً پرداخت شده، به صفحه تحلیل هدایت شود
     if analysis.status != 'pending':
         messages.info(request, 'این تحلیل قبلاً پرداخت شده است.')
-        return redirect('store_analysis:order_analysis_results', order_id=analysis.order.order_number)
+        return redirect('store_analysis:forms')
     
     # محاسبه هزینه تحلیل
     cost = calculate_analysis_cost(analysis.analysis_data or {})
@@ -7039,6 +7040,246 @@ def forms_submit(request):
     })
 
 
+def products_page(request):
+    """صفحه محصولات و خدمات تحلیل فروشگاه - بدون نیاز به لاگین"""
+    products = [
+        {
+            'name': 'تحلیل اولیه فروشگاه',
+            'price': '500000',
+            'currency': 'تومان',
+            'delivery_time': '24 ساعت',
+            'features': [
+                'تحلیل کلی فروشگاه',
+                'شناسایی نقاط ضعف',
+                '5 پیشنهاد عملی',
+                'گزارش 10 صفحه‌ای',
+                'پشتیبانی ایمیل'
+            ],
+            'buy_url': '/store/buy/basic/',
+            'popular': False
+        },
+        {
+            'name': 'تحلیل کامل فروشگاه',
+            'price': '1500000',
+            'currency': 'تومان',
+            'delivery_time': '48 ساعت',
+            'features': [
+                'تحلیل جامع فروشگاه',
+                'شناسایی نقاط ضعف و قوت',
+                '15 پیشنهاد عملی',
+                'گزارش 25 صفحه‌ای',
+                'مشاوره تلفنی 30 دقیقه‌ای',
+                'پشتیبانی تلفنی'
+            ],
+            'buy_url': '/store/buy/complete/',
+            'popular': True
+        },
+        {
+            'name': 'تحلیل پیشرفته فروشگاه',
+            'price': '3000000',
+            'currency': 'تومان',
+            'delivery_time': '72 ساعت',
+            'features': [
+                'تحلیل کامل + پیگیری',
+                'شناسایی کامل مشکلات',
+                '25 پیشنهاد عملی',
+                'گزارش 50 صفحه‌ای',
+                'مشاوره تلفنی 60 دقیقه‌ای',
+                'پیگیری 30 روزه',
+                'پشتیبانی اختصاصی'
+            ],
+            'buy_url': '/store/buy/advanced/',
+            'popular': False
+        }
+    ]
+    
+    payment_methods = [
+        {
+            'name': 'پرداخت آنلاین',
+            'description': 'درگاه PayPing - پرداخت امن و سریع',
+            'features': ['پشتیبانی از تمام کارت‌ها', 'پرداخت فوری', 'تأیید فوری']
+        }
+    ]
+    
+    guarantees = [
+        {
+            'name': 'ضمانت کیفیت',
+            'description': 'تحلیل حرفه‌ای توسط متخصصان',
+            'details': ['نتیجه عملی', 'پشتیبانی کامل تا 30 روز']
+        }
+    ]
+    
+    context = {
+        'products': products,
+        'payment_methods': payment_methods,
+        'guarantees': guarantees,
+        'page_title': 'محصولات و خدمات تحلیل فروشگاه',
+        'meta_description': 'محصولات و خدمات تحلیل فروشگاه چیدمانو. تحلیل اولیه، کامل و پیشرفته فروشگاه با قیمت‌های شفاف.',
+        'meta_keywords': 'محصولات تحلیل فروشگاه، خدمات چیدمان، تحلیل فروشگاه، مشاوره فروشگاه'
+    }
+    
+    return render(request, 'store_analysis/products.html', context)
+
+
+def buy_basic(request):
+    """خرید تحلیل اولیه - بدون نیاز به لاگین"""
+    if request.method == 'POST':
+        # پردازش فرم خرید
+        store_name = request.POST.get('store_name')
+        store_type = request.POST.get('store_type')
+        store_size = request.POST.get('store_size')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        
+        # دریافت ServicePackage
+        from .models import ServicePackage
+        service_package = ServicePackage.objects.get(package_type='basic')
+        
+        # ایجاد سفارش
+        order = Order.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            plan=service_package,
+            amount=500000,
+            final_amount=500000,
+            status='pending',
+            payment_method='online'
+        )
+        
+        # ایجاد تحلیل
+        store_analysis = StoreAnalysis.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            order=order,
+            store_name=store_name,
+            store_type=store_type,
+            store_size=store_size,
+            contact_phone=phone,
+            contact_email=email,
+            status='pending'
+        )
+        
+        # هدایت به صفحه پرداخت
+        return redirect('store_analysis:payment_page', order_id=order.order_number)
+    
+    context = {
+        'product_name': 'تحلیل اولیه فروشگاه',
+        'price': '500000',
+        'currency': 'تومان',
+        'delivery_time': '24 ساعت'
+    }
+    
+    return render(request, 'store_analysis/buy_form.html', context)
+
+
+def buy_complete(request):
+    """خرید تحلیل کامل - بدون نیاز به لاگین"""
+    if request.method == 'POST':
+        # پردازش فرم خرید
+        store_name = request.POST.get('store_name')
+        store_type = request.POST.get('store_type')
+        store_size = request.POST.get('store_size')
+        store_address = request.POST.get('store_address')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        additional_info = request.POST.get('additional_info')
+        
+        # دریافت ServicePackage
+        from .models import ServicePackage
+        service_package = ServicePackage.objects.get(package_type='professional')
+        
+        # ایجاد سفارش
+        order = Order.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            plan=service_package,
+            amount=1500000,
+            final_amount=1500000,
+            status='pending',
+            payment_method='online'
+        )
+        
+        # ایجاد تحلیل
+        store_analysis = StoreAnalysis.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            order=order,
+            store_name=store_name,
+            store_type=store_type,
+            store_size=store_size,
+            store_address=store_address,
+            contact_phone=phone,
+            contact_email=email,
+            additional_info=additional_info,
+            status='pending'
+        )
+        
+        # هدایت به صفحه پرداخت
+        return redirect('store_analysis:payment_page', order_id=order.order_number)
+    
+    context = {
+        'product_name': 'تحلیل کامل فروشگاه',
+        'price': '1500000',
+        'currency': 'تومان',
+        'delivery_time': '48 ساعت'
+    }
+    
+    return render(request, 'store_analysis/buy_form.html', context)
+
+
+def buy_advanced(request):
+    """خرید تحلیل پیشرفته - بدون نیاز به لاگین"""
+    if request.method == 'POST':
+        # پردازش فرم خرید
+        store_name = request.POST.get('store_name')
+        store_type = request.POST.get('store_type')
+        store_size = request.POST.get('store_size')
+        store_address = request.POST.get('store_address')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        additional_info = request.POST.get('additional_info')
+        business_goals = request.POST.get('business_goals')
+        marketing_budget = request.POST.get('marketing_budget')
+        
+        # دریافت ServicePackage
+        from .models import ServicePackage
+        service_package = ServicePackage.objects.get(package_type='enterprise')
+        
+        # ایجاد سفارش
+        order = Order.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            plan=service_package,
+            amount=3000000,
+            final_amount=3000000,
+            status='pending',
+            payment_method='online'
+        )
+        
+        # ایجاد تحلیل
+        store_analysis = StoreAnalysis.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            order=order,
+            store_name=store_name,
+            store_type=store_type,
+            store_size=store_size,
+            store_address=store_address,
+            contact_phone=phone,
+            contact_email=email,
+            additional_info=additional_info,
+            business_goals=business_goals,
+            marketing_budget=marketing_budget,
+            status='pending'
+        )
+        
+        # هدایت به صفحه پرداخت
+        return redirect('store_analysis:payment_page', order_id=order.order_number)
+    
+    context = {
+        'product_name': 'تحلیل پیشرفته فروشگاه',
+        'price': '3000000',
+        'currency': 'تومان',
+        'delivery_time': '72 ساعت'
+    }
+    
+    return render(request, 'store_analysis/buy_form.html', context)
+
+
 def payment_success(request, order_id):
     """پرداخت موفق - اجرای تحلیل AI"""
     try:
@@ -7101,8 +7342,9 @@ def payment_success(request, order_id):
             store_analysis.save()
             messages.warning(request, 'خطا در تحلیل AI. تحلیل دستی انجام خواهد شد.')
         
-        # هدایت به داشبورد
-        return redirect('store_analysis:user_dashboard')
+        # هدایت به صفحه فرم تحلیل
+        messages.success(request, 'پرداخت موفق! حالا فرم تحلیل فروشگاه را تکمیل کنید.')
+        return redirect('store_analysis:forms')
         
     except Exception as e:
         logger.error(f"Error in payment success: {e}")

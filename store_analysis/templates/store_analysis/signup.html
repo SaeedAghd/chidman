@@ -453,7 +453,7 @@ body {
                         {% endfor %}
                     {% endif %}
                     
-            <form method="post" novalidate autocomplete="off" id="signupForm">
+            <form method="post" action="{% url 'signup' %}" novalidate autocomplete="off" id="signupForm">
                         {% csrf_token %}
                         
                 <!-- نام کاربری -->

@@ -1,0 +1,262 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}خرید {{ product_name }} | چیدمانو{% endblock %}
+
+{% block extra_css %}
+<style>
+.buy-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.buy-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.buy-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.product-info {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.product-info h2 {
+    margin-bottom: 15px;
+}
+
+.product-price {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.product-delivery {
+    font-size: 1.1rem;
+}
+
+.buy-form {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.form-group textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.required {
+    color: #e74c3c;
+}
+
+.submit-button {
+    width: 100%;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.submit-button:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+}
+
+.payment-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 30px;
+}
+
+.payment-info h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.payment-method {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid #ecf0f1;
+}
+
+.payment-method.active {
+    border-color: #3498db;
+    background: #ebf3fd;
+}
+
+@media (max-width: 768px) {
+    .buy-container {
+        padding: 10px;
+    }
+    
+    .buy-header h1 {
+        font-size: 2rem;
+    }
+    
+    .buy-form {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="buy-container">
+    <!-- Header -->
+    <div class="buy-header">
+        <h1>خرید {{ product_name }}</h1>
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+        <h2>{{ product_name }}</h2>
+        <div class="product-price">{{ price }} {{ currency }}</div>
+        <div class="product-delivery">تحویل در {{ delivery_time }}</div>
+    </div>
+
+    <!-- Buy Form -->
+    <form method="post" class="buy-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="store_name">نام فروشگاه <span class="required">*</span></label>
+            <input type="text" id="store_name" name="store_name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="store_type">نوع فروشگاه <span class="required">*</span></label>
+            <select id="store_type" name="store_type" required>
+                <option value="">انتخاب کنید</option>
+                <option value="مواد غذایی">مواد غذایی</option>
+                <option value="پوشاک">پوشاک</option>
+                <option value="لوازم خانگی">لوازم خانگی</option>
+                <option value="کتاب و لوازم التحریر">کتاب و لوازم التحریر</option>
+                <option value="لوازم آرایشی">لوازم آرایشی</option>
+                <option value="کفش">کفش</option>
+                <option value="سایر">سایر</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="store_size">اندازه فروشگاه <span class="required">*</span></label>
+            <select id="store_size" name="store_size" required>
+                <option value="">انتخاب کنید</option>
+                <option value="کوچک (کمتر از 50 متر)">کوچک (کمتر از 50 متر)</option>
+                <option value="متوسط (50-150 متر)">متوسط (50-150 متر)</option>
+                <option value="بزرگ (150-300 متر)">بزرگ (150-300 متر)</option>
+                <option value="خیلی بزرگ (بیش از 300 متر)">خیلی بزرگ (بیش از 300 متر)</option>
+            </select>
+        </div>
+
+        {% if product_name == 'تحلیل کامل فروشگاه' or product_name == 'تحلیل پیشرفته فروشگاه' %}
+        <div class="form-group">
+            <label for="store_address">آدرس فروشگاه</label>
+            <textarea id="store_address" name="store_address" placeholder="آدرس کامل فروشگاه خود را وارد کنید"></textarea>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="phone">شماره تلفن <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone" required placeholder="09123456789">
+        </div>
+
+        <div class="form-group">
+            <label for="email">ایمیل <span class="required">*</span></label>
+            <input type="email" id="email" name="email" required placeholder="example@email.com">
+        </div>
+
+        {% if product_name == 'تحلیل کامل فروشگاه' or product_name == 'تحلیل پیشرفته فروشگاه' %}
+        <div class="form-group">
+            <label for="additional_info">توضیحات اضافی</label>
+            <textarea id="additional_info" name="additional_info" placeholder="هر اطلاعات اضافی که فکر می‌کنید مفید است"></textarea>
+        </div>
+        {% endif %}
+
+        {% if product_name == 'تحلیل پیشرفته فروشگاه' %}
+        <div class="form-group">
+            <label for="business_goals">اهداف کسب‌وکار</label>
+            <textarea id="business_goals" name="business_goals" placeholder="اهداف و برنامه‌های آینده کسب‌وکار خود را شرح دهید"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="marketing_budget">بودجه بازاریابی</label>
+            <select id="marketing_budget" name="marketing_budget">
+                <option value="">انتخاب کنید</option>
+                <option value="کمتر از 1 میلیون تومان">کمتر از 1 میلیون تومان</option>
+                <option value="1-5 میلیون تومان">1-5 میلیون تومان</option>
+                <option value="5-10 میلیون تومان">5-10 میلیون تومان</option>
+                <option value="بیش از 10 میلیون تومان">بیش از 10 میلیون تومان</option>
+            </select>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="submit-button">ادامه به پرداخت</button>
+    </form>
+
+    <!-- Payment Info -->
+    <div class="payment-info">
+        <h3>💳 روش پرداخت</h3>
+        <div class="payment-methods">
+            <div class="payment-method active">
+                <h4>پرداخت آنلاین</h4>
+                <p>درگاه PayPing</p>
+                <small>پرداخت امن و سریع</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

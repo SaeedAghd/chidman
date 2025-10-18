@@ -1,0 +1,320 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | چیدمانو{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.products-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.products-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.products-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.products-header p {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.product-card.popular {
+    border-color: #e74c3c;
+    transform: scale(1.05);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.product-name {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.product-price {
+    font-size: 2rem;
+    color: #e74c3c;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.product-delivery {
+    color: #27ae60;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+.product-features {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.product-features li {
+    padding: 8px 0;
+    color: #34495e;
+    position: relative;
+    padding-right: 25px;
+}
+
+.product-features li:before {
+    content: "✅";
+    position: absolute;
+    right: 0;
+    top: 8px;
+}
+
+.buy-button {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.buy-button:hover {
+    background: linear-gradient(135deg, #2980b9, #1f618d);
+    color: white;
+    text-decoration: none;
+}
+
+.payment-methods {
+    background: #f8f9fa;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 40px;
+}
+
+.payment-methods h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.payment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.payment-method {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.guarantees {
+    background: #e8f5e8;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 40px;
+}
+
+.guarantees h2 {
+    text-align: center;
+    color: #27ae60;
+    margin-bottom: 30px;
+}
+
+.guarantee-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.guarantee {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.support-section {
+    background: #2c3e50;
+    color: white;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.support-section h2 {
+    margin-bottom: 20px;
+}
+
+.support-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.support-item {
+    padding: 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .product-card.popular {
+        transform: none;
+    }
+    
+    .products-header h1 {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="products-container">
+    <!-- Header -->
+    <div class="products-header">
+        <h1>{{ page_title }}</h1>
+        <p>چیدمانو با استفاده از هوش مصنوعی پیشرفته، فروشگاه شما را تحلیل می‌کند و راه‌حل‌های عملی ارائه می‌دهد.</p>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card {% if product.popular %}popular{% endif %}">
+            {% if product.popular %}
+            <div class="popular-badge">محبوب</div>
+            {% endif %}
+            
+            <h3 class="product-name">{{ product.name }}</h3>
+            <div class="product-price">{{ product.price }} {{ product.currency }}</div>
+            <div class="product-delivery">تحویل در {{ product.delivery_time }}</div>
+            
+            <h4>ویژگی‌ها:</h4>
+            <ul class="product-features">
+                {% for feature in product.features %}
+                <li>{{ feature }}</li>
+                {% endfor %}
+            </ul>
+            
+            <a href="{{ product.buy_url }}" class="buy-button">خرید {{ product.name }}</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="payment-methods">
+        <h2>💳 روش پرداخت</h2>
+        <div class="payment-grid">
+            {% for method in payment_methods %}
+            <div class="payment-method">
+                <h4>{{ method.name }}</h4>
+                <p>{{ method.description }}</p>
+                <ul>
+                    {% for feature in method.features %}
+                    <li>{{ feature }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Guarantees -->
+    <div class="guarantees">
+        <h2>🛡️ ضمانت‌ها</h2>
+        <div class="guarantee-grid">
+            {% for guarantee in guarantees %}
+            <div class="guarantee">
+                <h4>{{ guarantee.name }}</h4>
+                <p>{{ guarantee.description }}</p>
+                <ul>
+                    {% for detail in guarantee.details %}
+                    <li>{{ detail }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Support Section -->
+    <div class="support-section">
+        <h2>📞 پشتیبانی</h2>
+        <p>تیم پشتیبانی چیدمانو همیشه آماده پاسخگویی به سوالات شما است.</p>
+        
+        <div class="support-info">
+            <div class="support-item">
+                <h4>تلفن</h4>
+                <p>09202658678</p>
+            </div>
+            <div class="support-item">
+                <h4>موبایل</h4>
+                <p>09360572676</p>
+            </div>
+            <div class="support-item">
+                <h4>ایمیل</h4>
+                <p>support@chidmano.ir</p>
+            </div>
+            <div class="support-item">
+                <h4>تلگرام</h4>
+                <p>@chidmano_support</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

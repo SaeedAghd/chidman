@@ -137,10 +137,10 @@ class PayPingGateway:
     SANDBOX_BASE_URL = "https://sandbox-api.payping.ir/v2/pay"
     SANDBOX_VERIFY_URL = "https://sandbox-api.payping.ir/v2/pay/verify"
 
-    def __init__(self, token: str, sandbox: bool = False):
+    def __init__(self, token: str, sandbox: bool = True):
         self.token = token or getattr(settings, 'PAYPING_TOKEN', '')
         self.sandbox = bool(sandbox)
-        self.mock_mode = getattr(settings, 'PAYPING_MOCK_MODE', False)
+        self.mock_mode = getattr(settings, 'PAYPING_MOCK_MODE', True)
         
         # Select base URLs by environment
         self.base_url = self.SANDBOX_BASE_URL if self.sandbox else self.PROD_BASE_URL
@@ -148,7 +148,7 @@ class PayPingGateway:
         
         if not self.token:
             # Use test token for development
-            self.token = "test_token_for_development"
+            self.token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlwaW5nIiwiYXVkIjoiMCIsImV4cCI6MjUyNDY0MjAwMCwibmJmIjoxNjQwOTQyMDAwLCJqdGkiOiI1ZjQ5YzQ2Yy0xYjQ4LTRhNzktOTQ4ZC1hYzQzYzQzYzQzYyIsInN1YiI6IjEyMzQ1Njc4OTAiLCJwcmV2aWV3Ijp0cnVlfQ.test_signature"
             logger.warning("Using test token for PayPing development")
         
         # Keep provided token as-is (don't auto-switch to mock). Only use mock if no token provided.

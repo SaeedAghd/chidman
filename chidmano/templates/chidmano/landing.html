@@ -1707,8 +1707,11 @@
                         <a class="nav-link" href="{% url 'home' %}">خانه</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'store_analysis:products' %}">محصولات</a>
+                    </li>
+                    <li class="nav-item">
                         {% if user.is_authenticated %}
-                            <a class="nav-link" href="{% url 'store_analysis:forms' %}">تحلیل فروشگاه</a>
+                            <a class="nav-link" href="{% url 'store_analysis:products' %}">تحلیل فروشگاه</a>
                         {% else %}
                             <a class="nav-link" href="{% url 'login' %}">تحلیل فروشگاه</a>
                         {% endif %}
@@ -1724,7 +1727,7 @@
                 <!-- Left-aligned dashboard and login buttons -->
                 <div class="d-flex me-auto">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'store_analysis:forms' %}" class="btn btn-nav me-2">
+                        <a href="{% url 'store_analysis:products' %}" class="btn btn-nav me-2">
                     {% else %}
                         <a href="{% url 'login' %}" class="btn btn-nav me-2">
                     {% endif %}
@@ -2042,8 +2045,12 @@
                     
                     <!-- CTA Buttons -->
                     <div class="hero-buttons-modern">
+                        <a href="{% url 'store_analysis:products' %}" class="btn-secondary-modern">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            مشاهده محصولات و قیمت‌ها
+                        </a>
                         {% if user.is_authenticated %}
-                            <a href="{% url 'store_analysis:forms' %}" class="btn-primary-modern pulse-animation">
+                            <a href="{% url 'store_analysis:products' %}" class="btn-primary-modern pulse-animation">
                         {% else %}
                             <a href="{% url 'login' %}" class="btn-primary-modern pulse-animation">
                         {% endif %}
@@ -2592,8 +2599,12 @@
                         <li class="mb-2"><i class="fas fa-check text-success me-2"></i>پشتیبانی 24/7</li>
                     </ul>
                     <div class="mt-4">
+                        <a href="{% url 'store_analysis:products' %}" class="btn-secondary-custom me-3">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            مشاهده محصولات
+                        </a>
                         {% if user.is_authenticated %}
-                            <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom me-3">
+                            <a href="{% url 'store_analysis:products' %}" class="btn-primary-custom me-3">
                         {% else %}
                             <a href="{% url 'login' %}" class="btn-primary-custom me-3">
                         {% endif %}
@@ -3164,7 +3175,7 @@
             <h2>آماده شروع هستید؟</h2>
             <p>همین حالا تحلیل فروشگاه خود را شروع کنید و نتایج شگفت‌انگیز را ببینید</p>
             {% if user.is_authenticated %}
-                <a href="{% url 'store_analysis:forms' %}" class="btn-primary-custom">
+                <a href="{% url 'store_analysis:products' %}" class="btn-primary-custom">
             {% else %}
                 <a href="{% url 'login' %}" class="btn-primary-custom">
             {% endif %}
@@ -5619,7 +5630,7 @@
             
             <div class="exit-popup-buttons">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'store_analysis:forms' %}" class="exit-popup-btn-primary">
+                    <a href="{% url 'store_analysis:products' %}" class="exit-popup-btn-primary">
                 {% else %}
                     <a href="{% url 'login' %}" class="exit-popup-btn-primary">
                 {% endif %}

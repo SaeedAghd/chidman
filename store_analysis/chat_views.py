@@ -25,7 +25,7 @@ def ai_consultant_chat(request, analysis_id):
         # دریافت تحلیل
         store_analysis = get_object_or_404(
             StoreAnalysis,
-            id=analysis_id,
+            analysis_id=analysis_id,
             user=request.user
         )
         
@@ -88,7 +88,7 @@ def ai_consultant_send(request, analysis_id):
         # دریافت تحلیل و جلسه چت
         store_analysis = get_object_or_404(
             StoreAnalysis,
-            id=analysis_id,
+            analysis_id=analysis_id,
             user=request.user
         )
         

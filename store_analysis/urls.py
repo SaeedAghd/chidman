@@ -16,6 +16,12 @@ urlpatterns = [
     path('check-legal-agreement/', views.check_legal_agreement, name='check_legal_agreement'),
     path('accept-legal-agreement/', views.accept_legal_agreement, name='accept_legal_agreement'),
     
+    # محصولات و خرید
+    path('products/', views.products_page, name='products'),
+    path('buy/basic/', views.buy_basic, name='buy_basic'),
+    path('buy/complete/', views.buy_complete, name='buy_complete'),
+    path('buy/advanced/', views.buy_advanced, name='buy_advanced'),
+    
     # فرم‌ها و تحلیل
     path('forms/', views.store_analysis_form, name='forms'),
     path('forms/submit/', views.forms_submit, name='forms_submit'),
@@ -41,8 +47,8 @@ urlpatterns = [
         path('<int:pk>/ai/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
         
         # AI Consultant (چت‌بات هوشمند)
-        path('<int:analysis_id>/chat/', chat_views.ai_consultant_chat, name='ai_consultant_chat'),
-        path('<int:analysis_id>/chat/send/', chat_views.ai_consultant_send, name='ai_consultant_send'),
+        path('<str:analysis_id>/chat/', chat_views.ai_consultant_chat, name='ai_consultant_chat'),
+        path('<str:analysis_id>/chat/send/', chat_views.ai_consultant_send, name='ai_consultant_send'),
         path('<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
         path('<int:pk>/generate-ai/', views.generate_ai_report, name='generate_ai_report'),
         path('<int:pk>/reprocess-ollama/', views.reprocess_analysis_with_ollama, name='reprocess_analysis_with_ollama'),
