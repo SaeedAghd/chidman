@@ -164,7 +164,20 @@
     <!-- Product Info -->
     <div class="product-info">
         <h2>{{ product_name }}</h2>
-        <div class="product-price">{{ price }} {{ currency }}</div>
+        {% if is_free %}
+        <div class="product-price" style="color: #2ecc71; font-size: 2.5rem;">🎁 رایگان</div>
+        <div style="text-decoration: line-through; opacity: 0.7; font-size: 1rem;">قیمت اصلی: {{ original_price }} {{ currency }}</div>
+        {% else %}
+        <div class="product-price">
+            {{ price }} {{ currency }}
+            {% if discount_percent %}
+            <span style="background: #e74c3c; color: white; padding: 8px 15px; border-radius: 8px; font-size: 1rem; margin-right: 15px;">{{ discount_percent }}% تخفیف</span>
+            {% endif %}
+        </div>
+        {% if original_price %}
+        <div style="text-decoration: line-through; opacity: 0.7; font-size: 1rem;">قیمت اصلی: {{ original_price }} {{ currency }}</div>
+        {% endif %}
+        {% endif %}
         <div class="product-delivery">تحویل در {{ delivery_time }}</div>
     </div>
 

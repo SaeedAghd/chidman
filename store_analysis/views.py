@@ -7045,7 +7045,9 @@ def products_page(request):
     products = [
         {
             'name': 'تحلیل اولیه فروشگاه',
-            'price': '500000',
+            'original_price': '500000',
+            'price': 'رایگان',
+            'discount_percent': '100',
             'currency': 'تومان',
             'delivery_time': '24 ساعت',
             'features': [
@@ -7056,11 +7058,14 @@ def products_page(request):
                 'پشتیبانی ایمیل'
             ],
             'buy_url': '/store/buy/basic/',
-            'popular': False
+            'popular': False,
+            'is_free': True
         },
         {
             'name': 'تحلیل کامل فروشگاه',
-            'price': '1500000',
+            'original_price': '1500000',
+            'price': '750000',
+            'discount_percent': '50',
             'currency': 'تومان',
             'delivery_time': '48 ساعت',
             'features': [
@@ -7072,11 +7077,14 @@ def products_page(request):
                 'پشتیبانی تلفنی'
             ],
             'buy_url': '/store/buy/complete/',
-            'popular': True
+            'popular': True,
+            'is_free': False
         },
         {
             'name': 'تحلیل پیشرفته فروشگاه',
-            'price': '3000000',
+            'original_price': '3000000',
+            'price': '1500000',
+            'discount_percent': '50',
             'currency': 'تومان',
             'delivery_time': '72 ساعت',
             'features': [
@@ -7089,7 +7097,8 @@ def products_page(request):
                 'پشتیبانی اختصاصی'
             ],
             'buy_url': '/store/buy/advanced/',
-            'popular': False
+            'popular': False,
+            'is_free': False
         }
     ]
     
@@ -7135,14 +7144,21 @@ def buy_basic(request):
         from .models import ServicePackage
         service_package = ServicePackage.objects.get(package_type='basic')
         
+        # تحلیل اولیه رایگان است
+        original_amount = 500000
+        discount_amount = 500000  # 100% تخفیف
+        final_amount = 0  # رایگان
+        
         # ایجاد سفارش
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
             plan=service_package,
-            amount=500000,
-            final_amount=500000,
-            status='pending',
-            payment_method='online'
+            original_amount=original_amount,
+            base_amount=original_amount,
+            discount_amount=discount_amount,
+            final_amount=final_amount,
+            status='paid',  # رایگان - مستقیماً پرداخت شده
+            payment_method='free'
         )
         
         # ایجاد تحلیل
@@ -7162,9 +7178,12 @@ def buy_basic(request):
     
     context = {
         'product_name': 'تحلیل اولیه فروشگاه',
-        'price': '500000',
+        'original_price': '500000',
+        'price': 'رایگان',
+        'discount_percent': '100',
         'currency': 'تومان',
-        'delivery_time': '24 ساعت'
+        'delivery_time': '24 ساعت',
+        'is_free': True
     }
     
     return render(request, 'store_analysis/buy_form.html', context)
@@ -7186,12 +7205,19 @@ def buy_complete(request):
         from .models import ServicePackage
         service_package = ServicePackage.objects.get(package_type='professional')
         
+        # محاسبات با 50% تخفیف
+        original_amount = 1500000
+        discount_amount = 750000  # 50% تخفیف
+        final_amount = 750000
+        
         # ایجاد سفارش
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
             plan=service_package,
-            amount=1500000,
-            final_amount=1500000,
+            original_amount=original_amount,
+            base_amount=original_amount,
+            discount_amount=discount_amount,
+            final_amount=final_amount,
             status='pending',
             payment_method='online'
         )
@@ -7215,9 +7241,12 @@ def buy_complete(request):
     
     context = {
         'product_name': 'تحلیل کامل فروشگاه',
-        'price': '1500000',
+        'original_price': '1500000',
+        'price': '750000',
+        'discount_percent': '50',
         'currency': 'تومان',
-        'delivery_time': '48 ساعت'
+        'delivery_time': '48 ساعت',
+        'is_free': False
     }
     
     return render(request, 'store_analysis/buy_form.html', context)
@@ -7241,12 +7270,19 @@ def buy_advanced(request):
         from .models import ServicePackage
         service_package = ServicePackage.objects.get(package_type='enterprise')
         
+        # محاسبات با 50% تخفیف
+        original_amount = 3000000
+        discount_amount = 1500000  # 50% تخفیف
+        final_amount = 1500000
+        
         # ایجاد سفارش
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
             plan=service_package,
-            amount=3000000,
-            final_amount=3000000,
+            original_amount=original_amount,
+            base_amount=original_amount,
+            discount_amount=discount_amount,
+            final_amount=final_amount,
             status='pending',
             payment_method='online'
         )
@@ -7272,9 +7308,12 @@ def buy_advanced(request):
     
     context = {
         'product_name': 'تحلیل پیشرفته فروشگاه',
-        'price': '3000000',
+        'original_price': '3000000',
+        'price': '1500000',
+        'discount_percent': '50',
         'currency': 'تومان',
-        'delivery_time': '72 ساعت'
+        'delivery_time': '72 ساعت',
+        'is_free': False
     }
     
     return render(request, 'store_analysis/buy_form.html', context)
