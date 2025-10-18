@@ -11,11 +11,24 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Remove old foreign key constraint pointing to PricingPlan
+        # Remove ALL existing foreign key constraints on plan_id
         migrations.RunSQL(
             sql="""
-            ALTER TABLE store_analysis_order 
-            DROP CONSTRAINT IF EXISTS store_analysis_order_plan_id_e7ea3ab7_fk_store_ana;
+            DO $$ 
+            DECLARE
+                constraint_name TEXT;
+            BEGIN
+                -- Find and drop all FK constraints on plan_id column
+                FOR constraint_name IN 
+                    SELECT conname 
+                    FROM pg_constraint 
+                    WHERE conrelid = 'store_analysis_order'::regclass 
+                    AND conkey = (SELECT ARRAY[attnum] FROM pg_attribute WHERE attrelid = 'store_analysis_order'::regclass AND attname = 'plan_id')
+                    AND contype = 'f'
+                LOOP
+                    EXECUTE 'ALTER TABLE store_analysis_order DROP CONSTRAINT IF EXISTS ' || quote_ident(constraint_name);
+                END LOOP;
+            END $$;
             """,
             reverse_sql=migrations.RunSQL.noop
         ),
@@ -24,7 +37,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql="""
             ALTER TABLE store_analysis_order 
-            ADD CONSTRAINT store_analysis_order_plan_id_fkey 
+            ADD CONSTRAINT store_analysis_order_plan_id_servicepackage_fk 
             FOREIGN KEY (plan_id) 
             REFERENCES store_analysis_servicepackage(id) 
             ON DELETE SET NULL 
@@ -32,7 +45,7 @@ class Migration(migrations.Migration):
             """,
             reverse_sql="""
             ALTER TABLE store_analysis_order 
-            DROP CONSTRAINT IF EXISTS store_analysis_order_plan_id_fkey;
+            DROP CONSTRAINT IF EXISTS store_analysis_order_plan_id_servicepackage_fk;
             """
         ),
     ]
