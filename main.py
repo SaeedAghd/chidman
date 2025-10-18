@@ -25,8 +25,10 @@ if __name__ == "__main__":
         call_command('migrate', interactive=False, verbosity=1)
         print("✅ All migrations applied successfully")
         
-        # Skip custom commands that might not exist
-        print("🔧 Skipping custom commands...")
+        # Create ServicePackage table if not exists
+        print("🔧 Creating ServicePackage table...")
+        call_command('create_servicepackage_table')
+        print("✅ ServicePackage table ready")
         
     except Exception as migrate_error:
         print(f"⚠️ Migration warning: {migrate_error}")
