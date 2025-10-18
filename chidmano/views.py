@@ -37,7 +37,9 @@ def signup_view(request):
                 # ورود مستقیم
                 login(request, user)
                 messages.success(request, f'✅ حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.get_full_name() or user.username}!')
-                return redirect('store_analysis:user_dashboard')
+                
+                # redirect به صفحه محصولات
+                return redirect('store_analysis:products')
             else:
                 # لاگ کردن خطاهای فرم
                 logger.error(f"❌ Form validation errors: {form.errors}")
