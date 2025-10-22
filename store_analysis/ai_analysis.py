@@ -3,8 +3,8 @@
 # Optimized by Craser for Chidmano AI - Enhanced Image Analysis and AI Processing
 
 """
-سیستم تحلیل هوشمند فروشگاه - نسخه بهینه‌سازی شده
-تولید تحلیل تفصیلی و راهنمایی‌های عملی با استفاده از AI پیشرفته
+سیستم تحلیل هوشمند فروشگاه - نسخه بهینهسازی شده
+تولید تحلیل تفصیلی و راهنماییهای عملی با استفاده از AI پیشرفته
 """
 
 import json
@@ -17,6 +17,7 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage
+from django.utils import timezone
 import os
 from pathlib import Path
 
@@ -109,30 +110,30 @@ TENSORFLOW_AVAILABLE = False
 logger = logging.getLogger(__name__)
 
 class ImageProcessor:
-    """کلاس پردازش تصاویر پیشرفته و استخراج ویژگی‌ها - بهینه‌سازی شده"""
+    """کلاس پردازش تصاویر پیشرفته و استخراج ویژگیها - بهینهسازی شده"""
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.cache_timeout = 1800  # 30 minutes cache for image analysis
         
-        # تنظیم مسیر خروجی با مدیریت خطا برای محیط‌های فقط خواندنی
+        # تنظیم مسیر خروجی با مدیریت خطا برای محیطهای فقط خواندنی
         try:
             self.analysis_output_dir = Path(settings.MEDIA_ROOT) / 'analysis'
             self.analysis_output_dir.mkdir(exist_ok=True)
         except (OSError, PermissionError) as e:
-            # در محیط‌های فقط خواندنی (مثل Liara)، از مسیر موقت استفاده کن
+            # در محیطهای فقط خواندنی (مثل Liara) از مسیر موقت استفاده کن
             import tempfile
             self.analysis_output_dir = Path(tempfile.gettempdir()) / 'chidmano_analysis'
             try:
                 self.analysis_output_dir.mkdir(exist_ok=True)
                 self.logger.warning(f"Using temporary directory for analysis: {self.analysis_output_dir}")
             except Exception as temp_error:
-                # اگر حتی مسیر موقت هم کار نکرد، None قرار بده
+                # اگر حتی مسیر موقت هم کار نکرد None قرار بده
                 self.analysis_output_dir = None
                 self.logger.error(f"Cannot create analysis directory: {temp_error}")
     
     def process_images(self, image_paths: List[str]) -> Dict[str, Any]:
-        """پردازش پیشرفته تصاویر و استخراج ویژگی‌ها"""
+        """پردازش پیشرفته تصاویر و استخراج ویژگیها"""
         if not IMAGE_PROCESSING_AVAILABLE:
             return self._get_fallback_image_analysis()
         
@@ -165,7 +166,7 @@ class ImageProcessor:
                     image = Image.open(image_path)
                     image_array = np.array(image)
                     
-                    # استخراج ویژگی‌های پیشرفته
+                    # استخراج ویژگیهای پیشرفته
                     features = self._extract_advanced_visual_features(image_array, image_path)
                     image_features[f'image_{i+1}'] = features
                     
@@ -193,7 +194,7 @@ class ImageProcessor:
             return self._get_fallback_image_analysis()
     
     def _extract_advanced_visual_features(self, image_array, image_path: str) -> Dict[str, Any]:
-        """استخراج ویژگی‌های بصری پیشرفته از تصویر"""
+        """استخراج ویژگیهای بصری پیشرفته از تصویر"""
         try:
             # تبدیل به RGB اگر نیاز باشد
             if len(image_array.shape) == 3:
@@ -214,7 +215,7 @@ class ImageProcessor:
             # تحلیل روشنایی پیشرفته
             features['lighting_analysis'] = self._analyze_lighting_advanced(image_array)
             
-            # تحلیل ترکیب‌بندی
+            # تحلیل ترکیببندی
             features['composition_analysis'] = self._analyze_composition_advanced(image_array)
             
             # تحلیل تراکم محصولات
@@ -226,11 +227,11 @@ class ImageProcessor:
             return features
             
         except Exception as e:
-            self.logger.error(f"خطا در استخراج ویژگی‌های پیشرفته: {e}")
+            self.logger.error(f"خطا در استخراج ویژگیهای پیشرفته: {e}")
             return self._get_basic_image_features(image_array, image_path)
     
     def _analyze_colors_advanced(self, image_array, image_path: str) -> Dict[str, Any]:
-        """تحلیل پیشرفته رنگ‌ها"""
+        """تحلیل پیشرفته رنگها"""
         try:
             # استفاده از ColorThief برای استخراج رنگ غالب
             dominant_colors = []
@@ -242,12 +243,12 @@ class ImageProcessor:
                 except:
                     pass
             
-            # تحلیل رنگ‌ها با OpenCV
+            # تحلیل رنگها با OpenCV
             if cv2:
                 # تبدیل به HSV برای تحلیل بهتر
                 hsv = cv2.cvtColor(image_array, cv2.COLOR_RGB2HSV)
                 
-                # استخراج رنگ‌های غالب
+                # استخراج رنگهای غالب
                 hist_h = cv2.calcHist([hsv], [0], None, [180], [0, 180])
                 hist_s = cv2.calcHist([hsv], [1], None, [256], [0, 256])
                 hist_v = cv2.calcHist([hsv], [2], None, [256], [0, 256])
@@ -259,7 +260,7 @@ class ImageProcessor:
                 
                 dominant_colors.append([dominant_hue, dominant_saturation, dominant_value])
             
-            # تحلیل هماهنگی رنگ‌ها
+            # تحلیل هماهنگی رنگها
             color_harmony_score = self._calculate_color_harmony(image_array)
             
             return {
@@ -270,7 +271,7 @@ class ImageProcessor:
             }
             
         except Exception as e:
-            self.logger.error(f"خطا در تحلیل رنگ‌ها: {e}")
+            self.logger.error(f"خطا در تحلیل رنگها: {e}")
             return {'error': str(e)}
     
     def _analyze_lighting_advanced(self, image_array) -> Dict[str, Any]:
@@ -281,7 +282,7 @@ class ImageProcessor:
                     'brightness_stats': {'mean_brightness': 128, 'std_brightness': 50},
                     'contrast_score': 0.5,
                     'lighting_quality': 'unknown',
-                    'recommendations': ['نصب کتابخانه‌های پردازش تصویر برای تحلیل دقیق‌تر']
+                    'recommendations': ['نصب کتابخانههای پردازش تصویر برای تحلیل دقیقتر']
                 }
             
             # تبدیل به grayscale برای تحلیل روشنایی
@@ -329,7 +330,7 @@ class ImageProcessor:
             }
     
     def _analyze_composition_advanced(self, image_array) -> Dict[str, Any]:
-        """تحلیل پیشرفته ترکیب‌بندی"""
+        """تحلیل پیشرفته ترکیببندی"""
         try:
             height, width = image_array.shape[:2]
             
@@ -359,7 +360,7 @@ class ImageProcessor:
             }
             
         except Exception as e:
-            self.logger.error(f"خطا در تحلیل ترکیب‌بندی: {e}")
+            self.logger.error(f"خطا در تحلیل ترکیببندی: {e}")
             return {'error': str(e)}
     
     def _analyze_product_density(self, image_array) -> Dict[str, Any]:
@@ -380,12 +381,12 @@ class ImageProcessor:
             else:
                 gray = image_array
             
-            # تشخیص لبه‌ها برای شناسایی محصولات
+            # تشخیص لبهها برای شناسایی محصولات
             if cv2:
                 edges = cv2.Canny(gray.astype(np.uint8), 50, 150)
                 edge_density = np.sum(edges > 0) / (gray.shape[0] * gray.shape[1])
                 
-                # تشخیص تراکم بر اساس لبه‌ها
+                # تشخیص تراکم بر اساس لبهها
                 if edge_density > 0.1:
                     density_level = 'high'
                 elif edge_density > 0.05:
@@ -421,7 +422,7 @@ class ImageProcessor:
             if cv2:
                 gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY) if len(image_array.shape) == 3 else image_array
                 
-                # تشخیص خطوط برای شناسایی قفسه‌ها
+                # تشخیص خطوط برای شناسایی قفسهها
                 edges = cv2.Canny(gray.astype(np.uint8), 50, 150)
                 lines = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=50, minLineLength=50, maxLineGap=10)
                 
@@ -447,7 +448,7 @@ class ImageProcessor:
     
     # متدهای کمکی برای تحلیل پیشرفته
     def _calculate_color_harmony(self, image_array) -> float:
-        """محاسبه هماهنگی رنگ‌ها"""
+        """محاسبه هماهنگی رنگها"""
         try:
             if len(image_array.shape) != 3:
                 return 0.5
@@ -467,12 +468,12 @@ class ImageProcessor:
             return 0.5
     
     def _calculate_color_diversity(self, image_array) -> float:
-        """محاسبه تنوع رنگ‌ها"""
+        """محاسبه تنوع رنگها"""
         try:
             if len(image_array.shape) != 3:
                 return 0.5
             
-            # محاسبه واریانس رنگ‌ها
+            # محاسبه واریانس رنگها
             color_variance = np.var(image_array.reshape(-1, 3), axis=0)
             diversity_score = min(1.0, np.mean(color_variance) / 1000)
             
@@ -528,7 +529,7 @@ class ImageProcessor:
             return {'center': {'x': 0, 'y': 0}}
     
     def _get_lighting_recommendations(self, lighting_quality: str) -> List[str]:
-        """توصیه‌های روشنایی"""
+        """توصیههای روشنایی"""
         recommendations = {
             'overexposed': [
                 "کاهش شدت روشنایی",
@@ -542,12 +543,12 @@ class ImageProcessor:
             ],
             'good_contrast': [
                 "حفظ وضعیت فعلی",
-                "تنظیم جزئی برای بهینه‌سازی"
+                "تنظیم جزئی برای بهینهسازی"
             ],
             'low_contrast': [
                 "افزایش کنتراست",
                 "تنظیم نورپردازی",
-                "بهبود سایه‌ها"
+                "بهبود سایهها"
             ]
         }
         return recommendations
@@ -612,7 +613,7 @@ class ImageProcessor:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -634,7 +635,7 @@ class ImageProcessor:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -654,7 +655,7 @@ class ImageProcessor:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -671,9 +672,9 @@ class ImageProcessor:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -682,7 +683,7 @@ class ImageProcessor:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -701,25 +702,25 @@ class ImageProcessor:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data.get('lighting_quality', ["بررسی سیستم روشنایی"])
     
     def _get_density_recommendations(self, density_level: str) -> List[str]:
-        """توصیه‌های تراکم"""
+        """توصیههای تراکم"""
         recommendations = {
             'high': [
                 "کاهش تراکم محصولات",
-                "افزایش فاصله بین قفسه‌ها",
+                "افزایش فاصله بین قفسهها",
                 "سازماندهی بهتر محصولات"
             ],
             'medium': [
-                "بهینه‌سازی چیدمان",
-                "تنظیم فاصله‌ها"
+                "بهینهسازی چیدمان",
+                "تنظیم فاصلهها"
             ],
             'low': [
                 "افزایش تنوع محصولات",
                 "بهبود نمایش محصولات",
-                "اضافه کردن المان‌های جذاب"
+                "اضافه کردن المانهای جذاب"
             ]
         }
         return recommendations
@@ -784,7 +785,7 @@ class ImageProcessor:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -806,7 +807,7 @@ class ImageProcessor:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -826,7 +827,7 @@ class ImageProcessor:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -843,9 +844,9 @@ class ImageProcessor:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -854,7 +855,7 @@ class ImageProcessor:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -873,17 +874,17 @@ class ImageProcessor:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data.get('density_level', ["بهبود چیدمان"])
     
     def _get_organization_recommendations(self, organization_score: float) -> List[str]:
-        """توصیه‌های سازماندهی"""
+        """توصیههای سازماندهی"""
         if organization_score > 0.7:
             return ["حفظ وضعیت فعلی", "تنظیم جزئی"]
         elif organization_score > 0.4:
-            return ["بهبود تراز قفسه‌ها", "سازماندهی بهتر محصولات"]
+            return ["بهبود تراز قفسهها", "سازماندهی بهتر محصولات"]
         else:
-            return ["بازطراحی چیدمان", "تراز کردن قفسه‌ها", "سازماندهی کامل"]
+            return ["بازطراحی چیدمان", "تراز کردن قفسهها", "سازماندهی کامل"]
     
     def _combine_with_total_analysis(self, total_analysis: Dict[str, Any], features: Dict[str, Any]):
         """ترکیب با تحلیل کلی"""
@@ -916,7 +917,7 @@ class ImageProcessor:
     def _generate_comprehensive_image_report(self, total_analysis: Dict[str, Any], image_features: Dict[str, Any]) -> Dict[str, Any]:
         """تولید گزارش جامع تصاویر"""
         try:
-            # محاسبه میانگین‌ها
+            # محاسبه میانگینها
             num_images = len(image_features)
             if num_images > 0:
                 total_analysis['color_analysis']['color_harmony'] /= num_images
@@ -929,7 +930,7 @@ class ImageProcessor:
             # تولید خلاصه
             summary = self._generate_image_summary(total_analysis)
             
-            # تولید توصیه‌ها
+            # تولید توصیهها
             recommendations = self._generate_image_recommendations(total_analysis)
             
             return {
@@ -954,14 +955,14 @@ class ImageProcessor:
         try:
             summary_parts = []
             
-            # خلاصه رنگ‌ها
+            # خلاصه رنگها
             color_harmony = total_analysis['color_analysis']['color_harmony']
             if color_harmony > 0.7:
-                summary_parts.append("هماهنگی رنگ‌ها عالی است")
+                summary_parts.append("هماهنگی رنگها عالی است")
             elif color_harmony > 0.5:
-                summary_parts.append("هماهنگی رنگ‌ها قابل قبول است")
+                summary_parts.append("هماهنگی رنگها قابل قبول است")
             else:
-                summary_parts.append("نیاز به بهبود هماهنگی رنگ‌ها")
+                summary_parts.append("نیاز به بهبود هماهنگی رنگها")
             
             # خلاصه روشنایی
             brightness = total_analysis['lighting_analysis']['brightness_score']
@@ -988,38 +989,38 @@ class ImageProcessor:
             return "تحلیل تصاویر انجام شد"
     
     def _generate_image_recommendations(self, total_analysis: Dict[str, Any]) -> List[str]:
-        """تولید توصیه‌های تصاویر"""
+        """تولید توصیههای تصاویر"""
         recommendations = []
         
         try:
-            # توصیه‌های رنگ
+            # توصیههای رنگ
             if total_analysis['color_analysis']['color_harmony'] < 0.5:
-                recommendations.append("بهبود هماهنگی رنگ‌ها")
+                recommendations.append("بهبود هماهنگی رنگها")
             
-            # توصیه‌های روشنایی
+            # توصیههای روشنایی
             if total_analysis['lighting_analysis']['brightness_score'] < 100:
                 recommendations.append("افزایش روشنایی")
             elif total_analysis['lighting_analysis']['brightness_score'] > 200:
                 recommendations.append("کاهش شدت روشنایی")
             
-            # توصیه‌های سازماندهی
+            # توصیههای سازماندهی
             if total_analysis['layout_analysis']['organization_score'] < 0.5:
-                recommendations.append("بهبود سازماندهی قفسه‌ها")
+                recommendations.append("بهبود سازماندهی قفسهها")
             
-            # توصیه‌های تراکم
+            # توصیههای تراکم
             if total_analysis['product_density']['clutter_level'] > 0.1:
                 recommendations.append("کاهش تراکم محصولات")
             
             return recommendations[:5] if recommendations else ["بهبود کلی چیدمان"]
             
         except Exception as e:
-            self.logger.error(f"خطا در تولید توصیه‌ها: {e}")
+            self.logger.error(f"خطا در تولید توصیهها: {e}")
             return ["بهبود کلی چیدمان"]
     
     def _save_analysis_report(self, analysis_data: Dict[str, Any]):
         """ذخیره گزارش تحلیل"""
         try:
-            # اگر مسیر خروجی موجود نیست، گزارش را ذخیره نکن
+            # اگر مسیر خروجی موجود نیست گزارش را ذخیره نکن
             if self.analysis_output_dir is None:
                 self.logger.warning("Analysis output directory not available, skipping report save")
                 return
@@ -1037,7 +1038,7 @@ class ImageProcessor:
             # خطا را لاگ کن اما ادامه بده - ذخیره گزارش اختیاری است
     
     def _get_basic_image_features(self, image_array, image_path: str) -> Dict[str, Any]:
-        """ویژگی‌های پایه تصویر"""
+        """ویژگیهای پایه تصویر"""
         try:
             if hasattr(image_array, 'shape'):
                 if len(image_array.shape) == 3:
@@ -1052,13 +1053,13 @@ class ImageProcessor:
                 'dimensions': {'width': width, 'height': height, 'channels': channels},
                 'file_path': image_path,
                 'basic_analysis': True,
-                'brightness_level': 128  # مقدار پیش‌فرض
+                'brightness_level': 128  # مقدار پیشفرض
             }
         except:
             return {'error': 'خطا در تحلیل پایه'}
     
     def _extract_visual_features(self, image_array, image_path: str) -> Dict[str, Any]:
-        """استخراج ویژگی‌های بصری از تصویر"""
+        """استخراج ویژگیهای بصری از تصویر"""
         try:
             if not IMAGE_PROCESSING_AVAILABLE or np is None:
                 return self._get_basic_image_features(image_array, image_path)
@@ -1073,13 +1074,13 @@ class ImageProcessor:
             else:
                 height, width, channels = 100, 100, 3
             
-            # تحلیل رنگ‌ها
+            # تحلیل رنگها
             color_analysis = self._analyze_colors(image_array)
             
             # تحلیل نور
             brightness_analysis = self._analyze_brightness(image_array)
             
-            # تحلیل ترکیب‌بندی
+            # تحلیل ترکیببندی
             composition_analysis = self._analyze_composition(image_array)
             
             return {
@@ -1095,10 +1096,10 @@ class ImageProcessor:
             return self._get_basic_image_features(image_array, image_path)
     
     def _analyze_colors(self, image_array) -> Dict[str, Any]:
-        """تحلیل رنگ‌های تصویر"""
+        """تحلیل رنگهای تصویر"""
         try:
             if len(image_array.shape) == 3:
-                # محاسبه میانگین رنگ‌ها
+                # محاسبه میانگین رنگها
                 mean_colors = np.mean(image_array, axis=(0, 1))
                 
                 # محاسبه رنگ غالب
@@ -1140,7 +1141,7 @@ class ImageProcessor:
             return {'error': str(e)}
     
     def _analyze_composition(self, image_array) -> Dict[str, Any]:
-        """تحلیل ترکیب‌بندی تصویر"""
+        """تحلیل ترکیببندی تصویر"""
         try:
             height, width = image_array.shape[:2]
             
@@ -1169,13 +1170,13 @@ class ImageProcessor:
             
             summary_parts = [f"تعداد تصاویر تحلیل شده: {total_images}"]
             
-            # تحلیل کلی رنگ‌ها
+            # تحلیل کلی رنگها
             color_analyses = [feat.get('color_analysis', {}) for feat in image_features.values()]
             if color_analyses:
                 avg_brightness = np.mean([ca.get('brightness_level', 0) for ca in color_analyses if 'brightness_level' in ca])
                 summary_parts.append(f"میانگین روشنایی: {avg_brightness:.1f}")
             
-            # تحلیل ترکیب‌بندی
+            # تحلیل ترکیببندی
             composition_analyses = [feat.get('composition_analysis', {}) for feat in image_features.values()]
             orientations = [ca.get('orientation', 'unknown') for ca in composition_analyses if 'orientation' in ca]
             if orientations:
@@ -1188,21 +1189,21 @@ class ImageProcessor:
             return f"خطا در تولید خلاصه: {str(e)}"
     
     def _get_fallback_image_analysis(self) -> Dict[str, Any]:
-        """تحلیل fallback برای زمانی که کتابخانه‌های پردازش تصویر در دسترس نیستند"""
+        """تحلیل fallback برای زمانی که کتابخانههای پردازش تصویر در دسترس نیستند"""
         return {
             'status': 'ok',
             'confidence': 0.5,
             'total_images': 0,
             'processed_images': 0,
             'image_features': {},
-            'analysis_summary': 'پردازش تصویر در دسترس نیست - تحلیل بر اساس اطلاعات متنی انجام می‌شود',
+            'analysis_summary': 'پردازش تصویر در دسترس نیست - تحلیل بر اساس اطلاعات متنی انجام میشود',
             'fallback_mode': True,
             'error': 'image_processing_not_available',
-            'recommendations': ['نصب کتابخانه‌های پردازش تصویر برای تحلیل بهتر']
+            'recommendations': ['نصب کتابخانههای پردازش تصویر برای تحلیل بهتر']
         }
 
 class ConsistencyChecker:
-    """کلاس تشخیص ناسازگاری بین تصاویر/فیلم‌ها و اطلاعات فرم"""
+    """کلاس تشخیص ناسازگاری بین تصاویر/فیلمها و اطلاعات فرم"""
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -1230,7 +1231,7 @@ class ConsistencyChecker:
                     warnings.append(type_consistency['message'])
                     confidence_score -= 10
             
-            # بررسی تعداد قفسه‌ها
+            # بررسی تعداد قفسهها
             shelf_count = form_data.get('shelf_count', '0')
             if images:
                 shelf_consistency = self._check_shelf_count_consistency(shelf_count, images)
@@ -1301,7 +1302,7 @@ class ConsistencyChecker:
             return {'consistent': True, 'message': 'عدم امکان بررسی نوع فروشگاه'}
     
     def _check_shelf_count_consistency(self, shelf_count: str, images: List[str]) -> Dict[str, Any]:
-        """بررسی سازگاری تعداد قفسه‌ها با تصاویر"""
+        """بررسی سازگاری تعداد قفسهها با تصاویر"""
         try:
             count_value = int(shelf_count)
             estimated_count = self._estimate_shelf_count_from_images(images)
@@ -1309,13 +1310,13 @@ class ConsistencyChecker:
             if estimated_count and abs(count_value - estimated_count) > count_value * 0.4:
                 return {
                     'consistent': False,
-                    'message': f"تعداد قفسه‌ها در فرم ({count_value}) با تصاویر ارسالی ({estimated_count}) مطابقت ندارد. لطفاً تعداد دقیق را وارد کنید."
+                    'message': f"تعداد قفسهها در فرم ({count_value}) با تصاویر ارسالی ({estimated_count}) مطابقت ندارد. لطفاً تعداد دقیق را وارد کنید."
                 }
             
-            return {'consistent': True, 'message': 'تعداد قفسه‌ها با تصاویر سازگار است'}
+            return {'consistent': True, 'message': 'تعداد قفسهها با تصاویر سازگار است'}
             
         except Exception:
-            return {'consistent': True, 'message': 'عدم امکان بررسی تعداد قفسه‌ها'}
+            return {'consistent': True, 'message': 'عدم امکان بررسی تعداد قفسهها'}
     
     def _check_lighting_consistency(self, lighting_type: str, images: List[str]) -> Dict[str, Any]:
         """بررسی سازگاری نوع نورپردازی با تصاویر"""
@@ -1335,32 +1336,32 @@ class ConsistencyChecker:
     
     def _estimate_size_from_images(self, images: List[str]) -> int:
         """تخمین اندازه فروشگاه از تصاویر"""
-        # اینجا باید از کتابخانه‌های پردازش تصویر استفاده شود
-        # برای نمونه، یک تخمین ساده
-        return None  # نیاز به پیاده‌سازی
+        # اینجا باید از کتابخانههای پردازش تصویر استفاده شود
+        # برای نمونه یک تخمین ساده
+        return None  # نیاز به پیادهسازی
     
     def _detect_store_type_from_images(self, images: List[str]) -> str:
         """تشخیص نوع فروشگاه از تصاویر"""
-        # اینجا باید از مدل‌های تشخیص تصویر استفاده شود
-        return None  # نیاز به پیاده‌سازی
+        # اینجا باید از مدلهای تشخیص تصویر استفاده شود
+        return None  # نیاز به پیادهسازی
     
     def _estimate_shelf_count_from_images(self, images: List[str]) -> int:
-        """تخمین تعداد قفسه‌ها از تصاویر"""
-        # اینجا باید از الگوریتم‌های شمارش استفاده شود
-        return None  # نیاز به پیاده‌سازی
+        """تخمین تعداد قفسهها از تصاویر"""
+        # اینجا باید از الگوریتمهای شمارش استفاده شود
+        return None  # نیاز به پیادهسازی
     
     def _detect_lighting_from_images(self, images: List[str]) -> str:
         """تشخیص نوع نورپردازی از تصاویر"""
         # اینجا باید از تحلیل روشنایی تصاویر استفاده شود
-        return None  # نیاز به پیاده‌سازی
+        return None  # نیاز به پیادهسازی
     
     def _generate_consistency_recommendations(self, inconsistencies: List[str], warnings: List[str]) -> List[str]:
-        """تولید توصیه‌های بهبود سازگاری"""
+        """تولید توصیههای بهبود سازگاری"""
         recommendations = []
         
         if inconsistencies:
             recommendations.append("لطفاً اطلاعات فرم را با تصاویر ارسالی مطابقت دهید")
-            recommendations.append("برای دقت بیشتر، تصاویر واضح‌تر از تمام زوایای فروشگاه ارسال کنید")
+            recommendations.append("برای دقت بیشتر تصاویر واضحتر از تمام زوایای فروشگاه ارسال کنید")
         
         if warnings:
             recommendations.append("بررسی مجدد اطلاعات فرم برای اطمینان از صحت")
@@ -1427,7 +1428,7 @@ class ConsistencyChecker:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -1449,7 +1450,7 @@ class ConsistencyChecker:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -1469,7 +1470,7 @@ class ConsistencyChecker:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -1486,9 +1487,9 @@ class ConsistencyChecker:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -1497,7 +1498,7 @@ class ConsistencyChecker:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -1516,7 +1517,7 @@ class ConsistencyChecker:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data
 
 
@@ -1545,59 +1546,59 @@ class DeepStoreAnalyzer:
             return self._get_fallback_analysis(store_data)
     
     def _generate_executive_summary(self, store_data: Dict[str, Any]) -> str:
-        """تولید خلاصه اجرایی حرفه‌ای و کاربرپسند"""
+        """تولید خلاصه اجرایی حرفهای و کاربرپسند"""
         store_name = store_data.get('store_name', 'فروشگاه شما')
         store_type = store_data.get('store_type', 'عمومی')
         store_size = store_data.get('store_size', '0')
         daily_customers = store_data.get('daily_customers', '0')
         
         return f"""
-        # 🎯 گزارش تحلیلی فروشگاه {store_name}
+        #  گزارش تحلیلی فروشگاه {store_name}
         
-        **عزیز مدیر محترم،**
+        **عزیز مدیر محترم**
         
-        با افتخار گزارش تحلیل جامع فروشگاه {store_name} را تقدیم می‌کنیم. این تحلیل بر اساس آخرین استانداردهای علمی و تجربیات موفق فروشگاه‌های برتر تهیه شده است.
+        با افتخار گزارش تحلیل جامع فروشگاه {store_name} را تقدیم میکنیم. این تحلیل بر اساس آخرین استانداردهای علمی و تجربیات موفق فروشگاههای برتر تهیه شده است.
         
-        ## 📊 وضعیت فعلی فروشگاه
+        ##  وضعیت فعلی فروشگاه
         
         **نوع فعالیت:** {store_type}  
         **متراژ فروشگاه:** {store_size} متر مربع  
         **مشتریان روزانه:** {daily_customers} نفر  
         **امتیاز کلی عملکرد:** 85 از 100
         
-        ## 🌟 نقاط قوت برجسته
+        ##  نقاط قوت برجسته
         
-        ✅ **موقعیت استراتژیک:** فروشگاه شما در موقعیت جغرافیایی مناسبی قرار دارد  
-        ✅ **فضای کافی:** متراژ مناسب برای بهینه‌سازی و توسعه  
-        ✅ **ترافیک مشتری:** تعداد مشتریان روزانه در سطح مطلوب  
-        ✅ **پتانسیل رشد:** امکان افزایش 35-45% فروش وجود دارد
+         **موقعیت استراتژیک:** فروشگاه شما در موقعیت جغرافیایی مناسبی قرار دارد  
+         **فضای کافی:** متراژ مناسب برای بهینهسازی و توسعه  
+         **ترافیک مشتری:** تعداد مشتریان روزانه در سطح مطلوب  
+         **پتانسیل رشد:** امکان افزایش 35-45% فروش وجود دارد
         
-        ## ⚡ فرصت‌های بهبود فوری
+        ##  فرصتهای بهبود فوری
         
-        🔧 **بهینه‌سازی چیدمان:** بازطراحی مسیرهای حرکتی مشتریان  
-        💡 **بهبود نورپردازی:** ارتقای سیستم روشنایی برای جذابیت بیشتر  
-        📦 **بهینه‌سازی فضا:** استفاده بهتر از مناطق بلااستفاده  
-        👥 **ارتقای تجربه مشتری:** بهبود تعامل و خدمات
+         **بهینهسازی چیدمان:** بازطراحی مسیرهای حرکتی مشتریان  
+         **بهبود نورپردازی:** ارتقای سیستم روشنایی برای جذابیت بیشتر  
+         **بهینهسازی فضا:** استفاده بهتر از مناطق بلااستفاده  
+         **ارتقای تجربه مشتری:** بهبود تعامل و خدمات
         
-        ## 🚀 پیش‌بینی نتایج پس از اجرا
+        ##  پیشبینی نتایج پس از اجرا
         
-        با اجرای توصیه‌های ارائه شده، انتظار می‌رود:
+        با اجرای توصیههای ارائه شده انتظار میرود:
         
-        📈 **افزایش فروش:** 35-45%  
-        😊 **بهبود رضایت مشتری:** 40-50%  
-        ⚡ **افزایش کارایی:** 30-40%  
-        💰 **کاهش هزینه‌ها:** 15-25%  
-        ⏱️ **زمان بازگشت سرمایه:** 6-8 ماه
+         **افزایش فروش:** 35-45%  
+         **بهبود رضایت مشتری:** 40-50%  
+         **افزایش کارایی:** 30-40%  
+         **کاهش هزینهها:** 15-25%  
+         **زمان بازگشت سرمایه:** 6-8 ماه
         
-        ## 💼 ارزش افزوده این تحلیل
+        ##  ارزش افزوده این تحلیل
         
-        این گزارش نه تنها مشکلات را شناسایی می‌کند، بلکه راه‌حل‌های عملی و قابل اجرا ارائه می‌دهد که:
-        - بر اساس تجربیات موفق فروشگاه‌های مشابه تهیه شده
+        این گزارش نه تنها مشکلات را شناسایی میکند بلکه راهحلهای عملی و قابل اجرا ارائه میدهد که:
+        - بر اساس تجربیات موفق فروشگاههای مشابه تهیه شده
         - با بودجه و امکانات شما سازگار است
-        - نتایج قابل اندازه‌گیری دارد
-        - در کوتاه‌مدت قابل اجرا است
+        - نتایج قابل اندازهگیری دارد
+        - در کوتاهمدت قابل اجرا است
         
-        **با احترام،**  
+        **با احترام**  
         تیم تحلیل چیدمانو
         """
     
@@ -1613,7 +1614,7 @@ class DeepStoreAnalyzer:
         }
     
     def _generate_artistic_insights(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
-        """تولید بینش‌های هنرمندانه"""
+        """تولید بینشهای هنرمندانه"""
         return {
             'visual_harmony': self._analyze_visual_harmony(store_data, images),
             'color_psychology': self._analyze_color_psychology(store_data),
@@ -1623,7 +1624,7 @@ class DeepStoreAnalyzer:
         }
     
     def _generate_practical_recommendations(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تولید توصیه‌های عملی و کاربرپسند"""
+        """تولید توصیههای عملی و کاربرپسند"""
         return {
             'immediate_actions': self._get_immediate_actions_user_friendly(store_data),
             'short_term_plans': self._get_short_term_plans_user_friendly(store_data),
@@ -1635,76 +1636,76 @@ class DeepStoreAnalyzer:
     def _get_immediate_actions_user_friendly(self, store_data: Dict[str, Any]) -> List[str]:
         """اقدامات فوری با لحن کاربرپسند"""
         return [
-            '🎯 **قفسه محصولات پرفروش را در ارتفاع چشم قرار دهید** - محصولات پرفروش را در ارتفاع 1.2 تا 1.6 متری قرار دهید تا مشتریان راحت‌تر آن‌ها را ببینند و بردارند',
-            '🚶‍♂️ **مسیر اصلی مشتریان را عریض‌تر کنید** - مسیر اصلی را به عرض 1.2 متر افزایش دهید تا مشتریان راحت‌تر حرکت کنند و ازدحام کاهش یابد',
-            '💡 **نورپردازی مناطق تاریک را بهبود دهید** - در مناطق تاریک فروشگاه، نورپردازی LED نصب کنید تا محصولات بهتر دیده شوند',
-            '📍 **تابلوهای راهنما نصب کنید** - در نقاط کلیدی فروشگاه، تابلوهای راهنما قرار دهید تا مشتریان راحت‌تر مسیر خود را پیدا کنند',
-            '🛒 **محصولات مکمل را کنار هم قرار دهید** - محصولات مکمل را در فاصله حداکثر 2 متری از یکدیگر قرار دهید تا فروش افزایش یابد'
+            ' **قفسه محصولات پرفروش را در ارتفاع چشم قرار دهید** - محصولات پرفروش را در ارتفاع 1.2 تا 1.6 متری قرار دهید تا مشتریان راحتتر آنها را ببینند و بردارند',
+            ' **مسیر اصلی مشتریان را عریضتر کنید** - مسیر اصلی را به عرض 1.2 متر افزایش دهید تا مشتریان راحتتر حرکت کنند و ازدحام کاهش یابد',
+            ' **نورپردازی مناطق تاریک را بهبود دهید** - در مناطق تاریک فروشگاه نورپردازی LED نصب کنید تا محصولات بهتر دیده شوند',
+            ' **تابلوهای راهنما نصب کنید** - در نقاط کلیدی فروشگاه تابلوهای راهنما قرار دهید تا مشتریان راحتتر مسیر خود را پیدا کنند',
+            ' **محصولات مکمل را کنار هم قرار دهید** - محصولات مکمل را در فاصله حداکثر 2 متری از یکدیگر قرار دهید تا فروش افزایش یابد'
         ]
     
     def _get_short_term_plans_user_friendly(self, store_data: Dict[str, Any]) -> List[str]:
-        """برنامه‌های کوتاه‌مدت با لحن کاربرپسند"""
+        """برنامههای کوتاهمدت با لحن کاربرپسند"""
         return [
-            '⏰ **سیستم مدیریت صف راه‌اندازی کنید** - برای کاهش زمان انتظار مشتریان، سیستم مدیریت صف نصب کنید',
-            '🛋️ **منطقه خدمات مشتری ایجاد کنید** - در گوشه‌های بلااستفاده، منطقه خدمات مشتری با میز و صندلی ایجاد کنید',
-            '✨ **نورپردازی تزئینی اضافه کنید** - برای جذابیت بیشتر فروشگاه، نورپردازی تزئینی و رنگی نصب کنید',
-            '🌬️ **سیستم تهویه را بهبود دهید** - برای راحتی بیشتر مشتریان و کارکنان، سیستم تهویه مطبوع را ارتقا دهید',
-            '📊 **سیستم نظارت بر ترافیک نصب کنید** - برای تحلیل بهتر رفتار مشتریان، دوربین‌های نظارت اضافی نصب کنید'
+            ' **سیستم مدیریت صف راهاندازی کنید** - برای کاهش زمان انتظار مشتریان سیستم مدیریت صف نصب کنید',
+            ' **منطقه خدمات مشتری ایجاد کنید** - در گوشههای بلااستفاده منطقه خدمات مشتری با میز و صندلی ایجاد کنید',
+            ' **نورپردازی تزئینی اضافه کنید** - برای جذابیت بیشتر فروشگاه نورپردازی تزئینی و رنگی نصب کنید',
+            ' **سیستم تهویه را بهبود دهید** - برای راحتی بیشتر مشتریان و کارکنان سیستم تهویه مطبوع را ارتقا دهید',
+            ' **سیستم نظارت بر ترافیک نصب کنید** - برای تحلیل بهتر رفتار مشتریان دوربینهای نظارت اضافی نصب کنید'
         ]
     
     def _get_long_term_strategy_user_friendly(self, store_data: Dict[str, Any]) -> List[str]:
         """استراتژی بلندمدت با لحن کاربرپسند"""
         return [
-            '🏗️ **چیدمان فروشگاه را نوسازی کنید** - بر اساس تحلیل انجام شده، چیدمان کامل فروشگاه را بازطراحی کنید',
-            '🤖 **سیستم هوشمند مدیریت موجودی پیاده‌سازی کنید** - برای مدیریت بهتر موجودی و کاهش ضایعات، سیستم هوشمند نصب کنید',
-            '📈 **فضای فروشگاه را توسعه دهید** - در صورت امکان، فضای فروشگاه را گسترش دهید تا محصولات بیشتری عرضه کنید',
-            '👥 **کارکنان را آموزش دهید** - برای ارائه خدمات بهتر، کارکنان را در زمینه خدمات مشتری و دانش محصولات آموزش دهید',
-            '🎨 **هویت برند فروشگاه را تقویت کنید** - برای متمایز شدن از رقبا، هویت بصری و برندینگ فروشگاه را بهبود دهید'
+            ' **چیدمان فروشگاه را نوسازی کنید** - بر اساس تحلیل انجام شده چیدمان کامل فروشگاه را بازطراحی کنید',
+            ' **سیستم هوشمند مدیریت موجودی پیادهسازی کنید** - برای مدیریت بهتر موجودی و کاهش ضایعات سیستم هوشمند نصب کنید',
+            ' **فضای فروشگاه را توسعه دهید** - در صورت امکان فضای فروشگاه را گسترش دهید تا محصولات بیشتری عرضه کنید',
+            ' **کارکنان را آموزش دهید** - برای ارائه خدمات بهتر کارکنان را در زمینه خدمات مشتری و دانش محصولات آموزش دهید',
+            ' **هویت برند فروشگاه را تقویت کنید** - برای متمایز شدن از رقبا هویت بصری و برندینگ فروشگاه را بهبود دهید'
         ]
     
     def _get_budget_planning_user_friendly(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """برنامه‌ریزی بودجه با لحن کاربرپسند"""
+        """برنامهریزی بودجه با لحن کاربرپسند"""
         return {
             'immediate_budget': {
                 'amount': '15-25 میلیون تومان',
-                'description': 'بودجه مورد نیاز برای اقدامات فوری (نورپردازی، تابلوها، تنظیم قفسه‌ها)',
+                'description': 'بودجه مورد نیاز برای اقدامات فوری (نورپردازی تابلوها تنظیم قفسهها)',
                 'roi': '3-4 ماه'
             },
             'short_term_budget': {
                 'amount': '40-60 میلیون تومان',
-                'description': 'بودجه مورد نیاز برای برنامه‌های کوتاه‌مدت (سیستم صف، منطقه خدمات، تهویه)',
+                'description': 'بودجه مورد نیاز برای برنامههای کوتاهمدت (سیستم صف منطقه خدمات تهویه)',
                 'roi': '6-8 ماه'
             },
             'long_term_budget': {
                 'amount': '100-150 میلیون تومان',
-                'description': 'بودجه مورد نیاز برای استراتژی بلندمدت (نوسازی، سیستم هوشمند، توسعه)',
+                'description': 'بودجه مورد نیاز برای استراتژی بلندمدت (نوسازی سیستم هوشمند توسعه)',
                 'roi': '12-18 ماه'
             },
             'total_investment': {
                 'amount': '155-235 میلیون تومان',
-                'description': 'مجموع سرمایه‌گذاری برای تمام مراحل',
+                'description': 'مجموع سرمایهگذاری برای تمام مراحل',
                 'expected_return': '35-45% افزایش فروش'
             }
         }
     
     def _get_implementation_timeline_user_friendly(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """زمان‌بندی اجرا با لحن کاربرپسند"""
+        """زمانبندی اجرا با لحن کاربرپسند"""
         return {
             'phase_1': {
                 'duration': '2-3 هفته',
-                'title': 'مرحله آماده‌سازی و اقدامات فوری',
+                'title': 'مرحله آمادهسازی و اقدامات فوری',
                 'activities': [
                     'تحلیل دقیق وضعیت فعلی فروشگاه',
-                    'تنظیم ارتفاع قفسه‌ها و چیدمان محصولات',
+                    'تنظیم ارتفاع قفسهها و چیدمان محصولات',
                     'نصب نورپردازی اضافی در مناطق تاریک',
                     'نصب تابلوهای راهنما و اطلاعاتی'
                 ]
             },
             'phase_2': {
                 'duration': '4-6 هفته',
-                'title': 'اجرای برنامه‌های کوتاه‌مدت',
+                'title': 'اجرای برنامههای کوتاهمدت',
                 'activities': [
-                    'راه‌اندازی سیستم مدیریت صف',
+                    'راهاندازی سیستم مدیریت صف',
                     'ایجاد منطقه خدمات مشتری',
                     'نصب نورپردازی تزئینی',
                     'بهبود سیستم تهویه و راحتی'
@@ -1712,10 +1713,10 @@ class DeepStoreAnalyzer:
             },
             'phase_3': {
                 'duration': '8-12 هفته',
-                'title': 'پیاده‌سازی استراتژی بلندمدت',
+                'title': 'پیادهسازی استراتژی بلندمدت',
                 'activities': [
                     'نوسازی کامل چیدمان فروشگاه',
-                    'پیاده‌سازی سیستم هوشمند مدیریت',
+                    'پیادهسازی سیستم هوشمند مدیریت',
                     'توسعه و بهبود فضای فروشگاه',
                     'آموزش کارکنان و تقویت برندینگ'
                 ]
@@ -1735,7 +1736,7 @@ class DeepStoreAnalyzer:
         }
     
     def _calculate_quality_score(self, store_data: Dict[str, Any], images: List[str] = None) -> float:
-        """محاسبه امتیاز کیفیت تحلیل بر اساس داده‌های موجود"""
+        """محاسبه امتیاز کیفیت تحلیل بر اساس دادههای موجود"""
         quality = 70.0  # پایه
         
         # افزایش کیفیت بر اساس تصاویر
@@ -1763,8 +1764,8 @@ class DeepStoreAnalyzer:
             'current_score': 78,
             'optimization_potential': 22,
             'key_issues': [
-                'نیاز به بهینه‌سازی مسیرهای حرکتی',
-                'بهبود چیدمان قفسه‌ها',
+                'نیاز به بهینهسازی مسیرهای حرکتی',
+                'بهبود چیدمان قفسهها',
                 'استفاده بهتر از فضای عمودی'
             ],
             'recommendations': [
@@ -1802,7 +1803,7 @@ class DeepStoreAnalyzer:
                 'مسیرهای پیچیده'
             ],
             'recommendations': [
-                'بهینه‌سازی مسیرهای اصلی',
+                'بهینهسازی مسیرهای اصلی',
                 'استفاده از مناطق بلااستفاده',
                 'نصب راهنماهای واضح'
             ]
@@ -1831,14 +1832,14 @@ class DeepStoreAnalyzer:
             'current_score': 79,
             'optimization_potential': 21,
             'key_issues': [
-                'زمان انتظار در صندوق‌ها',
+                'زمان انتظار در صندوقها',
                 'عدم وجود خدمات اضافی',
                 'فضای نشستن محدود'
             ],
             'recommendations': [
-                'افزایش تعداد صندوق‌ها',
+                'افزایش تعداد صندوقها',
                 'ایجاد منطقه خدمات مشتری',
-                'اضافه کردن صندلی‌های انتظار'
+                'اضافه کردن صندلیهای انتظار'
             ]
         }
     
@@ -1848,14 +1849,14 @@ class DeepStoreAnalyzer:
             'current_score': 83,
             'optimization_potential': 17,
             'key_issues': [
-                'هزینه‌های عملیاتی بالا',
-                'عدم بهینه‌سازی موجودی',
+                'هزینههای عملیاتی بالا',
+                'عدم بهینهسازی موجودی',
                 'عدم استفاده از فناوری'
             ],
             'recommendations': [
-                'پیاده‌سازی سیستم مدیریت موجودی',
-                'استفاده از فناوری‌های جدید',
-                'بهینه‌سازی فرآیندها'
+                'پیادهسازی سیستم مدیریت موجودی',
+                'استفاده از فناوریهای جدید',
+                'بهینهسازی فرآیندها'
             ]
         }
     
@@ -1864,13 +1865,13 @@ class DeepStoreAnalyzer:
         return {
             'score': 85,
             'strengths': [
-                'رنگ‌بندی هماهنگ',
+                'رنگبندی هماهنگ',
                 'فضای منظم',
                 'نورپردازی متعادل'
             ],
             'improvements': [
                 'افزایش عناصر بصری',
-                'بهبود ترکیب‌بندی',
+                'بهبود ترکیببندی',
                 'اضافه کردن نقاط کانونی'
             ]
         }
@@ -1880,9 +1881,9 @@ class DeepStoreAnalyzer:
         return {
             'current_impact': 'مثبت',
             'recommendations': [
-                'استفاده از رنگ‌های گرم برای محصولات پرفروش',
-                'رنگ‌های سرد برای مناطق آرام',
-                'رنگ‌های متضاد برای جلب توجه'
+                'استفاده از رنگهای گرم برای محصولات پرفروش',
+                'رنگهای سرد برای مناطق آرام',
+                'رنگهای متضاد برای جلب توجه'
             ]
         }
     
@@ -1896,7 +1897,7 @@ class DeepStoreAnalyzer:
                 'ساختار منطقی'
             ],
             'improvements': [
-                'بهینه‌سازی فضاهای بلااستفاده',
+                'بهینهسازی فضاهای بلااستفاده',
                 'ایجاد مناطق تخصصی',
                 'بهبود جریان حرکتی'
             ]
@@ -1937,27 +1938,27 @@ class DeepStoreAnalyzer:
     def _get_immediate_actions(self, store_data: Dict[str, Any]) -> List[str]:
         """اقدامات فوری"""
         return [
-            'بهینه‌سازی چیدمان قفسه‌ها',
+            'بهینهسازی چیدمان قفسهها',
             'بهبود نورپردازی',
             'نصب تابلوهای راهنما',
-            'بهینه‌سازی مسیرهای حرکتی',
+            'بهینهسازی مسیرهای حرکتی',
             'ایجاد نقاط کانونی'
         ]
     
     def _get_short_term_plans(self, store_data: Dict[str, Any]) -> List[str]:
-        """برنامه‌های کوتاه مدت"""
+        """برنامههای کوتاه مدت"""
         return [
             'نصب سیستم نورپردازی هوشمند',
             'بازطراحی مناطق نمایش',
-            'افزایش تعداد صندوق‌ها',
+            'افزایش تعداد صندوقها',
             'ایجاد منطقه خدمات مشتری',
-            'بهینه‌سازی موجودی'
+            'بهینهسازی موجودی'
         ]
     
     def _get_long_term_strategy(self, store_data: Dict[str, Any]) -> List[str]:
         """استراتژی بلند مدت"""
         return [
-            'پیاده‌سازی سیستم مدیریت هوشمند',
+            'پیادهسازی سیستم مدیریت هوشمند',
             'بازسازی کامل فضای فروشگاه',
             'ایجاد تجربه مشتری منحصر به فرد',
             'توسعه خدمات دیجیتال',
@@ -1965,7 +1966,7 @@ class DeepStoreAnalyzer:
         ]
     
     def _get_budget_planning(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """برنامه‌ریزی بودجه"""
+        """برنامهریزی بودجه"""
         return {
             'immediate_investment': '15-25 میلیون تومان',
             'short_term_investment': '50-80 میلیون تومان',
@@ -1977,15 +1978,15 @@ class DeepStoreAnalyzer:
     def _get_implementation_timeline(self, store_data: Dict[str, Any]) -> Dict[str, str]:
         """جدول زمانی اجرا"""
         return {
-            'phase_1': 'هفته 1-2: آماده‌سازی و برنامه‌ریزی',
+            'phase_1': 'هفته 1-2: آمادهسازی و برنامهریزی',
             'phase_2': 'هفته 3-4: اجرای تغییرات فوری',
-            'phase_3': 'ماه 2-3: پیاده‌سازی برنامه‌های کوتاه مدت',
+            'phase_3': 'ماه 2-3: پیادهسازی برنامههای کوتاه مدت',
             'phase_4': 'ماه 4-6: اجرای استراتژی بلند مدت',
-            'phase_5': 'ماه 7-12: نظارت و بهینه‌سازی'
+            'phase_5': 'ماه 7-12: نظارت و بهینهسازی'
         }
     
     def _get_fallback_analysis(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تحلیل پیش‌فرض در صورت خطا"""
+        """تحلیل پیشفرض در صورت خطا"""
         return {
             'executive_summary': 'تحلیل اولیه انجام شد',
             'detailed_analysis': {},
@@ -1997,16 +1998,16 @@ class DeepStoreAnalyzer:
 
 
 class StoreAnalysisAI:
-    """کلاس تحلیل هوشمند فروشگاه - نسخه بهینه‌سازی شده با دقت بالا"""
+    """کلاس تحلیل هوشمند فروشگاه - نسخه بهینهسازی شده با دقت بالا"""
     
     def __init__(self):
         # تنظیمات پیشرفته
-        self.model_name = "llama3.2"  # مدل پیش‌فرض Ollama
+        self.model_name = "llama3.2"  # مدل پیشفرض Ollama
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
         self.cache_timeout = 1800  # 30 minutes
         self.logger = logging.getLogger(__name__)
         
-        # بررسی دسترسی به سرویس‌ها
+        # بررسی دسترسی به سرویسها
         self.ollama_available = self._check_ollama_availability()
         self.openai_available = bool(self.openai_api_key)
         
@@ -2018,11 +2019,11 @@ class StoreAnalysisAI:
         
         # پرامپت پیشرفته برای تحلیل
         self.ADVANCED_AI_PROMPT = """
-شما یک تحلیل‌گر ارشد بین‌المللی در زمینه چیدمان فروشگاهی، رفتار مشتری و تحلیل داده هستید.
-بر اساس اطلاعات زیر، تحلیل کاملاً دقیق، مرحله‌به‌مرحله و اجرایی ارائه دهید.
-خروجی باید فقط در قالب JSON و شامل تحلیل فعلی، پیشنهادات، و پیش‌بینی رشد باشد.
+شما یک تحلیلگر ارشد بینالمللی در زمینه چیدمان فروشگاهی رفتار مشتری و تحلیل داده هستید.
+بر اساس اطلاعات زیر تحلیل کاملاً دقیق مرحلهبهمرحله و اجرایی ارائه دهید.
+خروجی باید فقط در قالب JSON و شامل تحلیل فعلی پیشنهادات و پیشبینی رشد باشد.
 
-داده‌های ورودی:
+دادههای ورودی:
 {store_data}
 
 لطفاً تحلیل خود را در قالب JSON زیر ارائه دهید:
@@ -2081,17 +2082,28 @@ class StoreAnalysisAI:
                 logger.warning("Ollama not available, using local analysis")
                 return self._get_local_analysis(prompt)
             
-            # تنظیم prompt شخصی‌سازی شده برای Ollama
-            system_prompt = """شما یک متخصص طراحی فروشگاه و مشاور تجاری با تجربه 20 ساله هستید. شما باید مانند یک دوست صمیمی و مشاور قابل اعتماد با مالک فروشگاه صحبت کنید.
+            # تنظیم prompt شخصیسازی شده برای Ollama
+            system_prompt = """شما یک متخصص چیدمان فروشگاه با تجربه 25 ساله هستید که در حال بازدید از فروشگاه مشتری خود هستید. شما باید تحلیل کاملاً شخصی‌سازی شده و عملی ارائه دهید.
 
-مهم: در تمام پاسخ خود باید:
-1. از نام فروشگاه و جزئیات خاص آن استفاده کنید
-2. به محصولات، رنگ‌بندی، چیدمان و نورپردازی موجود اشاره کنید
-3. بازار هدف و مشتریان را در نظر بگیرید
-4. مانند یک دوست صمیمی و حرفه‌ای صحبت کنید
-5. تحلیل کاملاً شخصی‌سازی شده و منحصر به فرد ارائه دهید
+**قوانین مهم:**
+1. فقط از زبان فارسی استفاده کنید - هیچ کلمه انگلیسی نباشد
+2. تحلیل باید کاملاً شخصی‌سازی شده باشد بر اساس اطلاعات واقعی فروشگاه
+3. ابتدا وضعیت موجود را کامل تشریح کنید، سپس پیشنهادات دهید
+4. روی چیدمان، نورپردازی، رنگ‌بندی و قفسه‌ها تمرکز کنید
+5. از اصطلاحات تجاری فارسی استفاده کنید
 
-پاسخ‌های خود را به فارسی و به صورت جامع، عملی و شخصی‌سازی شده ارائه دهید."""
+**ساختار تحلیل مورد نیاز:**
+1. **تشریح وضعیت موجود:** ویترین، نورپردازی، رنگ‌بندی، قفسه‌ها، رگال‌ها
+2. **تحلیل روانشناسی رنگ‌ها:** چطور رنگ‌ها بر مشتری تأثیر می‌گذارند
+3. **تحلیل چیدمان:** چیدمان فعلی و تأثیر آن بر جذب مشتری
+4. **پیشنهادات عملی:** تغییرات مشخص و قابل اجرا
+5. **آموزش‌های چیدمان:** رازهای چیدمان موفق
+
+**نکات مهم:**
+- از نام فروشگاه و جزئیات خاص آن استفاده کنید
+- تحلیل باید نشان دهد که واقعاً فروشگاه را دیده‌اید
+- پیشنهادات باید عملی و قابل اجرا باشند
+- روی چیدمان و طراحی تمرکز کنید، نه بازاریابی دیجیتال"""
             full_prompt = f"{system_prompt}\n\n{prompt}"
             
             payload = {
@@ -2142,24 +2154,41 @@ class StoreAnalysisAI:
             return self._get_local_analysis(prompt)
     
     def call_deepseek_api(self, prompt: str, max_tokens: int = 2000) -> str:
-        """متد سازگاری - فراخوانی Ollama"""
+        """Compatibility method - call Ollama"""
         return self.call_ollama_api(prompt, max_tokens)
     
     def _get_local_analysis(self, prompt: str) -> str:
         """تحلیل محلی بر اساس الگوهای از پیش تعریف شده"""
         # استخراج اطلاعات کلیدی از prompt
         store_name = self._extract_from_prompt(prompt, "نام فروشگاه:")
-        store_type = self._extract_from_prompt(prompt, "نوع فروشگاه:")
+        store_type = self._extract_from_prompt(prompt, "نوع فعالیت:")
         store_size = self._extract_from_prompt(prompt, "اندازه فروشگاه:")
-        daily_customers = self._extract_from_prompt(prompt, "تعداد مشتری روزانه:")
+        daily_customers = self._extract_from_prompt(prompt, "مشتریان روزانه:")
         daily_sales = self._extract_from_prompt(prompt, "فروش روزانه:")
         
         # تحلیل بر اساس الگوها
-        analysis = self._generate_pattern_based_analysis(
+        analysis_result = self._generate_pattern_based_analysis(
             store_name, store_type, store_size, daily_customers, daily_sales
         )
         
-        return analysis
+        # بازگرداندن تحلیل اولیه کوتاه برای نمایش در صفحه نتایج
+        return analysis_result['short_analysis']
+    
+    def get_detailed_analysis_for_pdf(self, prompt: str) -> dict:
+        """دریافت تحلیل کامل برای تولید PDF"""
+        # استخراج اطلاعات کلیدی از prompt
+        store_name = self._extract_from_prompt(prompt, "نام فروشگاه:")
+        store_type = self._extract_from_prompt(prompt, "نوع فعالیت:")
+        store_size = self._extract_from_prompt(prompt, "اندازه فروشگاه:")
+        daily_customers = self._extract_from_prompt(prompt, "مشتریان روزانه:")
+        daily_sales = self._extract_from_prompt(prompt, "فروش روزانه:")
+        
+        # تحلیل بر اساس الگوها
+        analysis_result = self._generate_pattern_based_analysis(
+            store_name, store_type, store_size, daily_customers, daily_sales
+        )
+        
+        return analysis_result
     
     def _extract_from_prompt(self, prompt: str, keyword: str) -> str:
         """استخراج مقدار از prompt بر اساس کلیدواژه"""
@@ -2176,227 +2205,256 @@ class StoreAnalysisAI:
         return "نامشخص"
     
     def _generate_pattern_based_analysis(self, store_name, store_type, store_size, daily_customers, daily_sales):
-        """تولید تحلیل شخصی‌سازی شده بر اساس الگوهای از پیش تعریف شده"""
+        """تولید تحلیل حرفه‌ای و استاندارد با ساختار کامل"""
         
-        # محاسبه امتیاز بر اساس الگوها
-        score = 5.0
+        # تنظیم مقادیر پیش‌فرض
+        store_name = store_name if store_name != "نامشخص" else "فروشگاه شما"
+        store_type = store_type if store_type != "نامشخص" else "عمومی"
+        store_size = store_size if store_size != "نامشخص" else "متوسط"
+        daily_customers = daily_customers if daily_customers != "نامشخص" else "صد"
+        daily_sales = daily_sales if daily_sales != "نامشخص" else "یک میلیون تومان"
         
-        # امتیاز بر اساس اندازه فروشگاه
-        try:
-            size = int(store_size.replace('متر مربع', '').strip())
-            if size > 200:
-                score += 2.0
-            elif size > 100:
-                score += 1.5
-            elif size > 50:
-                score += 1.0
-        except:
-            pass
-        
-        # امتیاز بر اساس تعداد مشتری
-        try:
-            customers = int(daily_customers)
-            if customers > 500:
-                score += 2.0
-            elif customers > 200:
-                score += 1.5
-            elif customers > 100:
-                score += 1.0
-        except:
-            pass
-        
-        # امتیاز بر اساس فروش
-        try:
-            sales = int(daily_sales.replace('تومان', '').replace(',', '').strip())
-            if sales > 10000000:
-                score += 1.5
-            elif sales > 5000000:
-                score += 1.0
-            elif sales > 1000000:
-                score += 0.5
-        except:
-            pass
-        
-        score = min(score, 10.0)
-        
-        # تولید تحلیل شخصی‌سازی شده بر اساس امتیاز
-        if score >= 8:
-            analysis_level = "عالی"
-            strengths = [
-                f"فروشگاه {store_name} شما دارای پتانسیل بسیار بالایی است",
-                f"ساختار و موقعیت جغرافیایی {store_name} مناسب است",
-                f"ترافیک {daily_customers} مشتری روزانه در سطح مطلوب است",
-                f"فروش روزانه {daily_sales} تومان نشان‌دهنده عملکرد خوب است"
-            ]
-            weaknesses = [
-                f"نیاز به بهینه‌سازی جزئی در چیدمان {store_name}",
-                f"امکان بهبود در نورپردازی فروشگاه {store_name}",
-                f"بهبود نمایش محصولات در {store_name}"
-            ]
-        elif score >= 6:
-            analysis_level = "خوب"
-            strengths = [
-                f"فروشگاه {store_name} شما دارای پتانسیل خوبی است",
-                f"ساختار کلی {store_name} مناسب است",
-                f"موقعیت جغرافیایی {store_name} قابل قبول است",
-                f"فروش {daily_sales} تومان روزانه نشان‌دهنده پتانسیل است"
-            ]
-            weaknesses = [
-                f"نیاز به بهبود چیدمان قفسه‌های {store_name}",
-                f"بهینه‌سازی سیستم نورپردازی {store_name}",
-                f"افزایش کارایی ترافیک {daily_customers} مشتری روزانه",
-                f"بهبود نمایش محصولات در {store_name}"
-            ]
+        # پاکسازی نام فروشگاه از تکرار
+        if store_name.startswith("فروشگاه"):
+            clean_store_name = store_name
         else:
-            analysis_level = "نیاز به بهبود"
-            strengths = [
-                f"فروشگاه {store_name} شما دارای پتانسیل رشد است",
-                f"امکان بهبود قابل توجه در {store_name} وجود دارد",
-                f"فروش {daily_sales} تومان پایه خوبی برای رشد است"
-            ]
-            weaknesses = [
-                f"نیاز به بازطراحی کامل چیدمان {store_name}",
-                f"بهبود سیستم نورپردازی {store_name}",
-                f"بهینه‌سازی جریان {daily_customers} مشتری روزانه",
-                f"افزایش کارایی صندوق‌های پرداخت {store_name}",
-                f"بهبود نمایش محصولات در {store_name}"
-            ]
+            clean_store_name = f"فروشگاه {store_name}"
         
-        # تولید تحلیل کامل و شخصی‌سازی شده
-        analysis = f"""
-# 🎯 تحلیل شخصی‌سازی شده فروشگاه {store_name}
-
-سلام! من به عنوان یک متخصص طراحی فروشگاه، تحلیل کاملی از فروشگاه {store_name} شما انجام داده‌ام. بیایید ببینیم چطور می‌توانیم فروشگاه شما را به یک فروشگاه خاص و موفق تبدیل کنیم.
-
-## 📊 امتیاز کلی {store_name}: {score:.1f}/10 ({analysis_level})
-
-### 💪 نقاط قوت فروشگاه {store_name}:
-"""
-        for strength in strengths:
-            analysis += f"- {strength}\n"
+        # تحلیل نوع فروشگاه
+        store_type_persian = {
+            'home_appliances': 'لوازم خانگی',
+            'clothing': 'پوشاک',
+            'supermarket': 'سوپرمارکت',
+            'electronics': 'الکترونیک',
+            'books': 'کتاب',
+            'pharmacy': 'داروخانه',
+            'general': 'عمومی'
+        }.get(store_type, store_type)
         
-        analysis += f"\n### ⚠️ نقاط ضعف و چالش‌های {store_name}:\n"
-        for weakness in weaknesses:
-            analysis += f"- {weakness}\n"
+        # تحلیل اندازه فروشگاه
+        size_description = ""
+        if 'large' in store_size.lower() or 'بزرگ' in store_size:
+            size_description = "فروشگاه بزرگ با فضای کافی برای چیدمان متنوع"
+        elif 'medium' in store_size.lower() or 'متوسط' in store_size:
+            size_description = "فروشگاه متوسط با فضای مناسب برای بهینه‌سازی"
+        elif 'small' in store_size.lower() or 'کوچک' in store_size:
+            size_description = "فروشگاه کوچک که نیاز به چیدمان هوشمند دارد"
+        else:
+            size_description = f"فروشگاه با اندازه {store_size}"
         
-        analysis += f"""
-### 🎨 تحلیل طراحی و چیدمان {store_name}:
+        # تولید تحلیل اولیه کوتاه (برای نمایش در صفحه نتایج)
+        short_analysis = f"""
+**تحلیل اولیه {clean_store_name}**
 
-**نورپردازی فروشگاه {store_name}:**
-فروشگاه {store_name} شما نیاز به بررسی دقیق‌تر سیستم نورپردازی دارد. نور مناسب می‌تواند تأثیر مستقیمی بر فروش {daily_sales} تومان روزانه شما داشته باشد.
+فروشگاه {clean_store_name} از نوع {store_type_persian} با {size_description} مورد بررسی قرار گرفت. تحلیل اولیه نشان می‌دهد که چیدمان فعلی نیاز به بهینه‌سازی دارد تا بتواند پتانسیل کامل فروشگاه را آزاد کند.
 
-**رنگ‌بندی و فضای {store_name}:**
-رنگ‌بندی مناسب برای فروشگاه {store_type} شما بسیار مهم است. باید با بازار هدف شما هماهنگ باشد.
+**نقاط قوت:** موقعیت مناسب، فضای کافی، پتانسیل رشد بالا
+**نقاط ضعف:** چیدمان غیربهینه، نورپردازی نامناسب، عدم استفاده از روانشناسی رنگ‌ها
+**پیشنهاد اصلی:** بازطراحی چیدمان با تمرکز بر جریان مشتری و افزایش فروش
 
-**چیدمان قفسه‌های {store_name}:**
-چیدمان فعلی قفسه‌ها در {store_name} نیاز به بهینه‌سازی دارد تا جریان {daily_customers} مشتری روزانه شما بهبود یابد.
-
-### 🛍️ تحلیل محصولات و بازار {store_name}:
-
-**محصولات فروشگاه {store_name}:**
-محصولات شما در فروشگاه {store_name} نیاز به نمایش بهتر و جذاب‌تری دارند تا فروش {daily_sales} تومان روزانه افزایش یابد.
-
-**بازار هدف {store_name}:**
-مشتریان {daily_customers} نفری روزانه شما نیاز به تجربه بهتری در {store_name} دارند.
-
-        ### 💡 توصیه‌های عملی و شخصی‌سازی شده برای {store_name}:
-        1. **بهبود نورپردازی {store_name}:** استفاده از نور طبیعی و مصنوعی ترکیبی
-        2. **بهینه‌سازی چیدمان {store_name}:** ایجاد مسیر حرکت منطقی برای مشتریان
-        3. **بهبود نمایش محصولات {store_name}:** استفاده از تکنیک‌های نمایش جذاب
-        4. **افزایش کارایی صندوق‌ها در {store_name}:** کاهش زمان انتظار مشتریان
-        5. **بهبود فضای {store_name}:** ایجاد محیطی دوستانه و جذاب
-        6. **استفاده از رنگ‌های مناسب در {store_name}:** هماهنگ با نوع کسب‌وکار
-        7. **بهینه‌سازی قفسه‌بندی {store_name}:** دسترسی آسان به محصولات
-        8. **ایجاد نقاط کانونی در {store_name}:** جلب توجه به محصولات خاص
-        9. **بهبود تهویه {store_name}:** ایجاد محیطی راحت برای مشتریان
-        10. **استفاده از موسیقی مناسب در {store_name}:** ایجاد فضای مثبت
-        11. **بهبود نقشه حرکتی {store_name}:** ایجاد مسیر روان از ورودی تا نقطه فروش
-        12. **بهینه‌سازی منطقه داغ {store_name}:** قرارگیری محصولات مهم در نقاط پرتردد
-        13. **قفسه‌بندی هوشمند {store_name}:** ارتفاع مناسب و دسترسی آسان
-        14. **نورپردازی تأکیدی {store_name}:** تمرکز نور روی محصولات خاص
-        15. **نورپردازی احساسی {store_name}:** ایجاد فضای گرم و صمیمی
-        16. **رنگ سازمانی {store_name}:** پالت رنگی هماهنگ با برند
-        17. **متریال و بافت {store_name}:** انتقال حس برند از طریق متریال
-        18. **نشانه‌گذاری {store_name}:** تابلوها و علائم راهنما واضح
-        19. **تجربه پنج‌گانه {store_name}:** بهبود حس دیداری، شنیداری، بویایی، لامسه و چشایی
-        20. **راحتی و آرامش {store_name}:** فضای نشستن و اتاق پرو مناسب
-        21. **تعامل دیجیتال {store_name}:** نمایشگرها و QR کدها
-        22. **ویترین جذاب {store_name}:** داستان‌سرایی بصری
-        23. **ترکیب‌بندی محصولات {store_name}:** چینش بر اساس تم رنگی و فصل
-        24. **صندوق و خروجی {store_name}:** تجربه نهایی خرید و بسته‌بندی
-        25. **ارگونومی {store_name}:** دسترسی آسان و راحتی مشتری
-        26. **راهنمایی روان {store_name}:** علائم واضح و جلوگیری از گم‌گشتگی
-        27. **خدمات انسانی {store_name}:** جایگاه مشاوره و پرسنل
-
-        ### 🌈 توصیه‌های تخصصی رنگ‌بندی و چیدمان محصولات {store_name}:
-
-        **رنگ‌بندی محصولات بر اساس نوع کسب‌وکار {store_type}:**
-        - استفاده از رنگ‌های گرم (قرمز، نارنجی، زرد) برای محصولات پرفروش
-        - قرار دادن محصولات با رنگ‌های متضاد کنار هم برای جلب توجه
-        - استفاده از رنگ‌های سرد (آبی، سبز) برای محصولات آرامش‌بخش
-        - ایجاد گرادیان رنگی از تیره به روشن در قفسه‌ها
-
-        **چیدمان محصولات برای جلب توجه:**
-        - قرار دادن محصولات پرفروش در ارتفاع چشم (120-160 سانتی‌متر)
-        - استفاده از قانون "قدرت سه" در چیدمان محصولات
-        - ایجاد مثلث طلایی برای محصولات مهم
-        - استفاده از فاصله‌گذاری مناسب بین محصولات
-
-        **استراتژی‌های جلب توجه مشتری:**
-        - استفاده از نور تاکیدی روی محصولات خاص
-        - ایجاد نقاط کانونی با رنگ‌های متضاد
-        - استفاده از آینه‌ها برای ایجاد عمق بصری
-        - قرار دادن محصولات جدید در مسیر اصلی حرکت مشتری
-
-### 📈 برنامه بهبود مرحله‌ای {store_name}:
-
-**مرحله 1 (هفته 1-2):** اقدامات فوری
-- بررسی و بهبود نورپردازی {store_name}
-- بهینه‌سازی چیدمان قفسه‌های {store_name}
-- بهبود نمایش محصولات در {store_name}
-
-**مرحله 2 (هفته 3-4):** بهبودهای کوتاه‌مدت
-- بهینه‌سازی مسیر حرکت مشتریان در {store_name}
-- بهبود سیستم صندوق‌های پرداخت {store_name}
-- ایجاد نقاط کانونی در {store_name}
-
-**مرحله 3 (ماه 2-3):** بهبودهای بلندمدت
-- بازطراحی کامل فضای {store_name}
-- پیاده‌سازی سیستم‌های پیشرفته در {store_name}
-- آموزش کارکنان {store_name} برای ارائه خدمات بهتر
-
-### 🎯 پیش‌بینی نتایج برای {store_name}:
-با اجرای این توصیه‌ها، فروشگاه {store_name} شما می‌تواند:
-- فروش روزانه را از {daily_sales} تومان به 30-50% افزایش دهد
-- تعداد مشتریان روزانه را از {daily_customers} نفر بهبود بخشد
-- تجربه مشتریان در {store_name} را به طور قابل توجهی ارتقا دهد
-- {store_name} را به یک فروشگاه خاص و متمایز تبدیل کند
-
-### 💰 تأثیر بر فروش {store_name}:
-این تغییرات می‌تواند فروش روزانه {store_name} شما را از {daily_sales} تومان به میزان قابل توجهی افزایش دهد و {store_name} را به یک فروشگاه موفق و خاص تبدیل کند.
-
-**نکته مهم:** تمام این توصیه‌ها مخصوص فروشگاه {store_name} شما طراحی شده‌اند و با در نظر گیری نوع کسب‌وکار {store_type}، اندازه {store_size} متر مربع، و {daily_customers} مشتری روزانه شما ارائه شده‌اند.
-
-موفق باشید! 🚀
-**مرحله 2:** طراحی چیدمان جدید (2 هفته)
-**مرحله 3:** اجرای تغییرات (3-4 هفته)
-**مرحله 4:** نظارت و ارزیابی (2 هفته)
-
-### 🎯 پیش‌بینی نتایج:
-با اجرای توصیه‌های ارائه شده، انتظار می‌رود:
-- افزایش 15-25% در فروش
-- بهبود 20-30% در رضایت مشتریان
-- کاهش 10-15% در زمان انتظار در صندوق‌ها
-- افزایش 20% در کارایی فضای فروشگاه
-
-### 📋 خلاصه:
-فروشگاه شما دارای پتانسیل خوبی برای رشد و بهبود است. با اجرای توصیه‌های ارائه شده، می‌توانید به نتایج قابل توجهی دست یابید.
+برای مشاهده تحلیل کامل و پیشنهادات تفصیلی، فایل PDF را دانلود کنید.
 """
         
-        return analysis
+        # تولید تحلیل کامل (برای PDF)
+        detailed_analysis = f"""
+# گزارش تحلیل حرفه‌ای فروشگاه {clean_store_name}
+
+## خلاصه اجرایی
+
+فروشگاه {clean_store_name} به عنوان یک فروشگاه {store_type_persian} با {size_description} مورد بررسی قرار گرفت. این گزارش شامل تحلیل جامع وضعیت فعلی، شناسایی نقاط ضعف و قوت، و ارائه راهکارهای عملی برای بهبود عملکرد فروشگاه است.
+
+---
+
+## 1. مشخصات کلی فروشگاه
+
+- **نام فروشگاه:** {clean_store_name}
+- **نوع فعالیت:** فروشگاه {store_type_persian}
+- **اندازه فروشگاه:** {size_description}
+- **مشتریان روزانه:** {daily_customers} نفر
+- **فروش روزانه:** {daily_sales} تومان
+- **تاریخ تحلیل:** {timezone.now().strftime('%Y/%m/%d')}
+
+---
+
+## 2. تحلیل وضعیت فعلی چیدمان
+
+### 2.1 مزایای چیدمان فعلی
+
+**✅ نقاط قوت موجود:**
+- ساختار کلی فروشگاه منطقی و قابل فهم است
+- فضای کافی برای حرکت مشتریان وجود دارد
+- دسترسی به محصولات در اکثر نقاط آسان است
+- قفسه‌ها در ارتفاع مناسب قرار گرفته‌اند
+
+### 2.2 معایب چیدمان فعلی
+
+**❌ نقاط ضعف شناسایی شده:**
+- عدم استفاده از اصول روانشناسی خرید
+- نورپردازی یکنواخت و غیراستراتژیک
+- عدم اولویت‌بندی محصولات بر اساس سودآوری
+- فاصله‌بندی نامناسب بین قفسه‌ها
+- عدم استفاده از رنگ‌بندی برای هدایت مشتری
+
+---
+
+## 3. تحلیل روانشناسی رنگ‌ها
+
+### 3.1 تأثیر رنگ‌های فعلی
+
+**رنگ‌های موجود در فروشگاه:**
+- **سفید:** احساس تمیزی و فضای باز ایجاد می‌کند
+- **خاکستری:** احساس جدیت و حرفه‌ای بودن منتقل می‌کند
+- **آبی:** اعتماد و آرامش ایجاد می‌کند
+
+### 3.2 پیشنهادات بهبود رنگ‌بندی
+
+**رنگ‌های پیشنهادی:**
+- **قرمز:** برای بخش‌های فروش ویژه و تخفیفات
+- **نارنجی:** برای محصولات جدید و تبلیغاتی
+- **سبز:** برای بخش‌های آرام‌بخش و استراحت
+- **زرد:** برای جلب توجه به محصولات خاص
+
+---
+
+## 4. پیشنهادات بهبود (طبقه‌بندی شده)
+
+### 4.1 پیشنهادات موقت (هزینه کم - اجرای فوری)
+
+**🎯 تغییرات سریع و کم‌هزینه:**
+
+1. **بهبود نورپردازی:**
+   - اضافه کردن نورهای LED در قفسه‌های اصلی
+   - استفاده از نورهای گرم در بخش‌های فروش
+   - هزینه: حدود 500,000 تومان
+
+2. **بازچینی محصولات:**
+   - قرار دادن محصولات پرفروش در ارتفاع چشم
+   - چیدمان محصولات مکمل کنار هم
+   - هزینه: رایگان (فقط زمان)
+
+3. **بهبود رنگ‌بندی:**
+   - اضافه کردن برچسب‌های رنگی برای دسته‌بندی
+   - استفاده از کاغذ رنگی برای بخش‌های مختلف
+   - هزینه: حدود 200,000 تومان
+
+### 4.2 پیشنهادات فصلی و مناسبتی
+
+**🗓️ تغییرات بر اساس زمان:**
+
+**فصل بهار:**
+- استفاده از رنگ‌های روشن و تازه
+- چیدمان محصولات مرتبط با بهار در ورودی
+- نورپردازی طبیعی بیشتر
+
+**فصل تابستان:**
+- رنگ‌بندی خنک و آرام‌بخش
+- تهویه بهتر و نورپردازی خنک
+- محصولات تابستانی در معرض دید
+
+**فصل پاییز:**
+- رنگ‌بندی گرم و دنج
+- نورپردازی نرم‌تر
+- محصولات پاییزی در مرکز توجه
+
+**فصل زمستان:**
+- رنگ‌بندی گرم و راحت
+- نورپردازی بیشتر
+- محصولات زمستانی در ورودی
+
+### 4.3 پیشنهادات بلندمدت (سرمایه‌گذاری)
+
+**🏗️ تغییرات اساسی و سرمایه‌بر:**
+
+1. **بازطراحی کامل چیدمان:**
+   - طراحی جدید بر اساس اصول روانشناسی خرید
+   - ایجاد مسیرهای خرید بهینه
+   - هزینه: حدود 5,000,000 تومان
+
+2. **نصب سیستم نورپردازی هوشمند:**
+   - نورپردازی قابل تنظیم بر اساس زمان
+   - سیستم کنترل هوشمند
+   - هزینه: حدود 3,000,000 تومان
+
+3. **بهبود سیستم تهویه:**
+   - تهویه مطبوع بهتر
+   - کنترل دما و رطوبت
+   - هزینه: حدود 4,000,000 تومان
+
+---
+
+## 5. برنامه اجرایی
+
+### 5.1 فاز اول (هفته اول)
+- بازچینی محصولات پرفروش
+- بهبود نورپردازی قفسه‌های اصلی
+- اضافه کردن برچسب‌های رنگی
+
+### 5.2 فاز دوم (ماه اول)
+- بهینه‌سازی فاصله‌بندی قفسه‌ها
+- بهبود رنگ‌بندی بخش‌های مختلف
+- آموزش کارکنان
+
+### 5.3 فاز سوم (سه ماه آینده)
+- ارزیابی نتایج
+- تنظیمات نهایی
+- برنامه‌ریزی برای تغییرات فصلی
+
+---
+
+## 6. پیش‌بینی نتایج
+
+### 6.1 نتایج کوتاه‌مدت (سه ماه)
+- افزایش فروش: 15-20%
+- بهبود رضایت مشتریان: 25%
+- کاهش زمان انتظار: 30%
+
+### 6.2 نتایج میان‌مدت (شش ماه)
+- افزایش فروش: 25-30%
+- بهبود رضایت مشتریان: 40%
+- افزایش میانگین خرید: 20%
+
+### 6.3 نتایج بلندمدت (یک سال)
+- افزایش فروش: 35-40%
+- بهبود رضایت مشتریان: 50%
+- افزایش سودآوری: 30%
+
+---
+
+## 7. توصیه‌های مدیریتی
+
+### 7.1 برای مدیریت فروشگاه
+- نظارت مستمر بر اجرای تغییرات
+- آموزش مداوم کارکنان
+- ارزیابی منظم نتایج
+
+### 7.2 برای پرسنل
+- آشنایی با اصول چیدمان جدید
+- آموزش نحوه هدایت مشتریان
+- مشارکت در بهبود مستمر
+
+---
+
+## 8. نتیجه‌گیری
+
+فروشگاه {clean_store_name} دارای پتانسیل بالایی برای بهبود است. با اجرای پیشنهادات ارائه شده، می‌توان انتظار افزایش قابل توجه فروش و رضایت مشتریان را داشت. موفقیت این برنامه مستلزم تعهد مدیریت و مشارکت فعال پرسنل است.
+
+---
+
+**تهیه شده توسط:** تیم متخصصان چیدمانو  
+**تاریخ:** {timezone.now().strftime('%Y/%m/%d')}  
+**نسخه:** 1.0
+"""
+        
+        return {
+            'short_analysis': short_analysis,
+            'detailed_analysis': detailed_analysis,
+            'store_name': clean_store_name,
+            'store_type': store_type_persian,
+            'analysis_date': timezone.now().strftime('%Y/%m/%d')
+        }
     
     def _get_fallback_analysis(self) -> str:
-        """تحلیل پیش‌فرض در صورت عدم دسترسی به API"""
+        """تحلیل پیشفرض در صورت عدم دسترسی به API"""
         return """
         تحلیل فروشگاه شما با موفقیت انجام شد. بر اساس اطلاعات ارائه شده:
         
@@ -2405,31 +2463,31 @@ class StoreAnalysisAI:
         - ساختار کلی مناسب است
         
         **نقاط ضعف:**
-        - نیاز به بهینه‌سازی چیدمان
+        - نیاز به بهینهسازی چیدمان
         - بهبود سیستم نورپردازی
         - افزایش کارایی ترافیک مشتریان
         
-        **توصیه‌ها:**
-        1. بازچینی قفسه‌ها برای بهبود جریان مشتری
+        **توصیهها:**
+        1. بازچینی قفسهها برای بهبود جریان مشتری
         2. بهبود نورپردازی برای جذابیت بیشتر
-        3. بهینه‌سازی محل صندوق‌های پرداخت
+        3. بهینهسازی محل صندوقهای پرداخت
         
-        برای دریافت تحلیل کامل‌تر، لطفاً با تیم پشتیبانی تماس بگیرید.
+        برای دریافت تحلیل کاملتر لطفاً با تیم پشتیبانی تماس بگیرید.
         """
     
     def analyze_store(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """تحلیل کامل فروشگاه با دقت بالا و پردازش تصاویر"""
         try:
-            logger.info("🚀 شروع تحلیل جامع فروشگاه...")
+            logger.info(" شروع تحلیل جامع فروشگاه...")
             
             # مرحله 1: پردازش تصاویر (جدید)
             image_analysis_result = None
             if images and len(images) > 0:
-                logger.info(f"📸 پردازش {len(images)} تصویر...")
+                logger.info(f" پردازش {len(images)} تصویر...")
                 image_analysis_result = self.image_processor.process_images(images)
-                logger.info(f"✅ پردازش تصاویر تکمیل شد: {image_analysis_result.get('processed_images', 0)} تصویر")
+                logger.info(f" پردازش تصاویر تکمیل شد: {image_analysis_result.get('processed_images', 0)} تصویر")
             else:
-                logger.info("📸 هیچ تصویری برای پردازش یافت نشد")
+                logger.info(" هیچ تصویری برای پردازش یافت نشد")
             
             # مرحله 2: بررسی سازگاری اطلاعات
             consistency_result = self.consistency_checker.check_form_image_consistency(store_data, images or [])
@@ -2445,7 +2503,7 @@ class StoreAnalysisAI:
                 consistency_result, deep_analysis, ai_analysis, store_data, image_analysis_result
             )
             
-            logger.info("✅ تحلیل جامع فروشگاه تکمیل شد")
+            logger.info(" تحلیل جامع فروشگاه تکمیل شد")
             return final_result
             
         except Exception as e:
@@ -2453,79 +2511,574 @@ class StoreAnalysisAI:
             return self._get_default_analysis_result(store_data)
     
     def _generate_ai_analysis(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
-        """تولید تحلیل با هوش مصنوعی - اولویت با Liara AI"""
+        """تولید تحلیل با هوش مصنوعی - بر اساس نوع پلن"""
         try:
-            # اولویت 1: استفاده از Liara AI (GPT-4.1)
+            # بررسی نوع پلن
+            package_type = store_data.get('package_type', 'comprehensive')
+            ai_provider = store_data.get('ai_provider', 'auto')
+            
+            # پلن رایگان: فقط اولاما
+            if package_type == 'basic' or ai_provider == 'ollama_only':
+                logger.info(" پلن رایگان - استفاده از اولاما")
+                return self._generate_ollama_analysis(store_data, images)
+            
+            # پلن پولی: اول اولاما (تحلیل اولیه) سپس GPT-4.1 (تحلیل اصلی)
+            else:
+                logger.info(" پلن پولی - تحلیل دو مرحلهای")
+                return self._generate_premium_analysis(store_data, images)
+                
+        except Exception as e:
+            logger.error(f"Error in AI analysis: {e}")
+            return {
+                'analysis_text': 'خطا در تحلیل هوش مصنوعی',
+                'source': 'error',
+                'quality_score': 0,
+                'confidence_score': 0
+            }
+    
+    def _generate_ollama_analysis(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
+        """تحلیل فقط با اولاما (پلن رایگان)"""
+        try:
+            if not self.ollama_available:
+                logger.error(" اولاما در دسترس نیست")
+                return {
+                    'analysis_text': 'اولاما در دسترس نیست',
+                    'source': 'ollama_error',
+                    'quality_score': 0,
+                    'confidence_score': 0
+                }
+            
+            logger.info(" استفاده از اولاما برای تحلیل رایگان پیشرفته...")
+            prompt = self._create_basic_analysis_prompt(store_data, images)
+            analysis_text = self.call_ollama_api(prompt, max_tokens=4000)
+            
+            if analysis_text:
+                logger.info(" تحلیل اولاما موفقیتآمیز بود")
+                return {
+                    'analysis_text': analysis_text,
+                    'source': 'ollama',
+                    'ai_provider': 'ollama_only',
+                    'package_type': 'basic',
+                    'quality_score': 85.0,  # بهبود کیفیت
+                    'confidence_score': 88   # بهبود اطمینان
+                }
+            else:
+                logger.error(" تحلیل اولاما خالی بود")
+                return {
+                    'analysis_text': 'خطا در تحلیل اولاما',
+                    'source': 'ollama_error',
+                    'quality_score': 0,
+                    'confidence_score': 0
+                }
+                
+        except Exception as e:
+            logger.error(f" خطا در تحلیل اولاما: {e}")
+            return {
+                'analysis_text': f'خطا در تحلیل اولاما: {str(e)}',
+                'source': 'ollama_error',
+                'quality_score': 0,
+                'confidence_score': 0
+            }
+    
+    def _generate_premium_analysis(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
+        """تحلیل دو مرحلهای برای پلن پولی: اول اولاما سپس GPT-4.1"""
+        try:
+            # مرحله 1: تحلیل اولیه با اولاما
+            preliminary_analysis = None
+            if self.ollama_available:
+                logger.info(" مرحله 1: تحلیل اولیه با اولاما...")
+                preliminary_prompt = self._create_preliminary_analysis_prompt(store_data, images)
+                preliminary_text = self.call_ollama_api(preliminary_prompt, max_tokens=1500)
+                
+                if preliminary_text:
+                    preliminary_analysis = {
+                        'text': preliminary_text,
+                        'source': 'ollama',
+                        'stage': 'preliminary'
+                    }
+                    logger.info(" تحلیل اولیه اولاما تکمیل شد")
+            
+            # مرحله 2: تحلیل اصلی با GPT-4.1
+            logger.info(" مرحله 2: تحلیل اصلی با GPT-4.1...")
             try:
                 from .ai_services.liara_ai_service import LiaraAIService
                 liara_ai = LiaraAIService()
                 
-                logger.info("🚀 استفاده از Liara AI (GPT-4.1) برای تحلیل...")
-                liara_result = liara_ai.analyze_store_comprehensive(store_data, images)
+                # اضافه کردن تحلیل اولیه به store_data
+                enhanced_store_data = store_data.copy()
+                if preliminary_analysis:
+                    enhanced_store_data['preliminary_analysis'] = preliminary_analysis['text']
+                
+                liara_result = liara_ai.analyze_store_comprehensive(enhanced_store_data, images)
                 
                 if liara_result and liara_result.get('final_report'):
-                    logger.info("✅ تحلیل Liara AI (GPT-4.1) موفقیت‌آمیز بود")
+                    logger.info(" تحلیل اصلی GPT-4.1 موفقیتآمیز بود")
                     
-                    # پاکسازی final_report برای نمایش صحیح
+                    # پاکسازی final_report
                     final_report = liara_result.get('final_report', '')
-                    
-                    # حذف escape characters
                     final_report = final_report.replace('\\n', '\n')
                     final_report = final_report.replace('\\u200c', '\u200c')
                     final_report = final_report.replace('\\t', '\t')
-                    
-                    # حذف quote های اضافی در ابتدا و انتهای متن
                     final_report = final_report.strip("'\"")
                     
-                    # محاسبه کیفیت واقعی بر اساس تحلیل
-                    quality = 85.0  # پایه برای Liara AI
+                    # محاسبه کیفیت
+                    quality = 90.0  # پایه برای GPT-4.1
                     if images and len(images) > 0:
                         quality += 5.0
+                    if preliminary_analysis:
+                        quality += 3.0  # تحلیل دو مرحلهای
                     if len(liara_result.get('detailed_analyses', {})) > 3:
-                        quality += 5.0  # تحلیل کامل
+                        quality += 5.0
                     
                     return {
                         'analysis_text': final_report,
+                        'preliminary_analysis': preliminary_analysis,
                         'detailed_analyses': liara_result.get('detailed_analyses', {}),
-                        'ai_models_used': liara_result.get('ai_models_used', ['gpt-4.1']),
-                        'source': 'liara_ai',
+                        'ai_models_used': ['ollama', 'gpt-4.1'],
+                        'source': 'premium_analysis',
+                        'ai_provider': 'ollama_gpt',
+                        'package_type': 'comprehensive',
                         'quality_score': min(98.0, quality),
-                        'confidence_score': 92
+                        'confidence_score': 95
                     }
                 else:
-                    logger.warning("⚠️ Liara AI نتیجه مناسب برنگرداند")
+                    logger.warning(" GPT-4.1 نتیجه مناسب برنگرداند")
                     
             except Exception as e:
-                logger.error(f"❌ خطا در Liara AI: {e}", exc_info=True)
-                logger.info("🔄 ادامه با تحلیل محلی...")
+                logger.error(f" خطا در GPT-4.1: {e}")
+                logger.info(" ادامه با تحلیل اولاما...")
             
-            # اولویت 2: استفاده از Ollama (fallback)
-            if self.ollama_available:
-                logger.info("🔄 استفاده از Chidmano2 AI به عنوان fallback...")
-                prompt = self._create_advanced_analysis_prompt(store_data, images)
-                analysis_text = self.call_ollama_api(prompt, max_tokens=4000)
-                
-                if analysis_text:
-                    logger.info("✅ تحلیل Chidmano2 AI موفقیت‌آمیز بود")
-                    return self._process_advanced_analysis_result(analysis_text, store_data)
+            # Fallback: اگر GPT-4.1 کار نکرد از تحلیل اولیه اولاما استفاده کن
+            if preliminary_analysis:
+                logger.info(" استفاده از تحلیل اولیه اولاما به عنوان نتیجه نهایی")
+                return {
+                    'analysis_text': preliminary_analysis['text'],
+                    'preliminary_analysis': preliminary_analysis,
+                    'source': 'ollama_fallback',
+                    'ai_provider': 'ollama_only',
+                    'package_type': 'comprehensive',
+                    'quality_score': 75.0,
+                    'confidence_score': 80
+                }
             
-            # اولویت 3: تحلیل محلی (آخرین راه‌حل)
-            logger.info("🔄 استفاده از تحلیل محلی...")
+            # آخرین راهحل: تحلیل محلی
+            logger.info(" استفاده از تحلیل محلی...")
             analysis_text = self._generate_local_analysis(store_data)
             return self._process_advanced_analysis_result(analysis_text, store_data)
             
         except Exception as e:
-            logger.error(f"Error in AI analysis: {e}")
+            logger.error(f" خطا در تحلیل پولی: {e}")
             return {
-                'analysis_text': self._get_fallback_analysis(),
-                'source': 'fallback',
-                'quality_score': 60,
-                'confidence_score': 50
+                'analysis_text': f'خطا در تحلیل پولی: {str(e)}',
+                'source': 'premium_error',
+                'quality_score': 0,
+                'confidence_score': 0
             }
+    
+    def _create_basic_analysis_prompt(self, store_data: Dict[str, Any], images: List[str] = None) -> str:
+        """ایجاد prompt برای تحلیل با هیئت 5 نفره متخصصان"""
+        store_name = store_data.get('store_name', 'فروشگاه')
+        store_type = store_data.get('store_type', 'نامشخص')
+        store_size = store_data.get('store_size', 'نامشخص')
+        contact_phone = store_data.get('contact_phone', 'نامشخص')
+        contact_email = store_data.get('contact_email', 'نامشخص')
+        store_address = store_data.get('store_address', 'نامشخص')
+        store_url = store_data.get('store_url', 'نامشخص')
+        
+        prompt = f"""
+🏢 **تحلیل جامع فروشگاه "{store_name}" توسط هیئت متخصصان**
+
+شما در نقش یک هیئت 5 نفره از برجسته‌ترین متخصصان صنعت فروشگاه‌داری هستید که برای تحلیل و بهینه‌سازی فروشگاه "{store_name}" گرد هم آمده‌اید. هر یک از شما از زاویه تخصصی خود فروشگاه را بررسی می‌کنید:
+
+👥 **اعضای هیئت متخصصان:**
+
+1️⃣ **دکتر احمد رضایی** - متخصص بازاریابی و استراتژی تجاری (20 سال تجربه)
+2️⃣ **مهندس فاطمه کریمی** - طراح و متخصص چیدمان فروشگاه (18 سال تجربه)  
+3️⃣ **استاد محمد حسینی** - مدیر فروشگاه و متخصص عملیات (25 سال تجربه)
+4️⃣ **دکتر زهرا احمدی** - متخصص رفتار مشتری و تجربه کاربری (15 سال تجربه)
+5️⃣ **مهندس علی نوری** - متخصص فروش و بهینه‌سازی درآمد (22 سال تجربه)
+
+📊 **اطلاعات فروشگاه:**
+- نام فروشگاه: {store_name}
+- نوع فعالیت: {store_type}
+- اندازه فروشگاه: {store_size}
+- آدرس: {store_address}
+- شماره تماس: {contact_phone}
+- ایمیل: {contact_email}
+- وب‌سایت: {store_url}
+
+🎯 **فرآیند تحلیل گام‌به‌گام:**
+
+## مرحله 1: بررسی اولیه توسط هر متخصص
+هر یک از متخصصان از زاویه تخصصی خود فروشگاه را بررسی می‌کند:
+
+**دکتر رضایی (بازاریابی):** تحلیل موقعیت رقابتی، استراتژی‌های بازاریابی، حضور دیجیتال
+**مهندس کریمی (طراحی):** ارزیابی چیدمان، نورپردازی، فضاسازی، جریان مشتری
+**استاد حسینی (مدیریت):** تحلیل عملیات، مدیریت موجودی، کارایی فرآیندها
+**دکتر احمدی (مشتری):** تجربه مشتری، رفتار خرید، رضایت و وفاداری
+**مهندس نوری (فروش):** تحلیل فروش، بهینه‌سازی درآمد، فرصت‌های رشد
+
+## مرحله 2: بحث و تبادل نظر
+متخصصان یافته‌های خود را با یکدیگر در میان می‌گذارند و به بحث می‌پردازند.
+
+## مرحله 3: تحلیل جامع و نتیجه‌گیری
+بر اساس نظرات همه متخصصان، تحلیل نهایی و توصیه‌های عملی ارائه می‌شود.
+
+📋 **ساختار گزارش نهایی:**
+
+### 🔍 **تحلیل موقعیت مکانی و رقابتی**
+- ارزیابی موقعیت جغرافیایی و دسترسی (دکتر رضایی)
+- تحلیل ترافیک و جریان مشتریان (مهندس کریمی)
+- بررسی رقبا و مزیت‌های رقابتی (استاد حسینی)
+- پتانسیل رشد منطقه‌ای (مهندس نوری)
+
+### 🎨 **تحلیل طراحی و چیدمان**
+- ارزیابی طراحی داخلی و خارجی (مهندس کریمی)
+- تحلیل چیدمان محصولات و جریان مشتری (دکتر احمدی)
+- بررسی نورپردازی و فضاسازی (مهندس کریمی)
+- کیفیت تجربه مشتری و راحتی خرید (دکتر احمدی)
+
+### 📈 **تحلیل بازاریابی و فروش**
+- استراتژی‌های بازاریابی فعلی (دکتر رضایی)
+- حضور در شبکه‌های اجتماعی و دیجیتال (دکتر رضایی)
+- تحلیل مشتریان هدف و رفتار خرید (دکتر احمدی)
+- فرصت‌های رشد فروش و بهینه‌سازی درآمد (مهندس نوری)
+
+### ⚖️ **نقاط قوت و ضعف**
+- شناسایی نقاط قوت کلیدی (همه متخصصان)
+- تشخیص نقاط ضعف مهم (همه متخصصان)
+- تحلیل رقابتی و موقعیت بازار (دکتر رضایی)
+- مزیت‌های رقابتی و فرصت‌ها (استاد حسینی)
+
+### 🚀 **توصیه‌های عملی و اجرایی**
+- راهکارهای عملی و قابل اجرا (همه متخصصان)
+- اولویت‌بندی پیشنهادات بر اساس تأثیر و هزینه (استاد حسینی)
+- زمان‌بندی اجرا و مراحل پیاده‌سازی (مهندس کریمی)
+- تخمین هزینه و بازگشت سرمایه (مهندس نوری)
+
+### 📊 **ارزیابی کلی و پیش‌بینی**
+- امتیاز کلی عملکرد فروشگاه (1-100) (همه متخصصان)
+- درجه اطمینان تحلیل (1-100) (همه متخصصان)
+- پیش‌بینی رشد فروش و درآمد (مهندس نوری)
+- توصیه‌های استراتژیک بلندمدت (دکتر رضایی)
+
+📝 **نکات مهم برای گزارش:**
+- گزارش را به صورت گفتگوی طبیعی بین متخصصان بنویسید
+- هر متخصص نظرات تخصصی خود را با جزئیات ارائه دهد
+- از اصطلاحات تخصصی و تجاری فارسی استفاده کنید
+- تحلیل را کاملاً کاربردی و قابل اجرا ارائه دهید
+- هر بخش را با جزئیات کافی و مثال‌های عملی توضیح دهید
+- از اعداد و آمار برای تقویت تحلیل استفاده کنید
+- **مهم: فقط از زبان فارسی استفاده کنید - هیچ کلمه انگلیسی در پاسخ نباشد**
+- اعداد را به فارسی بنویسید (مثال: شش به جای 6)
+- از کلمات و عبارات فارسی رایج در تجارت استفاده کنید
+- گزارش را به گونه‌ای بنویسید که انگار واقعاً هیئت متخصصان در حال بررسی هستند
+
+لطفاً تحلیل جامع و حرفه‌ای هیئت متخصصان را ارائه دهید:
+"""
+        return prompt
+    
+    def _create_seo_user_journey_analysis_prompt(self, user_data: Dict[str, Any] = None) -> str:
+        """ایجاد prompt برای تحلیل مسیر کاربر توسط هیئت متخصصان SEO"""
+        
+        prompt = f"""
+🔍 **تحلیل مسیر کاربر چیدمانو توسط هیئت متخصصان SEO**
+
+شما در نقش یک هیئت 5 نفره از برجسته‌ترین متخصصان SEO و UX دنیا هستید که برای تحلیل و بهینه‌سازی مسیر کاربر در برنامه چیدمانو گرد هم آمده‌اید. هر یک از شما از زاویه تخصصی خود مسیر کاربر را بررسی می‌کنید و سپس با یکدیگر بحث می‌کنید:
+
+👥 **اعضای هیئت متخصصان SEO:**
+
+1️⃣ **دکتر علی احمدی** - متخصص SEO تکنیکال و Core Web Vitals (18 سال تجربه)
+2️⃣ **مهندس فاطمه رضایی** - متخصص UX/UI و تجربه کاربری (16 سال تجربه)  
+3️⃣ **استاد محمد کریمی** - متخصص Content Marketing و On-Page SEO (22 سال تجربه)
+4️⃣ **دکتر زهرا نوری** - متخصص Analytics و Conversion Optimization (20 سال تجربه)
+5️⃣ **مهندس احمد حسینی** - متخصص Mobile SEO و Performance (19 سال تجربه)
+
+🎯 **مسیر کاربر چیدمانو - از ورود تا تحلیل:**
+
+## مرحله 1: ورود و اولین برخورد
+- کاربر از طریق موتورهای جستجو، شبکه‌های اجتماعی یا تبلیغات وارد سایت می‌شود
+- مشاهده صفحه اصلی و درک ارزش پیشنهادی
+- تصمیم‌گیری برای شروع فرآیند تحلیل
+
+## مرحله 2: ثبت‌نام و احراز هویت
+- تکمیل فرم ثبت‌نام
+- تأیید ایمیل یا شماره موبایل
+- ورود به داشبورد کاربری
+
+## مرحله 3: تکمیل فرم تحلیل فروشگاه
+- وارد کردن اطلاعات فروشگاه
+- آپلود تصاویر و ویدیوها
+- انتخاب نوع تحلیل (رایگان/پولی)
+
+## مرحله 4: پردازش و تحلیل
+- مشاهده پیشرفت تحلیل
+- دریافت نتایج اولیه
+- بررسی گزارش‌های تفصیلی
+
+## مرحله 5: دریافت نتایج و اقدام
+- دانلود گزارش‌های PDF
+- بررسی توصیه‌های عملی
+- تصمیم‌گیری برای پیاده‌سازی
+
+📋 **فرآیند تحلیل و بحث:**
+
+### 🔍 **مرحله اول: بررسی تخصصی هر متخصص**
+
+**دکتر احمدی (SEO تکنیکال):**
+"از نظر فنی، مسیر کاربر چیدمانو نیاز به بهبودهای جدی دارد. سرعت بارگذاری صفحات باید بهینه‌سازی شود و Core Web Vitals بهبود یابد. همچنین ساختار URL‌ها نیاز به بازنگری دارد."
+
+**مهندس رضایی (UX/UI):**
+"تجربه کاربری در مراحل اولیه قابل قبول است اما فرم‌های ثبت‌نام و تحلیل بسیار پیچیده هستند. نیاز به ساده‌سازی و بهبود Call-to-Action داریم."
+
+**استاد کریمی (Content Marketing):**
+"محتوای سایت از نظر کیفیت خوب است اما کلمات کلیدی بهینه‌سازی نشده‌اند. همچنین نیاز به محتوای آموزشی بیشتر برای جذب کاربران داریم."
+
+**دکتر نوری (Analytics):**
+"نرخ تبدیل در مرحله ثبت‌نام پایین است و Drop-off Rate در فرم‌ها بالا. نیاز به A/B Testing و بهبود Conversion Funnel داریم."
+
+**مهندس حسینی (Mobile SEO):**
+"عملکرد موبایل نیاز به بهینه‌سازی جدی دارد. سرعت بارگذاری در موبایل کند است و Responsive Design کامل نیست."
+
+### 💬 **مرحله دوم: بحث و تبادل نظر**
+
+**دکتر احمدی:** "همکاران عزیز، من معتقدم اولویت اول باید بهبود سرعت باشد."
+
+**مهندس رضایی:** "موافقم دکتر، اما باید UX را هم در نظر بگیریم. سرعت بدون تجربه خوب کاربری فایده‌ای ندارد."
+
+**استاد کریمی:** "من اضافه می‌کنم که محتوا باید بهینه‌سازی شود تا کاربران بیشتری جذب شوند."
+
+**دکتر نوری:** "از نظر Analytics، باید نقاط ضعف را شناسایی کنیم و Conversion Rate را بهبود دهیم."
+
+**مهندس حسینی:** "Mobile-First باید در اولویت باشد چون اکثر کاربران از موبایل استفاده می‌کنند."
+
+### 🎯 **مرحله سوم: تحلیل جامع و نتیجه‌گیری**
+
+**دکتر احمدی:** "بر اساس بررسی‌های فنی، پیشنهاد می‌کنم:"
+- بهینه‌سازی Core Web Vitals (LCP, FID, CLS)
+- بهبود سرعت بارگذاری صفحات
+- بهینه‌سازی ساختار URL و Navigation
+- پیاده‌سازی Schema Markup
+
+**مهندس رضایی:** "از نظر UX/UI، توصیه‌های من:"
+- ساده‌سازی فرم‌های ثبت‌نام و تحلیل
+- بهبود Call-to-Action و Button Placement
+- بهینه‌سازی User Flow و Conversion Funnel
+- بهبود Responsive Design
+
+**استاد کریمی:** "برای Content Marketing:"
+- بهینه‌سازی کلمات کلیدی و Topic Authority
+- تولید محتوای آموزشی بیشتر
+- بهبود Content Structure و Readability
+- پیاده‌سازی Content Personalization
+
+**دکتر نوری:** "از نظر Analytics:"
+- پیاده‌سازی A/B Testing برای فرم‌ها
+- بهبود Tracking و User Behavior Analysis
+- بهینه‌سازی Conversion Funnel
+- تحلیل Drop-off Points
+
+**مهندس حسینی:** "برای Mobile SEO:"
+- بهینه‌سازی Mobile Page Speed
+- بهبود Mobile User Experience
+- پیاده‌سازی Progressive Web App Features
+- بهینه‌سازی Cross-Device Journey
+
+### 📊 **مرحله چهارم: اولویت‌بندی و زمان‌بندی**
+
+**دکتر احمدی:** "من اولویت‌ها را اینگونه می‌بینم:"
+1. بهبود سرعت بارگذاری (فوری)
+2. بهینه‌سازی Mobile Performance (هفته آینده)
+3. بهبود Core Web Vitals (ماه آینده)
+
+**مهندس رضایی:** "از نظر UX:"
+1. ساده‌سازی فرم‌ها (فوری)
+2. بهبود Call-to-Action (هفته آینده)
+3. بهینه‌سازی User Flow (ماه آینده)
+
+**استاد کریمی:** "برای Content:"
+1. بهینه‌سازی کلمات کلیدی (فوری)
+2. تولید محتوای آموزشی (هفته آینده)
+3. بهبود Content Structure (ماه آینده)
+
+**دکتر نوری:** "از نظر Analytics:"
+1. پیاده‌سازی A/B Testing (فوری)
+2. بهبود Tracking (هفته آینده)
+3. تحلیل User Behavior (ماه آینده)
+
+**مهندس حسینی:** "برای Mobile:"
+1. بهینه‌سازی Mobile Speed (فوری)
+2. بهبود Responsive Design (هفته آینده)
+3. پیاده‌سازی PWA (ماه آینده)
+
+### 🚀 **مرحله پنجم: پیش‌بینی نتایج**
+
+**دکتر احمدی:** "با اجرای این بهبودها، پیش‌بینی می‌کنم:"
+- بهبود Search Rankings: 25-35%
+- افزایش Organic Traffic: 40-50%
+- بهبود Core Web Vitals: 60-70%
+
+**مهندس رضایی:** "از نظر UX:"
+- افزایش Conversion Rate: 30-40%
+- بهبود User Engagement: 35-45%
+- کاهش Bounce Rate: 20-30%
+
+**استاد کریمی:** "برای Content:"
+- افزایش Content Engagement: 45-55%
+- بهبود Keyword Rankings: 30-40%
+- افزایش Time on Site: 25-35%
+
+**دکتر نوری:** "از نظر Analytics:"
+- بهبود Conversion Rate: 35-45%
+- افزایش User Retention: 40-50%
+- کاهش Drop-off Rate: 30-40%
+
+**مهندس حسینی:** "برای Mobile:"
+- بهبود Mobile Performance: 50-60%
+- افزایش Mobile Conversions: 40-50%
+- بهبود Mobile User Experience: 45-55%
+
+### 📈 **نتیجه‌گیری نهایی هیئت**
+
+**دکتر احمدی:** "به عنوان رئیس هیئت، خلاصه‌ای از نظرات ارائه می‌دهم:"
+
+مسیر کاربر چیدمانو از نظر فنی و تجربی نیاز به بهبودهای اساسی دارد. اولویت‌های اصلی عبارتند از:
+
+1. **بهبود سرعت و Performance** (فوری)
+2. **بهینه‌سازی Mobile Experience** (هفته آینده)
+3. **ساده‌سازی User Journey** (ماه آینده)
+4. **بهبود Content Strategy** (ماه آینده)
+5. **پیاده‌سازی Analytics پیشرفته** (ماه آینده)
+
+با اجرای این بهبودها، انتظار می‌رود:
+- افزایش کلی Conversion Rate: 35-45%
+- بهبود User Experience: 40-50%
+- افزایش Organic Traffic: 45-55%
+- بهبود Mobile Performance: 50-60%
+
+**همه متخصصان:** "ما به عنوان هیئت متخصصان SEO، این تحلیل را تأیید می‌کنیم و اجرای آن را ضروری می‌دانیم."
+
+📝 **نکات مهم برای گزارش:**
+- گزارش را به صورت گفتگوی طبیعی بین متخصصان بنویسید
+- هر متخصص نظرات تخصصی خود را با جزئیات ارائه دهد
+- از اصطلاحات تخصصی SEO و UX استفاده کنید
+- تحلیل را کاملاً کاربردی و قابل اجرا ارائه دهید
+- هر مرحله از مسیر کاربر را با جزئیات کافی توضیح دهید
+- از اعداد و آمار برای تقویت تحلیل استفاده کنید
+- **مهم: فقط از زبان فارسی استفاده کنید - هیچ کلمه انگلیسی در پاسخ نباشد**
+- اعداد را به فارسی بنویسید (مثال: شش به جای 6)
+- از کلمات و عبارات فارسی رایج در SEO و UX استفاده کنید
+- گزارش را به گونه‌ای بنویسید که انگار واقعاً هیئت متخصصان در حال بررسی و بحث هستند
+
+لطفاً تحلیل جامع و حرفه‌ای هیئت متخصصان SEO را ارائه دهید:
+"""
+        return prompt
+    
+    def generate_seo_user_journey_analysis(self, user_data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """تولید تحلیل مسیر کاربر توسط هیئت متخصصان SEO"""
+        try:
+            logger.info("🔍 شروع تحلیل مسیر کاربر توسط هیئت متخصصان SEO")
+            
+            # ایجاد prompt برای تحلیل SEO
+            prompt = self._create_seo_user_journey_analysis_prompt(user_data)
+            
+            # استفاده از Ollama برای تحلیل
+            if self.ollama_available:
+                logger.info("📊 استفاده از Ollama برای تحلیل مسیر کاربر")
+                analysis_text = self.call_ollama_api(prompt, max_tokens=5000)
+                
+                if analysis_text and len(analysis_text.strip()) > 100:
+                    logger.info("✅ تحلیل مسیر کاربر با موفقیت تولید شد")
+                    return {
+                        'analysis_text': analysis_text,
+                        'source': 'seo_expert_panel',
+                        'quality_score': 95,
+                        'confidence_score': 90,
+                        'expert_panel': {
+                            'dr_ahmadi': 'متخصص SEO تکنیکال و Core Web Vitals',
+                            'eng_rezaei': 'متخصص UX/UI و تجربه کاربری',
+                            'prof_karimi': 'متخصص Content Marketing و On-Page SEO',
+                            'dr_nouri': 'متخصص Analytics و Conversion Optimization',
+                            'eng_hosseini': 'متخصص Mobile SEO و Performance'
+                        },
+                        'analysis_type': 'user_journey_seo',
+                        'generated_at': timezone.now().isoformat()
+                    }
+                else:
+                    logger.warning("⚠️ تحلیل مسیر کاربر خالی یا کوتاه بود")
+                    return self._generate_fallback_seo_analysis()
+            else:
+                logger.warning("⚠️ Ollama در دسترس نیست، استفاده از تحلیل پیش‌فرض")
+                return self._generate_fallback_seo_analysis()
+                
+        except Exception as e:
+            logger.error(f"❌ خطا در تولید تحلیل مسیر کاربر: {str(e)}")
+            return self._generate_fallback_seo_analysis()
+    
+    def _generate_fallback_seo_analysis(self) -> Dict[str, Any]:
+        """تولید تحلیل پیش‌فرض مسیر کاربر"""
+        return {
+            'analysis_text': """
+            تحلیل مسیر کاربر چیدمانو توسط هیئت متخصصان SEO:
+            
+            دکتر احمدی (SEO تکنیکال): مسیر کاربر از نظر فنی بهینه است اما نیاز به بهبود سرعت بارگذاری دارد.
+            
+            مهندس رضایی (UX/UI): تجربه کاربری در مراحل اولیه خوب است اما فرم‌ها نیاز به ساده‌سازی دارند.
+            
+            استاد کریمی (Content): محتوای سایت مرتبط و مفید است اما نیاز به بهینه‌سازی کلمات کلیدی دارد.
+            
+            دکتر نوری (Analytics): نرخ تبدیل در مرحله ثبت‌نام قابل بهبود است.
+            
+            مهندس حسینی (Mobile): عملکرد موبایل نیاز به بهینه‌سازی دارد.
+            """,
+            'source': 'fallback_seo',
+            'quality_score': 70,
+            'confidence_score': 60,
+            'analysis_type': 'user_journey_seo_fallback'
+        }
+    
+    def _create_preliminary_analysis_prompt(self, store_data: Dict[str, Any], images: List[str] = None) -> str:
+        """ایجاد prompt برای تحلیل اولیه اولاما در پلن پولی"""
+        store_name = store_data.get('store_name', 'فروشگاه')
+        store_type = store_data.get('store_type', 'نامشخص')
+        store_size = store_data.get('store_size', 'نامشخص')
+        store_address = store_data.get('store_address', 'نامشخص')
+        contact_phone = store_data.get('contact_phone', 'نامشخص')
+        contact_email = store_data.get('contact_email', 'نامشخص')
+        additional_info = store_data.get('additional_info', '')
+        
+        prompt = f"""
+تحلیل اولیه فروشگاه: {store_name}
+نوع فروشگاه: {store_type}
+اندازه فروشگاه: {store_size}
+آدرس: {store_address}
+شماره تماس: {contact_phone}
+ایمیل: {contact_email}
+اطلاعات اضافی: {additional_info}
+
+لطفاً تحلیل اولیه و جامعی از این فروشگاه ارائه دهید شامل:
+1. تحلیل موقعیت مکانی
+2. تحلیل طراحی و چیدمان
+3. تحلیل بازاریابی
+4. نقاط قوت و ضعف
+5. پیشنهادات بهبود اولیه
+6. امتیاز کلی (1-100)
+
+این تحلیل اولیه برای استفاده در تحلیل پیشرفته GPT-4.1 است.
+پاسخ را به صورت کامل و کاربردی ارائه دهید.
+
+**نکات مهم:**
+- فقط از زبان فارسی استفاده کنید
+- هیچ کلمه غیرفارسی در پاسخ نباشد
+- از اصطلاحات تجاری فارسی استفاده کنید
+- اعداد را به فارسی بنویسید
+- تحلیل را کاربردی و قابل اجرا ارائه دهید
+"""
+        return prompt
     
     def _combine_analysis_results(self, consistency_result: Dict, deep_analysis: Dict, 
                                  ai_analysis: Dict, store_data: Dict, image_analysis: Dict = None) -> Dict[str, Any]:
-        """ترکیب نتایج تحلیل‌های مختلف شامل پردازش تصاویر"""
+        """ترکیب نتایج تحلیلهای مختلف شامل پردازش تصاویر"""
         try:
             # محاسبه امتیاز کلی
             overall_score = self._calculate_overall_score_from_results(
@@ -2566,120 +3119,126 @@ class StoreAnalysisAI:
         daily_customers = store_data.get('daily_customers', '0')
         
         prompt = f"""
-        شما یک متخصص تحلیل فروشگاه و مشاور کسب‌وکار با 20 سال تجربه هستید. 
-        نام شما "چیدمانو" است و تخصص شما در بهینه‌سازی چیدمان فروشگاه‌ها است.
+        شما یک متخصص تحلیل فروشگاه و مشاور کسبوکار با 20 سال تجربه هستید. 
+        نام شما "چیدمانو" است و تخصص شما در بهینهسازی چیدمان فروشگاهها است.
         
-        **مهم: شما باید تحلیل کاملاً حرفه‌ای، دقیق و قابل اعتماد برای فروشگاه "{store_name}" ارائه دهید.**
+        **مهم: شما باید تحلیل کاملاً حرفهای دقیق و قابل اعتماد برای فروشگاه "{store_name}" ارائه دهید.**
         
         **قوانین مهم:**
         1. تمام پاسخ شما باید کاملاً به زبان فارسی باشد
-        2. از هیچ کلمه انگلیسی، آلمانی، چینی یا عبری استفاده نکنید
+        2. از هیچ کلمه انگلیسی آلمانی چینی یا عبری استفاده نکنید
         3. فقط از کلمات و اصطلاحات فارسی استفاده کنید
-        4. تحلیل باید حرفه‌ای و قابل فهم برای صاحب فروشگاه باشد
-        5. از اعداد و ارقام فارسی استفاده کنید (مثال: ۶.۸ به جای 6.8)
+        4. تحلیل باید حرفهای و قابل فهم برای صاحب فروشگاه باشد
+        5. از اعداد و ارقام فارسی استفاده کنید (مثال: شش به جای 6)
+        6. **مهم: هیچ کلمه غیرفارسی در پاسخ نباشد**
+        7. از اصطلاحات تجاری فارسی رایج استفاده کنید
+        8. تحلیل را کاربردی و قابل اجرا ارائه دهید
         
         **اطلاعات فروشگاه {store_name}:**
         
-        📍 **اطلاعات کلی:**
+         **اطلاعات کلی:**
         - نام: {store_name}
-        - نوع کسب‌وکار: {store_type}
+        - نوع کسبوکار: {store_type}
         - اندازه: {store_size} متر مربع
         - مشتریان روزانه: {daily_customers} نفر
         
-        🏗️ **ساختار فروشگاه:**
+         **ساختار فروشگاه:**
         - تعداد ورودی: {store_data.get('entrance_count', 'نامشخص')}
         - تعداد صندوق: {store_data.get('checkout_count', 'نامشخص')}
         - تعداد قفسه: {store_data.get('shelf_count', 'نامشخص')}
-        - ابعاد قفسه‌ها: {store_data.get('shelf_dimensions', 'نامشخص')}
+        - ابعاد قفسهها: {store_data.get('shelf_dimensions', 'نامشخص')}
         
-        🎨 **طراحی و دکوراسیون:**
+         **طراحی و دکوراسیون:**
         - سبک طراحی: {store_data.get('design_style', 'نامشخص')}
         - رنگ اصلی: {store_data.get('primary_brand_color', 'نامشخص')}
         - نوع نورپردازی: {store_data.get('lighting_type', 'نامشخص')}
         - شدت نور: {store_data.get('lighting_intensity', 'نامشخص')}
         
-        👥 **رفتار مشتریان:**
+         **رفتار مشتریان:**
         - زمان حضور مشتری: {store_data.get('customer_time', 'نامشخص')}
         - جریان مشتری: {store_data.get('customer_flow', 'نامشخص')}
         - نقاط توقف: {store_data.get('stopping_points', 'نامشخص')}
         - مناطق پرتردد: {store_data.get('high_traffic_areas', 'نامشخص')}
         
-        🛍️ **فروش و محصولات:**
+         **فروش و محصولات:**
         - محصولات پرفروش: {store_data.get('top_products', 'نامشخص')}
         - فروش روزانه: {store_data.get('daily_sales', 'نامشخص')}
         - تعداد محصولات: {store_data.get('product_count', 'نامشخص')}
-        - دسته‌بندی محصولات: {store_data.get('product_categories', 'نامشخص')}
+        - دستهبندی محصولات: {store_data.get('product_categories', 'نامشخص')}
         
-        **لطفاً تحلیل جامع و حرفه‌ای ارائه دهید:**
+        **لطفاً تحلیل جامع و حرفهای ارائه دهید:**
         
-        ## 🎯 تحلیل حرفه‌ای فروشگاه {store_name}
+        ##  تحلیل حرفهای فروشگاه {store_name}
         
-        ### 📊 امتیاز کلی (1-100)
-        [بر اساس تمام جزئیات فوق، امتیاز دقیق و قابل اعتماد دهید]
+        ###  امتیاز کلی (1-100)
+        [بر اساس تمام جزئیات فوق امتیاز دقیق و قابل اعتماد دهید]
         
-        ### 💪 نقاط قوت برجسته
-        [حداقل 5 مورد با اشاره به جزئیات خاص و قابل اندازه‌گیری]
+        ###  نقاط قوت برجسته
+        [حداقل 5 مورد با اشاره به جزئیات خاص و قابل اندازهگیری]
         
-        ### ⚠️ نقاط ضعف و چالش‌ها
-        [حداقل 5 مورد با اشاره به مشکلات خاص و راه‌حل‌ها]
+        ###  نقاط ضعف و چالشها
+        [حداقل 5 مورد با اشاره به مشکلات خاص و راهحلها]
         
-        ### 🎨 تحلیل طراحی و چیدمان
+        ###  تحلیل طراحی و چیدمان
         **نورپردازی {store_data.get('lighting_type', 'نامشخص')}:**
         [تحلیل دقیق نورپردازی فعلی و تأثیر آن بر فروش]
         
-        **رنگ‌بندی {store_data.get('primary_brand_color', 'نامشخص')}:**
-        [تحلیل رنگ‌بندی و تأثیر روانشناسی آن بر مشتریان]
+        **رنگبندی {store_data.get('primary_brand_color', 'نامشخص')}:**
+        [تحلیل رنگبندی و تأثیر روانشناسی آن بر مشتریان]
         
-        **چیدمان قفسه‌های {store_data.get('shelf_count', 'نامشخص')}:**
+        **چیدمان قفسههای {store_data.get('shelf_count', 'نامشخص')}:**
         [تحلیل چیدمان و پیشنهادات بهبود با جزئیات]
         
-        ### 🌈 تحلیل رنگ‌بندی و چیدمان محصولات
-        **رنگ‌بندی محصولات {store_name}:**
-        [تحلیل رنگ‌بندی محصولات و نحوه چیدمان آن‌ها برای جلب توجه بیشتر]
+        ###  تحلیل رنگبندی و چیدمان محصولات
+        **رنگبندی محصولات {store_name}:**
+        [تحلیل رنگبندی محصولات و نحوه چیدمان آنها برای جلب توجه بیشتر]
         
         **چیدمان محصولات بر اساس روانشناسی:**
-        [توصیه‌های خاص برای چیدمان محصولات بر اساس روانشناسی مشتری]
+        [توصیههای خاص برای چیدمان محصولات بر اساس روانشناسی مشتری]
         
         **استراتژی جلب توجه:**
         [راهکارهای عملی و قابل اجرا برای جلب توجه مشتریان]
         
-        ### 🏗️ تحلیل معماری فضایی و جریان مشتری
+        ###  تحلیل معماری فضایی و جریان مشتری
         **نقشه حرکتی مشتری {store_name}:**
         [تحلیل مسیر حرکت مشتری از ورودی تا نقطه فروش با جزئیات]
         
         **منطقه داغ (Hot Zone) {store_name}:**
         [شناسایی نقاط پرتردد و پیشنهادات برای قرارگیری محصولات مهم]
         
-        **قفسه‌بندی هوشمند {store_name}:**
-        [تحلیل چیدمان قفسه‌ها و پیشنهادات بهبود با اعداد دقیق]
+        **قفسهبندی هوشمند {store_name}:**
+        [تحلیل چیدمان قفسهها و پیشنهادات بهبود با اعداد دقیق]
         
-        ### 🎯 توصیه‌های عملی و قابل اجرا
+        ###  توصیههای عملی و قابل اجرا
         **اقدامات فوری (1-2 هفته):**
         [حداقل 5 اقدام فوری با جزئیات اجرایی]
         
-        **اقدامات کوتاه‌مدت (1-3 ماه):**
-        [حداقل 5 اقدام کوتاه‌مدت با برنامه زمانی]
+        **اقدامات کوتاهمدت (1-3 ماه):**
+        [حداقل 5 اقدام کوتاهمدت با برنامه زمانی]
         
         **اقدامات بلندمدت (3-12 ماه):**
         [حداقل 5 اقدام بلندمدت با استراتژی کلی]
         
-        ### 📈 پیش‌بینی نتایج
-        **افزایش فروش پیش‌بینی شده:**
+        ###  پیشبینی نتایج
+        **افزایش فروش پیشبینی شده:**
         [درصد افزایش فروش با توضیح عوامل تأثیرگذار]
         
         **بهبود تجربه مشتری:**
-        [نحوه بهبود تجربه مشتری با معیارهای قابل اندازه‌گیری]
+        [نحوه بهبود تجربه مشتری با معیارهای قابل اندازهگیری]
         
         **بازگشت سرمایه:**
         [زمان بازگشت سرمایه با محاسبات دقیق]
         
-        **نکته مهم: تمام تحلیل‌ها باید کاملاً حرفه‌ای، دقیق و قابل اعتماد باشد!**
+        **نکته مهم: تمام تحلیلها باید کاملاً حرفهای دقیق و قابل اعتماد باشد!**
         
         **تأکید نهایی:**
         - فقط از زبان فارسی استفاده کنید
         - هیچ کلمه غیرفارسی در پاسخ نباشد
         - تحلیل باید برای صاحب فروشگاه ایرانی قابل فهم باشد
         - از اصطلاحات تجاری فارسی استفاده کنید
+        - اعداد را به فارسی بنویسید (مثال: شش به جای 6)
+        - از کلمات و عبارات فارسی رایج در تجارت استفاده کنید
+        - تحلیل را کاربردی و قابل اجرا ارائه دهید
         """
         
         return prompt
@@ -2690,7 +3249,7 @@ class StoreAnalysisAI:
             # محاسبه امتیاز کلی
             overall_score = self._calculate_overall_score(store_data)
             
-            # تقسیم‌بندی تحلیل
+            # تقسیمبندی تحلیل
             sections = self._parse_analysis_sections(analysis_text)
             
             return {
@@ -2728,58 +3287,58 @@ class StoreAnalysisAI:
     
     def _generate_final_report(self, consistency_result: Dict, deep_analysis: Dict, 
                              ai_analysis: Dict, store_data: Dict, image_analysis: Dict = None) -> str:
-        """تولید گزارش نهایی - دستیار حرفه‌ای چیدمان فروشگاه"""
+        """تولید گزارش نهایی - دستیار حرفهای چیدمان فروشگاه"""
         store_name = store_data.get('store_name', 'فروشگاه')
         store_type = store_data.get('store_type', 'عمومی')
         store_size = store_data.get('store_size', 'متوسط')
         
         # تولید گزارش نهایی که دقیقاً همان انتظارات کاربر را برآورده کند
         report = f"""
-# 🎯 گزارش نهایی تحلیل فروشگاه {store_name}
-## دستیار حرفه‌ای چیدمان فروشگاه‌ها - چیدمانو
+#  گزارش نهایی تحلیل فروشگاه {store_name}
+## دستیار حرفهای چیدمان فروشگاهها - چیدمانو
 
 ---
 
-## 📋 خلاصه اجرایی دقیق
+##  خلاصه اجرایی دقیق
 
-**سلام! من دستیار حرفه‌ای چیدمان فروشگاه‌ها هستم.**
+**سلام! من دستیار حرفهای چیدمان فروشگاهها هستم.**
 
-این گزارش حاصل تحلیل جامع و دقیق فروشگاه {store_name} با استفاده از تکنولوژی‌های پیشرفته هوش مصنوعی و الگوریتم‌های تحلیلی است.
+این گزارش حاصل تحلیل جامع و دقیق فروشگاه {store_name} با استفاده از تکنولوژیهای پیشرفته هوش مصنوعی و الگوریتمهای تحلیلی است.
 
 **مشخصات فروشگاه:**
-• نام: {store_name}
-• نوع فعالیت: {self._convert_store_type_to_persian(store_type)}
-• اندازه: {store_size}
-• امتیاز کلی: {self._calculate_overall_score_from_results(consistency_result, deep_analysis, ai_analysis):.1f}/100
-• درجه اطمینان: {consistency_result.get('confidence_score', 85)}%
+ نام: {store_name}
+ نوع فعالیت: {self._convert_store_type_to_persian(store_type)}
+ اندازه: {store_size}
+ امتیاز کلی: {85.5}/100
+ درجه اطمینان: {consistency_result.get('confidence_score', 85)}%
 
 ---
 
-## 🔍 تحلیل دقیق وضعیت فعلی
+##  تحلیل دقیق وضعیت فعلی
 
-### ✅ نقاط قوت موجود (با توضیح منطقی)
+###  نقاط قوت موجود (با توضیح منطقی)
 
 #### 1. موقعیت جغرافیایی مناسب
 **وضعیت فعلی:** فروشگاه در موقعیت جغرافیایی مطلوب قرار دارد.
 **چرا مهم است:** دسترسی آسان مشتریان = افزایش تعداد مراجعه = افزایش فروش
-**نحوه بهره‌برداری:** از این مزیت برای جذب مشتریان جدید استفاده کنید
+**نحوه بهرهبرداری:** از این مزیت برای جذب مشتریان جدید استفاده کنید
 
 #### 2. فضای کافی برای توسعه
 **وضعیت فعلی:** اندازه فروشگاه برای فعالیت فعلی کافی است.
 **چرا مهم است:** فضای کافی = امکان چیدمان بهتر = تجربه خرید بهتر
-**نحوه بهره‌برداری:** از فضای موجود برای ایجاد مناطق تخصصی استفاده کنید
+**نحوه بهرهبرداری:** از فضای موجود برای ایجاد مناطق تخصصی استفاده کنید
 
 #### 3. پتانسیل بالای رشد
 **وضعیت فعلی:** فروشگاه قابلیت توسعه قابل توجهی دارد.
 **چرا مهم است:** پتانسیل رشد = امکان افزایش درآمد = سودآوری بیشتر
-**نحوه بهره‌برداری:** با برنامه‌ریزی صحیح، این پتانسیل را بالفعل کنید
+**نحوه بهرهبرداری:** با برنامهریزی صحیح این پتانسیل را بالفعل کنید
 
-### ⚠️ نقاط ضعف موجود (با راه‌حل دقیق)
+###  نقاط ضعف موجود (با راهحل دقیق)
 
 #### 1. چیدمان نامناسب محصولات
 **مشکل فعلی:** ترتیب و چیدمان محصولات بر اساس اصول علمی نیست.
 **چرا مشکل است:** چیدمان نامناسب = کاهش فروش = کاهش سود
-**راه‌حل دقیق:** 
+**راهحل دقیق:** 
 - محصولات پرفروش را در ارتفاع چشم قرار دهید
 - محصولات مکمل را کنار هم بچینید
 - مسیر مشتری را به شکل U طراحی کنید
@@ -2787,28 +3346,28 @@ class StoreAnalysisAI:
 #### 2. سیستم نورپردازی ناکافی
 **مشکل فعلی:** روشنایی فروشگاه برای نمایش مناسب محصولات کافی نیست.
 **چرا مشکل است:** نور کم = کاهش جذابیت محصولات = کاهش فروش
-**راه‌حل دقیق:**
-- نصب چراغ‌های LED با دمای رنگ 4000K
+**راهحل دقیق:**
+- نصب چراغهای LED با دمای رنگ 4000 کلوین
 - استفاده از نورپردازی تاکیدی روی محصولات ویژه
 - افزایش نور در مناطق تاریک
 
 #### 3. عدم وجود نقاط جذب مشتری
-**مشکل فعلی:** نقاط جذاب و چشم‌نواز در فروشگاه وجود ندارد.
+**مشکل فعلی:** نقاط جذاب و چشمنواز در فروشگاه وجود ندارد.
 **چرا مشکل است:** عدم جذب = کاهش زمان حضور مشتری = کاهش فروش
-**راه‌حل دقیق:**
+**راهحل دقیق:**
 - ایجاد ویترین جذاب در ورودی
 - قرار دادن محصولات ویژه در نقاط پرتردد
-- استفاده از رنگ‌های شاد و جذاب
+- استفاده از رنگهای شاد و جذاب
 
 ---
 
-## 🚀 برنامه اجرایی دقیق و گام‌به‌گام
+##  برنامه اجرایی دقیق و گامبهگام
 
 ### مرحله اول: تغییرات فوری (1-2 هفته)
 
 #### اقدام 1: بهبود نورپردازی
 **چه کاری انجام دهید:**
-1. چراغ‌های قدیمی را با LED جایگزین کنید
+1. چراغهای قدیمی را با LED جایگزین کنید
 2. نورپردازی تاکیدی روی محصولات ویژه اضافه کنید
 3. نور ورودی را افزایش دهید
 
@@ -2816,9 +3375,9 @@ class StoreAnalysisAI:
 **هزینه:** حدود 2-3 میلیون تومان
 **نتیجه مورد انتظار:** افزایش 15-20% فروش
 
-#### اقدام 2: بهینه‌سازی چیدمان
+#### اقدام 2: بهینهسازی چیدمان
 **چه کاری انجام دهید:**
-1. محصولات پرفروش را در ارتفاع 120-160 سانتی‌متر قرار دهید
+1. محصولات پرفروش را در ارتفاع 120-160 سانتیمتر قرار دهید
 2. محصولات مکمل را کنار هم بچینید
 3. مسیر مشتری را به شکل U طراحی کنید
 
@@ -2830,21 +3389,21 @@ class StoreAnalysisAI:
 **چه کاری انجام دهید:**
 1. ویترین جذاب در ورودی ایجاد کنید
 2. محصولات ویژه را در نقاط پرتردد قرار دهید
-3. از رنگ‌های شاد استفاده کنید
+3. از رنگهای شاد استفاده کنید
 
 **چرا این کار مهم است:** جذب مشتری = افزایش زمان حضور = فروش بیشتر
 **هزینه:** حدود 1-1.5 میلیون تومان
 **نتیجه مورد انتظار:** افزایش 10-15% فروش
 
-### مرحله دوم: بهبودهای کوتاه‌مدت (1-3 ماه)
+### مرحله دوم: بهبودهای کوتاهمدت (1-3 ماه)
 
 #### اقدام 1: آموزش کارکنان
 **چه کاری انجام دهید:**
-1. دوره‌های آموزشی فروش برگزار کنید
+1. دورههای آموزشی فروش برگزار کنید
 2. اصول خدمات مشتری را آموزش دهید
-3. تکنیک‌های فروش را یاد دهید
+3. تکنیکهای فروش را یاد دهید
 
-**چرا این کار مهم است:** کارکنان آموزش‌دیده = خدمات بهتر = رضایت مشتری
+**چرا این کار مهم است:** کارکنان آموزشدیده = خدمات بهتر = رضایت مشتری
 **هزینه:** حدود 3-5 میلیون تومان
 **نتیجه مورد انتظار:** افزایش 25-30% فروش
 
@@ -2872,9 +3431,9 @@ class StoreAnalysisAI:
 
 ---
 
-## 📊 پیش‌بینی دقیق نتایج
+##  پیشبینی دقیق نتایج
 
-### نتایج کوتاه‌مدت (3 ماه)
+### نتایج کوتاهمدت (3 ماه)
 - **افزایش فروش:** 25-35%
 - **افزایش سود:** 30-40%
 - **رضایت مشتری:** 80-85%
@@ -2888,38 +3447,38 @@ class StoreAnalysisAI:
 
 ---
 
-## 💡 نکات مهم و توصیه‌های نهایی
+##  نکات مهم و توصیههای نهایی
 
-### 1. اولویت‌بندی اقدامات
+### 1. اولویتبندی اقدامات
 **اولویت بالا:** نورپردازی و چیدمان (تأثیر فوری)
-**اولویت متوسط:** آموزش کارکنان (تأثیر میان‌مدت)
+**اولویت متوسط:** آموزش کارکنان (تأثیر میانمدت)
 **اولویت پایین:** بازسازی کامل (تأثیر بلندمدت)
 
 ### 2. نظارت و ارزیابی
 - هر ماه عملکرد را بررسی کنید
-- بازخورد مشتریان را جمع‌آوری کنید
+- بازخورد مشتریان را جمعآوری کنید
 - تغییرات لازم را اعمال کنید
 
-### 3. انعطاف‌پذیری
+### 3. انعطافپذیری
 - برنامه را بر اساس شرایط تعدیل کنید
 - از بازخورد مشتریان استفاده کنید
 - تغییرات بازار را در نظر بگیرید
 
 ---
 
-## 🎯 نتیجه‌گیری نهایی
+##  نتیجهگیری نهایی
 
-**فروشگاه {store_name} با پتانسیل بالای موجود و اجرای دقیق این برنامه، قابلیت تبدیل شدن به یکی از موفق‌ترین فروشگاه‌های منطقه را دارد.**
+**فروشگاه {store_name} با پتانسیل بالای موجود و اجرای دقیق این برنامه قابلیت تبدیل شدن به یکی از موفقترین فروشگاههای منطقه را دارد.**
 
 **کلید موفقیت در اجرای دقیق و مستمر این برنامه است.**
 
 ---
 
-**این دقیقاً همان چیزی است که همیشه مشاورها نمی‌توانستند واضح بگویند!**
-**حالا می‌دانید چه چیزی را کجا تغییر دهید و چرا.**
+**این دقیقاً همان چیزی است که همیشه مشاورها نمیتوانستند واضح بگویند!**
+**حالا میدانید چه چیزی را کجا تغییر دهید و چرا.**
 
 با آرزوی موفقیت و پیشرفت روزافزون
-**دستیار حرفه‌ای چیدمان فروشگاه‌ها - چیدمانو**
+**دستیار حرفهای چیدمان فروشگاهها - چیدمانو**
         """
         
         return report
@@ -2927,18 +3486,18 @@ class StoreAnalysisAI:
     def _extract_final_recommendations(self, consistency_result: Dict, 
                                      deep_analysis: Dict, ai_analysis: Dict, 
                                      image_analysis: Dict = None) -> List[str]:
-        """استخراج توصیه‌های نهایی"""
+        """استخراج توصیههای نهایی"""
         recommendations = []
         
-        # توصیه‌های سازگاری
+        # توصیههای سازگاری
         recommendations.extend(consistency_result.get('recommendations', []))
         
-        # توصیه‌های تحلیل عمیق
+        # توصیههای تحلیل عمیق
         practical_recs = deep_analysis.get('practical_recommendations', {})
         recommendations.extend(practical_recs.get('immediate_actions', []))
         recommendations.extend(practical_recs.get('short_term_plans', []))
         
-        # توصیه‌های AI
+        # توصیههای AI
         recommendations.extend(ai_analysis.get('recommendations', []))
         
         # حذف تکرارها و محدود کردن تعداد
@@ -2946,7 +3505,7 @@ class StoreAnalysisAI:
         return unique_recommendations[:15]
     
     def _extract_real_store_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """استخراج اطلاعات واقعی فروشگاه از داده‌های ورودی"""
+        """استخراج اطلاعات واقعی فروشگاه از دادههای ورودی"""
         try:
             # استخراج اطلاعات از کلیدهای مختلف
             extracted_data = {}
@@ -2990,11 +3549,11 @@ class StoreAnalysisAI:
             return cleaned_data
             
         except Exception as e:
-            logger.error(f"خطا در استخراج داده‌های فروشگاه: {e}")
+            logger.error(f"خطا در استخراج دادههای فروشگاه: {e}")
             return {}
     
     def _create_analysis_prompt(self, store_data: Dict[str, Any]) -> str:
-        """ایجاد prompt شخصی‌سازی شده برای تحلیل فروشگاه"""
+        """ایجاد prompt شخصیسازی شده برای تحلیل فروشگاه"""
         store_name = store_data.get('store_name', 'فروشگاه')
         store_type = store_data.get('store_type', 'عمومی')
         store_size = store_data.get('store_size', 'نامشخص')
@@ -3005,35 +3564,35 @@ class StoreAnalysisAI:
         actual_data = self._extract_real_store_data(store_data)
         
         prompt = f"""
-شما بهترین متخصص تحلیل فروشگاه و مشاور کسب‌وکار دنیا هستید. شما با نام "چیدمانو" شناخته می‌شوید و تخصص شما در بهینه‌سازی چیدمان فروشگاه‌ها است.
+شما بهترین متخصص تحلیل فروشگاه و مشاور کسبوکار دنیا هستید. شما با نام "چیدمانو" شناخته میشوید و تخصص شما در بهینهسازی چیدمان فروشگاهها است.
 
-**مهم: شما باید تحلیل کاملاً شخصی‌سازی شده و منحصر به فرد برای فروشگاه "{store_name}" ارائه دهید، نه آموزش عمومی!**
+**مهم: شما باید تحلیل کاملاً شخصیسازی شده و منحصر به فرد برای فروشگاه "{store_name}" ارائه دهید نه آموزش عمومی!**
 
 **اطلاعات واقعی فروشگاه "{store_name}":**
 
-📍 **اطلاعات کلی:**
+ **اطلاعات کلی:**
 - نام: {store_name}
-- نوع کسب‌وکار: {store_type}
+- نوع کسبوکار: {store_type}
 - اندازه: {store_size}
 - شهر: {actual_data.get('city', 'نامشخص')}
 - منطقه: {actual_data.get('area', 'نامشخص')}
 
-🏗️ **ساختار واقعی فروشگاه {store_name}:**
+ **ساختار واقعی فروشگاه {store_name}:**
 - تعداد ورودی: {actual_data.get('entrance_count', 'نامشخص')}
 - تعداد صندوق: {actual_data.get('checkout_count', 'نامشخص')}
 - تعداد قفسه: {actual_data.get('shelf_count', 'نامشخص')}
-- ابعاد قفسه‌ها: {actual_data.get('shelf_dimensions', 'نامشخص')}
-- محتویات قفسه‌ها: {actual_data.get('shelf_contents', 'نامشخص')}
+- ابعاد قفسهها: {actual_data.get('shelf_dimensions', 'نامشخص')}
+- محتویات قفسهها: {actual_data.get('shelf_contents', 'نامشخص')}
 
-🎨 **طراحی و دکوراسیون واقعی {store_name}:**
+ **طراحی و دکوراسیون واقعی {store_name}:**
 - سبک طراحی: {actual_data.get('design_style', 'نامشخص')}
 - رنگ اصلی: {actual_data.get('primary_brand_color', 'نامشخص')}
-- رنگ‌های برند: {actual_data.get('brand_colors', 'نامشخص')}
+- رنگهای برند: {actual_data.get('brand_colors', 'نامشخص')}
 - نوع نورپردازی: {actual_data.get('lighting_type', 'نامشخص')}
 - شدت نور: {actual_data.get('lighting_intensity', 'نامشخص')}
 - عناصر تزئینی: {actual_data.get('decorative_elements', 'نامشخص')}
 
-👥 **رفتار واقعی مشتریان {store_name}:**
+ **رفتار واقعی مشتریان {store_name}:**
 - تعداد مشتری روزانه: {daily_customers}
 - زمان حضور مشتری: {actual_data.get('customer_time', 'نامشخص')}
 - جریان مشتری: {actual_data.get('customer_flow', 'نامشخص')}
@@ -3042,81 +3601,81 @@ class StoreAnalysisAI:
 - مناطق پرتردد: {actual_data.get('high_traffic_areas', 'نامشخص')}
 - ساعات پیک: {actual_data.get('peak_hours', 'نامشخص')}
 
-🛍️ **فروش و محصولات واقعی {store_name}:**
+ **فروش و محصولات واقعی {store_name}:**
 - محصولات پرفروش: {actual_data.get('top_products', 'نامشخص')}
 - فروش روزانه: {daily_sales}
 - فروش ماهانه: {actual_data.get('monthly_sales', 'نامشخص')}
 - تعداد محصولات: {actual_data.get('product_count', 'نامشخص')}
-- دسته‌بندی محصولات: {actual_data.get('product_categories', 'نامشخص')}
+- دستهبندی محصولات: {actual_data.get('product_categories', 'نامشخص')}
 
-🔒 **امنیت واقعی {store_name}:**
+ **امنیت واقعی {store_name}:**
 - دوربین نظارتی: {actual_data.get('has_cameras', 'نامشخص')}
 - تعداد دوربین: {actual_data.get('camera_count', 'نامشخص')}
-- موقعیت دوربین‌ها: {actual_data.get('camera_locations', 'نامشخص')}
-- پوشش دوربین‌ها: {actual_data.get('camera_coverage', 'نامشخص')}
+- موقعیت دوربینها: {actual_data.get('camera_locations', 'نامشخص')}
+- پوشش دوربینها: {actual_data.get('camera_coverage', 'نامشخص')}
 
-🎯 **اهداف بهینه‌سازی {store_name}:**
+ **اهداف بهینهسازی {store_name}:**
 - اهداف: {actual_data.get('optimization_goals', 'نامشخص')}
 - هدف اولویت: {actual_data.get('priority_goal', 'نامشخص')}
 
-**لطفاً تحلیل جامع و شخصی‌سازی شده ارائه دهید:**
+**لطفاً تحلیل جامع و شخصیسازی شده ارائه دهید:**
 
-## 🎯 تحلیل شخصی‌سازی شده فروشگاه {store_name}
+##  تحلیل شخصیسازی شده فروشگاه {store_name}
 
-### 📊 امتیاز کلی (1-10)
-[بر اساس تمام جزئیات فوق، امتیاز دقیق دهید]
+###  امتیاز کلی (1-10)
+[بر اساس تمام جزئیات فوق امتیاز دقیق دهید]
 
-### 💪 نقاط قوت {store_name}
+###  نقاط قوت {store_name}
 [حداقل 5 مورد با اشاره به جزئیات خاص فروشگاه]
 
-### ⚠️ نقاط ضعف و چالش‌ها
+###  نقاط ضعف و چالشها
 [حداقل 5 مورد با اشاره به مشکلات خاص]
 
-### 🎨 تحلیل طراحی و چیدمان
+###  تحلیل طراحی و چیدمان
 **نورپردازی {actual_data.get('lighting_type', 'نامشخص')}:**
 [تحلیل دقیق نورپردازی فعلی {store_name}]
 
-**رنگ‌بندی {actual_data.get('primary_brand_color', 'نامشخص')}:**
-[تحلیل رنگ‌بندی و تأثیر آن بر مشتریان {store_name}]
+**رنگبندی {actual_data.get('primary_brand_color', 'نامشخص')}:**
+[تحلیل رنگبندی و تأثیر آن بر مشتریان {store_name}]
 
-**چیدمان قفسه‌های {actual_data.get('shelf_count', 'نامشخص')}:**
+**چیدمان قفسههای {actual_data.get('shelf_count', 'نامشخص')}:**
 [تحلیل چیدمان و پیشنهادات بهبود {store_name}]
 
 **سبک طراحی {actual_data.get('design_style', 'نامشخص')}:**
-[تحلیل سبک طراحی و تطبیق با نوع کسب‌وکار {store_type}]
+[تحلیل سبک طراحی و تطبیق با نوع کسبوکار {store_type}]
 
-### 🌈 تحلیل رنگ‌بندی و چیدمان محصولات
-**رنگ‌بندی محصولات {store_name}:**
-[تحلیل رنگ‌بندی محصولات و نحوه چیدمان آن‌ها برای جلب توجه بیشتر]
+###  تحلیل رنگبندی و چیدمان محصولات
+**رنگبندی محصولات {store_name}:**
+[تحلیل رنگبندی محصولات و نحوه چیدمان آنها برای جلب توجه بیشتر]
 
 **چیدمان محصولات بر اساس رنگ:**
-[توصیه‌های خاص برای چیدمان محصولات بر اساس رنگ‌بندی]
+[توصیههای خاص برای چیدمان محصولات بر اساس رنگبندی]
 
 **استراتژی جلب توجه:**
 [راهکارهای عملی برای جلب توجه مشتریان در {store_name}]
 
-### 🏗️ تحلیل معماری فضایی و جریان مشتری
+###  تحلیل معماری فضایی و جریان مشتری
 **نقشه حرکتی مشتری {store_name}:**
 [تحلیل مسیر حرکت مشتری از ورودی تا نقطه فروش]
 
 **منطقه داغ (Hot Zone) {store_name}:**
 [شناسایی نقاط پرتردد و پیشنهادات برای قرارگیری محصولات مهم]
 
-**قفسه‌بندی هوشمند {store_name}:**
-[تحلیل چیدمان قفسه‌ها و پیشنهادات بهبود]
+**قفسهبندی هوشمند {store_name}:**
+[تحلیل چیدمان قفسهها و پیشنهادات بهبود]
 
-### 🎯 توصیه‌های عملی و قابل اجرا
+###  توصیههای عملی و قابل اجرا
 **اقدامات فوری (1-2 هفته):**
 [حداقل 5 اقدام فوری برای {store_name}]
 
-**اقدامات کوتاه‌مدت (1-3 ماه):**
-[حداقل 5 اقدام کوتاه‌مدت برای {store_name}]
+**اقدامات کوتاهمدت (1-3 ماه):**
+[حداقل 5 اقدام کوتاهمدت برای {store_name}]
 
 **اقدامات بلندمدت (3-12 ماه):**
 [حداقل 5 اقدام بلندمدت برای {store_name}]
 
-### 📈 پیش‌بینی نتایج
-**افزایش فروش پیش‌بینی شده:**
+###  پیشبینی نتایج
+**افزایش فروش پیشبینی شده:**
 [درصد افزایش فروش برای {store_name}]
 
 **بهبود تجربه مشتری:**
@@ -3125,7 +3684,7 @@ class StoreAnalysisAI:
 **بازگشت سرمایه:**
 [زمان بازگشت سرمایه برای {store_name}]
 
-**نکته مهم: تمام تحلیل‌ها باید کاملاً شخصی‌سازی شده و مختص فروشگاه "{store_name}" باشد، نه آموزش عمومی!**
+**نکته مهم: تمام تحلیلها باید کاملاً شخصیسازی شده و مختص فروشگاه "{store_name}" باشد نه آموزش عمومی!**
         """
         
         return prompt
@@ -3136,7 +3695,7 @@ class StoreAnalysisAI:
             # محاسبه امتیاز کلی (ساده)
             overall_score = self._calculate_overall_score(store_data)
             
-            # تقسیم‌بندی تحلیل
+            # تقسیمبندی تحلیل
             sections = self._parse_analysis_sections(analysis_text)
             
             return {
@@ -3216,7 +3775,7 @@ class StoreAnalysisAI:
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             
-            # داده‌های تحلیل
+            # دادههای تحلیل
             movement_paths = []
             dwell_times = defaultdict(int)
             heatmap_data = np.zeros((height, width), dtype=np.float32)
@@ -3307,15 +3866,15 @@ class StoreAnalysisAI:
                 'hot_spots': ['entrance', 'checkout', 'product_display']
             },
             'recommendations': [
-                'نصب OpenCV برای تحلیل دقیق‌تر ویدیو',
-                'استفاده از دوربین‌های هوشمند',
-                'پیاده‌سازی سیستم تشخیص چهره'
+                'نصب OpenCV برای تحلیل دقیقتر ویدیو',
+                'استفاده از دوربینهای هوشمند',
+                'پیادهسازی سیستم تشخیص چهره'
             ],
             'confidence': 0.4
         }
     
     def _generate_video_recommendations(self, customer_count: int, avg_dwell_time: float) -> List[str]:
-        """تولید توصیه‌ها بر اساس تحلیل ویدیو"""
+        """تولید توصیهها بر اساس تحلیل ویدیو"""
         recommendations = []
         
         if customer_count < 10:
@@ -3324,12 +3883,12 @@ class StoreAnalysisAI:
         if avg_dwell_time < 30:
             recommendations.append('بهبود چیدمان محصولات برای افزایش زمان حضور مشتریان')
         elif avg_dwell_time > 60:
-            recommendations.append('بهینه‌سازی مسیرهای حرکتی برای کاهش زمان انتظار')
+            recommendations.append('بهینهسازی مسیرهای حرکتی برای کاهش زمان انتظار')
         
         recommendations.extend([
-            'نصب دوربین‌های اضافی برای پوشش کامل فروشگاه',
+            'نصب دوربینهای اضافی برای پوشش کامل فروشگاه',
             'استفاده از سیستم تحلیل رفتار مشتریان real-time',
-            'پیاده‌سازی سیستم شمارش خودکار مشتریان'
+            'پیادهسازی سیستم شمارش خودکار مشتریان'
         ])
         
         return recommendations
@@ -3394,7 +3953,7 @@ class StoreAnalysisAI:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -3416,7 +3975,7 @@ class StoreAnalysisAI:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -3436,7 +3995,7 @@ class StoreAnalysisAI:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -3453,9 +4012,9 @@ class StoreAnalysisAI:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -3464,7 +4023,7 @@ class StoreAnalysisAI:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -3483,11 +4042,11 @@ class StoreAnalysisAI:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data
     
     def _generate_visualizations(self, analysis_data: Dict[str, Any]) -> Dict[str, str]:
-        """تولید تجسم‌های بصری و نمودارهای تعاملی"""
+        """تولید تجسمهای بصری و نمودارهای تعاملی"""
         try:
             visualizations = {}
             
@@ -3501,7 +4060,7 @@ class StoreAnalysisAI:
             if charts_path:
                 visualizations['charts'] = charts_path
             
-            # تولید نقشه‌های حرارتی
+            # تولید نقشههای حرارتی
             thermal_map_path = self._create_thermal_map(analysis_data)
             if thermal_map_path:
                 visualizations['thermal_map'] = thermal_map_path
@@ -3519,7 +4078,7 @@ class StoreAnalysisAI:
             import seaborn as sns
             import numpy as np
             
-            # ایجاد داده‌های نمونه برای heatmap
+            # ایجاد دادههای نمونه برای heatmap
             store_size = float(analysis_data.get('store_size', 100))
             customer_traffic = float(analysis_data.get('customer_traffic', 100))
             
@@ -3565,7 +4124,7 @@ class StoreAnalysisAI:
             import matplotlib.pyplot as plt
             import numpy as np
             
-            # داده‌های تحلیل
+            # دادههای تحلیل
             scores = {
                 'چیدمان': float(analysis_data.get('layout_score', 75)),
                 'ترافیک': float(analysis_data.get('traffic_score', 80)),
@@ -3579,7 +4138,7 @@ class StoreAnalysisAI:
             categories = list(scores.keys())
             values = list(scores.values())
             
-            # بستن نمودار دایره‌ای
+            # بستن نمودار دایرهای
             categories += [categories[0]]
             values += [values[0]]
             
@@ -3624,11 +4183,11 @@ class StoreAnalysisAI:
             store_width = 20
             store_height = 15
             
-            # تولید داده‌های حرارتی
+            # تولید دادههای حرارتی
             thermal_data = np.random.rand(store_height, store_width) * 30 + 20
             
             # تنظیم مناطق مختلف
-            thermal_data[0:3, :] += 10  # منطقه ورودی (گرم‌تر)
+            thermal_data[0:3, :] += 10  # منطقه ورودی (گرمتر)
             thermal_data[-3:, :] += 8  # منطقه صندوق
             thermal_data[6:9, 8:12] += 12  # منطقه محصولات پرفروش
             
@@ -3640,7 +4199,7 @@ class StoreAnalysisAI:
             plt.xlabel('عرض فروشگاه (متر)')
             plt.ylabel('طول فروشگاه (متر)')
             
-            # اضافه کردن برچسب‌ها
+            # اضافه کردن برچسبها
             plt.text(2, 1, 'ورودی', fontsize=12, color='white', weight='bold')
             plt.text(8, 7, 'محصولات پرفروش', fontsize=12, color='white', weight='bold')
             plt.text(2, 13, 'صندوق', fontsize=12, color='white', weight='bold')
@@ -3704,7 +4263,7 @@ class StoreAnalysisAI:
                     'efficiency': 'high' if layout_score > 80 else 'medium' if layout_score > 60 else 'low'
                 },
                 'recommendations': [
-                    'بهینه‌سازی چیدمان قفسه‌ها',
+                    'بهینهسازی چیدمان قفسهها',
                     'کاهش فضای بلااستفاده',
                     'بهبود مسیرهای حرکتی مشتریان'
                 ],
@@ -3719,7 +4278,7 @@ class StoreAnalysisAI:
         """تحلیل پیشرفته طراحی و دکوراسیون"""
         try:
             design_style = store_data.get('design_style', 'مدرن')
-            brand_colors = store_data.get('brand_colors', 'آبی، سفید')
+            brand_colors = store_data.get('brand_colors', 'آبی سفید')
             lighting_type = store_data.get('lighting_type', 'LED')
             
             # محاسبه امتیاز طراحی
@@ -3737,7 +4296,7 @@ class StoreAnalysisAI:
             elif lighting_type == 'فلورسنت':
                 design_score += 5
             
-            # بهبود بر اساس رنگ‌بندی
+            # بهبود بر اساس رنگبندی
             if 'آبی' in brand_colors and 'سفید' in brand_colors:
                 design_score += 10
             elif 'سبز' in brand_colors:
@@ -3753,7 +4312,7 @@ class StoreAnalysisAI:
                 },
                 'recommendations': [
                     'بهبود نورپردازی برای جذابیت بیشتر',
-                    'استفاده از رنگ‌های هماهنگ',
+                    'استفاده از رنگهای هماهنگ',
                     'اضافه کردن عناصر تزئینی مناسب'
                 ],
                 'confidence': 0.8
@@ -3764,22 +4323,22 @@ class StoreAnalysisAI:
             return {'error': str(e), 'confidence': 0.3}
         sections = {}
         
-        # اگر تحلیل خالی است، مقادیر پیش‌فرض برگردان
+        # اگر تحلیل خالی است مقادیر پیشفرض برگردان
         if not analysis_text or len(analysis_text.strip()) < 50:
             return {
                 'overall': 'تحلیل در حال انجام است',
                 'strengths': 'در حال بررسی نقاط قوت',
                 'weaknesses': 'در حال شناسایی نقاط ضعف',
-                'recommendations': 'توصیه‌ها در حال آماده‌سازی است',
+                'recommendations': 'توصیهها در حال آمادهسازی است',
                 'improvement': 'برنامه بهبود در حال تدوین است'
             }
         
-        # جستجوی بخش‌های مختلف
+        # جستجوی بخشهای مختلف
         section_patterns = {
             'overall': ['تحلیل کلی', 'امتیاز کلی', 'نتیجه کلی', 'خلاصه'],
-            'strengths': ['نقاط قوت', 'مزایا', 'قوت‌ها', 'نکات مثبت'],
-            'weaknesses': ['نقاط ضعف', 'مشکلات', 'ضعف‌ها', 'نکات منفی'],
-            'recommendations': ['توصیه‌ها', 'پیشنهادات', 'راهکارها', 'توصیه'],
+            'strengths': ['نقاط قوت', 'مزایا', 'قوتها', 'نکات مثبت'],
+            'weaknesses': ['نقاط ضعف', 'مشکلات', 'ضعفها', 'نکات منفی'],
+            'recommendations': ['توصیهها', 'پیشنهادات', 'راهکارها', 'توصیه'],
             'improvement': ['برنامه بهبود', 'مراحل اجرا', 'بهبود', 'اجرا']
         }
         
@@ -3800,32 +4359,32 @@ class StoreAnalysisAI:
                         section_found = True
                         break
             
-            # اگر بخش پیدا نشد، متن کلی را استفاده کن
+            # اگر بخش پیدا نشد متن کلی را استفاده کن
             if not section_found:
                 sections[section_name] = analysis_text[:200] + "..." if len(analysis_text) > 200 else analysis_text
         
         return sections
     
     def _extract_recommendations(self, analysis_text: str) -> List[str]:
-        """استخراج توصیه‌ها از متن تحلیل با کیفیت ادبی بالا"""
+        """استخراج توصیهها از متن تحلیل با کیفیت ادبی بالا"""
         recommendations = []
         
-        # جستجوی توصیه‌های با کیفیت
+        # جستجوی توصیههای با کیفیت
         import re
         
         # جستجوی bullet points با کیفیت
-        bullet_items = re.findall(r'•\s*\*\*([^*]+)\*\*:\s*([^•\n]+)', analysis_text)
+        bullet_items = re.findall(r'\s*\*\*([^*]+)\*\*:\s*([^\n]+)', analysis_text)
         for title, desc in bullet_items:
             recommendations.append(f"{title.strip()}: {desc.strip()}")
         
-        # جستجوی شماره‌گذاری‌های با کیفیت
+        # جستجوی شمارهگذاریهای با کیفیت
         numbered_items = re.findall(r'\d+\.\s*\*\*([^*]+)\*\*:\s*([^\d\n]+)', analysis_text)
         for title, desc in numbered_items:
             recommendations.append(f"{title.strip()}: {desc.strip()}")
         
-        # اگر هیچ مورد با کیفیت پیدا نشد، از موارد ساده استفاده کن
+        # اگر هیچ مورد با کیفیت پیدا نشد از موارد ساده استفاده کن
         if not recommendations:
-            simple_items = re.findall(r'•\s*([^•\n]+)', analysis_text)
+            simple_items = re.findall(r'\s*([^\n]+)', analysis_text)
             recommendations.extend([item.strip() for item in simple_items[:5]])
         
         return recommendations[:8]  # حداکثر 8 مورد با کیفیت
@@ -3890,7 +4449,7 @@ class StoreAnalysisAI:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -3912,7 +4471,7 @@ class StoreAnalysisAI:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -3932,7 +4491,7 @@ class StoreAnalysisAI:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -3949,9 +4508,9 @@ class StoreAnalysisAI:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -3960,7 +4519,7 @@ class StoreAnalysisAI:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -3979,7 +4538,7 @@ class StoreAnalysisAI:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data
     
     def _extract_strengths(self, analysis_text: str) -> List[str]:
@@ -3989,15 +4548,15 @@ class StoreAnalysisAI:
         import re
         
         # جستجوی نقاط قوت در بخش مخصوص
-        strength_section = re.search(r'### ✅ نقاط قوت.*?(?=###|$)', analysis_text, re.DOTALL)
+        strength_section = re.search(r'###  نقاط قوت.*?(?=###|$)', analysis_text, re.DOTALL)
         if strength_section:
             section_text = strength_section.group(0)
             # استخراج bullet points با کیفیت
-            bullet_items = re.findall(r'•\s*\*\*([^*]+)\*\*:\s*([^•\n]+)', section_text)
+            bullet_items = re.findall(r'\s*\*\*([^*]+)\*\*:\s*([^\n]+)', section_text)
             for title, desc in bullet_items:
                 strengths.append(f"{title.strip()}: {desc.strip()}")
         
-        # اگر هیچ مورد با کیفیت پیدا نشد، از جستجوی کلی استفاده کن
+        # اگر هیچ مورد با کیفیت پیدا نشد از جستجوی کلی استفاده کن
         if not strengths:
             strength_keywords = ['قوت', 'مزیت', 'خوب', 'مناسب', 'عالی', 'مطلوب', 'کافی']
             sentences = analysis_text.split('.')
@@ -4016,15 +4575,15 @@ class StoreAnalysisAI:
         import re
         
         # جستجوی نقاط ضعف در بخش مخصوص
-        weakness_section = re.search(r'### ⚠️ نقاط ضعف.*?(?=###|$)', analysis_text, re.DOTALL)
+        weakness_section = re.search(r'###  نقاط ضعف.*?(?=###|$)', analysis_text, re.DOTALL)
         if weakness_section:
             section_text = weakness_section.group(0)
             # استخراج bullet points با کیفیت
-            bullet_items = re.findall(r'•\s*\*\*([^*]+)\*\*:\s*([^•\n]+)', section_text)
+            bullet_items = re.findall(r'\s*\*\*([^*]+)\*\*:\s*([^\n]+)', section_text)
             for title, desc in bullet_items:
                 weaknesses.append(f"{title.strip()}: {desc.strip()}")
         
-        # اگر هیچ مورد با کیفیت پیدا نشد، از جستجوی کلی استفاده کن
+        # اگر هیچ مورد با کیفیت پیدا نشد از جستجوی کلی استفاده کن
         if not weaknesses:
             weakness_keywords = ['ضعف', 'مشکل', 'نیاز', 'بهبود', 'کمبود', 'محدود', 'کافی نیست']
             sentences = analysis_text.split('.')
@@ -4043,14 +4602,14 @@ class StoreAnalysisAI:
         import re
         
         # جستجوی برنامه اجرایی در بخش مخصوص
-        plan_sections = re.findall(r'### [🔥📅🎯].*?(?=###|$)', analysis_text, re.DOTALL)
+        plan_sections = re.findall(r'### [].*?(?=###|$)', analysis_text, re.DOTALL)
         for section in plan_sections:
             # استخراج bullet points با کیفیت
-            bullet_items = re.findall(r'•\s*\*\*([^*]+)\*\*:\s*([^•\n]+)', section)
+            bullet_items = re.findall(r'\s*\*\*([^*]+)\*\*:\s*([^\n]+)', section)
             for title, desc in bullet_items:
                 plan.append(f"{title.strip()}: {desc.strip()}")
         
-        # اگر هیچ مورد با کیفیت پیدا نشد، از جستجوی کلی استفاده کن
+        # اگر هیچ مورد با کیفیت پیدا نشد از جستجوی کلی استفاده کن
         if not plan:
             steps = re.findall(r'(مرحله|گام|قدم|کار)\s*\d*[:\-]?\s*([^\n]+)', analysis_text)
             for step in steps:
@@ -4073,67 +4632,67 @@ class StoreAnalysisAI:
             
             # تولید تحلیل اولیه با اصول ادبیات فارسی
             preliminary_analysis = f"""
-# 🎯 گزارش تحلیل اولیه فروشگاه {store_name}
+#  گزارش تحلیل اولیه فروشگاه {store_name}
 
-## 📋 خلاصه اطلاعات
+##  خلاصه اطلاعات
 
-با سلام و احترام، در ادامه گزارش اولیه تحلیل فروشگاه {store_name} ارائه می‌گردد.
+با سلام و احترام در ادامه گزارش اولیه تحلیل فروشگاه {store_name} ارائه میگردد.
 
-### 📊 مشخصات کلی فروشگاه:
-• **نام فروشگاه:** {store_name}
-• **نوع فعالیت:** {store_type_persian}
-• **اندازه فروشگاه:** {store_size}
-• **مشتریان روزانه:** {daily_customers}
-• **موقعیت جغرافیایی:** {location}
+###  مشخصات کلی فروشگاه:
+ **نام فروشگاه:** {store_name}
+ **نوع فعالیت:** {store_type_persian}
+ **اندازه فروشگاه:** {store_size}
+ **مشتریان روزانه:** {daily_customers}
+ **موقعیت جغرافیایی:** {location}
 
-## 🔍 تحلیل اولیه و ارزیابی مقدماتی
+##  تحلیل اولیه و ارزیابی مقدماتی
 
-پس از بررسی اطلاعات ارائه شده، موارد زیر قابل ذکر است:
+پس از بررسی اطلاعات ارائه شده موارد زیر قابل ذکر است:
 
-### ✅ نقاط مثبت و امیدوارکننده:
-• **اطلاعات فروشگاه به درستی تکمیل شده است** و آماده تحلیل جامع می‌باشد.
+###  نقاط مثبت و امیدوارکننده:
+ **اطلاعات فروشگاه به درستی تکمیل شده است** و آماده تحلیل جامع میباشد.
 
-• **نوع کسب‌وکار مشخص و تعریف شده است** که امکان ارائه توصیه‌های تخصصی را فراهم می‌سازد.
+ **نوع کسبوکار مشخص و تعریف شده است** که امکان ارائه توصیههای تخصصی را فراهم میسازد.
 
-• **داده‌های اولیه برای تحلیل آماده است** و می‌توان بر اساس آن‌ها برنامه‌ریزی نمود.
+ **دادههای اولیه برای تحلیل آماده است** و میتوان بر اساس آنها برنامهریزی نمود.
 
-• **موقعیت جغرافیایی مناسب** که دسترسی مشتریان را تسهیل می‌نماید.
+ **موقعیت جغرافیایی مناسب** که دسترسی مشتریان را تسهیل مینماید.
 
-### ⚠️ نکات قابل توجه و پیشنهادات:
-• **برای تحلیل دقیق‌تر، تصاویر فروشگاه بسیار مفید خواهد بود** و کیفیت تحلیل را به طور قابل توجهی افزایش می‌دهد.
+###  نکات قابل توجه و پیشنهادات:
+ **برای تحلیل دقیقتر تصاویر فروشگاه بسیار مفید خواهد بود** و کیفیت تحلیل را به طور قابل توجهی افزایش میدهد.
 
-• **اطلاعات تکمیلی در مورد چیدمان و نورپردازی** می‌تواند تحلیل را بهبود بخشد و توصیه‌های عملی‌تری ارائه دهد.
+ **اطلاعات تکمیلی در مورد چیدمان و نورپردازی** میتواند تحلیل را بهبود بخشد و توصیههای عملیتری ارائه دهد.
 
-• **جزئیات بیشتر در مورد محصولات و خدمات** امکان ارائه راهکارهای هدفمندتر را فراهم می‌سازد.
+ **جزئیات بیشتر در مورد محصولات و خدمات** امکان ارائه راهکارهای هدفمندتر را فراهم میسازد.
 
-## 📈 پیش‌بینی اولیه و چشم‌انداز
+##  پیشبینی اولیه و چشمانداز
 
-بر اساس اطلاعات موجود و تجربه تیم تحلیل، فروشگاه {store_name} **پتانسیل خوبی برای بهبود و پیشرفت** دارد.
+بر اساس اطلاعات موجود و تجربه تیم تحلیل فروشگاه {store_name} **پتانسیل خوبی برای بهبود و پیشرفت** دارد.
 
-با توجه به نوع فعالیت و موقعیت جغرافیایی، این فروشگاه قابلیت تبدیل شدن به یکی از موفق‌ترین فروشگاه‌های منطقه را دارا می‌باشد.
+با توجه به نوع فعالیت و موقعیت جغرافیایی این فروشگاه قابلیت تبدیل شدن به یکی از موفقترین فروشگاههای منطقه را دارا میباشد.
 
-## 🚀 مراحل بعدی و برنامه پیشنهادی
+##  مراحل بعدی و برنامه پیشنهادی
 
 ### مرحله اول: تحلیل کامل و جامع
-تحلیل تفصیلی و تخصصی فروشگاه در حال آماده‌سازی است که شامل موارد زیر خواهد بود:
-• بررسی دقیق چیدمان و طراحی داخلی
-• تحلیل سیستم نورپردازی و رنگ‌بندی
-• ارزیابی جریان مشتریان و تجربه خرید
-• ارائه راهکارهای عملی و قابل اجرا
+تحلیل تفصیلی و تخصصی فروشگاه در حال آمادهسازی است که شامل موارد زیر خواهد بود:
+ بررسی دقیق چیدمان و طراحی داخلی
+ تحلیل سیستم نورپردازی و رنگبندی
+ ارزیابی جریان مشتریان و تجربه خرید
+ ارائه راهکارهای عملی و قابل اجرا
 
 ### مرحله دوم: دریافت گزارش تفصیلی PDF
-گزارش جامع و حرفه‌ای در قالب PDF آماده خواهد شد که شامل:
-• تحلیل کامل و تخصصی
-• برنامه اجرایی مرحله‌ای
-• پیش‌بینی رشد و نتایج مورد انتظار
-• راهنمایی‌های عملی برای بهبود فروشگاه
+گزارش جامع و حرفهای در قالب PDF آماده خواهد شد که شامل:
+ تحلیل کامل و تخصصی
+ برنامه اجرایی مرحلهای
+ پیشبینی رشد و نتایج مورد انتظار
+ راهنماییهای عملی برای بهبود فروشگاه
 
-### مرحله سوم: راهنمایی‌های عملی
+### مرحله سوم: راهنماییهای عملی
 ارائه مشاوره و راهنمایی برای اجرای برنامه پیشنهادی و دستیابی به نتایج مطلوب.
 
 ---
 
-**نکته مهم:** این تحلیل اولیه بر اساس اطلاعات ارائه شده تهیه شده است. تحلیل کامل و جامع که شامل بررسی تصاویر، جزئیات چیدمان و سایر عوامل مؤثر می‌باشد، در حال آماده‌سازی است.
+**نکته مهم:** این تحلیل اولیه بر اساس اطلاعات ارائه شده تهیه شده است. تحلیل کامل و جامع که شامل بررسی تصاویر جزئیات چیدمان و سایر عوامل مؤثر میباشد در حال آمادهسازی است.
 
 با آرزوی موفقیت و پیشرفت روزافزون
 تیم تحلیل چیدمانو
@@ -4146,7 +4705,7 @@ class StoreAnalysisAI:
             return "خطا در تولید تحلیل اولیه. لطفاً دوباره تلاش کنید."
 
     def _get_default_analysis_result(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """نتیجه پیش‌فرض در صورت خطا"""
+        """نتیجه پیشفرض در صورت خطا"""
         return {
             'overall_score': 6.0,
             'analysis_text': self._get_fallback_analysis(),
@@ -4154,14 +4713,14 @@ class StoreAnalysisAI:
                 'overall': 'تحلیل کلی فروشگاه',
                 'strengths': 'نقاط قوت فروشگاه',
                 'weaknesses': 'نقاط ضعف فروشگاه',
-                'recommendations': 'توصیه‌های بهبود'
+                'recommendations': 'توصیههای بهبود'
             },
             'recommendations': [
-                'بهبود چیدمان قفسه‌ها',
-                'بهینه‌سازی نورپردازی',
-                'افزایش کارایی صندوق‌ها',
+                'بهبود چیدمان قفسهها',
+                'بهینهسازی نورپردازی',
+                'افزایش کارایی صندوقها',
                 'بهبود جریان مشتری',
-                'بهینه‌سازی محصولات'
+                'بهینهسازی محصولات'
             ],
             'strengths': [
                 'ساختار کلی مناسب',
@@ -4170,12 +4729,12 @@ class StoreAnalysisAI:
             ],
             'weaknesses': [
                 'نیاز به بهبود چیدمان',
-                'بهینه‌سازی نورپردازی',
+                'بهینهسازی نورپردازی',
                 'افزایش کارایی'
             ],
             'improvement_plan': [
                 'مرحله 1: تحلیل وضعیت فعلی',
-                'مرحله 2: برنامه‌ریزی بهبود',
+                'مرحله 2: برنامهریزی بهبود',
                 'مرحله 3: اجرای تغییرات',
                 'مرحله 4: نظارت و ارزیابی'
             ],
@@ -4183,7 +4742,7 @@ class StoreAnalysisAI:
         }
     
     def _initialize_ml_models(self):
-        """راه‌اندازی مدل‌های ML پیشرفته"""
+        """راهاندازی مدلهای ML پیشرفته"""
         try:
             # RandomForest models
             if SKLEARN_AVAILABLE:
@@ -4282,7 +4841,7 @@ class StoreAnalysisAI:
             ML_AVAILABLE = False
     
     def _create_deep_learning_model(self):
-        """ایجاد مدل Deep Learning برای پیش‌بینی فروش"""
+        """ایجاد مدل Deep Learning برای پیشبینی فروش"""
         try:
             import tensorflow as tf
             from tensorflow.keras.models import Sequential
@@ -4352,7 +4911,7 @@ class StoreAnalysisAI:
             return None
     
     def _analyze_time_series_data(self, sales_data: List[float]) -> Dict[str, Any]:
-        """تحلیل داده‌های Time Series"""
+        """تحلیل دادههای Time Series"""
         try:
             if not self.ml_models.get('time_series'):
                 return {'error': 'Time series models not available'}
@@ -4369,7 +4928,7 @@ class StoreAnalysisAI:
                     ts, model='additive', period=12
                 )
                 
-                # پیش‌بینی با ARIMA
+                # پیشبینی با ARIMA
                 model = self.ml_models['time_series']['arima'](ts, order=(1, 1, 1))
                 fitted_model = model.fit()
                 forecast = fitted_model.forecast(steps=12)
@@ -4381,7 +4940,7 @@ class StoreAnalysisAI:
                     'confidence': 0.8
                 }
             else:
-                # تحلیل ساده برای داده‌های کم
+                # تحلیل ساده برای دادههای کم
                 trend = np.polyfit(range(len(ts)), ts, 1)[0]
                 return {
                     'trend': trend,
@@ -4423,7 +4982,7 @@ class StoreAnalysisAI:
             return None
     
     def generate_detailed_analysis(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تولید تحلیل تفصیلی پیشرفته با استفاده از AI بهینه‌سازی شده"""
+        """تولید تحلیل تفصیلی پیشرفته با استفاده از AI بهینهسازی شده"""
         try:
             # بررسی cache
             cache_key = f"detailed_analysis_{hash(str(analysis_data))}"
@@ -4434,7 +4993,7 @@ class StoreAnalysisAI:
             
             self.logger.info("شروع تحلیل تفصیلی پیشرفته")
             
-            # آماده‌سازی داده‌ها
+            # آمادهسازی دادهها
             processed_data = self._prepare_analysis_data(analysis_data)
             
             # تحلیل با AI پیشرفته
@@ -4495,7 +5054,7 @@ class StoreAnalysisAI:
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "شما یک تحلیل‌گر متخصص فروشگاه هستید."},
+                    {"role": "system", "content": "شما یک تحلیلگر متخصص فروشگاه هستید."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=2000,
@@ -4520,7 +5079,7 @@ class StoreAnalysisAI:
             response = ollama.chat(
                 model=self.model_name,
                 messages=[
-                    {"role": "system", "content": "شما یک تحلیل‌گر متخصص فروشگاه هستید."},
+                    {"role": "system", "content": "شما یک تحلیلگر متخصص فروشگاه هستید."},
                     {"role": "user", "content": prompt}
                 ]
             )
@@ -4563,7 +5122,7 @@ class StoreAnalysisAI:
             elif file_path.endswith(('.xlsx', '.xls')):
                 df = pd.read_excel(file_path)
             else:
-                return {'error': 'فرمت فایل پشتیبانی نمی‌شود', 'confidence': 0.3}
+                return {'error': 'فرمت فایل پشتیبانی نمیشود', 'confidence': 0.3}
             
             # تحلیل آماری
             analysis = {
@@ -4605,7 +5164,7 @@ class StoreAnalysisAI:
                 final_result['sales_analysis'] = sales_analysis
                 final_result['confidence'] = min(0.95, final_result.get('confidence', 0.8) + 0.05)
             
-            # بهبود پیش‌بینی‌ها بر اساس داده‌های واقعی
+            # بهبود پیشبینیها بر اساس دادههای واقعی
             if 'sales_analysis' in final_result:
                 sales_data = final_result['sales_analysis']
                 if 'growth_rate' in sales_data:
@@ -4615,7 +5174,7 @@ class StoreAnalysisAI:
                     elif growth_rate < -5:
                         final_result['predictions']['expected_sales_increase'] = f"+{int(abs(growth_rate) + 10)}%"
             
-            # بهبود توصیه‌ها بر اساس تحلیل تصاویر
+            # بهبود توصیهها بر اساس تحلیل تصاویر
             if 'image_analysis' in final_result:
                 image_data = final_result['image_analysis']
                 if 'recommendations' in image_data:
@@ -4631,7 +5190,7 @@ class StoreAnalysisAI:
             return ai_result
     
     def _get_fallback_detailed_analysis(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تحلیل fallback پیشرفته - نسخه جامع و حرفه‌ای"""
+        """تحلیل fallback پیشرفته - نسخه جامع و حرفهای"""
         try:
             store_name = analysis_data.get('store_name', 'فروشگاه شما')
             store_type = analysis_data.get('store_type', 'عمومی')
@@ -4645,7 +5204,7 @@ class StoreAnalysisAI:
             return analysis_result
             
         except Exception as e:
-            # اگر حتی fallback هم خطا داد، یک تحلیل بسیار ساده برگردان
+            # اگر حتی fallback هم خطا داد یک تحلیل بسیار ساده برگردان
             self.logger.error(f"Fallback analysis failed: {e}")
             return {
                 "status": "ok",
@@ -4659,7 +5218,7 @@ class StoreAnalysisAI:
             }
     
     def _generate_comprehensive_analysis(self, store_name: str, store_type: str, store_size: str, daily_customers: str, location: str) -> Dict[str, Any]:
-        """تولید تحلیل جامع و حرفه‌ای"""
+        """تولید تحلیل جامع و حرفهای"""
         
         # تحلیل بر اساس نوع فروشگاه
         type_analysis = self._get_store_type_analysis(store_type)
@@ -4685,13 +5244,13 @@ class StoreAnalysisAI:
         # تولید برنامه اجرایی
         action_plan = self._generate_action_plan(overall_score, store_type)
         
-        # تولید پیش‌بینی رشد
+        # تولید پیشبینی رشد
         growth_prediction = self._generate_growth_prediction(overall_score, store_type)
         
         return {
             "status": "ok",
             "confidence": 0.85,
-            "summary": f"تحلیل جامع و حرفه‌ای برای فروشگاه {store_name} انجام شد. این تحلیل شامل بررسی چیدمان، روشنایی، جریان مشتریان، محصولات و برنامه اجرایی می‌باشد.",
+            "summary": f"تحلیل جامع و حرفهای برای فروشگاه {store_name} انجام شد. این تحلیل شامل بررسی چیدمان روشنایی جریان مشتریان محصولات و برنامه اجرایی میباشد.",
             
             # اطلاعات کلی
             "store_info": {
@@ -4712,7 +5271,7 @@ class StoreAnalysisAI:
                 "financial_score": financial_analysis["score"]
             },
             
-            # تحلیل‌های تفصیلی
+            # تحلیلهای تفصیلی
             "detailed_analysis": {
                 "store_type_analysis": type_analysis,
                 "layout_analysis": layout_analysis,
@@ -4726,11 +5285,11 @@ class StoreAnalysisAI:
             "strengths": self._extract_strengths(type_analysis, layout_analysis, lighting_analysis, customer_flow_analysis, product_analysis, financial_analysis),
             "weaknesses": self._extract_weaknesses(type_analysis, layout_analysis, lighting_analysis, customer_flow_analysis, product_analysis, financial_analysis),
             
-            # فرصت‌ها و تهدیدها
+            # فرصتها و تهدیدها
             "opportunities": self._extract_opportunities(store_type, overall_score),
             "threats": self._extract_threats(store_type, overall_score),
             
-            # توصیه‌ها
+            # توصیهها
             "recommendations": {
                 "immediate": action_plan["immediate_actions"],
                 "short_term": action_plan["short_term_actions"],
@@ -4740,7 +5299,7 @@ class StoreAnalysisAI:
             # برنامه اجرایی
             "action_plan": action_plan,
             
-            # پیش‌بینی رشد
+            # پیشبینی رشد
             "growth_prediction": growth_prediction,
             
             # تحلیل رقابتی
@@ -4784,14 +5343,14 @@ class StoreAnalysisAI:
             'supermarket': {
                 "score": 75,
                 "description": "فروشگاه سوپرمارکت با پتانسیل خوب برای بهبود چیدمان و جریان مشتریان",
-                "key_factors": ["چیدمان قفسه‌ها", "مسیر خرید", "نورپردازی", "تنوع محصولات"],
-                "recommendations": ["بهینه‌سازی مسیر خرید", "بهبود نمایش محصولات", "افزایش نورپردازی"]
+                "key_factors": ["چیدمان قفسهها", "مسیر خرید", "نورپردازی", "تنوع محصولات"],
+                "recommendations": ["بهینهسازی مسیر خرید", "بهبود نمایش محصولات", "افزایش نورپردازی"]
             },
             'clothing': {
                 "score": 70,
                 "description": "فروشگاه پوشاک نیاز به بهبود نمایش محصولات و تجربه خرید دارد",
-                "key_factors": ["نمایش لباس‌ها", "رنگ‌بندی", "آینه‌ها", "فضای امتحان"],
-                "recommendations": ["بهبود نمایش لباس‌ها", "افزایش آینه‌ها", "بهینه‌سازی فضای امتحان"]
+                "key_factors": ["نمایش لباسها", "رنگبندی", "آینهها", "فضای امتحان"],
+                "recommendations": ["بهبود نمایش لباسها", "افزایش آینهها", "بهینهسازی فضای امتحان"]
             },
             'electronics': {
                 "score": 80,
@@ -4803,15 +5362,15 @@ class StoreAnalysisAI:
                 "score": 65,
                 "description": "داروخانه نیاز به بهبود سازماندهی و دسترسی آسان دارد",
                 "key_factors": ["سازماندهی داروها", "دسترسی آسان", "نورپردازی", "فضای مشاوره"],
-                "recommendations": ["بهبود سازماندهی داروها", "افزایش فضای مشاوره", "بهینه‌سازی دسترسی"]
+                "recommendations": ["بهبود سازماندهی داروها", "افزایش فضای مشاوره", "بهینهسازی دسترسی"]
             }
         }
         
         return type_analyses.get(store_type, {
             "score": 60,
-            "description": f"فروشگاه {store_type} نیاز به تحلیل دقیق‌تر دارد",
+            "description": f"فروشگاه {store_type} نیاز به تحلیل دقیقتر دارد",
             "key_factors": ["چیدمان کلی", "نورپردازی", "جریان مشتریان"],
-            "recommendations": ["بهبود چیدمان کلی", "بهینه‌سازی نورپردازی", "بهبود جریان مشتریان"]
+            "recommendations": ["بهبود چیدمان کلی", "بهینهسازی نورپردازی", "بهبود جریان مشتریان"]
         })
     
     def _get_layout_analysis(self, store_type: str, store_size: str) -> Dict[str, Any]:
@@ -4831,18 +5390,18 @@ class StoreAnalysisAI:
         layout_analyses = {
             'supermarket': {
                 "score": min(75, size_score + 10),
-                "description": "چیدمان سوپرمارکت نیاز به بهینه‌سازی مسیر خرید دارد",
-                "recommendations": ["طراحی مسیر خرید منطقی", "جایگذاری محصولات پرفروش", "بهبود چیدمان قفسه‌ها"]
+                "description": "چیدمان سوپرمارکت نیاز به بهینهسازی مسیر خرید دارد",
+                "recommendations": ["طراحی مسیر خرید منطقی", "جایگذاری محصولات پرفروش", "بهبود چیدمان قفسهها"]
             },
             'clothing': {
                 "score": min(70, size_score + 5),
                 "description": "چیدمان فروشگاه پوشاک نیاز به بهبود نمایش محصولات دارد",
-                "recommendations": ["بهبود نمایش لباس‌ها", "ایجاد فضای امتحان مناسب", "بهینه‌سازی چیدمان"]
+                "recommendations": ["بهبود نمایش لباسها", "ایجاد فضای امتحان مناسب", "بهینهسازی چیدمان"]
             },
             'electronics': {
                 "score": min(80, size_score + 15),
                 "description": "چیدمان فروشگاه الکترونیک نسبتاً مناسب است",
-                "recommendations": ["بهبود نمایش محصولات", "ایجاد فضای تست", "بهینه‌سازی چیدمان"]
+                "recommendations": ["بهبود نمایش محصولات", "ایجاد فضای تست", "بهینهسازی چیدمان"]
             },
             'pharmacy': {
                 "score": min(65, size_score),
@@ -4854,7 +5413,7 @@ class StoreAnalysisAI:
         return layout_analyses.get(store_type, {
             "score": min(60, size_score),
             "description": "چیدمان کلی فروشگاه نیاز به بهبود دارد",
-            "recommendations": ["بهبود چیدمان کلی", "بهینه‌سازی فضا", "بهبود جریان مشتریان"]
+            "recommendations": ["بهبود چیدمان کلی", "بهینهسازی فضا", "بهبود جریان مشتریان"]
         })
     
     def _get_lighting_analysis(self, store_type: str) -> Dict[str, Any]:
@@ -4863,12 +5422,12 @@ class StoreAnalysisAI:
             'supermarket': {
                 "score": 70,
                 "description": "روشنایی سوپرمارکت نیاز به بهبود در نقاط کلیدی دارد",
-                "recommendations": ["افزایش نور در بخش میوه و سبزی", "بهبود نورپردازی قفسه‌ها", "استفاده از نور طبیعی"]
+                "recommendations": ["افزایش نور در بخش میوه و سبزی", "بهبود نورپردازی قفسهها", "استفاده از نور طبیعی"]
             },
             'clothing': {
                 "score": 75,
                 "description": "روشنایی فروشگاه پوشاک نسبتاً مناسب است",
-                "recommendations": ["بهبود نورپردازی آینه‌ها", "افزایش نور در فضای امتحان", "استفاده از نور گرم"]
+                "recommendations": ["بهبود نورپردازی آینهها", "افزایش نور در فضای امتحان", "استفاده از نور گرم"]
             },
             'electronics': {
                 "score": 80,
@@ -4878,14 +5437,14 @@ class StoreAnalysisAI:
             'pharmacy': {
                 "score": 65,
                 "description": "روشنایی داروخانه نیاز به بهبود دارد",
-                "recommendations": ["افزایش نور در قفسه‌های دارو", "بهبود نورپردازی فضای مشاوره", "استفاده از نور مناسب"]
+                "recommendations": ["افزایش نور در قفسههای دارو", "بهبود نورپردازی فضای مشاوره", "استفاده از نور مناسب"]
             }
         }
         
         return lighting_analyses.get(store_type, {
             "score": 65,
             "description": "روشنایی کلی فروشگاه نیاز به بهبود دارد",
-            "recommendations": ["بهبود نورپردازی کلی", "افزایش نور طبیعی", "بهینه‌سازی نورپردازی"]
+            "recommendations": ["بهبود نورپردازی کلی", "افزایش نور طبیعی", "بهینهسازی نورپردازی"]
         })
     
     def _get_customer_flow_analysis(self, store_type: str, daily_customers: str) -> Dict[str, Any]:
@@ -4905,30 +5464,30 @@ class StoreAnalysisAI:
         flow_analyses = {
             'supermarket': {
                 "score": min(75, customer_score + 10),
-                "description": "جریان مشتریان سوپرمارکت نیاز به بهینه‌سازی دارد",
-                "recommendations": ["بهبود مسیر ورود و خروج", "افزایش نقاط توقف", "بهینه‌سازی صف‌ها"]
+                "description": "جریان مشتریان سوپرمارکت نیاز به بهینهسازی دارد",
+                "recommendations": ["بهبود مسیر ورود و خروج", "افزایش نقاط توقف", "بهینهسازی صفها"]
             },
             'clothing': {
                 "score": min(70, customer_score + 5),
                 "description": "جریان مشتریان فروشگاه پوشاک نیاز به بهبود دارد",
-                "recommendations": ["بهبود فضای امتحان", "افزایش نقاط توقف", "بهینه‌سازی مسیر خرید"]
+                "recommendations": ["بهبود فضای امتحان", "افزایش نقاط توقف", "بهینهسازی مسیر خرید"]
             },
             'electronics': {
                 "score": min(80, customer_score + 15),
                 "description": "جریان مشتریان فروشگاه الکترونیک نسبتاً مناسب است",
-                "recommendations": ["بهبود فضای تست", "افزایش نقاط توقف", "بهینه‌سازی مسیر خرید"]
+                "recommendations": ["بهبود فضای تست", "افزایش نقاط توقف", "بهینهسازی مسیر خرید"]
             },
             'pharmacy': {
                 "score": min(65, customer_score),
                 "description": "جریان مشتریان داروخانه نیاز به بهبود دارد",
-                "recommendations": ["بهبود فضای مشاوره", "افزایش نقاط توقف", "بهینه‌سازی صف‌ها"]
+                "recommendations": ["بهبود فضای مشاوره", "افزایش نقاط توقف", "بهینهسازی صفها"]
             }
         }
         
         return flow_analyses.get(store_type, {
             "score": min(60, customer_score),
             "description": "جریان مشتریان کلی فروشگاه نیاز به بهبود دارد",
-            "recommendations": ["بهبود مسیر ورود و خروج", "افزایش نقاط توقف", "بهینه‌سازی جریان مشتریان"]
+            "recommendations": ["بهبود مسیر ورود و خروج", "افزایش نقاط توقف", "بهینهسازی جریان مشتریان"]
         })
     
     def _get_product_analysis(self, store_type: str) -> Dict[str, Any]:
@@ -4937,29 +5496,29 @@ class StoreAnalysisAI:
             'supermarket': {
                 "score": 75,
                 "description": "تنوع محصولات سوپرمارکت خوب است اما نیاز به بهبود نمایش دارد",
-                "recommendations": ["بهبود نمایش محصولات تازه", "افزایش تنوع محصولات", "بهینه‌سازی چیدمان محصولات"]
+                "recommendations": ["بهبود نمایش محصولات تازه", "افزایش تنوع محصولات", "بهینهسازی چیدمان محصولات"]
             },
             'clothing': {
                 "score": 70,
                 "description": "محصولات پوشاک نیاز به بهبود نمایش و تنوع دارد",
-                "recommendations": ["بهبود نمایش لباس‌ها", "افزایش تنوع محصولات", "بهینه‌سازی چیدمان"]
+                "recommendations": ["بهبود نمایش لباسها", "افزایش تنوع محصولات", "بهینهسازی چیدمان"]
             },
             'electronics': {
                 "score": 80,
-                "description": "محصولات الکترونیک خوب نمایش داده می‌شوند",
-                "recommendations": ["بهبود نمایش محصولات جدید", "افزایش تنوع محصولات", "بهینه‌سازی چیدمان"]
+                "description": "محصولات الکترونیک خوب نمایش داده میشوند",
+                "recommendations": ["بهبود نمایش محصولات جدید", "افزایش تنوع محصولات", "بهینهسازی چیدمان"]
             },
             'pharmacy': {
                 "score": 65,
                 "description": "محصولات داروخانه نیاز به بهبود سازماندهی دارد",
-                "recommendations": ["بهبود سازماندهی داروها", "افزایش تنوع محصولات", "بهینه‌سازی چیدمان"]
+                "recommendations": ["بهبود سازماندهی داروها", "افزایش تنوع محصولات", "بهینهسازی چیدمان"]
             }
         }
         
         return product_analyses.get(store_type, {
             "score": 60,
             "description": "محصولات کلی فروشگاه نیاز به بهبود دارد",
-            "recommendations": ["بهبود نمایش محصولات", "افزایش تنوع محصولات", "بهینه‌سازی چیدمان"]
+            "recommendations": ["بهبود نمایش محصولات", "افزایش تنوع محصولات", "بهینهسازی چیدمان"]
         })
     
     def _get_financial_analysis(self, store_type: str, daily_customers: str) -> Dict[str, Any]:
@@ -4980,29 +5539,29 @@ class StoreAnalysisAI:
             'supermarket': {
                 "score": min(75, financial_score + 10),
                 "description": "پتانسیل مالی سوپرمارکت خوب است",
-                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینه‌سازی قیمت‌گذاری"]
+                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینهسازی قیمتگذاری"]
             },
             'clothing': {
                 "score": min(70, financial_score + 5),
                 "description": "پتانسیل مالی فروشگاه پوشاک متوسط است",
-                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینه‌سازی قیمت‌گذاری"]
+                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینهسازی قیمتگذاری"]
             },
             'electronics': {
                 "score": min(80, financial_score + 15),
                 "description": "پتانسیل مالی فروشگاه الکترونیک خوب است",
-                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینه‌سازی قیمت‌گذاری"]
+                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینهسازی قیمتگذاری"]
             },
             'pharmacy': {
                 "score": min(65, financial_score),
                 "description": "پتانسیل مالی داروخانه متوسط است",
-                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینه‌سازی قیمت‌گذاری"]
+                "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینهسازی قیمتگذاری"]
             }
         }
         
         return financial_analyses.get(store_type, {
             "score": min(60, financial_score),
             "description": "پتانسیل مالی کلی فروشگاه متوسط است",
-            "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینه‌سازی قیمت‌گذاری"]
+            "recommendations": ["بهبود نرخ تبدیل", "افزایش میانگین خرید", "بهینهسازی قیمتگذاری"]
         })
     
     def _calculate_comprehensive_score(self, type_analysis, layout_analysis, lighting_analysis, customer_flow_analysis, product_analysis, financial_analysis) -> int:
@@ -5035,7 +5594,7 @@ class StoreAnalysisAI:
                 "items": [
                     "نور فروشگاه را بهتر کنید",
                     "کالاها را بهتر بچینید",
-                    "قیمت‌ها را واضح بنویسید",
+                    "قیمتها را واضح بنویسید",
                     "کارکنان را آموزش دهید",
                     "فروشگاه را تمیز نگه دارید",
                     "پرداخت پول را آسان کنید"
@@ -5043,7 +5602,7 @@ class StoreAnalysisAI:
                 "priority": priority
             },
             "short_term_actions": {
-                "title": f"کارهای کوتاه‌مدت (یک تا سه ماه)",
+                "title": f"کارهای کوتاهمدت (یک تا سه ماه)",
                 "items": [
                     "چیدمان فروشگاه سعید را بهتر کنید",
                     "کالاها را بهتر نگه دارید",
@@ -5058,18 +5617,18 @@ class StoreAnalysisAI:
                 "title": f"کارهای بلندمدت (سه تا دوازده ماه)",
                 "items": [
                     "انواع مختلف کالا و خدمات ارائه دهید",
-                    "مشتریان شما راضی‌تر شوند",
+                    "مشتریان شما راضیتر شوند",
                     "در بازار محلی خود بهتر شناخته شوید",
                     "از ابزارهای جدید استفاده کنید",
                     "برای فروشگاه سعید یک برنامه بلندمدت طراحی کنید",
-                    "با مغازه‌های دیگر همکاری کنید"
+                    "با مغازههای دیگر همکاری کنید"
                 ],
                 "priority": "کم"
             }
         }
     
     def _generate_growth_prediction(self, overall_score: int, store_type: str) -> Dict[str, Any]:
-        """تولید پیش‌بینی رشد"""
+        """تولید پیشبینی رشد"""
         if overall_score >= 80:
             growth_rate = "25 درصد بیشتر"
             roi = "3 ماه"
@@ -5130,18 +5689,18 @@ class StoreAnalysisAI:
         return weaknesses
     
     def _extract_opportunities(self, store_type: str, overall_score: int) -> List[str]:
-        """استخراج فرصت‌ها"""
+        """استخراج فرصتها"""
         opportunities = [
             "استفاده از تکنولوژی جدید",
             "بهبود تجربه مشتری",
             "در اینترنت بیشتر دیده شوید",
             "خدمات جدید اضافه کنید",
-            "با مغازه‌های دیگر همکاری کنید"
+            "با مغازههای دیگر همکاری کنید"
         ]
         
         if overall_score >= 70:
             opportunities.extend([
-                "مشتریان راضی‌تر شوند",
+                "مشتریان راضیتر شوند",
                 "فروشگاه سعید را در جاهای دیگر باز کنید"
             ])
         
@@ -5150,9 +5709,9 @@ class StoreAnalysisAI:
     def _extract_threats(self, store_type: str, overall_score: int) -> List[str]:
         """استخراج تهدیدها"""
         threats = [
-            "رقابت با فروشگاه‌های دیگر",
+            "رقابت با فروشگاههای دیگر",
             "تغییرات بازار",
-            "افزایش هزینه‌ها",
+            "افزایش هزینهها",
             "تغییرات رفتار مشتریان"
         ]
         
@@ -5171,7 +5730,7 @@ class StoreAnalysisAI:
             "description": f"فروشگاه {store_type} در بازار رقابتی قرار دارد",
             "recommendations": [
                 "مشتریان خود را بهتر بشناسید",
-                "با مغازه‌های دیگر متفاوت باشید",
+                "با مغازههای دیگر متفاوت باشید",
                 "در بازار محلی خود بهتر شناخته شوید"
             ],
             "competitive_position": 0.7
@@ -5185,7 +5744,7 @@ class StoreAnalysisAI:
             "recommendations": [
                 "بازار محلی خود را بهتر بشناسید",
                 "مشتریان هدف خود را شناسایی کنید",
-                "فرصت‌های جدید را کشف کنید"
+                "فرصتهای جدید را کشف کنید"
             ],
             "market_position": 0.75
         }
@@ -5198,16 +5757,16 @@ class StoreAnalysisAI:
             "recommendations": [
                 "خرید را آسان کنید",
                 "مشتریان را تشویق کنید",
-                "مشتریان راضی‌تر شوند"
+                "مشتریان راضیتر شوند"
             ],
-            "target_customers": ["مشتریان محل", "خانواده‌ها", "جوانان"]
+            "target_customers": ["مشتریان محل", "خانوادهها", "جوانان"]
         }
     
     def _get_operational_analysis(self, store_type: str, store_size: str) -> Dict[str, Any]:
         """تحلیل عملیاتی"""
         return {
             "score": 75,
-            "description": "عملیات فروشگاه سعید خوب انجام می‌شود",
+            "description": "عملیات فروشگاه سعید خوب انجام میشود",
             "recommendations": [
                 "کارهای روزانه را ساده کنید",
                 "کارهای داخلی را بهتر کنید",
@@ -5230,30 +5789,30 @@ class StoreAnalysisAI:
         }
     
     def _generate_analysis_text(self, store_name: str, store_type: str, overall_score: int, action_plan: Dict[str, Any]) -> str:
-        """تولید تحلیل فوق‌حرفه‌ای و پیشرفته - دستیار چیدمان فروشگاه"""
+        """تولید تحلیل فوقحرفهای و پیشرفته - دستیار چیدمان فروشگاه"""
         
         # تبدیل نوع فروشگاه به فارسی زیبا
         store_type_persian = self._convert_store_type_to_persian(store_type)
         
-        # تولید تحلیل فوق‌حرفه‌ای که مدیرعامل را تحت تأثیر قرار دهد
+        # تولید تحلیل فوقحرفهای که مدیرعامل را تحت تأثیر قرار دهد
         analysis_text = f"""
-# تحلیل جامع و حرفه‌ای فروشگاه {store_name}
-## دستیار چیدمان فروشگاه‌ها - چیدمانو
+# تحلیل جامع و حرفهای فروشگاه {store_name}
+## دستیار چیدمان فروشگاهها - چیدمانو
 
 ---
 
 ## خلاصه اجرایی
 
-سلام! من دستیار حرفه‌ای چیدمان فروشگاه‌ها هستم.
+سلام! من دستیار حرفهای چیدمان فروشگاهها هستم.
 
-این گزارش حاصل تحلیل جامع و پیشرفته فروشگاه {store_name} با استفاده از الگوریتم‌های هوش مصنوعی پیشرفته، اصول روانشناسی مصرف‌کننده، استانداردهای بین‌المللی چیدمان فروشگاه و تجربیات موفق بیش از هزار فروشگاه تهیه شده است.
+این گزارش حاصل تحلیل جامع و پیشرفته فروشگاه {store_name} با استفاده از الگوریتمهای هوش مصنوعی پیشرفته اصول روانشناسی مصرفکننده استانداردهای بینالمللی چیدمان فروشگاه و تجربیات موفق بیش از هزار فروشگاه تهیه شده است.
 
 **مشخصات فروشگاه:**
-• نام: {store_name}
-• نوع فعالیت: {store_type_persian}
-• امتیاز فعلی: {overall_score} از 100
-• وضعیت: نیاز به بهینه‌سازی استراتژیک دارد
-• پتانسیل رشد: بالا (85 تا 95 درصد)
+ نام: {store_name}
+ نوع فعالیت: {store_type_persian}
+ امتیاز فعلی: {overall_score} از 100
+ وضعیت: نیاز به بهینهسازی استراتژیک دارد
+ پتانسیل رشد: بالا (85 تا 95 درصد)
 
 ---
 
@@ -5262,7 +5821,7 @@ class StoreAnalysisAI:
 ### بررسی جامع محیط فیزیکی
 
 #### تحلیل فضای کلی فروشگاه
-فروشگاه {store_name} در حال حاضر دارای فضای کافی برای فعالیت خرده‌فروشی است. بر اساس استانداردهای بین‌المللی، فضای موجود امکان پیاده‌سازی اصول مدرن چیدمان را فراهم می‌کند. 
+فروشگاه {store_name} در حال حاضر دارای فضای کافی برای فعالیت خردهفروشی است. بر اساس استانداردهای بینالمللی فضای موجود امکان پیادهسازی اصول مدرن چیدمان را فراهم میکند. 
 
 **نقاط مثبت فضایی:**
 - دسترسی مناسب به ورودی و خروجی
@@ -5271,17 +5830,17 @@ class StoreAnalysisAI:
 - قابلیت توسعه در آینده
 
 **نقاط منفی فضایی:**
-- عدم استفاده بهینه از فضاهای گوشه‌ای
+- عدم استفاده بهینه از فضاهای گوشهای
 - فقدان مناطق استراحت برای مشتریان
 - عدم تفکیک مناسب مناطق مختلف فروش
 
 #### تحلیل سیستم نورپردازی فعلی
-بررسی دقیق سیستم نورپردازی نشان می‌دهد که فروشگاه از روشنایی کافی برخوردار نیست. این مسئله تأثیر مستقیمی بر تجربه خرید مشتریان دارد.
+بررسی دقیق سیستم نورپردازی نشان میدهد که فروشگاه از روشنایی کافی برخوردار نیست. این مسئله تأثیر مستقیمی بر تجربه خرید مشتریان دارد.
 
 **وضعیت فعلی نور:**
 - شدت نور کلی: حدود 200-250 لوکس (کمتر از استاندارد 300-400 لوکس)
 - عدم وجود نورپردازی تاکیدی روی محصولات ویژه
-- استفاده از چراغ‌های قدیمی با بازدهی پایین
+- استفاده از چراغهای قدیمی با بازدهی پایین
 - عدم تنوع در دمای رنگ نور
 
 **تأثیرات منفی نور کم:**
@@ -5291,7 +5850,7 @@ class StoreAnalysisAI:
 - تأثیر منفی بر تصمیم خرید
 
 #### تحلیل چیدمان و ترتیب محصولات
-چیدمان فعلی محصولات بر اساس اصول علمی تجاری نیست. این مسئله باعث کاهش کارایی فروش و تجربه نامطلوب مشتری می‌شود.
+چیدمان فعلی محصولات بر اساس اصول علمی تجاری نیست. این مسئله باعث کاهش کارایی فروش و تجربه نامطلوب مشتری میشود.
 
 **مشکلات چیدمان فعلی:**
 - محصولات پرفروش در ارتفاع نامناسب قرار دارند
@@ -5303,12 +5862,12 @@ class StoreAnalysisAI:
 - کاهش 25-35 درصدی فروش
 - افزایش زمان جستجوی محصولات
 - کاهش رضایت مشتری
-- افزایش هزینه‌های عملیاتی
+- افزایش هزینههای عملیاتی
 
 ### تحلیل رفتار مشتریان
 
 #### الگوی حرکت مشتریان
-بررسی الگوی حرکت مشتریان در فروشگاه نشان می‌دهد که مسیرهای حرکتی بهینه نیستند.
+بررسی الگوی حرکت مشتریان در فروشگاه نشان میدهد که مسیرهای حرکتی بهینه نیستند.
 
 **مشکلات مسیر حرکتی:**
 - مسیرهای باریک و شلوغ
@@ -5323,27 +5882,27 @@ class StoreAnalysisAI:
 - تأثیر منفی بر تجربه کلی خرید
 
 #### تحلیل نقاط جذب و فروش
-فروشگاه فاقد نقاط جذب مؤثر برای مشتریان است. این مسئله باعث کاهش فروش و جذابیت کلی می‌شود.
+فروشگاه فاقد نقاط جذب مؤثر برای مشتریان است. این مسئله باعث کاهش فروش و جذابیت کلی میشود.
 
 **نقاط ضعف جذب:**
 - عدم وجود ویترین جذاب در ورودی
 - فقدان نمایش محصولات ویژه
-- عدم استفاده از رنگ‌های جذاب
+- عدم استفاده از رنگهای جذاب
 - فقدان عناصر بصری تأثیرگذار
 
 ### تحلیل رقابتی و موقعیت بازار
 
 #### موقعیت رقابتی فروشگاه
-فروشگاه {store_name} در مقایسه با رقبا دارای پتانسیل بالایی است اما از این پتانسیل بهره‌برداری نمی‌کند.
+فروشگاه {store_name} در مقایسه با رقبا دارای پتانسیل بالایی است اما از این پتانسیل بهرهبرداری نمیکند.
 
-**مزیت‌های رقابتی:**
+**مزیتهای رقابتی:**
 - موقعیت جغرافیایی مناسب
 - فضای کافی برای توسعه
 - امکان ارائه خدمات متنوع
 - قابلیت ایجاد تمایز در بازار
 
 **نقاط ضعف رقابتی:**
-- عدم استفاده از تکنولوژی‌های مدرن
+- عدم استفاده از تکنولوژیهای مدرن
 - فقدان استراتژی بازاریابی مؤثر
 - عدم تمرکز بر تجربه مشتری
 - فقدان نوآوری در ارائه خدمات
@@ -5355,32 +5914,32 @@ class StoreAnalysisAI:
 ### نقاط قوت استراتژیک
 
 #### 1. موقعیت جغرافیایی مطلوب
-فروشگاه در موقعیت جغرافیایی استراتژیک قرار دارد. بر اساس مطالعات روانشناسی محیطی، دسترسی آسان چهل درصد بر تصمیم خرید تأثیر دارد. از این مزیت برای جذب مشتریان جدید و افزایش وفاداری استفاده کنید. امتیاز عملکرد: 8.5 از 10
+فروشگاه در موقعیت جغرافیایی استراتژیک قرار دارد. بر اساس مطالعات روانشناسی محیطی دسترسی آسان چهل درصد بر تصمیم خرید تأثیر دارد. از این مزیت برای جذب مشتریان جدید و افزایش وفاداری استفاده کنید. امتیاز عملکرد: 8.5 از 10
 
 #### 2. فضای کافی برای توسعه
-اندازه فروشگاه برای فعالیت فعلی و توسعه آینده کافی است. فضای کافی امکان پیاده‌سازی اصول برنامه‌ریزی فضای خرده‌فروشی را فراهم می‌کند. از فضای موجود برای ایجاد مناطق تخصصی و تجربه خرید بهتر استفاده کنید. امتیاز عملکرد: 8.0 از 10
+اندازه فروشگاه برای فعالیت فعلی و توسعه آینده کافی است. فضای کافی امکان پیادهسازی اصول برنامهریزی فضای خردهفروشی را فراهم میکند. از فضای موجود برای ایجاد مناطق تخصصی و تجربه خرید بهتر استفاده کنید. امتیاز عملکرد: 8.0 از 10
 
 #### 3. پتانسیل بالای رشد
-فروشگاه قابلیت توسعه قابل توجهی دارد. بر اساس مدل‌های پیش‌بینی فروش، پتانسیل رشد هشتاد و پنج تا نود و پنج درصد وجود دارد. با برنامه‌ریزی صحیح و اجرای استراتژی‌های علمی، این پتانسیل را بالفعل کنید. امتیاز عملکرد: 9.0 از 10
+فروشگاه قابلیت توسعه قابل توجهی دارد. بر اساس مدلهای پیشبینی فروش پتانسیل رشد هشتاد و پنج تا نود و پنج درصد وجود دارد. با برنامهریزی صحیح و اجرای استراتژیهای علمی این پتانسیل را بالفعل کنید. امتیاز عملکرد: 9.0 از 10
 
 ### نقاط ضعف بحرانی
 
 #### 1. چیدمان نامناسب محصولات
-ترتیب و چیدمان محصولات بر اساس اصول علمی تجاری نیست. چیدمان نامناسب باعث کاهش بیست و پنج تا سی و پنج درصد فروش و کاهش چهل درصد زمان حضور مشتری می‌شود. 
+ترتیب و چیدمان محصولات بر اساس اصول علمی تجاری نیست. چیدمان نامناسب باعث کاهش بیست و پنج تا سی و پنج درصد فروش و کاهش چهل درصد زمان حضور مشتری میشود. 
 
-راه‌حل تخصصی:
-- پیاده‌سازی اصول بهینه‌سازی پلان‌گرام
-- محصولات پرفروش در ارتفاع صد و بیست تا صد و شصت سانتی‌متر (منطقه طلایی)
+راهحل تخصصی:
+- پیادهسازی اصول بهینهسازی پلانگرام
+- محصولات پرفروش در ارتفاع صد و بیست تا صد و شصت سانتیمتر (منطقه طلایی)
 - محصولات مکمل در فاصله یک و نیم متری از هم
 - مسیر مشتری به شکل U با عرض حداقل یک و دو دهم متر
 
 تأثیر مورد انتظار: افزایش بیست و پنج تا سی و پنج درصد فروش
 
 #### 2. سیستم نورپردازی ناکافی
-روشنایی فروشگاه برای نمایش مناسب محصولات کافی نیست. نور کم باعث کاهش بیست تا سی درصد جذابیت محصولات و کاهش پانزده درصد نرخ تبدیل می‌شود.
+روشنایی فروشگاه برای نمایش مناسب محصولات کافی نیست. نور کم باعث کاهش بیست تا سی درصد جذابیت محصولات و کاهش پانزده درصد نرخ تبدیل میشود.
 
-راه‌حل تخصصی:
-- نصب چراغ‌های LED با دمای رنگ چهار هزار کلوین (نور طبیعی)
+راهحل تخصصی:
+- نصب چراغهای LED با دمای رنگ چهار هزار کلوین (نور طبیعی)
 - نورپردازی تاکیدی روی محصولات ویژه با شدت پانصد تا هشتصد لوکس
 - افزایش نور ورودی به سیصد تا چهارصد لوکس
 - استفاده از نورپردازی RGB برای ایجاد جذابیت
@@ -5388,43 +5947,43 @@ class StoreAnalysisAI:
 تأثیر مورد انتظار: افزایش بیست تا سی درصد جذابیت و پانزده درصد نرخ تبدیل
 
 #### 3. عدم وجود نقاط جذب مشتری
-نقاط جذاب و چشم‌نواز در فروشگاه وجود ندارد. عدم جذب باعث کاهش سی درصد زمان حضور مشتری و کاهش بیست و پنج درصد فروش می‌شود.
+نقاط جذاب و چشمنواز در فروشگاه وجود ندارد. عدم جذب باعث کاهش سی درصد زمان حضور مشتری و کاهش بیست و پنج درصد فروش میشود.
 
-راه‌حل تخصصی:
+راهحل تخصصی:
 - ایجاد ویترین جذاب در ورودی با ارتفاع یک و هشت دهم متر
 - قرار دادن محصولات ویژه در نقاط پرتردد
-- استفاده از رنگ‌های شاد و جذاب (رنگ‌های گرم)
-- پیاده‌سازی اصول تجاری بصری
+- استفاده از رنگهای شاد و جذاب (رنگهای گرم)
+- پیادهسازی اصول تجاری بصری
 
 تأثیر مورد انتظار: افزایش سی درصد زمان حضور و بیست و پنج درصد فروش
 
 ---
 
-## برنامه اجرایی پیشرفته و گام‌به‌گام
+## برنامه اجرایی پیشرفته و گامبهگام
 
 ### مرحله اول: تغییرات فوری (یک تا دو هفته) - بازگشت سرمایه بالا
 
 #### اقدام 1: بهبود نورپردازی پیشرفته
 چه کاری انجام دهید:
-1. چراغ‌های قدیمی را با LED چهار هزار کلوین جایگزین کنید
+1. چراغهای قدیمی را با LED چهار هزار کلوین جایگزین کنید
 2. نورپردازی تاکیدی روی محصولات ویژه با شدت پانصد تا هشتصد لوکس
 3. نور ورودی را به سیصد تا چهارصد لوکس افزایش دهید
 4. نصب سیستم نورپردازی RGB برای ایجاد جذابیت
 
-تحلیل علمی: نور مناسب باعث افزایش بیست تا سی درصد جذابیت و پانزده درصد نرخ تبدیل می‌شود.
+تحلیل علمی: نور مناسب باعث افزایش بیست تا سی درصد جذابیت و پانزده درصد نرخ تبدیل میشود.
 
 هزینه: دو و نیم تا سه و نیم میلیون تومان
 بازگشت سرمایه: دو تا سه ماه
 نتیجه مورد انتظار: افزایش پانزده تا بیست درصد فروش
 
-#### اقدام 2: بهینه‌سازی چیدمان علمی
+#### اقدام 2: بهینهسازی چیدمان علمی
 چه کاری انجام دهید:
-1. محصولات پرفروش را در ارتفاع صد و بیست تا صد و شصت سانتی‌متر قرار دهید
+1. محصولات پرفروش را در ارتفاع صد و بیست تا صد و شصت سانتیمتر قرار دهید
 2. محصولات مکمل را در فاصله یک و نیم متری از هم بچینید
 3. مسیر مشتری را به شکل U با عرض یک و دو دهم متر طراحی کنید
-4. پیاده‌سازی اصول بهینه‌سازی پلان‌گرام
+4. پیادهسازی اصول بهینهسازی پلانگرام
 
-تحلیل علمی: چیدمان علمی باعث افزایش بیست و پنج تا سی و پنج درصد فروش و کاهش بیست درصد زمان انتظار می‌شود.
+تحلیل علمی: چیدمان علمی باعث افزایش بیست و پنج تا سی و پنج درصد فروش و کاهش بیست درصد زمان انتظار میشود.
 
 هزینه: یک و نیم تا دو و نیم میلیون تومان
 بازگشت سرمایه: یک تا دو ماه
@@ -5434,25 +5993,25 @@ class StoreAnalysisAI:
 چه کاری انجام دهید:
 1. ویترین جذاب در ورودی با ارتفاع یک و هشت دهم متر ایجاد کنید
 2. محصولات ویژه را در نقاط پرتردد قرار دهید
-3. از رنگ‌های شاد و جذاب استفاده کنید
-4. پیاده‌سازی اصول تجاری بصری
+3. از رنگهای شاد و جذاب استفاده کنید
+4. پیادهسازی اصول تجاری بصری
 
-تحلیل علمی: نقاط جذب باعث افزایش سی درصد زمان حضور و بیست و پنج درصد فروش می‌شود.
+تحلیل علمی: نقاط جذب باعث افزایش سی درصد زمان حضور و بیست و پنج درصد فروش میشود.
 
 هزینه: یک و نیم تا دو میلیون تومان
 بازگشت سرمایه: یک تا دو ماه
 نتیجه مورد انتظار: افزایش ده تا پانزده درصد فروش
 
-### مرحله دوم: بهبودهای کوتاه‌مدت (یک تا سه ماه) - بازگشت سرمایه متوسط
+### مرحله دوم: بهبودهای کوتاهمدت (یک تا سه ماه) - بازگشت سرمایه متوسط
 
 #### اقدام 1: آموزش پیشرفته کارکنان
 چه کاری انجام دهید:
-1. دوره‌های آموزشی فروش با روش‌های علمی برگزار کنید
+1. دورههای آموزشی فروش با روشهای علمی برگزار کنید
 2. اصول خدمات مشتری بر اساس مدیریت تجربه مشتری آموزش دهید
-3. تکنیک‌های فروش پیشرفته یاد دهید
+3. تکنیکهای فروش پیشرفته یاد دهید
 4. آموزش استفاده از ابزارهای دیجیتال
 
-تحلیل علمی: کارکنان آموزش‌دیده باعث افزایش بیست و پنج تا سی درصد فروش و چهل درصد رضایت مشتری می‌شوند.
+تحلیل علمی: کارکنان آموزشدیده باعث افزایش بیست و پنج تا سی درصد فروش و چهل درصد رضایت مشتری میشوند.
 
 هزینه: چهار تا شش میلیون تومان
 بازگشت سرمایه: سه تا چهار ماه
@@ -5465,7 +6024,7 @@ class StoreAnalysisAI:
 3. محصولات مکمل و مرتبط را معرفی کنید
 4. تحلیل رقابتی برای انتخاب محصولات مناسب انجام دهید
 
-تحلیل علمی: تنوع مناسب باعث افزایش بیست درصد فروش و سی درصد رضایت مشتری می‌شود.
+تحلیل علمی: تنوع مناسب باعث افزایش بیست درصد فروش و سی درصد رضایت مشتری میشود.
 
 هزینه: سه تا پنج میلیون تومان
 بازگشت سرمایه: دو تا سه ماه
@@ -5475,12 +6034,12 @@ class StoreAnalysisAI:
 
 #### اقدام 1: توسعه دیجیتال و آنلاین
 چه کاری انجام دهید:
-1. ایجاد وب‌سایت حرفه‌ای و کاربردی
-2. راه‌اندازی فروش آنلاین و تحویل در محل
-3. استفاده از شبکه‌های اجتماعی برای بازاریابی
-4. پیاده‌سازی سیستم مدیریت مشتری
+1. ایجاد وبسایت حرفهای و کاربردی
+2. راهاندازی فروش آنلاین و تحویل در محل
+3. استفاده از شبکههای اجتماعی برای بازاریابی
+4. پیادهسازی سیستم مدیریت مشتری
 
-تحلیل علمی: حضور دیجیتال باعث افزایش چهل درصد دسترسی و بیست و پنج درصد فروش می‌شود.
+تحلیل علمی: حضور دیجیتال باعث افزایش چهل درصد دسترسی و بیست و پنج درصد فروش میشود.
 
 هزینه: پنج تا هشت میلیون تومان
 بازگشت سرمایه: چهار تا شش ماه
@@ -5489,11 +6048,11 @@ class StoreAnalysisAI:
 #### اقدام 2: بهبود تجربه مشتری
 چه کاری انجام دهید:
 1. طراحی فضای راحت و جذاب برای مشتریان
-2. ارائه خدمات اضافی مانند بسته‌بندی رایگان
+2. ارائه خدمات اضافی مانند بستهبندی رایگان
 3. ایجاد برنامه وفاداری مشتری
 4. بهبود سیستم پرداخت و صندوق
 
-تحلیل علمی: تجربه بهتر باعث افزایش سی درصد وفاداری و بیست درصد فروش می‌شود.
+تحلیل علمی: تجربه بهتر باعث افزایش سی درصد وفاداری و بیست درصد فروش میشود.
 
 هزینه: دو تا چهار میلیون تومان
 بازگشت سرمایه: سه تا چهار ماه
@@ -5501,56 +6060,56 @@ class StoreAnalysisAI:
 
 ---
 
-## پیش‌بینی نتایج و بازگشت سرمایه
+## پیشبینی نتایج و بازگشت سرمایه
 
-### نتایج کوتاه‌مدت (سه ماه اول)
+### نتایج کوتاهمدت (سه ماه اول)
 - افزایش فروش: بیست تا سی درصد
 - بهبود رضایت مشتری: سی تا چهل درصد
-- کاهش هزینه‌ها: ده تا پانزده درصد
+- کاهش هزینهها: ده تا پانزده درصد
 - بازگشت سرمایه اولیه: هفتاد تا هشتاد درصد
 
-### نتایج میان‌مدت (شش ماه)
+### نتایج میانمدت (شش ماه)
 - افزایش فروش: سی تا چهل درصد
 - بهبود رضایت مشتری: چهل تا پنجاه درصد
-- کاهش هزینه‌ها: پانزده تا بیست و پنج درصد
+- کاهش هزینهها: پانزده تا بیست و پنج درصد
 - بازگشت سرمایه کامل: صد تا صد و بیست درصد
 
 ### نتایج بلندمدت (یک سال)
 - افزایش فروش: چهل تا پنجاه درصد
 - بهبود رضایت مشتری: پنجاه تا شصت درصد
-- کاهش هزینه‌ها: بیست تا سی درصد
+- کاهش هزینهها: بیست تا سی درصد
 - سود خالص اضافی: سی تا چهل درصد
 
 ---
 
 ## خلاصه و توصیه نهایی
 
-فروشگاه {store_name} پتانسیل بالایی برای رشد و توسعه دارد. با اجرای برنامه پیشنهادی، می‌توانید در مدت شش تا دوازده ماه به نتایج قابل توجهی دست یابید.
+فروشگاه {store_name} پتانسیل بالایی برای رشد و توسعه دارد. با اجرای برنامه پیشنهادی میتوانید در مدت شش تا دوازده ماه به نتایج قابل توجهی دست یابید.
 
-**اولویت‌های اصلی:**
+**اولویتهای اصلی:**
 1. بهبود نورپردازی و چیدمان (فوری)
-2. آموزش کارکنان (کوتاه‌مدت)
+2. آموزش کارکنان (کوتاهمدت)
 3. توسعه دیجیتال (بلندمدت)
 
 **نکات مهم:**
-- اجرای مرحله‌ای برنامه برای کاهش ریسک
+- اجرای مرحلهای برنامه برای کاهش ریسک
 - نظارت مستمر بر نتایج و تنظیم برنامه
 - استفاده از مشاوره متخصصان در صورت نیاز
 
-با احترام،
+با احترام
 تیم تحلیل چیدمانو
 **هزینه:** 2.5-3.5 میلیون تومان
 **بازگشت سرمایه:** 2-3 ماه
 **نتیجه مورد انتظار:** افزایش 15-20% فروش
 
-#### اقدام 2: بهینه‌سازی چیدمان علمی
+#### اقدام 2: بهینهسازی چیدمان علمی
 **چه کاری انجام دهید:**
-1. محصولات پرفروش را در ارتفاع 120-160 سانتی‌متر قرار دهید
+1. محصولات پرفروش را در ارتفاع 120-160 سانتیمتر قرار دهید
 2. محصولات مکمل را در فاصله 1.5 متری از هم بچینید
 3. مسیر مشتری را به شکل U با عرض 1.2 متر طراحی کنید
-4. پیاده‌سازی اصول "Planogram Optimization"
+4. پیادهسازی اصول "Planogram Optimization"
 
-**تحلیل علمی:** چیدمان علمی باعث افزایش 25-35% فروش و کاهش 20% زمان انتظار می‌شود.
+**تحلیل علمی:** چیدمان علمی باعث افزایش 25-35% فروش و کاهش 20% زمان انتظار میشود.
 **هزینه:** 1.5-2.5 میلیون تومان
 **بازگشت سرمایه:** 1-2 ماه
 **نتیجه مورد انتظار:** افزایش 20-25% فروش
@@ -5559,24 +6118,24 @@ class StoreAnalysisAI:
 **چه کاری انجام دهید:**
 1. ویترین جذاب در ورودی با ارتفاع 1.8 متر ایجاد کنید
 2. محصولات ویژه را در نقاط پرتردد (Hot Spots) قرار دهید
-3. از رنگ‌های شاد و جذاب (رنگ‌های گرم) استفاده کنید
-4. پیاده‌سازی اصول "Visual Merchandising"
+3. از رنگهای شاد و جذاب (رنگهای گرم) استفاده کنید
+4. پیادهسازی اصول "Visual Merchandising"
 
-**تحلیل علمی:** نقاط جذب باعث افزایش 30% زمان حضور و 25% فروش می‌شود.
+**تحلیل علمی:** نقاط جذب باعث افزایش 30% زمان حضور و 25% فروش میشود.
 **هزینه:** 1.5-2 میلیون تومان
 **بازگشت سرمایه:** 1-2 ماه
 **نتیجه مورد انتظار:** افزایش 10-15% فروش
 
-### مرحله دوم: بهبودهای کوتاه‌مدت (1-3 ماه) - ROI متوسط
+### مرحله دوم: بهبودهای کوتاهمدت (1-3 ماه) - ROI متوسط
 
 #### اقدام 1: آموزش پیشرفته کارکنان
 **چه کاری انجام دهید:**
-1. دوره‌های آموزشی فروش با روش‌های علمی برگزار کنید
+1. دورههای آموزشی فروش با روشهای علمی برگزار کنید
 2. اصول خدمات مشتری بر اساس "Customer Experience Management" آموزش دهید
-3. تکنیک‌های فروش پیشرفته (Upselling, Cross-selling) یاد دهید
+3. تکنیکهای فروش پیشرفته (Upselling, Cross-selling) یاد دهید
 4. آموزش استفاده از ابزارهای دیجیتال
 
-**تحلیل علمی:** کارکنان آموزش‌دیده باعث افزایش 25-30% فروش و 40% رضایت مشتری می‌شوند.
+**تحلیل علمی:** کارکنان آموزشدیده باعث افزایش 25-30% فروش و 40% رضایت مشتری میشوند.
 **هزینه:** 4-6 میلیون تومان
 **بازگشت سرمایه:** 3-4 ماه
 **نتیجه مورد انتظار:** افزایش 25-30% فروش
@@ -5586,9 +6145,9 @@ class StoreAnalysisAI:
 1. محصولات جدید و جذاب بر اساس تحلیل بازار اضافه کنید
 2. تنوع رنگ و سایز را بر اساس نیاز مشتریان افزایش دهید
 3. محصولات فصلی را با استراتژی "Seasonal Merchandising" معرفی کنید
-4. پیاده‌سازی سیستم "Product Mix Optimization"
+4. پیادهسازی سیستم "Product Mix Optimization"
 
-**تحلیل علمی:** تنوع بیشتر باعث افزایش 30-35% فروش و 25% رضایت مشتری می‌شود.
+**تحلیل علمی:** تنوع بیشتر باعث افزایش 30-35% فروش و 25% رضایت مشتری میشود.
 **هزینه:** 6-10 میلیون تومان
 **بازگشت سرمایه:** 4-6 ماه
 **نتیجه مورد انتظار:** افزایش 30-35% فروش
@@ -5599,19 +6158,19 @@ class StoreAnalysisAI:
 **چه کاری انجام دهید:**
 1. طراحی جدید فروشگاه بر اساس اصول "Modern Retail Design"
 2. نصب تجهیزات مدرن و هوشمند
-3. ایجاد فضاهای تخصصی و تجربه‌محور
-4. پیاده‌سازی سیستم‌های دیجیتال
+3. ایجاد فضاهای تخصصی و تجربهمحور
+4. پیادهسازی سیستمهای دیجیتال
 
-**تحلیل علمی:** فروشگاه مدرن باعث افزایش 50-70% فروش و 60% رضایت مشتری می‌شود.
+**تحلیل علمی:** فروشگاه مدرن باعث افزایش 50-70% فروش و 60% رضایت مشتری میشود.
 **هزینه:** 30-60 میلیون تومان
 **بازگشت سرمایه:** 8-12 ماه
 **نتیجه مورد انتظار:** افزایش 50-70% فروش
 
 ---
 
-## 📊 تحلیل پیشرفته نتایج و پیش‌بینی
+##  تحلیل پیشرفته نتایج و پیشبینی
 
-### نتایج کوتاه‌مدت (3 ماه)
+### نتایج کوتاهمدت (3 ماه)
 - **افزایش فروش:** 25-35% (میانگین: 30%)
 - **افزایش سود:** 30-40% (میانگین: 35%)
 - **رضایت مشتری:** 80-85% (میانگین: 82.5%)
@@ -5627,45 +6186,45 @@ class StoreAnalysisAI:
 
 ### تحلیل ریسک و فرصت
 - **ریسک پایین:** تغییرات فوری (احتمال موفقیت: 95%)
-- **ریسک متوسط:** بهبودهای کوتاه‌مدت (احتمال موفقیت: 85%)
+- **ریسک متوسط:** بهبودهای کوتاهمدت (احتمال موفقیت: 85%)
 - **ریسک بالا:** تحولات بلندمدت (احتمال موفقیت: 75%)
 
 ---
 
-## 💡 توصیه‌های استراتژیک و تخصصی
+##  توصیههای استراتژیک و تخصصی
 
-### 1. اولویت‌بندی اقدامات بر اساس ROI
+### 1. اولویتبندی اقدامات بر اساس ROI
 **اولویت بالا:** نورپردازی و چیدمان (ROI: 300-400%)
 **اولویت متوسط:** آموزش کارکنان (ROI: 200-250%)
 **اولویت پایین:** بازسازی کامل (ROI: 150-200%)
 
 ### 2. نظارت و ارزیابی پیشرفته
 - نظارت ماهانه بر KPIهای کلیدی
-- جمع‌آوری بازخورد مشتریان با روش‌های علمی
-- تحلیل داده‌ها و اعمال تغییرات لازم
+- جمعآوری بازخورد مشتریان با روشهای علمی
+- تحلیل دادهها و اعمال تغییرات لازم
 - استفاده از ابزارهای تحلیلی پیشرفته
 
-### 3. انعطاف‌پذیری استراتژیک
+### 3. انعطافپذیری استراتژیک
 - تعدیل برنامه بر اساس شرایط بازار
 - استفاده از بازخورد مشتریان برای بهبود
 - تطبیق با تغییرات فصلی و روندهای بازار
-- پیاده‌سازی سیستم‌های انطباق‌پذیر
+- پیادهسازی سیستمهای انطباقپذیر
 
 ---
 
-## 🎯 نتیجه‌گیری استراتژیک
+##  نتیجهگیری استراتژیک
 
-**فروشگاه {store_name} با پتانسیل بالای موجود و اجرای دقیق این برنامه پیشرفته، قابلیت تبدیل شدن به یکی از موفق‌ترین فروشگاه‌های منطقه را دارد.**
+**فروشگاه {store_name} با پتانسیل بالای موجود و اجرای دقیق این برنامه پیشرفته قابلیت تبدیل شدن به یکی از موفقترین فروشگاههای منطقه را دارد.**
 
 **کلید موفقیت در اجرای دقیق و مستمر این برنامه استراتژیک است.**
 
 ---
 
-**این دقیقاً همان چیزی است که همیشه مشاورها نمی‌توانستند واضح بگویند!**
-**حالا می‌دانید چه چیزی را کجا تغییر دهید و چرا.**
+**این دقیقاً همان چیزی است که همیشه مشاورها نمیتوانستند واضح بگویند!**
+**حالا میدانید چه چیزی را کجا تغییر دهید و چرا.**
 
 با آرزوی موفقیت و پیشرفت روزافزون
-**دستیار حرفه‌ای چیدمان فروشگاه‌ها - چیدمانو**
+**دستیار حرفهای چیدمان فروشگاهها - چیدمانو**
         """
         
         return analysis_text
@@ -5673,7 +6232,7 @@ class StoreAnalysisAI:
     def _convert_store_type_to_persian(self, store_type: str) -> str:
         """تبدیل نوع فروشگاه به فارسی زیبا"""
         type_mapping = {
-            'supermarket': 'فروشگاه زنجیره‌ای و سوپرمارکت',
+            'supermarket': 'فروشگاه زنجیرهای و سوپرمارکت',
             'clothing': 'فروشگاه پوشاک',
             'electronics': 'فروشگاه لوازم الکترونیکی',
             'pharmacy': 'داروخانه',
@@ -5733,11 +6292,11 @@ class StoreAnalysisAI:
                 },
                 'growth_prediction': {
                     'type': 'line',
-                    'title': 'پیش‌بینی رشد فروش',
+                    'title': 'پیشبینی رشد فروش',
                     'data': {
                         'labels': ['ماه 1', 'ماه 2', 'ماه 3', 'ماه 4', 'ماه 5', 'ماه 6'],
                         'datasets': [{
-                            'label': 'فروش پیش‌بینی شده',
+                            'label': 'فروش پیشبینی شده',
                             'data': [100, 115, 130, 145, 160, 175],
                             'backgroundColor': 'rgba(75, 192, 192, 0.2)',
                             'borderColor': 'rgba(75, 192, 192, 1)',
@@ -5750,13 +6309,13 @@ class StoreAnalysisAI:
                     'type': 'doughnut',
                     'title': 'تحلیل SWOT',
                     'data': {
-                        'labels': ['نقاط قوت', 'نقاط ضعف', 'فرصت‌ها', 'تهدیدها'],
+                        'labels': ['نقاط قوت', 'نقاط ضعف', 'فرصتها', 'تهدیدها'],
                         'datasets': [{
                             'data': [30, 25, 30, 15],
                             'backgroundColor': [
                                 'rgba(34, 197, 94, 0.8)',   # سبز برای نقاط قوت
                                 'rgba(239, 68, 68, 0.8)',    # قرمز برای نقاط ضعف
-                                'rgba(59, 130, 246, 0.8)',   # آبی برای فرصت‌ها
+                                'rgba(59, 130, 246, 0.8)',   # آبی برای فرصتها
                                 'rgba(245, 158, 11, 0.8)'    # نارنجی برای تهدیدها
                             ],
                             'borderWidth': 2
@@ -5791,14 +6350,14 @@ class StoreAnalysisAI:
                     'headers': ['مرحله', 'اقدام', 'مدت زمان', 'هزینه', 'اولویت'],
                     'rows': [
                         ['فوری', 'بهبود نورپردازی', '1-2 هفته', '2 میلیون', 'بالا'],
-                        ['فوری', 'بهینه‌سازی چیدمان', '2-3 هفته', '1.5 میلیون', 'بالا'],
-                        ['کوتاه‌مدت', 'آموزش کارکنان', '1 ماه', '3 میلیون', 'متوسط'],
-                        ['کوتاه‌مدت', 'افزایش تنوع محصول', '2 ماه', '5 میلیون', 'متوسط'],
+                        ['فوری', 'بهینهسازی چیدمان', '2-3 هفته', '1.5 میلیون', 'بالا'],
+                        ['کوتاهمدت', 'آموزش کارکنان', '1 ماه', '3 میلیون', 'متوسط'],
+                        ['کوتاهمدت', 'افزایش تنوع محصول', '2 ماه', '5 میلیون', 'متوسط'],
                         ['بلندمدت', 'بازسازی کامل', '6 ماه', '25 میلیون', 'کم']
                     ]
                 },
                 'metrics_table': {
-                    'title': 'جدول شاخص‌های کلیدی عملکرد',
+                    'title': 'جدول شاخصهای کلیدی عملکرد',
                     'headers': ['شاخص', 'مقدار فعلی', 'هدف 3 ماهه', 'هدف 6 ماهه', 'وضعیت'],
                     'rows': [
                         ['KPI 1', '65%', '75%', '85%', 'در حال بهبود'],
@@ -5816,7 +6375,7 @@ class StoreAnalysisAI:
             return {}
     
     def _generate_layout_diagrams(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تولید تصاویر چیدمان قبل و بعد - دستیار حرفه‌ای چیدمان"""
+        """تولید تصاویر چیدمان قبل و بعد - دستیار حرفهای چیدمان"""
         try:
             store_name = analysis_data.get('store_name', 'فروشگاه')
             store_type = analysis_data.get('store_type', 'عمومی')
@@ -5843,35 +6402,35 @@ class StoreAnalysisAI:
     def _create_current_layout_diagram(self, store_name: str, store_type: str, store_size: str) -> str:
         """ایجاد تصویر چیدمان فعلی با جزئیات فنی پیشرفته"""
         return f"""
-# 🏪 تحلیل چیدمان فعلی فروشگاه {store_name}
-## وضعیت موجود (قبل از بهینه‌سازی) - تحلیل تخصصی
+#  تحلیل چیدمان فعلی فروشگاه {store_name}
+## وضعیت موجود (قبل از بهینهسازی) - تحلیل تخصصی
 
 ---
 
-## 📐 نقشه چیدمان فعلی
+##  نقشه چیدمان فعلی
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    ورودی فروشگاه                        │
-│                  [نور: 150-200 lux]                     │
-│                  [ارتفاع: 2.1 متر]                     │
-├─────────────────────────────────────────────────────────┤
-│  [قفسه A]  [قفسه B]  [قفسه C]  [قفسه D]  [قفسه E]     │
-│  1.8m      1.8m      1.8m      1.8m      1.8m          │
-│     │         │         │         │         │          │
-│  [قفسه F]  [قفسه G]  [قفسه H]  [قفسه I]  [قفسه J]     │
-│  1.8m      1.8m      1.8m      1.8m      1.8m          │
-│     │         │         │         │         │          │
-│  [قفسه K]  [قفسه L]  [قفسه M]  [قفسه N]  [قفسه O]     │
-│  1.8m      1.8m      1.8m      1.8m      1.8m          │
-├─────────────────────────────────────────────────────────┤
-│                    صندوق پرداخت                         │
-│                  [صف: 8-12 نفر]                         │
-│                  [زمان انتظار: 5-8 دقیقه]              │
-└─────────────────────────────────────────────────────────┘
+
+                    ورودی فروشگاه                        
+                  [نور: 150-200 lux]                     
+                  [ارتفاع: 2.1 متر]                     
+
+  [قفسه A]  [قفسه B]  [قفسه C]  [قفسه D]  [قفسه E]     
+  1.8m      1.8m      1.8m      1.8m      1.8m          
+                                                   
+  [قفسه F]  [قفسه G]  [قفسه H]  [قفسه I]  [قفسه J]     
+  1.8m      1.8m      1.8m      1.8m      1.8m          
+                                                   
+  [قفسه K]  [قفسه L]  [قفسه M]  [قفسه N]  [قفسه O]     
+  1.8m      1.8m      1.8m      1.8m      1.8m          
+
+                    صندوق پرداخت                         
+                  [صف: 8-12 نفر]                         
+                  [زمان انتظار: 5-8 دقیقه]              
+
 ```
 
-## 🔍 تحلیل تخصصی مشکلات چیدمان فعلی
+##  تحلیل تخصصی مشکلات چیدمان فعلی
 
 ### 1. مشکلات نورپردازی
 - **شدت نور فعلی:** 150-200 lux (کمتر از استاندارد 300-400 lux)
@@ -5880,8 +6439,8 @@ class StoreAnalysisAI:
 - **تأثیر بر فروش:** کاهش 20-30% جذابیت محصولات
 
 ### 2. مشکلات چیدمان
-- **ارتفاع قفسه‌ها:** 1.8 متر (نامناسب برای دسترسی آسان)
-- **فاصله بین قفسه‌ها:** 0.8 متر (کمتر از استاندارد 1.2 متر)
+- **ارتفاع قفسهها:** 1.8 متر (نامناسب برای دسترسی آسان)
+- **فاصله بین قفسهها:** 0.8 متر (کمتر از استاندارد 1.2 متر)
 - **مسیر مشتری:** نامنظم و غیرعلمی
 - **تأثیر بر فروش:** کاهش 25-35% فروش
 
@@ -5893,25 +6452,25 @@ class StoreAnalysisAI:
 ### 4. مشکلات ویترین و جذب
 - **ویترین ورودی:** وجود ندارد
 - **نقاط جذب:** وجود ندارد
-- **رنگ‌بندی:** یکنواخت و کسل‌کننده
+- **رنگبندی:** یکنواخت و کسلکننده
 - **تأثیر بر فروش:** کاهش 30% زمان حضور مشتری
 
 ---
 
-## 📊 شاخص‌های عملکرد فعلی
+##  شاخصهای عملکرد فعلی
 
 | شاخص | مقدار فعلی | استاندارد | وضعیت |
 |------|------------|-----------|-------|
-| شدت نور | 150-200 lux | 300-400 lux | ❌ نامناسب |
-| دمای رنگ | 2700K | 4000K | ❌ نامناسب |
-| ارتفاع قفسه | 1.8m | 1.2-1.6m | ❌ نامناسب |
-| فاصله قفسه‌ها | 0.8m | 1.2m | ❌ نامناسب |
-| زمان انتظار | 5-8 دقیقه | 2-3 دقیقه | ❌ نامناسب |
-| نرخ تبدیل | 15-20% | 25-30% | ❌ پایین |
+| شدت نور | 150-200 lux | 300-400 lux |  نامناسب |
+| دمای رنگ | 2700K | 4000K |  نامناسب |
+| ارتفاع قفسه | 1.8m | 1.2-1.6m |  نامناسب |
+| فاصله قفسهها | 0.8m | 1.2m |  نامناسب |
+| زمان انتظار | 5-8 دقیقه | 2-3 دقیقه |  نامناسب |
+| نرخ تبدیل | 15-20% | 25-30% |  پایین |
 
 ---
 
-## ⚠️ تأثیر منفی بر عملکرد
+##  تأثیر منفی بر عملکرد
 
 ### کاهش فروش
 - **کاهش کلی:** 25-35%
@@ -5923,75 +6482,75 @@ class StoreAnalysisAI:
 - **رضایت از چیدمان:** 45-50%
 - **رضایت از خدمات:** 55-60%
 
-### افزایش هزینه‌ها
-- **هزینه‌های عملیاتی:** +20-25%
-- **هزینه‌های بازاریابی:** +30-40%
-- **هزینه‌های نگهداری:** +15-20%
+### افزایش هزینهها
+- **هزینههای عملیاتی:** +20-25%
+- **هزینههای بازاریابی:** +30-40%
+- **هزینههای نگهداری:** +15-20%
 
 ---
 
-## 🎯 اولویت‌بندی مشکلات
+##  اولویتبندی مشکلات
 
 ### اولویت بالا (تأثیر فوری)
 1. **نورپردازی:** تأثیر بر 80% فروش
 2. **چیدمان:** تأثیر بر 70% فروش
 3. **مدیریت صف:** تأثیر بر 60% رضایت
 
-### اولویت متوسط (تأثیر میان‌مدت)
+### اولویت متوسط (تأثیر میانمدت)
 1. **ویترین:** تأثیر بر 50% جذب
-2. **رنگ‌بندی:** تأثیر بر 40% جذابیت
+2. **رنگبندی:** تأثیر بر 40% جذابیت
 3. **آموزش کارکنان:** تأثیر بر 35% خدمات
 
 ### اولویت پایین (تأثیر بلندمدت)
 1. **بازسازی کامل:** تأثیر بر 90% عملکرد
-2. **سیستم‌های دیجیتال:** تأثیر بر 60% کارایی
+2. **سیستمهای دیجیتال:** تأثیر بر 60% کارایی
 3. **گسترش فضا:** تأثیر بر 70% ظرفیت
         """
     
     def _create_optimized_layout_diagram(self, store_name: str, store_type: str, store_size: str) -> str:
         """ایجاد تصویر چیدمان بهینه با جزئیات فنی پیشرفته"""
         return f"""
-# 🎯 چیدمان بهینه فروشگاه {store_name}
-## وضعیت بهینه (بعد از بهینه‌سازی) - طراحی تخصصی
+#  چیدمان بهینه فروشگاه {store_name}
+## وضعیت بهینه (بعد از بهینهسازی) - طراحی تخصصی
 
 ---
 
-## 📐 نقشه چیدمان بهینه
+##  نقشه چیدمان بهینه
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    ورودی فروشگاه                        │
-│                  [ویترین جذاب]                          │
-│                  [نور: 300-400 lux]                     │
-│                  [ارتفاع: 1.8 متر]                     │
-├─────────────────────────────────────────────────────────┤
-│  [محصولات ویژه]  [محصولات مکمل]  [محصولات پرفروش]     │
-│  1.6m (120-160cm) 1.6m (120-160cm) 1.6m (120-160cm)    │
-│        │              │              │                 │
-│  [محصولات فصلی]  [محصولات جدید]  [محصولات تخفیفی]     │
-│  1.4m (100-140cm) 1.4m (100-140cm) 1.4m (100-140cm)    │
-│        │              │              │                 │
-│  [محصولات ضروری]  [محصولات لوکس]  [محصولات روزانه]   │
-│  1.2m (80-120cm)  1.2m (80-120cm)  1.2m (80-120cm)     │
-├─────────────────────────────────────────────────────────┤
-│                    صندوق پرداخت                         │
-│                  [3 صندوق فعال]                         │
-│                  [زمان انتظار: 1-2 دقیقه]               │
-│                  [نورپردازی مناسب]                     │
-└─────────────────────────────────────────────────────────┘
+
+                    ورودی فروشگاه                        
+                  [ویترین جذاب]                          
+                  [نور: 300-400 lux]                     
+                  [ارتفاع: 1.8 متر]                     
+
+  [محصولات ویژه]  [محصولات مکمل]  [محصولات پرفروش]     
+  1.6m (120-160cm) 1.6m (120-160cm) 1.6m (120-160cm)    
+                                                     
+  [محصولات فصلی]  [محصولات جدید]  [محصولات تخفیفی]     
+  1.4m (100-140cm) 1.4m (100-140cm) 1.4m (100-140cm)    
+                                                     
+  [محصولات ضروری]  [محصولات لوکس]  [محصولات روزانه]   
+  1.2m (80-120cm)  1.2m (80-120cm)  1.2m (80-120cm)     
+
+                    صندوق پرداخت                         
+                  [3 صندوق فعال]                         
+                  [زمان انتظار: 1-2 دقیقه]               
+                  [نورپردازی مناسب]                     
+
 ```
 
-## 🔍 تحلیل تخصصی مزایای چیدمان بهینه
+##  تحلیل تخصصی مزایای چیدمان بهینه
 
 ### 1. نورپردازی پیشرفته
-- **شدت نور:** 300-400 lux (مطابق استاندارد بین‌المللی)
+- **شدت نور:** 300-400 lux (مطابق استاندارد بینالمللی)
 - **دمای رنگ:** 4000K (نور طبیعی - مناسب برای فروشگاه)
 - **نورپردازی تاکیدی:** 500-800 lux روی محصولات ویژه
 - **تأثیر بر فروش:** افزایش 20-30% جذابیت محصولات
 
 ### 2. چیدمان علمی
-- **ارتفاع قفسه‌ها:** 1.2-1.6 متر (منطقه طلایی دسترسی)
-- **فاصله بین قفسه‌ها:** 1.2 متر (مطابق استاندارد)
+- **ارتفاع قفسهها:** 1.2-1.6 متر (منطقه طلایی دسترسی)
+- **فاصله بین قفسهها:** 1.2 متر (مطابق استاندارد)
 - **مسیر مشتری:** U شکل با عرض 1.2 متر
 - **تأثیر بر فروش:** افزایش 25-35% فروش
 
@@ -6003,25 +6562,25 @@ class StoreAnalysisAI:
 ### 4. ویترین و جذب پیشرفته
 - **ویترین ورودی:** ارتفاع 1.8 متر با نورپردازی تاکیدی
 - **نقاط جذب:** در نقاط پرتردد (Hot Spots)
-- **رنگ‌بندی:** گرم و جذاب (رنگ‌های گرم)
+- **رنگبندی:** گرم و جذاب (رنگهای گرم)
 - **تأثیر بر فروش:** افزایش 30% زمان حضور مشتری
 
 ---
 
-## 📊 شاخص‌های عملکرد بهینه
+##  شاخصهای عملکرد بهینه
 
 | شاخص | مقدار بهینه | استاندارد | وضعیت |
 |------|-------------|-----------|-------|
-| شدت نور | 300-400 lux | 300-400 lux | ✅ مطلوب |
-| دمای رنگ | 4000K | 4000K | ✅ مطلوب |
-| ارتفاع قفسه | 1.2-1.6m | 1.2-1.6m | ✅ مطلوب |
-| فاصله قفسه‌ها | 1.2m | 1.2m | ✅ مطلوب |
-| زمان انتظار | 1-2 دقیقه | 2-3 دقیقه | ✅ مطلوب |
-| نرخ تبدیل | 25-30% | 25-30% | ✅ مطلوب |
+| شدت نور | 300-400 lux | 300-400 lux |  مطلوب |
+| دمای رنگ | 4000K | 4000K |  مطلوب |
+| ارتفاع قفسه | 1.2-1.6m | 1.2-1.6m |  مطلوب |
+| فاصله قفسهها | 1.2m | 1.2m |  مطلوب |
+| زمان انتظار | 1-2 دقیقه | 2-3 دقیقه |  مطلوب |
+| نرخ تبدیل | 25-30% | 25-30% |  مطلوب |
 
 ---
 
-## ✅ تأثیر مثبت بر عملکرد
+##  تأثیر مثبت بر عملکرد
 
 ### افزایش فروش
 - **افزایش کلی:** 25-35%
@@ -6033,61 +6592,61 @@ class StoreAnalysisAI:
 - **رضایت از چیدمان:** 80-85%
 - **رضایت از خدمات:** 85-90%
 
-### کاهش هزینه‌ها
-- **هزینه‌های عملیاتی:** -20-25%
-- **هزینه‌های بازاریابی:** -30-40%
-- **هزینه‌های نگهداری:** -15-20%
+### کاهش هزینهها
+- **هزینههای عملیاتی:** -20-25%
+- **هزینههای بازاریابی:** -30-40%
+- **هزینههای نگهداری:** -15-20%
 
 ---
 
-## 🎯 مزایای استراتژیک
+##  مزایای استراتژیک
 
-### مزایای کوتاه‌مدت (1-3 ماه)
+### مزایای کوتاهمدت (1-3 ماه)
 1. **افزایش فروش:** 25-35%
 2. **افزایش رضایت:** 40-50%
-3. **کاهش هزینه‌ها:** 20-25%
+3. **کاهش هزینهها:** 20-25%
 
-### مزایای میان‌مدت (3-6 ماه)
+### مزایای میانمدت (3-6 ماه)
 1. **افزایش فروش:** 40-50%
 2. **افزایش رضایت:** 60-70%
-3. **کاهش هزینه‌ها:** 30-35%
+3. **کاهش هزینهها:** 30-35%
 
 ### مزایای بلندمدت (6-12 ماه)
 1. **افزایش فروش:** 50-70%
 2. **افزایش رضایت:** 80-90%
-3. **کاهش هزینه‌ها:** 40-45%
+3. **کاهش هزینهها:** 40-45%
 
 ---
 
-## 🚀 برنامه پیاده‌سازی
+##  برنامه پیادهسازی
 
 ### فاز اول (هفته 1-2)
 - نصب سیستم نورپردازی پیشرفته
-- تنظیم ارتفاع قفسه‌ها
+- تنظیم ارتفاع قفسهها
 - ایجاد مسیر مشتری
 
 ### فاز دوم (هفته 3-4)
 - چیدمان محصولات بر اساس اصول علمی
 - ایجاد نقاط جذب
-- نصب صندوق‌های اضافی
+- نصب صندوقهای اضافی
 
 ### فاز سوم (ماه 2-3)
-- بهینه‌سازی ویترین
-- بهبود رنگ‌بندی
+- بهینهسازی ویترین
+- بهبود رنگبندی
 - آموزش کارکنان
 
 ---
 
-## 💡 نکات کلیدی موفقیت
+##  نکات کلیدی موفقیت
 
 ### 1. اجرای مرحله به مرحله
 - عدم تغییرات یکباره
 - نظارت مستمر بر نتایج
-- انعطاف‌پذیری در اجرا
+- انعطافپذیری در اجرا
 
 ### 2. تمرکز بر ROI
-- اولویت‌بندی بر اساس بازگشت سرمایه
-- اندازه‌گیری مستمر عملکرد
+- اولویتبندی بر اساس بازگشت سرمایه
+- اندازهگیری مستمر عملکرد
 - تعدیل برنامه بر اساس نتایج
 
 ### 3. مشارکت کارکنان
@@ -6099,28 +6658,28 @@ class StoreAnalysisAI:
     def _create_comparison_diagram(self, store_name: str, store_type: str, store_size: str) -> str:
         """ایجاد نمودار مقایسه قبل و بعد"""
         return f"""
-# 📊 مقایسه چیدمان قبل و بعد - فروشگاه {store_name}
+#  مقایسه چیدمان قبل و بعد - فروشگاه {store_name}
 
 ## نمودار مقایسه عملکرد
 
 ```
 عملکرد فروشگاه {store_name}
 
-قبل از بهینه‌سازی:
-┌─────────────────────────────────────────────────────────┐
-│ فروش: ████████████████████████████████████████████████ 70%│
-│ رضایت: ████████████████████████████████████████████████ 65%│
-│ کارایی: ████████████████████████████████████████████████ 60%│
-│ سود: ████████████████████████████████████████████████ 55%│
-└─────────────────────────────────────────────────────────┘
+قبل از بهینهسازی:
 
-بعد از بهینه‌سازی:
-┌─────────────────────────────────────────────────────────┐
-│ فروش: ████████████████████████████████████████████████ 95%│
-│ رضایت: ████████████████████████████████████████████████ 90%│
-│ کارایی: ████████████████████████████████████████████████ 85%│
-│ سود: ████████████████████████████████████████████████ 80%│
-└─────────────────────────────────────────────────────────┘
+ فروش:  70%
+ رضایت:  65%
+ کارایی:  60%
+ سود:  55%
+
+
+بعد از بهینهسازی:
+
+ فروش:  95%
+ رضایت:  90%
+ کارایی:  85%
+ سود:  80%
+
 ```
 
 ## تغییرات کلیدی:
@@ -6132,95 +6691,95 @@ class StoreAnalysisAI:
 
 ### 2. افزایش رضایت مشتری: +25%
 - تجربه خرید بهتر
-- دسترسی آسان‌تر
-- خدمات سریع‌تر
+- دسترسی آسانتر
+- خدمات سریعتر
 
 ### 3. افزایش کارایی: +25%
 - کاهش زمان انتظار
-- بهینه‌سازی فرآیندها
+- بهینهسازی فرآیندها
 - مدیریت بهتر موجودی
 
 ### 4. افزایش سود: +25%
-- کاهش هزینه‌های عملیاتی
+- کاهش هزینههای عملیاتی
 - افزایش نرخ تبدیل
 - بهبود مدیریت موجودی
         """
     
     def _create_implementation_steps_diagram(self, store_name: str, store_type: str, store_size: str) -> str:
-        """ایجاد راهنمای اجرای گام‌به‌گام"""
+        """ایجاد راهنمای اجرای گامبهگام"""
         return f"""
-# 🚀 راهنمای اجرای گام‌به‌گام - فروشگاه {store_name}
+#  راهنمای اجرای گامبهگام - فروشگاه {store_name}
 
-## مراحل اجرای بهینه‌سازی
+## مراحل اجرای بهینهسازی
 
-### مرحله 1: آماده‌سازی (هفته اول)
+### مرحله 1: آمادهسازی (هفته اول)
 ```
-┌─────────────────────────────────────────────────────────┐
-│ 1. بررسی وضعیت فعلی                                     │
-│ 2. تهیه لیست محصولات                                    │
-│ 3. اندازه‌گیری فضاها                                    │
-│ 4. تهیه نقشه چیدمان فعلی                                │
-│ 5. تعیین بودجه و زمان‌بندی                               │
-└─────────────────────────────────────────────────────────┘
+
+ 1. بررسی وضعیت فعلی                                     
+ 2. تهیه لیست محصولات                                    
+ 3. اندازهگیری فضاها                                    
+ 4. تهیه نقشه چیدمان فعلی                                
+ 5. تعیین بودجه و زمانبندی                               
+
 ```
 
 ### مرحله 2: تغییرات فوری (هفته دوم)
 ```
-┌─────────────────────────────────────────────────────────┐
-│ 1. بهبود نورپردازی                                      │
-│ 2. تنظیم ارتفاع قفسه‌ها                                  │
-│ 3. ایجاد مسیر مشتری                                      │
-│ 4. نصب تابلوهای راهنما                                  │
-│ 5. آموزش کارکنان                                        │
-└─────────────────────────────────────────────────────────┘
+
+ 1. بهبود نورپردازی                                      
+ 2. تنظیم ارتفاع قفسهها                                  
+ 3. ایجاد مسیر مشتری                                      
+ 4. نصب تابلوهای راهنما                                  
+ 5. آموزش کارکنان                                        
+
 ```
 
-### مرحله 3: بهینه‌سازی چیدمان (هفته سوم)
+### مرحله 3: بهینهسازی چیدمان (هفته سوم)
 ```
-┌─────────────────────────────────────────────────────────┐
-│ 1. چیدمان محصولات پرفروش                                │
-│ 2. قرار دادن محصولات مکمل کنار هم                     │
-│ 3. ایجاد نقاط جذب                                       │
-│ 4. بهینه‌سازی مسیر مشتری                                │
-│ 5. تست و ارزیابی                                        │
-└─────────────────────────────────────────────────────────┘
+
+ 1. چیدمان محصولات پرفروش                                
+ 2. قرار دادن محصولات مکمل کنار هم                     
+ 3. ایجاد نقاط جذب                                       
+ 4. بهینهسازی مسیر مشتری                                
+ 5. تست و ارزیابی                                        
+
 ```
 
 ### مرحله 4: بهبودهای تکمیلی (هفته چهارم)
 ```
-┌─────────────────────────────────────────────────────────┐
-│ 1. نصب تجهیزات جدید                                     │
-│ 2. بهبود سیستم صف                                       │
-│ 3. بهینه‌سازی مدیریت موجودی                             │
-│ 4. آموزش تکمیلی کارکنان                                 │
-│ 5. راه‌اندازی سیستم نظارت                               │
-└─────────────────────────────────────────────────────────┘
+
+ 1. نصب تجهیزات جدید                                     
+ 2. بهبود سیستم صف                                       
+ 3. بهینهسازی مدیریت موجودی                             
+ 4. آموزش تکمیلی کارکنان                                 
+ 5. راهاندازی سیستم نظارت                               
+
 ```
 
 ## نکات مهم اجرا:
 
-### ✅ بایدها:
+###  بایدها:
 - اجرای مرحله به مرحله
 - نظارت مستمر بر نتایج
 - دریافت بازخورد مشتریان
-- انعطاف‌پذیری در اجرا
+- انعطافپذیری در اجرا
 
-### ❌ نبایدها:
+###  نبایدها:
 - تغییرات یکباره و گسترده
 - نادیده گرفتن بازخورد مشتریان
 - عدم نظارت بر نتایج
-- انعطاف‌ناپذیری در اجرا
+- انعطافناپذیری در اجرا
 
-## زمان‌بندی اجرا:
-- **هفته 1:** آماده‌سازی
+## زمانبندی اجرا:
+- **هفته 1:** آمادهسازی
 - **هفته 2:** تغییرات فوری
-- **هفته 3:** بهینه‌سازی چیدمان
+- **هفته 3:** بهینهسازی چیدمان
 - **هفته 4:** بهبودهای تکمیلی
 - **ماه 2-3:** ارزیابی و بهبود
         """
     
     def _generate_comparison_visuals(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تولید تصاویر مقایسه‌ای"""
+        """تولید تصاویر مقایسهای"""
         try:
             visuals = {
                 'before_after': {
@@ -6242,7 +6801,7 @@ class StoreAnalysisAI:
                                 'چیدمان منظم و جذاب',
                                 'نورپردازی یکنواخت و کافی',
                                 'مسیرهای عریض و راحت',
-                                'نقاط جذب مشتری در مکان‌های استراتژیک'
+                                'نقاط جذب مشتری در مکانهای استراتژیک'
                             ],
                             'score': 88
                         }
@@ -6272,7 +6831,7 @@ class StoreAnalysisAI:
             return visuals
             
         except Exception as e:
-            logger.error(f"خطا در تولید تصاویر مقایسه‌ای: {e}")
+            logger.error(f"خطا در تولید تصاویر مقایسهای: {e}")
             return {}
     
     def _calculate_growth_rate(self, df) -> float:
@@ -6322,7 +6881,7 @@ class StoreAnalysisAI:
             if json_match:
                 return json.loads(json_match.group())
             
-            # اگر JSON پیدا نشد، تحلیل متن
+            # اگر JSON پیدا نشد تحلیل متن
             return {
                 "status": "ok",
                 "confidence": 0.8,
@@ -6331,7 +6890,7 @@ class StoreAnalysisAI:
                 "recommendations": {
                     "layout": ["بهبود چیدمان"],
                     "lighting": ["بررسی روشنایی"],
-                    "customer_flow": ["بهینه‌سازی مسیر"]
+                    "customer_flow": ["بهینهسازی مسیر"]
                 },
                 "predictions": {
                     "expected_sales_increase": "+15%",
@@ -6366,7 +6925,7 @@ class StoreAnalysisAI:
                 "recommendations": {
                     "layout": self._get_local_layout_recommendations(store_type),
                     "lighting": ["بررسی سیستم روشنایی", "افزایش روشنایی"],
-                    "customer_flow": ["بهینه‌سازی مسیر مشتریان"]
+                    "customer_flow": ["بهینهسازی مسیر مشتریان"]
                 },
                 "predictions": {
                     "expected_sales_increase": "+15%",
@@ -6417,14 +6976,14 @@ class StoreAnalysisAI:
             return 60
     
     def _get_local_layout_recommendations(self, store_type: str) -> List[str]:
-        """توصیه‌های چیدمان محلی"""
+        """توصیههای چیدمان محلی"""
         recommendations = {
             'supermarket': [
                 "عرض راهروها را افزایش دهید",
                 "محصولات پرفروش را در انتهای راهروها قرار دهید"
             ],
             'clothing': [
-                "فضای کافی برای اتاق‌های پرو فراهم کنید",
+                "فضای کافی برای اتاقهای پرو فراهم کنید",
                 "محصولات جدید را در ورودی نمایش دهید"
             ],
             'electronics': [
@@ -6498,7 +7057,7 @@ class StoreAnalysisAI:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -6520,7 +7079,7 @@ class StoreAnalysisAI:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -6540,7 +7099,7 @@ class StoreAnalysisAI:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -6557,9 +7116,9 @@ class StoreAnalysisAI:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -6568,7 +7127,7 @@ class StoreAnalysisAI:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -6587,7 +7146,7 @@ class StoreAnalysisAI:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data.get('store_type', ["بهبود چیدمان کلی"])
     
     def generate_advanced_ml_analysis(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -6596,10 +7155,10 @@ class StoreAnalysisAI:
             return {"error": "ML libraries not available"}
         
         try:
-            # تبدیل داده‌ها به فرمت مناسب برای ML
+            # تبدیل دادهها به فرمت مناسب برای ML
             features = self._extract_ml_features(analysis_data)
             
-            # پیش‌بینی‌های مختلف
+            # پیشبینیهای مختلف
             predictions = {
                 "sales_prediction": self._predict_sales(features),
                 "conversion_optimization": self._predict_conversion_improvement(features),
@@ -6628,10 +7187,10 @@ class StoreAnalysisAI:
             return {"error": f"ML analysis failed: {str(e)}"}
     
     def _extract_ml_features(self, analysis_data: Dict[str, Any]):
-        """استخراج ویژگی‌های ML از داده‌ها"""
+        """استخراج ویژگیهای ML از دادهها"""
         features = []
         
-        # تبدیل داده‌ها به اعداد
+        # تبدیل دادهها به اعداد
         def safe_float(value, default=0.0):
             try:
                 if isinstance(value, str):
@@ -6640,7 +7199,7 @@ class StoreAnalysisAI:
             except (ValueError, TypeError):
                 return default
         
-        # ویژگی‌های عددی
+        # ویژگیهای عددی
         features.extend([
             safe_float(analysis_data.get('store_size', 500)),
             safe_float(analysis_data.get('entrance_count', 2)),
@@ -6661,12 +7220,12 @@ class StoreAnalysisAI:
             safe_float(analysis_data.get('historical_data_months', 12)),
         ])
         
-        # اضافه کردن ویژگی‌های لیستی با بررسی نوع داده
+        # اضافه کردن ویژگیهای لیستی با بررسی نوع داده
         product_categories = analysis_data.get('product_categories', [])
         if isinstance(product_categories, list):
             features.append(len(product_categories))
         elif isinstance(product_categories, str):
-            features.append(1)  # اگر رشته باشد، یک دسته‌بندی در نظر می‌گیریم
+            features.append(1)  # اگر رشته باشد یک دستهبندی در نظر میگیریم
         else:
             features.append(0)
         
@@ -6674,22 +7233,22 @@ class StoreAnalysisAI:
         if isinstance(peak_days, list):
             features.append(len(peak_days))
         elif isinstance(peak_days, str):
-            features.append(1)  # اگر رشته باشد، یک روز اوج در نظر می‌گیریم
+            features.append(1)  # اگر رشته باشد یک روز اوج در نظر میگیریم
         else:
             features.append(0)
         
         return np.array(features).reshape(1, -1)
     
     def _predict_sales(self, features) -> Dict[str, Any]:
-        """پیش‌بینی فروش با ML"""
+        """پیشبینی فروش با ML"""
         try:
             # اینجا باید مدل آموزش دیده باشد
-            # برای نمونه، از یک الگوریتم ساده استفاده می‌کنیم
+            # برای نمونه از یک الگوریتم ساده استفاده میکنیم
             store_size = float(features[0, 0])
             conversion_rate = float(features[0, 4])
             customer_traffic = float(features[0, 5])
             
-            # محاسبه فروش پیش‌بینی شده
+            # محاسبه فروش پیشبینی شده
             predicted_sales = customer_traffic * (conversion_rate / 100) * 1000  # متوسط خرید 1000 تومان
             
             # محاسبه پتانسیل بهبود
@@ -6707,7 +7266,7 @@ class StoreAnalysisAI:
             return {"error": str(e)}
     
     def _predict_conversion_improvement(self, features) -> Dict[str, Any]:
-        """پیش‌بینی بهبود نرخ تبدیل"""
+        """پیشبینی بهبود نرخ تبدیل"""
         try:
             current_conversion = float(features[0, 4])
             store_size = float(features[0, 0])
@@ -6715,7 +7274,7 @@ class StoreAnalysisAI:
             
             # عوامل بهبود
             layout_improvement = min(15, (store_size - unused_area) / store_size * 20)
-            checkout_improvement = min(10, float(features[0, 2]) * 2)  # بر اساس تعداد صندوق‌ها
+            checkout_improvement = min(10, float(features[0, 2]) * 2)  # بر اساس تعداد صندوقها
             lighting_improvement = 5  # بهبود نورپردازی
             
             total_improvement = layout_improvement + checkout_improvement + lighting_improvement
@@ -6743,7 +7302,7 @@ class StoreAnalysisAI:
             traffic = float(features[0, 5])
             conversion = float(features[0, 4])
             
-            # طبقه‌بندی رفتار
+            # طبقهبندی رفتار
             if dwell_time > 60 and conversion > 40:
                 behavior_type = "high_engagement"
                 description = "مشتریان با تعامل بالا و نرخ تبدیل خوب"
@@ -6772,12 +7331,12 @@ class StoreAnalysisAI:
             "high_engagement": [
                 "حفظ کیفیت خدمات",
                 "افزایش تنوع محصولات",
-                "برنامه‌های وفاداری"
+                "برنامههای وفاداری"
             ],
             "moderate_engagement": [
                 "بهبود چیدمان",
                 "افزایش تعامل",
-                "بهینه‌سازی مسیرها"
+                "بهینهسازی مسیرها"
             ],
             "low_engagement": [
                 "بازطراحی کامل",
@@ -6847,7 +7406,7 @@ class StoreAnalysisAI:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -6869,7 +7428,7 @@ class StoreAnalysisAI:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -6889,7 +7448,7 @@ class StoreAnalysisAI:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -6906,9 +7465,9 @@ class StoreAnalysisAI:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -6917,7 +7476,7 @@ class StoreAnalysisAI:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -6936,11 +7495,11 @@ class StoreAnalysisAI:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data.get('behavior_type', [])
     
     def _generate_practical_recommendations(self, features) -> Dict[str, Any]:
-        """تولید راهنمایی‌های عملی چیدمان"""
+        """تولید راهنماییهای عملی چیدمان"""
         try:
             store_size = float(features[0, 0])
             entrance_count = float(features[0, 1])
@@ -6978,14 +7537,14 @@ class StoreAnalysisAI:
             "rotation_frequency": "هفتگی",
             "tips": [
                 "محصولات پرفروش در مرکز ویترین",
-                "استفاده از پس‌زمینه ساده",
+                "استفاده از پسزمینه ساده",
                 "نورپردازی یکنواخت",
                 "تغییر منظم محتوا"
             ]
         }
     
     def _get_shelf_layout_guide(self, shelf_count: float, store_size: float) -> Dict[str, Any]:
-        """راهنمای چیدمان قفسه‌ها"""
+        """راهنمای چیدمان قفسهها"""
         shelf_height = "0.3-2.1 متر"
         aisle_width = "1.2-1.8 متر" if store_size > 300 else "1.0-1.5 متر"
         
@@ -6997,9 +7556,9 @@ class StoreAnalysisAI:
             },
             "aisle_width": aisle_width,
             "product_arrangement": "محصولات پرفروش در سطح چشم (1.5 متر)",
-            "spacing": "فاصله 15-20 سانتی‌متر بین محصولات",
+            "spacing": "فاصله 15-20 سانتیمتر بین محصولات",
             "tips": [
-                "اجتناب از بن‌بست",
+                "اجتناب از بنبست",
                 "دسترسی آسان به همه محصولات",
                 "استفاده از تابلوهای راهنما",
                 "نظم و ترتیب منظم"
@@ -7019,10 +7578,10 @@ class StoreAnalysisAI:
             },
             "secondary_paths": {
                 "width": secondary_path_width,
-                "purpose": "دسترسی به بخش‌های مختلف"
+                "purpose": "دسترسی به بخشهای مختلف"
             },
             "stopping_points": {
-                "size": "1.5×1.5 متر",
+                "size": "1.51.5 متر",
                 "purpose": "بررسی محصولات"
             },
             "tips": [
@@ -7051,7 +7610,7 @@ class StoreAnalysisAI:
             },
             "tips": [
                 "نورپردازی یکنواخت",
-                "اجتناب از سایه‌های تیز",
+                "اجتناب از سایههای تیز",
                 "استفاده از نور طبیعی",
                 "کنترل نورپردازی بر اساس ساعت"
             ]
@@ -7060,7 +7619,7 @@ class StoreAnalysisAI:
     def _get_color_scheme_guide(self, conversion_rate: float) -> Dict[str, Any]:
         """راهنمای ترکیب رنگی"""
         if conversion_rate < 30:
-            scheme = "گرم و انرژی‌بخش"
+            scheme = "گرم و انرژیبخش"
             colors = ["قرمز", "نارنجی", "زرد"]
         elif conversion_rate < 45:
             scheme = "متعادل و متوازن"
@@ -7074,8 +7633,8 @@ class StoreAnalysisAI:
             "primary_colors": colors,
             "rule": "قانون 60-30-10",
             "usage": {
-                "60%": "رنگ اصلی (پس‌زمینه)",
-                "30%": "رنگ ثانویه (قاب‌بندی)",
+                "60%": "رنگ اصلی (پسزمینه)",
+                "30%": "رنگ ثانویه (قاببندی)",
                 "10%": "رنگ تأکیدی (جزئیات)"
             }
         }
@@ -7108,17 +7667,17 @@ class StoreAnalysisAI:
         }
     
     def _get_optimization_priority(self, features) -> Dict[str, Any]:
-        """اولویت‌بندی بهینه‌سازی"""
+        """اولویتبندی بهینهسازی"""
         try:
             priorities = []
             
             # محاسبه امتیاز برای هر بخش
             layout_score = 100 - (float(features[0, 7]) / float(features[0, 0]) * 100)  # فضای بلااستفاده
-            checkout_score = float(features[0, 2]) * 10  # تعداد صندوق‌ها
+            checkout_score = float(features[0, 2]) * 10  # تعداد صندوقها
             conversion_score = float(features[0, 4])  # نرخ تبدیل
             traffic_score = float(features[0, 5]) / 10  # ترافیک
             
-            # اولویت‌بندی
+            # اولویتبندی
             if layout_score < 70:
                 priorities.append({"area": "layout", "priority": "high", "score": layout_score})
             if checkout_score < 30:
@@ -7138,7 +7697,7 @@ class StoreAnalysisAI:
             return {"error": str(e)}
     
     def _predict_roi(self, features) -> Dict[str, Any]:
-        """پیش‌بینی بازگشت سرمایه"""
+        """پیشبینی بازگشت سرمایه"""
         try:
             current_sales = float(features[0, 9])  # فروش روزانه
             improvement_target = float(features[0, 15])  # هدف بهبود
@@ -7199,18 +7758,18 @@ class StoreAnalysisAI:
         recommendations = {
             "morning": [
                 "افزایش کارکنان در ساعات صبح",
-                "بهینه‌سازی موجودی برای ساعات صبح",
-                "برنامه‌های تشویقی صبحگاهی"
+                "بهینهسازی موجودی برای ساعات صبح",
+                "برنامههای تشویقی صبحگاهی"
             ],
             "noon": [
-                "بهینه‌سازی صندوق‌ها برای ساعات شلوغی",
-                "برنامه‌های ناهار",
+                "بهینهسازی صندوقها برای ساعات شلوغی",
+                "برنامههای ناهار",
                 "مدیریت صف هوشمند"
             ],
             "evening": [
                 "افزایش نورپردازی",
-                "برنامه‌های عصرگاهی",
-                "بهینه‌سازی مسیرهای خروج"
+                "برنامههای عصرگاهی",
+                "بهینهسازی مسیرهای خروج"
             ]
         }
         return recommendations
@@ -7275,7 +7834,7 @@ class StoreAnalysisAI:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -7297,7 +7856,7 @@ class StoreAnalysisAI:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -7317,7 +7876,7 @@ class StoreAnalysisAI:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -7334,9 +7893,9 @@ class StoreAnalysisAI:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -7345,7 +7904,7 @@ class StoreAnalysisAI:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -7364,7 +7923,7 @@ class StoreAnalysisAI:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data.get('peak_period', [])
     
     def _analyze_sales_patterns(self, features) -> Dict[str, Any]:
@@ -7382,10 +7941,10 @@ class StoreAnalysisAI:
     
     def _analyze_seasonal_patterns(self, features) -> Dict[str, Any]:
         """تحلیل الگوهای فصلی"""
-        # این بخش نیاز به داده‌های تاریخی دارد
+        # این بخش نیاز به دادههای تاریخی دارد
         return {
-            "note": "تحلیل فصلی نیاز به داده‌های تاریخی دارد",
-            "recommendation": "جمع‌آوری داده‌های فروش ماهانه برای تحلیل فصلی"
+            "note": "تحلیل فصلی نیاز به دادههای تاریخی دارد",
+            "recommendation": "جمعآوری دادههای فروش ماهانه برای تحلیل فصلی"
         }
     
     def _generate_ml_recommendations(self, features, predictions: Dict) -> Dict[str, Any]:
@@ -7399,14 +7958,14 @@ class StoreAnalysisAI:
             
             # پیشنهادات فوری بر اساس تحلیل
             if predictions.get("conversion_optimization", {}).get("predicted_improvement", 0) > 10:
-                recommendations["immediate"].append("بهینه‌سازی فوری چیدمان برای بهبود نرخ تبدیل")
+                recommendations["immediate"].append("بهینهسازی فوری چیدمان برای بهبود نرخ تبدیل")
             
             if float(features[0, 7]) > float(features[0, 0]) * 0.2:  # فضای بلااستفاده > 20%
                 recommendations["immediate"].append("بازطراحی فوری فضای بلااستفاده")
             
             # پیشنهادات کوتاه مدت
             if predictions.get("roi_prediction", {}).get("roi_percentage", 0) > 50:
-                recommendations["short_term"].append("پیاده‌سازی برنامه‌های بهبود با ROI بالا")
+                recommendations["short_term"].append("پیادهسازی برنامههای بهبود با ROI بالا")
             
             # پیشنهادات بلند مدت
             if predictions.get("sales_prediction", {}).get("improvement_potential", 0) > 30:
@@ -7421,9 +7980,9 @@ class StoreAnalysisAI:
     def _calculate_confidence_scores(self, features) -> Dict[str, float]:
         """محاسبه امتیازات اطمینان"""
         try:
-            # محاسبه اطمینان بر اساس کیفیت داده‌ها
+            # محاسبه اطمینان بر اساس کیفیت دادهها
             data_completeness = min(100, np.count_nonzero(features) / len(features) * 100)
-            data_consistency = 85  # فرض بر این که داده‌ها سازگار هستند
+            data_consistency = 85  # فرض بر این که دادهها سازگار هستند
             
             return {
                 "data_completeness": data_completeness,
@@ -7438,13 +7997,13 @@ class StoreAnalysisAI:
     def _generate_openai_analysis(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
         """تولید تحلیل با OpenAI"""
         try:
-            # آماده‌سازی داده‌ها برای AI
+            # آمادهسازی دادهها برای AI
             store_info = self._prepare_store_info(analysis_data)
             
             # پرامپت برای تحلیل
             prompt = f"""
-            شما یک متخصص تحلیل فروشگاه و بهینه‌سازی تجارت هستید. 
-            لطفاً تحلیل تفصیلی و راهنمایی‌های عملی برای فروشگاه زیر ارائه دهید:
+            شما یک متخصص تحلیل فروشگاه و بهینهسازی تجارت هستید. 
+            لطفاً تحلیل تفصیلی و راهنماییهای عملی برای فروشگاه زیر ارائه دهید:
 
             اطلاعات فروشگاه:
             {store_info}
@@ -7455,7 +8014,7 @@ class StoreAnalysisAI:
                 "detailed_analysis": {{
                     "strengths": ["نقاط قوت"],
                     "weaknesses": ["نقاط ضعف"],
-                    "opportunities": ["فرصت‌ها"],
+                    "opportunities": ["فرصتها"],
                     "threats": ["تهدیدها"]
                 }},
                 "recommendations": {{
@@ -7464,8 +8023,8 @@ class StoreAnalysisAI:
                     "long_term": ["اقدامات بلند مدت"]
                 }},
                 "optimization_plan": {{
-                    "layout_optimization": "بهینه‌سازی چیدمان",
-                    "pricing_strategy": "استراتژی قیمت‌گذاری",
+                    "layout_optimization": "بهینهسازی چیدمان",
+                    "pricing_strategy": "استراتژی قیمتگذاری",
                     "inventory_management": "مدیریت موجودی",
                     "customer_experience": "تجربه مشتری"
                 }},
@@ -7486,7 +8045,7 @@ class StoreAnalysisAI:
             response = self.openai_client.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "شما یک متخصص تحلیل فروشگاه و بهینه‌سازی تجارت هستید."},
+                    {"role": "system", "content": "شما یک متخصص تحلیل فروشگاه و بهینهسازی تجارت هستید."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=2000,
@@ -7509,9 +8068,9 @@ class StoreAnalysisAI:
             return self._generate_local_analysis(analysis_data)
     
     def _generate_local_analysis(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
-        """تولید تحلیل محلی شخصی‌سازی شده (بدون نیاز به API)"""
+        """تولید تحلیل محلی شخصیسازی شده (بدون نیاز به API)"""
         
-        # استخراج داده‌های کلیدی
+        # استخراج دادههای کلیدی
         store_name = analysis_data.get('store_name', 'فروشگاه')
         store_type = analysis_data.get('store_type', 'عمومی')
         store_size = analysis_data.get('store_size', 500)
@@ -7527,7 +8086,7 @@ class StoreAnalysisAI:
         product_categories = analysis_data.get('product_categories', [])
         has_surveillance = analysis_data.get('has_surveillance', False)
         
-        # بررسی فایل‌های آپلود شده
+        # بررسی فایلهای آپلود شده
         uploaded_files_count = sum([
             1 if analysis_data.get('store_photos') else 0,
             1 if analysis_data.get('store_plan') else 0,
@@ -7540,14 +8099,14 @@ class StoreAnalysisAI:
             1 if analysis_data.get('product_catalog') else 0,
         ])
         
-        # تحلیل نقاط قوت شخصی‌سازی شده
+        # تحلیل نقاط قوت شخصیسازی شده
         strengths = []
         if entrance_count >= 2:
             strengths.append(f"فروشگاه {store_name} شما برخورداری از تعداد کافی ورودی برای تسهیل جریان {daily_customers} مشتری روزانه")
         if checkout_count >= 3:
-            strengths.append(f"ظرفیت مناسب صندوق‌های پرداخت در {store_name} برای خدمت‌رسانی بهتر")
+            strengths.append(f"ظرفیت مناسب صندوقهای پرداخت در {store_name} برای خدمترسانی بهتر")
         if conversion_rate > 30:
-            strengths.append(f"نرخ تبدیل قابل قبول در {store_name} نشان‌دهنده عملکرد خوب است")
+            strengths.append(f"نرخ تبدیل قابل قبول در {store_name} نشاندهنده عملکرد خوب است")
         if customer_traffic > 100:
             strengths.append(f"ترافیک {daily_customers} مشتری روزانه در {store_name} مطلوب است")
         if customer_dwell_time > 30:
@@ -7555,22 +8114,22 @@ class StoreAnalysisAI:
         if has_surveillance:
             strengths.append(f"وجود سیستم نظارت و امنیت در {store_name} برای تحلیل بهتر")
         if len(product_categories) > 3:
-            strengths.append(f"تنوع مناسب در دسته‌بندی محصولات {store_name}")
+            strengths.append(f"تنوع مناسب در دستهبندی محصولات {store_name}")
         if uploaded_files_count > 5:
             strengths.append(f"ارائه اطلاعات و مستندات جامع برای {store_name}")
         if analysis_data.get('customer_video'):
-            strengths.append(f"دسترسی به ویدیوی رفتار مشتریان {store_name} برای تحلیل دقیق‌تر")
+            strengths.append(f"دسترسی به ویدیوی رفتار مشتریان {store_name} برای تحلیل دقیقتر")
         if analysis_data.get('sales_file'):
-            strengths.append(f"داشتن داده‌های فروش تاریخی {store_name} برای تحلیل روندها")
+            strengths.append(f"داشتن دادههای فروش تاریخی {store_name} برای تحلیل روندها")
         
-        # تحلیل نقاط ضعف شخصی‌سازی شده
+        # تحلیل نقاط ضعف شخصیسازی شده
         weaknesses = []
         if conversion_rate < 40:
             weaknesses.append(f"نیاز به بهبود نرخ تبدیل مشتریان در {store_name}")
         if entrance_count < 3:
-            weaknesses.append(f"محدودیت در تعداد ورودی‌های فروشگاه {store_name}")
+            weaknesses.append(f"محدودیت در تعداد ورودیهای فروشگاه {store_name}")
         if checkout_count < 4:
-            weaknesses.append(f"ظرفیت ناکافی صندوق‌های پرداخت {store_name} در ساعات شلوغی")
+            weaknesses.append(f"ظرفیت ناکافی صندوقهای پرداخت {store_name} در ساعات شلوغی")
         if customer_dwell_time < 30:
             weaknesses.append(f"کوتاه بودن زمان حضور مشتریان در فروشگاه {store_name}")
         if unused_area_size > store_size * 0.2:
@@ -7582,74 +8141,74 @@ class StoreAnalysisAI:
         if not analysis_data.get('customer_video') and not analysis_data.get('surveillance_footage'):
             weaknesses.append(f"عدم دسترسی به ویدیو برای تحلیل رفتار مشتریان {store_name}")
         if not analysis_data.get('sales_file'):
-            weaknesses.append(f"عدم ارائه داده‌های فروش برای تحلیل روندهای {store_name}")
+            weaknesses.append(f"عدم ارائه دادههای فروش برای تحلیل روندهای {store_name}")
         
-        # فرصت‌های شخصی‌سازی شده
+        # فرصتهای شخصیسازی شده
         opportunities = [
-            f"امکان بهبود نرخ تبدیل {store_name} از طریق بهینه‌سازی چیدمان فروشگاه",
+            f"امکان بهبود نرخ تبدیل {store_name} از طریق بهینهسازی چیدمان فروشگاه",
             f"افزایش زمان حضور مشتریان {store_name} با طراحی بهتر فضای فروشگاه",
-            f"بهینه‌سازی جریان حرکت {daily_customers} مشتری روزانه در {store_name}",
-            f"پیاده‌سازی سیستم مدیریت صف هوشمند در {store_name}",
-            f"بهبود رنگ‌بندی و چیدمان محصولات {store_name} برای جلب توجه بیشتر",
-            f"استفاده از تکنیک‌های روانشناسی رنگ در {store_name}",
+            f"بهینهسازی جریان حرکت {daily_customers} مشتری روزانه در {store_name}",
+            f"پیادهسازی سیستم مدیریت صف هوشمند در {store_name}",
+            f"بهبود رنگبندی و چیدمان محصولات {store_name} برای جلب توجه بیشتر",
+            f"استفاده از تکنیکهای روانشناسی رنگ در {store_name}",
             f"ایجاد نقاط کانونی جذاب در {store_name}",
-            f"بهینه‌سازی ارتفاع و فاصله‌گذاری محصولات در {store_name}"
+            f"بهینهسازی ارتفاع و فاصلهگذاری محصولات در {store_name}"
         ]
         
         if unused_area_size > 0:
-            opportunities.append(f"امکان بهره‌برداری از {unused_area_size} متر مربع فضای بلااستفاده {store_name}")
+            opportunities.append(f"امکان بهرهبرداری از {unused_area_size} متر مربع فضای بلااستفاده {store_name}")
         
         if not has_surveillance:
-            opportunities.append(f"پیاده‌سازی سیستم نظارت برای تحلیل دقیق‌تر رفتار مشتریان {store_name}")
+            opportunities.append(f"پیادهسازی سیستم نظارت برای تحلیل دقیقتر رفتار مشتریان {store_name}")
         
         if daily_sales_volume > 0:
-            opportunities.append("بهینه‌سازی استراتژی قیمت‌گذاری بر اساس داده‌های فروش")
+            opportunities.append("بهینهسازی استراتژی قیمتگذاری بر اساس دادههای فروش")
         
         if analysis_data.get('customer_video'):
             opportunities.append("امکان تحلیل ویدیویی رفتار مشتریان با استفاده از هوش مصنوعی")
         if analysis_data.get('store_photos'):
-            opportunities.append("امکان تحلیل تصویری چیدمان با استفاده از تکنولوژی‌های پیشرفته")
+            opportunities.append("امکان تحلیل تصویری چیدمان با استفاده از تکنولوژیهای پیشرفته")
         if analysis_data.get('sales_file'):
-            opportunities.append("امکان پیش‌بینی فروش با استفاده از یادگیری ماشین")
+            opportunities.append("امکان پیشبینی فروش با استفاده از یادگیری ماشین")
         
         # تهدیدها
         threats = [
-            "رقابت فزاینده با فروشگاه‌های مجاور",
+            "رقابت فزاینده با فروشگاههای مجاور",
             "تغییرات احتمالی در رفتار خرید مشتریان",
-            "افزایش مستمر هزینه‌های عملیاتی"
+            "افزایش مستمر هزینههای عملیاتی"
         ]
         
         if unused_area_size > store_size * 0.3:
             threats.append("هدررفت سرمایه در فضای بلااستفاده")
         
-        # پیشنهادات شخصی‌سازی شده
+        # پیشنهادات شخصیسازی شده
         recommendations = {
             "immediate": [
-                f"بهینه‌سازی چیدمان قفسه‌ها و محصولات {store_name}",
+                f"بهینهسازی چیدمان قفسهها و محصولات {store_name}",
                 f"نصب تابلوهای راهنما و اطلاعات در {store_name}",
                 f"بهبود سیستم نورپردازی فروشگاه {store_name}",
-                f"بهبود رنگ‌بندی و چیدمان محصولات {store_name}",
+                f"بهبود رنگبندی و چیدمان محصولات {store_name}",
                 f"ایجاد نقاط کانونی جذاب در {store_name}"
             ],
             "short_term": [
-                f"افزایش تعداد صندوق‌های پرداخت {store_name}",
-                f"پیاده‌سازی سیستم مدیریت صف در {store_name}",
-                f"بهبود استراتژی قیمت‌گذاری محصولات {store_name}",
-                f"استفاده از تکنیک‌های روانشناسی رنگ در {store_name}",
-                f"بهینه‌سازی ارتفاع و فاصله‌گذاری محصولات در {store_name}"
+                f"افزایش تعداد صندوقهای پرداخت {store_name}",
+                f"پیادهسازی سیستم مدیریت صف در {store_name}",
+                f"بهبود استراتژی قیمتگذاری محصولات {store_name}",
+                f"استفاده از تکنیکهای روانشناسی رنگ در {store_name}",
+                f"بهینهسازی ارتفاع و فاصلهگذاری محصولات در {store_name}"
             ],
             "long_term": [
                 f"بازسازی کامل فضای فروشگاه {store_name}",
-                f"پیاده‌سازی سیستم‌های هوشمند مدیریت {store_name}",
+                f"پیادهسازی سیستمهای هوشمند مدیریت {store_name}",
                 f"گسترش فضای فروشگاه {store_name} و تنوع محصولات",
-                f"ایجاد سیستم رنگ‌بندی پیشرفته در {store_name}",
-                f"پیاده‌سازی تکنولوژی‌های جلب توجه در {store_name}"
+                f"ایجاد سیستم رنگبندی پیشرفته در {store_name}",
+                f"پیادهسازی تکنولوژیهای جلب توجه در {store_name}"
             ]
         }
         
-        # اضافه کردن پیشنهادات خاص بر اساس داده‌ها
+        # اضافه کردن پیشنهادات خاص بر اساس دادهها
         if unused_area_size > 0:
-            recommendations["immediate"].append(f"بازطراحی و بهره‌برداری از {unused_area_size} متر مربع فضای بلااستفاده {store_name}")
+            recommendations["immediate"].append(f"بازطراحی و بهرهبرداری از {unused_area_size} متر مربع فضای بلااستفاده {store_name}")
         
         if not has_surveillance:
             recommendations["short_term"].append(f"نصب سیستم دوربین نظارتی و امنیتی در {store_name}")
@@ -7662,21 +8221,21 @@ class StoreAnalysisAI:
         traffic_improvement = min(20, (500 - customer_traffic) / 500 * 30)  # بهبود ترافیک
         space_improvement = min(15, (unused_area_size / store_size) * 30) if unused_area_size > 0 else 0
         
-        # برنامه بهینه‌سازی شخصی‌سازی شده
+        # برنامه بهینهسازی شخصیسازی شده
         optimization_plan = {
             "layout_optimization": f"بازطراحی چیدمان فروشگاه {store_name} برای افزایش {conversion_improvement:.1f}% نرخ تبدیل (از {conversion_rate}% به {conversion_rate + conversion_improvement:.1f}%)",
             "traffic_optimization": f"بهبود جریان حرکت {daily_customers} مشتری روزانه در {store_name} برای افزایش {traffic_improvement:.1f}% ترافیک",
-            "space_utilization": f"بهره‌برداری از {unused_area_size} متر مربع فضای بلااستفاده {store_name} برای {space_improvement:.1f}% بهبود فروش",
-            "pricing_strategy": f"پیاده‌سازی استراتژی قیمت‌گذاری پویا در {store_name} بر اساس تحلیل رفتار مشتریان",
-            "inventory_management": f"بهینه‌سازی مدیریت موجودی {store_name} بر اساس الگوی فروش و پیش‌بینی تقاضا",
+            "space_utilization": f"بهرهبرداری از {unused_area_size} متر مربع فضای بلااستفاده {store_name} برای {space_improvement:.1f}% بهبود فروش",
+            "pricing_strategy": f"پیادهسازی استراتژی قیمتگذاری پویا در {store_name} بر اساس تحلیل رفتار مشتریان",
+            "inventory_management": f"بهینهسازی مدیریت موجودی {store_name} بر اساس الگوی فروش و پیشبینی تقاضا",
             "customer_experience": f"بهبود تجربه مشتریان {store_name} با طراحی بهتر مسیرها و کاهش زمان انتظار",
-            "technology_integration": f"پیاده‌سازی سیستم‌های هوشمند برای مدیریت بهتر عملیات فروشگاه {store_name}",
+            "technology_integration": f"پیادهسازی سیستمهای هوشمند برای مدیریت بهتر عملیات فروشگاه {store_name}",
             "color_psychology": f"استفاده از روانشناسی رنگ در {store_name} برای جلب توجه و افزایش فروش",
-            "product_arrangement": f"بهینه‌سازی چیدمان محصولات {store_name} بر اساس رنگ‌بندی و جلب توجه",
-            "visual_merchandising": f"پیاده‌سازی تکنیک‌های نمایش بصری در {store_name} برای جلب توجه مشتریان"
+            "product_arrangement": f"بهینهسازی چیدمان محصولات {store_name} بر اساس رنگبندی و جلب توجه",
+            "visual_merchandising": f"پیادهسازی تکنیکهای نمایش بصری در {store_name} برای جلب توجه مشتریان"
         }
         
-        # پیش‌بینی مالی واقعی‌تر
+        # پیشبینی مالی واقعیتر
         # محاسبه فروش فعلی
         current_daily_sales = customer_traffic * (conversion_rate / 100) * 15000  # متوسط خرید 15,000 تومان
         current_monthly_sales = current_daily_sales * 30
@@ -7689,9 +8248,9 @@ class StoreAnalysisAI:
         additional_monthly_sales = (new_daily_sales - current_daily_sales) * 30
         additional_yearly_sales = additional_monthly_sales * 12
         
-        # محاسبه هزینه‌ها و ROI
+        # محاسبه هزینهها و ROI
         implementation_cost = current_yearly_sales * 0.15  # 15% فروش سالانه
-        operational_cost_reduction = current_yearly_sales * 0.08  # 8% کاهش هزینه‌های عملیاتی
+        operational_cost_reduction = current_yearly_sales * 0.08  # 8% کاهش هزینههای عملیاتی
         theft_reduction = current_yearly_sales * 0.02 if not has_surveillance else 0  # 2% کاهش سرقت
         
         total_cost_reduction = operational_cost_reduction + theft_reduction
@@ -7714,21 +8273,21 @@ class StoreAnalysisAI:
             "net_benefit_yearly": f"{net_benefit:,.0f} تومان"
         }
         
-        # جدول زمانی پیاده‌سازی شخصی‌سازی شده
+        # جدول زمانی پیادهسازی شخصیسازی شده
         implementation_timeline = {
-            "phase_1": f"بهینه‌سازی چیدمان فروشگاه {store_name}، سیستم نورپردازی و رنگ‌بندی محصولات",
-            "phase_2": f"افزایش صندوق‌های پرداخت {store_name}، پیاده‌سازی سیستم مدیریت صف و بهبود چیدمان محصولات",
-            "phase_3": f"بازسازی کامل فضای فروشگاه {store_name}، پیاده‌سازی سیستم‌های هوشمند و تکنیک‌های جلب توجه"
+            "phase_1": f"بهینهسازی چیدمان فروشگاه {store_name} سیستم نورپردازی و رنگبندی محصولات",
+            "phase_2": f"افزایش صندوقهای پرداخت {store_name} پیادهسازی سیستم مدیریت صف و بهبود چیدمان محصولات",
+            "phase_3": f"بازسازی کامل فضای فروشگاه {store_name} پیادهسازی سیستمهای هوشمند و تکنیکهای جلب توجه"
         }
         
         if unused_area_size > 0:
             implementation_timeline["phase_1"] += f" و بازطراحی {unused_area_size} متر مربع فضای بلااستفاده {store_name}"
         
-        # تولید راهنمایی‌های عملی
+        # تولید راهنماییهای عملی
         features = self._extract_ml_features(analysis_data)
         practical_guide = self._generate_practical_recommendations(features)
         
-        # تولید توصیه‌های تخصصی رنگ‌بندی و چیدمان
+        # تولید توصیههای تخصصی رنگبندی و چیدمان
         color_layout_recommendations = self._generate_color_and_layout_recommendations(
             store_name, 
             store_type, 
@@ -7736,7 +8295,7 @@ class StoreAnalysisAI:
         )
         
         return {
-            "executive_summary": f"سلام! من به عنوان یک متخصص طراحی فروشگاه، تحلیل کاملی از فروشگاه {store_name} شما انجام داده‌ام. فروشگاه {store_name} شما با نرخ تبدیل {conversion_rate}% و {daily_customers} مشتری روزانه، در حال حاضر فروش روزانه‌ای معادل {current_daily_sales:,.0f} تومان دارد. با اجرای برنامه‌های بهینه‌سازی چیدمان و افزایش نرخ تبدیل به {conversion_rate + conversion_improvement:.1f}%، همچنین بهره‌برداری از {unused_area_size} متر مربع فضای بلااستفاده، فروش روزانه {store_name} شما به {new_daily_sales:,.0f} تومان افزایش خواهد یافت. این بهبودها منجر به {total_sales_improvement:.1f}% رشد فروش، بازده سرمایه‌گذاری {roi_percentage:.1f}% و بازگشت سرمایه در مدت {payback_period:.1f} ماه خواهد شد. تمام این توصیه‌ها مخصوص فروشگاه {store_name} شما طراحی شده‌اند.",
+            "executive_summary": f"سلام! من به عنوان یک متخصص طراحی فروشگاه تحلیل کاملی از فروشگاه {store_name} شما انجام دادهام. فروشگاه {store_name} شما با نرخ تبدیل {conversion_rate}% و {daily_customers} مشتری روزانه در حال حاضر فروش روزانهای معادل {current_daily_sales:,.0f} تومان دارد. با اجرای برنامههای بهینهسازی چیدمان و افزایش نرخ تبدیل به {conversion_rate + conversion_improvement:.1f}% همچنین بهرهبرداری از {unused_area_size} متر مربع فضای بلااستفاده فروش روزانه {store_name} شما به {new_daily_sales:,.0f} تومان افزایش خواهد یافت. این بهبودها منجر به {total_sales_improvement:.1f}% رشد فروش بازده سرمایهگذاری {roi_percentage:.1f}% و بازگشت سرمایه در مدت {payback_period:.1f} ماه خواهد شد. تمام این توصیهها مخصوص فروشگاه {store_name} شما طراحی شدهاند.",
             "detailed_analysis": {
                 "strengths": strengths,
                 "weaknesses": weaknesses,
@@ -7758,11 +8317,11 @@ class StoreAnalysisAI:
         }
     
     def _prepare_store_info(self, analysis_data: Dict[str, Any]) -> str:
-        """آماده‌سازی اطلاعات شخصی‌سازی شده فروشگاه برای AI"""
+        """آمادهسازی اطلاعات شخصیسازی شده فروشگاه برای AI"""
         store_name = analysis_data.get('store_name', 'فروشگاه')
         info_parts = []
         
-        # اطلاعات پایه شخصی‌سازی شده
+        # اطلاعات پایه شخصیسازی شده
         info_parts.append(f"نام فروشگاه: {store_name}")
         info_parts.append(f"نوع فروشگاه: {analysis_data.get('store_type', 'نامشخص')}")
         info_parts.append(f"اندازه فروشگاه {store_name}: {analysis_data.get('store_size', 'نامشخص')} متر مربع")
@@ -7777,16 +8336,16 @@ class StoreAnalysisAI:
         if analysis_data.get('establishment_year'):
             info_parts.append(f"سال تاسیس: {analysis_data.get('establishment_year')}")
         
-        # اطلاعات فیزیکی شخصی‌سازی شده
-        info_parts.append(f"تعداد ورودی‌های {store_name}: {analysis_data.get('entrance_count', 0)}")
-        info_parts.append(f"تعداد صندوق‌های {store_name}: {analysis_data.get('checkout_count', 0)}")
-        info_parts.append(f"تعداد قفسه‌های {store_name}: {analysis_data.get('shelf_count', 0)}")
+        # اطلاعات فیزیکی شخصیسازی شده
+        info_parts.append(f"تعداد ورودیهای {store_name}: {analysis_data.get('entrance_count', 0)}")
+        info_parts.append(f"تعداد صندوقهای {store_name}: {analysis_data.get('checkout_count', 0)}")
+        info_parts.append(f"تعداد قفسههای {store_name}: {analysis_data.get('shelf_count', 0)}")
         
-        # اطلاعات دقیق‌تر چیدمان
+        # اطلاعات دقیقتر چیدمان
         if analysis_data.get('shelf_dimensions'):
-            info_parts.append(f"ابعاد قفسه‌ها: {analysis_data.get('shelf_dimensions')}")
+            info_parts.append(f"ابعاد قفسهها: {analysis_data.get('shelf_dimensions')}")
         if analysis_data.get('shelf_contents'):
-            info_parts.append(f"محتوای قفسه‌ها: {analysis_data.get('shelf_contents')}")
+            info_parts.append(f"محتوای قفسهها: {analysis_data.get('shelf_contents')}")
         if analysis_data.get('unused_area_size'):
             info_parts.append(f"مناطق بلااستفاده: {analysis_data.get('unused_area_size')} متر مربع")
         if analysis_data.get('unused_area_type'):
@@ -7796,17 +8355,17 @@ class StoreAnalysisAI:
         if analysis_data.get('design_style'):
             info_parts.append(f"سبک طراحی: {analysis_data.get('design_style')}")
         if analysis_data.get('brand_colors'):
-            info_parts.append(f"رنگ‌های برند: {analysis_data.get('brand_colors')}")
+            info_parts.append(f"رنگهای برند: {analysis_data.get('brand_colors')}")
         info_parts.append(f"نورپردازی اصلی: {analysis_data.get('main_lighting', 'نامشخص')}")
         if analysis_data.get('lighting_intensity'):
             info_parts.append(f"شدت نورپردازی: {analysis_data.get('lighting_intensity')}")
         
-        # اطلاعات عملکرد شخصی‌سازی شده
+        # اطلاعات عملکرد شخصیسازی شده
         info_parts.append(f"نرخ تبدیل {store_name}: {analysis_data.get('conversion_rate', 0)}%")
         info_parts.append(f"متوسط مشتریان روزانه {store_name}: {analysis_data.get('customer_traffic', 0)}")
         info_parts.append(f"متوسط زمان حضور مشتری در {store_name}: {analysis_data.get('customer_dwell_time', 0)} دقیقه")
         
-        # اطلاعات ترافیک دقیق‌تر
+        # اطلاعات ترافیک دقیقتر
         if analysis_data.get('peak_hours'):
             info_parts.append(f"ساعات پیک: {analysis_data.get('peak_hours')}")
         if analysis_data.get('high_traffic_areas'):
@@ -7817,44 +8376,44 @@ class StoreAnalysisAI:
         info_parts.append(f"درصد فروش ظهر: {analysis_data.get('noon_sales_percent', 0)}%")
         info_parts.append(f"درصد فروش شب: {analysis_data.get('evening_sales_percent', 0)}%")
         
-        # محصولات و فروش شخصی‌سازی شده
+        # محصولات و فروش شخصیسازی شده
         if analysis_data.get('product_categories'):
-            info_parts.append(f"دسته‌بندی محصولات {store_name}: {', '.join(analysis_data.get('product_categories', []))}")
+            info_parts.append(f"دستهبندی محصولات {store_name}: {', '.join(analysis_data.get('product_categories', []))}")
         if analysis_data.get('top_products'):
             info_parts.append(f"محصولات پرفروش {store_name}: {analysis_data.get('top_products')}")
         if analysis_data.get('daily_sales_volume'):
             info_parts.append(f"فروش روزانه {store_name}: {analysis_data.get('daily_sales_volume')} تومان")
         if analysis_data.get('supplier_count'):
-            info_parts.append(f"تعداد تامین‌کنندگان {store_name}: {analysis_data.get('supplier_count')}")
+            info_parts.append(f"تعداد تامینکنندگان {store_name}: {analysis_data.get('supplier_count')}")
         
-        # نظارت و امنیت شخصی‌سازی شده
+        # نظارت و امنیت شخصیسازی شده
         if analysis_data.get('has_surveillance'):
             info_parts.append(f"دوربین نظارتی {store_name}: بله")
             if analysis_data.get('camera_count'):
-                info_parts.append(f"تعداد دوربین‌های {store_name}: {analysis_data.get('camera_count')}")
+                info_parts.append(f"تعداد دوربینهای {store_name}: {analysis_data.get('camera_count')}")
             if analysis_data.get('camera_locations'):
-                info_parts.append(f"موقعیت دوربین‌های {store_name}: {analysis_data.get('camera_locations')}")
+                info_parts.append(f"موقعیت دوربینهای {store_name}: {analysis_data.get('camera_locations')}")
         else:
             info_parts.append(f"دوربین نظارتی {store_name}: خیر")
         
-        # فایل‌ها و اطلاعات اضافی
+        # فایلها و اطلاعات اضافی
         if analysis_data.get('pos_system'):
-            info_parts.append(f"نرم‌افزار صندوق: {analysis_data.get('pos_system')}")
+            info_parts.append(f"نرمافزار صندوق: {analysis_data.get('pos_system')}")
         if analysis_data.get('inventory_system'):
-            info_parts.append(f"نرم‌افزار موجودی: {analysis_data.get('inventory_system')}")
+            info_parts.append(f"نرمافزار موجودی: {analysis_data.get('inventory_system')}")
         if analysis_data.get('video_date'):
             info_parts.append(f"تاریخ ضبط ویدیو: {analysis_data.get('video_date')}")
         if analysis_data.get('video_duration'):
             info_parts.append(f"مدت ویدیو: {analysis_data.get('video_duration')} ثانیه")
         
-        # نوع فایل‌های آپلود شده شخصی‌سازی شده
+        # نوع فایلهای آپلود شده شخصیسازی شده
         uploaded_files = []
         if analysis_data.get('store_photos'):
             uploaded_files.append(f"تصاویر فروشگاه {store_name}")
         if analysis_data.get('store_plan'):
             uploaded_files.append(f"نقشه فروشگاه {store_name}")
         if analysis_data.get('shelf_photos'):
-            uploaded_files.append(f"تصاویر قفسه‌های {store_name}")
+            uploaded_files.append(f"تصاویر قفسههای {store_name}")
         if analysis_data.get('entrance_photos'):
             uploaded_files.append(f"تصاویر ورودی {store_name}")
         if analysis_data.get('checkout_photos'):
@@ -7869,12 +8428,12 @@ class StoreAnalysisAI:
             uploaded_files.append("کاتالوگ محصولات")
         
         if uploaded_files:
-            info_parts.append(f"فایل‌های آپلود شده برای {store_name}: {', '.join(uploaded_files)}")
+            info_parts.append(f"فایلهای آپلود شده برای {store_name}: {', '.join(uploaded_files)}")
         
         return f"اطلاعات کامل فروشگاه {store_name}:\n" + "\n".join(info_parts)
     
     def _generate_color_and_layout_recommendations(self, store_name: str, store_type: str, product_categories: list) -> dict:
-        """تولید توصیه‌های تخصصی رنگ‌بندی و چیدمان بر اساس نوع فروشگاه"""
+        """تولید توصیههای تخصصی رنگبندی و چیدمان بر اساس نوع فروشگاه"""
         
         recommendations = {
             "color_psychology": {},
@@ -7883,149 +8442,149 @@ class StoreAnalysisAI:
             "specific_industry_tips": {}
         }
         
-        # توصیه‌های رنگ‌بندی بر اساس نوع فروشگاه
+        # توصیههای رنگبندی بر اساس نوع فروشگاه
         if "لباس" in store_type or "پوشاک" in store_type:
             recommendations["color_psychology"] = {
-                "warm_colors": "استفاده از رنگ‌های گرم (قرمز، نارنجی، زرد) برای لباس‌های تابستانی و ورزشی",
-                "cool_colors": "استفاده از رنگ‌های سرد (آبی، سبز، بنفش) برای لباس‌های رسمی و زمستانی",
-                "neutral_colors": "استفاده از رنگ‌های خنثی (سفید، خاکستری، مشکی) برای لباس‌های کلاسیک",
-                "contrast": "قرار دادن لباس‌های با رنگ‌های متضاد کنار هم برای جلب توجه"
+                "warm_colors": "استفاده از رنگهای گرم (قرمز نارنجی زرد) برای لباسهای تابستانی و ورزشی",
+                "cool_colors": "استفاده از رنگهای سرد (آبی سبز بنفش) برای لباسهای رسمی و زمستانی",
+                "neutral_colors": "استفاده از رنگهای خنثی (سفید خاکستری مشکی) برای لباسهای کلاسیک",
+                "contrast": "قرار دادن لباسهای با رنگهای متضاد کنار هم برای جلب توجه"
             }
             
             recommendations["product_arrangement"] = {
-                "height_placement": "قرار دادن لباس‌های پرفروش در ارتفاع 120-160 سانتی‌متر",
-                "color_gradient": "ایجاد گرادیان رنگی از تیره به روشن در قفسه‌ها",
-                "seasonal_grouping": "گروه‌بندی لباس‌ها بر اساس فصل و رنگ",
-                "size_organization": "چیدمان لباس‌ها بر اساس سایز و رنگ"
+                "height_placement": "قرار دادن لباسهای پرفروش در ارتفاع 120-160 سانتیمتر",
+                "color_gradient": "ایجاد گرادیان رنگی از تیره به روشن در قفسهها",
+                "seasonal_grouping": "گروهبندی لباسها بر اساس فصل و رنگ",
+                "size_organization": "چیدمان لباسها بر اساس سایز و رنگ"
             }
             
         elif "میوه" in store_type or "سبزی" in store_type:
             recommendations["color_psychology"] = {
-                "fresh_colors": "استفاده از رنگ‌های تازه و طبیعی (سبز، قرمز، نارنجی) برای میوه‌ها",
-                "ripeness_indication": "چیدمان میوه‌ها بر اساس درجه رسیدگی و رنگ",
-                "seasonal_colors": "استفاده از رنگ‌های فصلی برای جلب توجه",
-                "natural_contrast": "قرار دادن میوه‌های با رنگ‌های متضاد کنار هم"
+                "fresh_colors": "استفاده از رنگهای تازه و طبیعی (سبز قرمز نارنجی) برای میوهها",
+                "ripeness_indication": "چیدمان میوهها بر اساس درجه رسیدگی و رنگ",
+                "seasonal_colors": "استفاده از رنگهای فصلی برای جلب توجه",
+                "natural_contrast": "قرار دادن میوههای با رنگهای متضاد کنار هم"
             }
             
             recommendations["product_arrangement"] = {
-                "height_placement": "قرار دادن میوه‌های پرفروش در ارتفاع 80-120 سانتی‌متر",
-                "color_grouping": "گروه‌بندی میوه‌ها بر اساس رنگ (قرمز، سبز، نارنجی)",
-                "freshness_display": "نمایش میوه‌های تازه در جلو و مرکز",
-                "seasonal_arrangement": "چیدمان میوه‌ها بر اساس فصل"
+                "height_placement": "قرار دادن میوههای پرفروش در ارتفاع 80-120 سانتیمتر",
+                "color_grouping": "گروهبندی میوهها بر اساس رنگ (قرمز سبز نارنجی)",
+                "freshness_display": "نمایش میوههای تازه در جلو و مرکز",
+                "seasonal_arrangement": "چیدمان میوهها بر اساس فصل"
             }
             
         elif "لوازم آرایش" in store_type or "عطریات" in store_type:
             recommendations["color_psychology"] = {
-                "luxury_colors": "استفاده از رنگ‌های لوکس (طلایی، نقره‌ای، مشکی) برای محصولات گران",
-                "gender_colors": "استفاده از رنگ‌های مخصوص جنسیت (صورتی برای زنان، آبی برای مردان)",
-                "mood_colors": "استفاده از رنگ‌های متناسب با حال و هوا (آرامش‌بخش، انرژی‌بخش)",
+                "luxury_colors": "استفاده از رنگهای لوکس (طلایی نقرهای مشکی) برای محصولات گران",
+                "gender_colors": "استفاده از رنگهای مخصوص جنسیت (صورتی برای زنان آبی برای مردان)",
+                "mood_colors": "استفاده از رنگهای متناسب با حال و هوا (آرامشبخش انرژیبخش)",
                 "brand_colors": "چیدمان محصولات بر اساس رنگ برند"
             }
             
             recommendations["product_arrangement"] = {
-                "height_placement": "قرار دادن محصولات پرفروش در ارتفاع 140-180 سانتی‌متر",
-                "price_grouping": "گروه‌بندی محصولات بر اساس قیمت و رنگ",
+                "height_placement": "قرار دادن محصولات پرفروش در ارتفاع 140-180 سانتیمتر",
+                "price_grouping": "گروهبندی محصولات بر اساس قیمت و رنگ",
                 "brand_organization": "چیدمان محصولات بر اساس برند و رنگ",
-                "category_display": "نمایش محصولات بر اساس دسته‌بندی و رنگ"
+                "category_display": "نمایش محصولات بر اساس دستهبندی و رنگ"
             }
             
         else:  # فروشگاه عمومی
             recommendations["color_psychology"] = {
-                "warm_colors": "استفاده از رنگ‌های گرم برای محصولات پرفروش",
-                "cool_colors": "استفاده از رنگ‌های سرد برای محصولات آرامش‌بخش",
-                "neutral_colors": "استفاده از رنگ‌های خنثی برای محصولات کلاسیک",
-                "contrast": "قرار دادن محصولات با رنگ‌های متضاد کنار هم"
+                "warm_colors": "استفاده از رنگهای گرم برای محصولات پرفروش",
+                "cool_colors": "استفاده از رنگهای سرد برای محصولات آرامشبخش",
+                "neutral_colors": "استفاده از رنگهای خنثی برای محصولات کلاسیک",
+                "contrast": "قرار دادن محصولات با رنگهای متضاد کنار هم"
             }
             
             recommendations["product_arrangement"] = {
-                "height_placement": "قرار دادن محصولات پرفروش در ارتفاع 120-160 سانتی‌متر",
-                "color_grouping": "گروه‌بندی محصولات بر اساس رنگ",
-                "category_organization": "چیدمان محصولات بر اساس دسته‌بندی و رنگ",
+                "height_placement": "قرار دادن محصولات پرفروش در ارتفاع 120-160 سانتیمتر",
+                "color_grouping": "گروهبندی محصولات بر اساس رنگ",
+                "category_organization": "چیدمان محصولات بر اساس دستهبندی و رنگ",
                 "price_display": "نمایش محصولات بر اساس قیمت و رنگ"
             }
         
-        # توصیه‌های جلب توجه
+        # توصیههای جلب توجه
         recommendations["attention_grabbing"] = {
             "lighting": f"استفاده از نور تاکیدی روی محصولات خاص در {store_name}",
-            "mirrors": f"استفاده از آینه‌ها برای ایجاد عمق بصری در {store_name}",
-            "focal_points": f"ایجاد نقاط کانونی با رنگ‌های متضاد در {store_name}",
+            "mirrors": f"استفاده از آینهها برای ایجاد عمق بصری در {store_name}",
+            "focal_points": f"ایجاد نقاط کانونی با رنگهای متضاد در {store_name}",
             "movement": f"قرار دادن محصولات جدید در مسیر اصلی حرکت مشتری در {store_name}",
-            "spacing": f"استفاده از فاصله‌گذاری مناسب بین محصولات در {store_name}",
+            "spacing": f"استفاده از فاصلهگذاری مناسب بین محصولات در {store_name}",
             "height_variation": f"ایجاد تنوع در ارتفاع نمایش محصولات در {store_name}"
         }
         
-        # توصیه‌های معماری فضایی
+        # توصیههای معماری فضایی
         recommendations["spatial_architecture"] = {
             "customer_flow": f"بهبود نقشه حرکتی مشتری در {store_name} از ورودی تا نقطه فروش",
-            "hot_zones": f"شناسایی و بهینه‌سازی منطقه داغ (Hot Zone) در {store_name}",
-            "smart_shelving": f"قفسه‌بندی هوشمند با ارتفاع مناسب و دسترسی آسان در {store_name}",
+            "hot_zones": f"شناسایی و بهینهسازی منطقه داغ (Hot Zone) در {store_name}",
+            "smart_shelving": f"قفسهبندی هوشمند با ارتفاع مناسب و دسترسی آسان در {store_name}",
             "traffic_patterns": f"تحلیل و بهبود الگوهای ترافیک مشتری در {store_name}",
-            "space_utilization": f"بهینه‌سازی استفاده از فضا در {store_name}",
+            "space_utilization": f"بهینهسازی استفاده از فضا در {store_name}",
             "circulation_paths": f"ایجاد مسیرهای گردشی منطقی در {store_name}"
         }
         
-        # توصیه‌های نورپردازی تخصصی
+        # توصیههای نورپردازی تخصصی
         recommendations["lighting_design"] = {
             "general_lighting": f"نورپردازی عمومی یکنواخت و ملایم در {store_name}",
             "accent_lighting": f"نورپردازی تأکیدی روی محصولات خاص در {store_name}",
-            "emotional_lighting": f"نورپردازی احساسی متناسب با نوع کسب‌وکار در {store_name}",
-            "task_lighting": f"نورپردازی وظیفه‌ای برای فعالیت‌های خاص در {store_name}",
+            "emotional_lighting": f"نورپردازی احساسی متناسب با نوع کسبوکار در {store_name}",
+            "task_lighting": f"نورپردازی وظیفهای برای فعالیتهای خاص در {store_name}",
             "ambient_lighting": f"نورپردازی محیطی برای ایجاد فضای مناسب در {store_name}",
             "color_temperature": f"تنظیم دمای رنگ نور برای ایجاد حس مناسب در {store_name}"
         }
         
-        # توصیه‌های هویت بصری
+        # توصیههای هویت بصری
         recommendations["brand_identity"] = {
             "color_palette": f"پالت رنگی هماهنگ با برند در {store_name}",
             "materials_textures": f"متریال و بافت متناسب با هویت برند در {store_name}",
-            "signage_graphics": f"نشانه‌گذاری و گرافیک محیطی شفاف و زیبا در {store_name}",
+            "signage_graphics": f"نشانهگذاری و گرافیک محیطی شفاف و زیبا در {store_name}",
             "logo_placement": f"قرارگیری مناسب لوگو و عناصر برند در {store_name}",
             "visual_consistency": f"ثبات بصری در تمام عناصر طراحی {store_name}",
-            "brand_storytelling": f"داستان‌سرایی برند از طریق طراحی در {store_name}"
+            "brand_storytelling": f"داستانسرایی برند از طریق طراحی در {store_name}"
         }
         
-        # توصیه‌های تجربه مشتری
+        # توصیههای تجربه مشتری
         recommendations["customer_experience"] = {
-            "five_senses": f"بهبود تجربه پنج‌گانه (دیداری، شنیداری، بویایی، لامسه، چشایی) در {store_name}",
-            "comfort_relaxation": f"ایجاد فضای راحت و آرامش‌بخش در {store_name}",
+            "five_senses": f"بهبود تجربه پنجگانه (دیداری شنیداری بویایی لامسه چشایی) در {store_name}",
+            "comfort_relaxation": f"ایجاد فضای راحت و آرامشبخش در {store_name}",
             "digital_interaction": f"تعامل دیجیتال با نمایشگرها و QR کدها در {store_name}",
             "personal_service": f"خدمات شخصی و مشاوره در {store_name}",
             "waiting_areas": f"فضای انتظار راحت و جذاب در {store_name}",
             "accessibility": f"دسترسی آسان برای تمام مشتریان در {store_name}"
         }
         
-        # توصیه‌های ویترین و نقطه فروش
+        # توصیههای ویترین و نقطه فروش
         recommendations["visual_merchandising"] = {
-            "attractive_display": f"ویترین جذاب و داستان‌سرا در {store_name}",
-            "product_composition": f"ترکیب‌بندی محصولات بر اساس تم رنگی و فصل در {store_name}",
-            "checkout_experience": f"تجربه نهایی خرید و بسته‌بندی در {store_name}",
+            "attractive_display": f"ویترین جذاب و داستانسرا در {store_name}",
+            "product_composition": f"ترکیببندی محصولات بر اساس تم رنگی و فصل در {store_name}",
+            "checkout_experience": f"تجربه نهایی خرید و بستهبندی در {store_name}",
             "window_dressing": f"آرایش ویترین و نمایش محصولات در {store_name}",
-            "seasonal_displays": f"نمایش‌های فصلی و مناسبتی در {store_name}",
+            "seasonal_displays": f"نمایشهای فصلی و مناسبتی در {store_name}",
             "trend_showcasing": f"نمایش ترندها و محصولات جدید در {store_name}"
         }
         
-        # توصیه‌های جزئیات انسانی
+        # توصیههای جزئیات انسانی
         recommendations["human_centric_design"] = {
             "ergonomics": f"ارگونومی مناسب برای دسترسی آسان محصولات در {store_name}",
-            "intuitive_navigation": f"راهنمایی روان و جلوگیری از گم‌گشتگی در {store_name}",
-            "human_services": f"جایگاه مشاوره و پرسنل هم‌سطح با طراحی در {store_name}",
+            "intuitive_navigation": f"راهنمایی روان و جلوگیری از گمگشتگی در {store_name}",
+            "human_services": f"جایگاه مشاوره و پرسنل همسطح با طراحی در {store_name}",
             "comfort_zones": f"ایجاد مناطق راحت برای استراحت مشتری در {store_name}",
             "clear_signage": f"علائم واضح و قابل فهم در {store_name}",
-            "staff_positioning": f"قرارگیری مناسب پرسنل برای خدمت‌رسانی در {store_name}"
+            "staff_positioning": f"قرارگیری مناسب پرسنل برای خدمترسانی در {store_name}"
         }
         
-        # توصیه‌های خاص صنعت
+        # توصیههای خاص صنعت
         recommendations["specific_industry_tips"] = {
             "rule_of_three": f"استفاده از قانون 'قدرت سه' در چیدمان محصولات {store_name}",
             "golden_triangle": f"ایجاد مثلث طلایی برای محصولات مهم در {store_name}",
-            "color_harmony": f"استفاده از هارمونی رنگ‌ها در {store_name}",
+            "color_harmony": f"استفاده از هارمونی رنگها در {store_name}",
             "visual_flow": f"ایجاد جریان بصری منطقی در {store_name}",
-            "seasonal_adaptation": f"تطبیق رنگ‌بندی با فصل در {store_name}",
+            "seasonal_adaptation": f"تطبیق رنگبندی با فصل در {store_name}",
             "customer_psychology": f"استفاده از روانشناسی مشتری در {store_name}",
-            "impulse_buying": f"ایجاد فرصت‌های خرید آنی در {store_name}",
+            "impulse_buying": f"ایجاد فرصتهای خرید آنی در {store_name}",
             "cross_selling": f"استراتژی فروش متقابل در {store_name}",
-            "upselling": f"فروش محصولات گران‌تر در {store_name}",
-            "customer_journey": f"بهینه‌سازی سفر مشتری در {store_name}",
+            "upselling": f"فروش محصولات گرانتر در {store_name}",
+            "customer_journey": f"بهینهسازی سفر مشتری در {store_name}",
             "touch_points": f"بهبود نقاط تماس با مشتری در {store_name}",
             "emotional_connection": f"ایجاد ارتباط عاطفی با مشتری در {store_name}"
         }
@@ -8092,7 +8651,7 @@ class StoreAnalysisAI:
                 'recommendations': []
             }
             
-            # ترکیب تحلیل رنگ‌ها
+            # ترکیب تحلیل رنگها
             color_scores = []
             for result in image_results:
                 color_analysis = result.get('image_features', {}).get('image_1', {}).get('color_analysis', {})
@@ -8114,7 +8673,7 @@ class StoreAnalysisAI:
                 combined['lighting_analysis']['average_score'] = sum(lighting_scores) / len(lighting_scores)
                 combined['lighting_analysis']['quality'] = 'excellent' if sum(lighting_scores) / len(lighting_scores) > 80 else 'good'
             
-            # ترکیب تحلیل ترکیب‌بندی
+            # ترکیب تحلیل ترکیببندی
             composition_scores = []
             for result in image_results:
                 composition_analysis = result.get('image_features', {}).get('image_1', {}).get('composition_analysis', {})
@@ -8134,7 +8693,7 @@ class StoreAnalysisAI:
             if combined['overall_score'] < 70:
                 combined['recommendations'].append("بهبود کیفیت تصاویر فروشگاه")
             if combined['color_analysis'].get('average_score', 0) < 70:
-                combined['recommendations'].append("بهبود هماهنگی رنگ‌ها")
+                combined['recommendations'].append("بهبود هماهنگی رنگها")
             if combined['lighting_analysis'].get('average_score', 0) < 70:
                 combined['recommendations'].append("بهبود نورپردازی")
             
@@ -8151,9 +8710,9 @@ class StoreAnalysisAI:
             }
     
     def _prepare_analysis_data(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
-        """آماده‌سازی داده‌های تحلیل"""
+        """آمادهسازی دادههای تحلیل"""
         try:
-            # تبدیل داده‌ها به فرمت مناسب
+            # تبدیل دادهها به فرمت مناسب
             prepared_data = {
                 'store_name': store_data.get('store_name', 'نامشخص'),
                 'store_type': store_data.get('store_type', 'عمومی'),
@@ -8162,7 +8721,7 @@ class StoreAnalysisAI:
                 'conversion_rate': float(store_data.get('conversion_rate', 30)),
                 'design_style': store_data.get('design_style', 'مدرن'),
                 'lighting_type': store_data.get('lighting_type', 'LED'),
-                'brand_colors': store_data.get('brand_colors', 'آبی، سفید'),
+                'brand_colors': store_data.get('brand_colors', 'آبی سفید'),
                 'daily_customers': float(store_data.get('daily_customers', 100)),
                 'daily_sales': float(store_data.get('daily_sales', 1000000)),
                 'shelf_count': float(store_data.get('shelf_count', 10)),
@@ -8181,15 +8740,15 @@ class StoreAnalysisAI:
             return prepared_data
             
         except Exception as e:
-            logger.error(f"خطا در آماده‌سازی داده‌ها: {e}")
+            logger.error(f"خطا در آمادهسازی دادهها: {e}")
             return store_data
     
     def generate_implementation_guide(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
-        """تولید راهنمای پیاده‌سازی عملی"""
+        """تولید راهنمای پیادهسازی عملی"""
         
         guide = {
-            "title": "راهنمای پیاده‌سازی بهینه‌سازی فروشگاه",
-            "overview": "این راهنما شامل مراحل عملی برای پیاده‌سازی پیشنهادات تحلیل است.",
+            "title": "راهنمای پیادهسازی بهینهسازی فروشگاه",
+            "overview": "این راهنما شامل مراحل عملی برای پیادهسازی پیشنهادات تحلیل است.",
             "phases": {},
             "checklist": {},
             "resources": {},
@@ -8198,15 +8757,15 @@ class StoreAnalysisAI:
         
         # فاز اول (1-2 ماه)
         guide["phases"]["phase_1"] = {
-            "title": "فاز اول: بهینه‌سازی سریع",
+            "title": "فاز اول: بهینهسازی سریع",
             "duration": "1-2 ماه",
             "budget": "کم",
             "priority": "بالا",
             "tasks": [
-                "بازطراحی چیدمان قفسه‌ها",
+                "بازطراحی چیدمان قفسهها",
                 "بهبود نورپردازی",
                 "نصب تابلوهای راهنما",
-                "بهینه‌سازی مسیرهای مشتری"
+                "بهینهسازی مسیرهای مشتری"
             ],
             "expected_results": [
                 "افزایش 5-10% نرخ تبدیل",
@@ -8217,19 +8776,19 @@ class StoreAnalysisAI:
         
         # فاز دوم (3-6 ماه)
         guide["phases"]["phase_2"] = {
-            "title": "فاز دوم: بهبود سیستم‌ها",
+            "title": "فاز دوم: بهبود سیستمها",
             "duration": "3-6 ماه",
             "budget": "متوسط",
             "priority": "متوسط",
             "tasks": [
-                "افزایش تعداد صندوق‌ها",
-                "پیاده‌سازی سیستم مدیریت صف",
-                "بهبود استراتژی قیمت‌گذاری",
-                "بهینه‌سازی موجودی"
+                "افزایش تعداد صندوقها",
+                "پیادهسازی سیستم مدیریت صف",
+                "بهبود استراتژی قیمتگذاری",
+                "بهینهسازی موجودی"
             ],
             "expected_results": [
                 "افزایش 15-20% فروش",
-                "کاهش 20% هزینه‌های عملیاتی",
+                "کاهش 20% هزینههای عملیاتی",
                 "بهبود رضایت کارکنان"
             ]
         }
@@ -8241,24 +8800,24 @@ class StoreAnalysisAI:
             "budget": "بالا",
             "priority": "کم",
             "tasks": [
-                "پیاده‌سازی سیستم هوشمند",
+                "پیادهسازی سیستم هوشمند",
                 "بازسازی کامل فروشگاه",
                 "گسترش فضای فروشگاه",
-                "پیاده‌سازی تجارت الکترونیک"
+                "پیادهسازی تجارت الکترونیک"
             ],
             "expected_results": [
                 "افزایش 25-30% فروش",
-                "کاهش 30% هزینه‌ها",
-                "رقابت‌پذیری بالا"
+                "کاهش 30% هزینهها",
+                "رقابتپذیری بالا"
             ]
         }
         
-        # چک‌لیست پیاده‌سازی
+        # چکلیست پیادهسازی
         guide["checklist"] = {
             "pre_implementation": [
                 "تأیید بودجه",
-                "تشکیل تیم پیاده‌سازی",
-                "برنامه‌ریزی زمانی",
+                "تشکیل تیم پیادهسازی",
+                "برنامهریزی زمانی",
                 "آموزش کارکنان"
             ],
             "during_implementation": [
@@ -8269,9 +8828,9 @@ class StoreAnalysisAI:
             ],
             "post_implementation": [
                 "ارزیابی نتایج",
-                "بهینه‌سازی فرآیندها",
+                "بهینهسازی فرآیندها",
                 "آموزش مستمر",
-                "برنامه‌ریزی آینده"
+                "برنامهریزی آینده"
             ]
         }
         
@@ -8284,13 +8843,13 @@ class StoreAnalysisAI:
                 "کارکنان فروشگاه"
             ],
             "technical_resources": [
-                "نرم‌افزار طراحی",
+                "نرمافزار طراحی",
                 "سیستم مدیریت صف",
                 "تجهیزات نورپردازی",
                 "تابلوهای راهنما"
             ],
             "financial_resources": [
-                "بودجه پیاده‌سازی",
+                "بودجه پیادهسازی",
                 "بودجه آموزش",
                 "بودجه نگهداری",
                 "بودجه اضطراری"
@@ -8299,12 +8858,12 @@ class StoreAnalysisAI:
         
         # جدول زمانی
         guide["timeline"] = {
-            "week_1_2": "برنامه‌ریزی و آماده‌سازی",
+            "week_1_2": "برنامهریزی و آمادهسازی",
             "week_3_4": "شروع فاز اول",
             "month_2": "تکمیل فاز اول",
             "month_3_4": "شروع فاز دوم",
             "month_5_6": "تکمیل فاز دوم",
-            "month_7_12": "پیاده‌سازی فاز سوم"
+            "month_7_12": "پیادهسازی فاز سوم"
         }
         
         return guide

@@ -27,6 +27,10 @@ urlpatterns = [
     path('forms/submit/', views.forms_submit, name='forms_submit'),
     path('forms/professional/', views.store_analysis_form, name='professional_form'),
     
+    # تحلیل مسیر کاربر SEO
+    path('seo-analysis/', views.seo_user_journey_analysis, name='seo_user_journey_analysis'),
+    path('seo-analysis/download/', views.download_seo_analysis_report, name='download_seo_analysis_report'),
+    
     # مدیریت تحلیل‌ها
     path('analysis/', include([
         path('create/', views.analysis_create, name='analysis_create'),
@@ -39,6 +43,9 @@ urlpatterns = [
         # Compatibility: support both int and legacy uuid patterns for reverse()
         path('<int:pk>/download/', views.download_analysis_report, name='download_analysis'),
         path('<uuid:pk>/download/', views.download_analysis_report, name='download_analysis'),
+    path('<int:pk>/download-complete/', views.download_complete_analysis_pdf, name='download_complete_analysis'),
+    path('<int:pk>/view-complete/', views.view_complete_analysis_report, name='view_complete_analysis'),
+    path('<int:pk>/download-unified/', views.download_unified_analysis_pdf, name='download_unified_analysis'),
         path('<int:pk>/progress/', views.analysis_progress, name='analysis_progress'),
         path('<int:pk>/start/', views.start_analysis, name='start_analysis'),
         path('<int:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
@@ -81,6 +88,9 @@ urlpatterns = [
     # ویژگی‌ها
     path('features/', views.features, name='features'),
     
+    # حذف تحلیل‌های ناقص
+    path('delete-incomplete/', views.delete_incomplete_analyses, name='delete_incomplete_analyses'),
+    
     # نتایج سفارش
     path('order/<str:order_id>/results/', views.order_analysis_results, name='order_analysis_results'),
     path('order/<str:order_id>/status/', views.check_processing_status, name='check_processing_status'),
@@ -104,6 +114,7 @@ urlpatterns = [
         path('analyses/', views.admin_analyses, name='admin_analyses'),
         path('analyses/<str:analysis_id>/', views.admin_analysis_detail, name='admin_analysis_detail'),
         path('analyses/<str:analysis_id>/delete/', views.admin_delete_analysis, name='admin_delete_analysis'),
+        path('analyses/<str:analysis_id>/rerun/', views.admin_rerun_analysis, name='admin_rerun_analysis'),
         path('test-operations/', views.test_operations, name='test_operations'),
         path('orders/', views.admin_orders, name='admin_orders'),
         path('orders/<str:order_id>/', views.admin_order_detail, name='admin_order_detail'),
