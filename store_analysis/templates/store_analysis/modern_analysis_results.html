@@ -1219,7 +1219,7 @@
                         {% endif %}
                         
                         <!-- تحلیل جدید -->
-                        <a href="{% url 'store_analysis:forms' %}" class="btn btn-secondary">
+                        <a href="{% url 'store_analysis:products' %}" class="btn btn-secondary">
                             <i class="fas fa-plus"></i>
                             تحلیل جدید
                         </a>
@@ -1736,7 +1736,7 @@
             showLoadingModal('در حال درخواست تحلیل پیشرفته با Chidmano1 AI...<br><small style="color: #666;">زمان تقریبی: 2-4 دقیقه</small>');
             
             // Send request to reprocess with Liara AI
-            fetch(`{% url 'store_analysis:order_analysis_results' order.order_number %}`, {
+            fetch(`{% url 'store_analysis:analysis_results' store_analysis.pk %}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1780,7 +1780,7 @@
             showLoadingModal('در حال درخواست تحلیل با Chidmano2 AI...<br><small style="color: #666;">زمان تقریبی: 5-7 دقیقه</small>');
             
             // Send request to reprocess with Ollama
-            fetch(`{% url 'store_analysis:order_analysis_results' order.order_number %}`, {
+            fetch(`{% url 'store_analysis:analysis_results' store_analysis.pk %}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

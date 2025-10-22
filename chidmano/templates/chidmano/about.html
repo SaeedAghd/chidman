@@ -1,0 +1,339 @@
+{% extends 'chidmano/base_seo.html' %}
+{% load static %}
+
+{% block title %}درباره چیدمانو - پیشرو در تحلیل هوشمند فروشگاه{% endblock %}
+
+{% block page_title %}درباره چیدمانو{% endblock %}
+{% block page_description %}چیدمانو با استفاده از تکنولوژی هوش مصنوعی پیشرفته، تحلیل جامع فروشگاه‌ها را ارائه می‌دهد. ما به صاحبان فروشگاه کمک می‌کنیم تا فروش خود را افزایش دهند.{% endblock %}
+{% block page_keywords %}درباره چیدمانو، تحلیل هوشمند فروشگاه، هوش مصنوعی فروشگاه، تیم چیدمانو، تحلیل فروشگاه با AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+    }
+    
+    .about-content {
+        padding: 3rem 0;
+    }
+    
+    .team-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .team-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-section {
+        background: #f8f9fa;
+        padding: 3rem 0;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .stat-label {
+        font-size: 1.2rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Schema.org Structured Data -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "درباره چیدمانو",
+    "description": "چیدمانو با استفاده از تکنولوژی هوش مصنوعی پیشرفته، تحلیل جامع فروشگاه‌ها را ارائه می‌دهد.",
+    "url": "https://chidmano.ir/about/",
+    "mainEntity": {
+        "@type": "Organization",
+        "name": "چیدمانو",
+        "url": "https://chidmano.ir",
+        "logo": "https://chidmano.ir{% static 'images/logo.png' %}",
+        "description": "تحلیل هوشمند فروشگاه با هوش مصنوعی",
+        "foundingDate": "2024",
+        "founder": {
+            "@type": "Person",
+            "name": "تیم چیدمانو"
+        },
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "IR",
+            "addressRegion": "تهران"
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "info@chidmano.ir",
+            "contactType": "customer service"
+        },
+        "sameAs": [
+            "https://www.instagram.com/chidmano",
+            "https://www.linkedin.com/company/chidmano"
+        ]
+    }
+}
+</script>
+
+<!-- Hero Section -->
+<section class="about-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="display-4 fw-bold mb-4">درباره چیدمانو</h1>
+                <p class="lead fs-4 mb-4">
+                    پیشرو در تحلیل هوشمند فروشگاه با تکنولوژی هوش مصنوعی پیشرفته
+                </p>
+                <p class="fs-5">
+                    ما به صاحبان فروشگاه کمک می‌کنیم تا با تحلیل جامع و راهکارهای عملی، فروش خود را تا 30% افزایش دهند.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Content -->
+<section class="about-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="team-card">
+                    <h2 class="h3 mb-4">🎯 ماموریت ما</h2>
+                    <p class="lead">
+                        چیدمانو با استفاده از تکنولوژی هوش مصنوعی پیشرفته، تحلیل جامع فروشگاه‌ها را ارائه می‌دهد. 
+                        ما معتقدیم که هر فروشگاه پتانسیل رشد و بهبود دارد.
+                    </p>
+                    <p>
+                        تیم ما متشکل از متخصصان طراحی، تحلیل داده و هوش مصنوعی است که با همکاری یکدیگر، 
+                        راهکارهای عملی و قابل اجرا برای بهبود عملکرد فروشگاه‌ها ارائه می‌دهند.
+                    </p>
+                </div>
+
+                <div class="team-card">
+                    <h2 class="h3 mb-4">🚀 چشم‌انداز ما</h2>
+                    <p>
+                        ما قصد داریم به بزرگ‌ترین پلتفرم تحلیل فروشگاه در ایران تبدیل شویم و به هزاران 
+                        صاحب فروشگاه کمک کنیم تا کسب‌وکار خود را رشد دهند.
+                    </p>
+                    <p>
+                        هدف ما این است که با استفاده از تکنولوژی‌های نوین، تحلیل فروشگاه را برای همه 
+                        قابل دسترس و مقرون‌به‌صرفه کنیم.
+                    </p>
+                </div>
+
+                <div class="team-card">
+                    <h2 class="h3 mb-4">💡 ارزش‌های ما</h2>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="text-center">
+                                <div class="feature-icon">🎯</div>
+                                <h4>دقت</h4>
+                                <p>تحلیل دقیق و علمی فروشگاه با استفاده از داده‌های واقعی</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-center">
+                                <div class="feature-icon">⚡</div>
+                                <h4>سرعت</h4>
+                                <p>تحلیل سریع و ارائه نتایج در کمترین زمان ممکن</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-center">
+                                <div class="feature-icon">🔧</div>
+                                <h4>عملی بودن</h4>
+                                <p>راهکارهای قابل اجرا و عملی برای بهبود فروشگاه</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-center">
+                                <div class="feature-icon">🤝</div>
+                                <h4>پشتیبانی</h4>
+                                <p>پشتیبانی کامل و مشاوره تخصصی در تمام مراحل</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center mb-5">
+                <h2 class="h3 mb-4">📊 آمار و دستاوردهای ما</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">فروشگاه تحلیل شده</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">30%</div>
+                    <div class="stat-label">افزایش متوسط فروش</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">رضایت مشتریان</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">پشتیبانی آنلاین</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Technology Section -->
+<section class="about-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="team-card">
+                    <h2 class="h3 mb-4">🤖 تکنولوژی ما</h2>
+                    <p>
+                        چیدمانو از پیشرفته‌ترین تکنولوژی‌های هوش مصنوعی و یادگیری ماشین استفاده می‌کند 
+                        تا تحلیل دقیق و جامعی از فروشگاه‌ها ارائه دهد.
+                    </p>
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-3">
+                            <h5>🔍 تحلیل تصاویر</h5>
+                            <p>استفاده از Computer Vision برای تحلیل چیدمان و طراحی فروشگاه</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>📊 تحلیل داده‌ها</h5>
+                            <p>پردازش داده‌های فروش و ترافیک مشتریان با الگوریتم‌های پیشرفته</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>🎯 پیش‌بینی فروش</h5>
+                            <p>پیش‌بینی روند فروش و ارائه راهکارهای بهبود</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>⚡ پردازش سریع</h5>
+                            <p>تحلیل فوری و ارائه نتایج در کمترین زمان</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <h2 class="h3 mb-4">👥 تیم ما</h2>
+                    <p>
+                        تیم چیدمانو متشکل از متخصصان مجرب در زمینه‌های مختلف است:
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">🎨 <strong>متخصصان طراحی:</strong> طراحان با تجربه در طراحی فروشگاه و فضای تجاری</li>
+                        <li class="mb-2">🤖 <strong>متخصصان هوش مصنوعی:</strong> مهندسان AI با تخصص در Computer Vision و Machine Learning</li>
+                        <li class="mb-2">📊 <strong>متخصصان تحلیل داده:</strong> تحلیلگران داده با تجربه در تحلیل کسب‌وکار</li>
+                        <li class="mb-2">💼 <strong>مشاوران کسب‌وکار:</strong> مشاوران با تجربه در مدیریت و رشد کسب‌وکار</li>
+                    </ul>
+                </div>
+
+                <div class="team-card text-center">
+                    <h2 class="h3 mb-4">🤝 با ما همراه شوید</h2>
+                    <p class="lead mb-4">
+                        اگر شما هم صاحب فروشگاه هستید و می‌خواهید فروش خود را افزایش دهید، 
+                        با ما تماس بگیرید.
+                    </p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'store_analysis:forms' %}" class="btn btn-primary btn-lg w-100">
+                                شروع تحلیل رایگان
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'store_analysis:contact' %}" class="btn btn-outline-primary btn-lg w-100">
+                                تماس با ما
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // انیمیشن برای آمار
+    document.addEventListener('DOMContentLoaded', function() {
+        const statNumbers = document.querySelectorAll('.stat-number');
+        
+        const animateValue = (element, start, end, duration) => {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                element.textContent = current + (element.textContent.includes('%') ? '%' : '');
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        };
+
+        // انیمیشن آمار هنگام اسکرول
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const element = entry.target;
+                    const text = element.textContent;
+                    
+                    if (text.includes('500+')) {
+                        animateValue(element, 0, 500, 2000);
+                    } else if (text.includes('30%')) {
+                        animateValue(element, 0, 30, 2000);
+                    } else if (text.includes('95%')) {
+                        animateValue(element, 0, 95, 2000);
+                    }
+                    
+                    observer.unobserve(element);
+                }
+            });
+        });
+
+        statNumbers.forEach(stat => {
+            observer.observe(stat);
+        });
+    });
+</script>
+{% endblock %}

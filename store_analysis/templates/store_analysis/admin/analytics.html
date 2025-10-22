@@ -198,7 +198,7 @@
         <div style="display: flex; justify-content: space-between; align-items: end; height: 200px; border-bottom: 2px solid rgba(255, 255, 255, 0.2);">
             {% for stat in daily_stats %}
             <div style="text-align: center;">
-                <div style="background: linear-gradient(to top, #4CAF50, #2196F3); width: 30px; height: {{ stat.total_views|floatformat:0|add:0|mul:2 }}px; margin: 0 auto 10px; border-radius: 5px 5px 0 0;"></div>
+                <div style="background: linear-gradient(to top, #4CAF50, #2196F3); width: 30px; height: {% widthratio stat.total_views 1 2 %}px; margin: 0 auto 10px; border-radius: 5px 5px 0 0;"></div>
                 <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">{{ stat.date|date:"M d" }}</div>
                 <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.5);">{{ stat.total_views }}</div>
             </div>

@@ -265,6 +265,10 @@
         <form id="storeAnalysisForm" method="post" enctype="multipart/form-data" action="{% url 'store_analysis:forms_submit' %}">
             {% csrf_token %}
             
+            <!-- Hidden fields for plan detection -->
+            <input type="hidden" name="package_type" value="basic" id="package_type_input">
+            <input type="hidden" name="ai_provider" value="ollama_only" id="ai_provider_input">
+            
             <!-- Step 1: Basic Information -->
             <div class="form-section active" data-step="1">
                 <div class="section-header">

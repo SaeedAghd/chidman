@@ -31,15 +31,22 @@ def signup_view(request):
             logger.info(f"📥 Signup POST data: {request.POST}")
             
             if form.is_valid():
-                # فرم خودش UserProfile رو با شماره موبایل ایجاد می‌کنه
-                user = form.save()
-                
-                # ورود مستقیم
-                login(request, user)
-                messages.success(request, f'✅ حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.get_full_name() or user.username}!')
-                
-                # redirect به صفحه محصولات
-                return redirect('store_analysis:products')
+                try:
+                    # فرم خودش UserProfile رو با شماره موبایل ایجاد می‌کنه
+                    user = form.save()
+                    
+                    # ورود مستقیم
+                    login(request, user)
+                    messages.success(request, f'✅ حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.get_full_name() or user.username}!')
+                    
+                    # redirect به صفحه محصولات
+                    return redirect('store_analysis:products')
+                except Exception as e:
+                    logger.error(f"❌ Error during user creation: {e}")
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    messages.error(request, f'خطا در ایجاد حساب کاربری: {str(e)}')
+                    return render(request, 'store_analysis/signup.html', {'form': form})
             else:
                 # لاگ کردن خطاهای فرم
                 logger.error(f"❌ Form validation errors: {form.errors}")

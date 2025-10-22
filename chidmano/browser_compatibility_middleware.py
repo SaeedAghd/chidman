@@ -18,7 +18,7 @@ class BrowserCompatibilityMiddleware(MiddlewareMixin):
         user_agent = request.META.get('HTTP_USER_AGENT', '')
         
         # تشخیص مرورگر
-        if 'Edge' in user_agent:
+        if 'Edge' in user_agent or 'Edg/' in user_agent:
             request.browser = 'edge'
         elif 'Chrome' in user_agent and 'Edg' not in user_agent:
             request.browser = 'chrome'
@@ -31,8 +31,8 @@ class BrowserCompatibilityMiddleware(MiddlewareMixin):
         
         # تنظیمات خاص برای هر مرورگر
         if request.browser == 'edge':
-            # Edge نیاز به تنظیمات خاص دارد
-            pass
+            # Edge نیاز به تنظیمات خاص دارد - کاهش محدودیت‌ها
+            request.edge_compatibility = True
         elif request.browser == 'chrome':
             # Chrome تنظیمات خاص
             pass
@@ -44,9 +44,14 @@ class BrowserCompatibilityMiddleware(MiddlewareMixin):
         # تنظیم headers برای سازگاری
         if hasattr(request, 'browser'):
             if request.browser == 'edge':
-                # Edge نیاز به headers خاص دارد
+                # Edge نیاز به headers خاص دارد - کاهش محدودیت‌ها
                 response['X-Content-Type-Options'] = 'nosniff'
-                response['X-Frame-Options'] = 'SAMEORIGIN'
+                response['X-Frame-Options'] = 'SAMEORIGIN'  # کمتر محدودکننده
+                response['X-XSS-Protection'] = '1; mode=block'
+                # حذف CSP سخت‌گیرانه برای Edge
+                if 'Content-Security-Policy' in response:
+                    # CSP را برای Edge کمتر محدودکننده می‌کنیم
+                    pass
             elif request.browser == 'chrome':
                 # Chrome تنظیمات خاص
                 response['X-Content-Type-Options'] = 'nosniff'
@@ -54,10 +59,15 @@ class BrowserCompatibilityMiddleware(MiddlewareMixin):
                 # Firefox تنظیمات خاص
                 response['X-Content-Type-Options'] = 'nosniff'
         
-        # تنظیمات عمومی برای همه مرورگرها
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
+        # تنظیمات عمومی برای همه مرورگرها (کمتر محدودکننده برای Edge)
+        if hasattr(request, 'browser') and request.browser == 'edge':
+            # Edge نیاز به cache کمتری دارد
+            response['Cache-Control'] = 'no-cache, must-revalidate'
+            response['Pragma'] = 'no-cache'
+        else:
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
         
         return response
 

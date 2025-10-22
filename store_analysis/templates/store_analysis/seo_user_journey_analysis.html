@@ -1,0 +1,298 @@
+{% extends 'store_analysis/base.html' %}
+{% load static %}
+
+{% block title %}تحلیل مسیر کاربر توسط هیئت متخصصان SEO{% endblock %}
+
+{% block extra_css %}
+<style>
+    .seo-analysis-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .expert-panel-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-bottom: 2rem;
+    }
+    
+    .expert-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem;
+        color: white;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+    
+    .expert-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .analysis-content {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 1rem 0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .quality-score {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin: 1rem 0;
+    }
+    
+    .download-btn {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
+        transition: transform 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .download-btn:hover {
+        transform: translateY(-3px);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .expert-name {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .expert-specialty {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .analysis-text {
+        line-height: 1.8;
+        font-size: 1.1rem;
+        text-align: justify;
+    }
+    
+    .panel-title {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="seo-analysis-container">
+    <div class="container">
+        <!-- عنوان اصلی -->
+        <div class="text-center mb-5">
+            <h1 class="text-white display-4 fw-bold mb-3">
+                🔍 تحلیل مسیر کاربر چیدمانو
+            </h1>
+            <p class="text-white-50 fs-5">
+                توسط هیئت متخصصان SEO و UX
+            </p>
+        </div>
+
+        <!-- هیئت متخصصان -->
+        <div class="expert-panel-card">
+            <div class="panel-title">
+                <h2>👥 اعضای هیئت متخصصان SEO</h2>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="expert-card">
+                        <div class="expert-name">دکتر علی احمدی</div>
+                        <div class="expert-specialty">متخصص SEO تکنیکال و Core Web Vitals</div>
+                        <small>18 سال تجربه</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="expert-card">
+                        <div class="expert-name">مهندس فاطمه رضایی</div>
+                        <div class="expert-specialty">متخصص UX/UI و تجربه کاربری</div>
+                        <small>16 سال تجربه</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="expert-card">
+                        <div class="expert-name">استاد محمد کریمی</div>
+                        <div class="expert-specialty">متخصص Content Marketing و On-Page SEO</div>
+                        <small>22 سال تجربه</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-sm-6 mb-3">
+                    <div class="expert-card">
+                        <div class="expert-name">دکتر زهرا نوری</div>
+                        <div class="expert-specialty">متخصص Analytics و Conversion Optimization</div>
+                        <small>20 سال تجربه</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-sm-6 mb-3">
+                    <div class="expert-card">
+                        <div class="expert-name">مهندس احمد حسینی</div>
+                        <div class="expert-specialty">متخصص Mobile SEO و Performance</div>
+                        <small>19 سال تجربه</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- امتیازات کیفیت -->
+        <div class="quality-score">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>امتیاز کیفیت تحلیل</h4>
+                    <h2>{{ quality_score }}/100</h2>
+                </div>
+                <div class="col-md-6">
+                    <h4>درجه اطمینان</h4>
+                    <h2>{{ confidence_score }}/100</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- تحلیل اصلی -->
+        <div class="analysis-content">
+            <h3 class="text-center mb-4">💬 بحث و تحلیل هیئت متخصصان SEO</h3>
+            
+            {% if seo_analysis.analysis_text %}
+                <div class="analysis-text">
+                    {{ seo_analysis.analysis_text|linebreaks }}
+                </div>
+            {% else %}
+                <div class="alert alert-warning text-center">
+                    <h4>تحلیل در حال تولید است...</h4>
+                    <p>لطفاً چند لحظه صبر کنید تا هیئت متخصصان تحلیل خود را تکمیل کنند.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- دکمه دانلود -->
+        <div class="text-center mt-4">
+            <a href="{% url 'store_analysis:download_seo_analysis_report' %}" class="download-btn">
+                📥 دانلود گزارش PDF
+            </a>
+        </div>
+
+        <!-- مراحل تحلیل -->
+        <div class="analysis-content mt-4">
+            <h4>📋 مراحل تحلیل و بحث هیئت</h4>
+            <div class="row">
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">🔍 مرحله 1</h5>
+                            <p class="card-text">بررسی تخصصی هر متخصص</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">💬 مرحله 2</h5>
+                            <p class="card-text">بحث و تبادل نظر</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">🎯 مرحله 3</h5>
+                            <p class="card-text">تحلیل جامع و نتیجه‌گیری</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">📊 مرحله 4</h5>
+                            <p class="card-text">اولویت‌بندی و زمان‌بندی</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">🚀 مرحله 5</h5>
+                            <p class="card-text">پیش‌بینی نتایج</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">📈 مرحله 6</h5>
+                            <p class="card-text">نتیجه‌گیری نهایی</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- اطلاعات تکمیلی -->
+        <div class="analysis-content mt-4">
+            <h4>📋 اطلاعات تحلیل</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>نوع تحلیل:</strong> {{ analysis_type }}</p>
+                    <p><strong>تاریخ تولید:</strong> {{ generated_at|date:"Y/m/d H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>منبع تحلیل:</strong> {{ seo_analysis.source }}</p>
+                    <p><strong>وضعیت:</strong> 
+                        {% if seo_analysis.source == 'seo_expert_panel' %}
+                            <span class="badge bg-success">تولید شده توسط هیئت متخصصان</span>
+                        {% else %}
+                            <span class="badge bg-warning">تحلیل پیش‌فرض</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // انیمیشن برای کارت‌های متخصصان
+    document.addEventListener('DOMContentLoaded', function() {
+        const expertCards = document.querySelectorAll('.expert-card');
+        expertCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.5s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 200);
+        });
+    });
+</script>
+{% endblock %}

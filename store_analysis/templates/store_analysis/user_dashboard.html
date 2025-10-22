@@ -507,6 +507,138 @@
     .fade-in-up {
         animation: fadeInUp 0.6s ease-out;
     }
+
+    /* Processing Message Styles */
+    .processing-message {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--apple-gray-200);
+        box-shadow: var(--shadow-sm);
+        margin: 1rem 0;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: var(--shadow-sm);
+        }
+        50% {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
+        }
+    }
+
+    .processing-icon {
+        font-size: 2.5rem;
+        animation: bounce 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .processing-text {
+        flex: 1;
+    }
+
+    .processing-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--apple-gray-900);
+        margin-bottom: 0.5rem;
+    }
+
+    .processing-subtitle {
+        font-size: 0.9rem;
+        color: var(--apple-gray-600);
+        line-height: 1.6;
+    }
+
+    .processing-subtitle br {
+        margin-bottom: 0.3rem;
+    }
+
+    /* Cleanup Section Styles */
+    .cleanup-section {
+        margin: 2rem 0;
+    }
+
+    .cleanup-card {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid #f39c12;
+        box-shadow: var(--shadow-md);
+        animation: slideInUp 0.6s ease-out;
+    }
+
+    .cleanup-icon {
+        font-size: 3rem;
+        animation: bounce 2s ease-in-out infinite;
+    }
+
+    .cleanup-content {
+        flex: 1;
+    }
+
+    .cleanup-content h4 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #8b4513;
+        margin-bottom: 0.5rem;
+    }
+
+    .cleanup-content p {
+        color: #8b4513;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .cleanup-form {
+        display: inline-block;
+    }
+
+    .cleanup-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-md);
+    }
+
+    .cleanup-btn:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .cleanup-btn:active {
+        transform: translateY(0);
+    }
 </style>
 {% endblock %}
 
@@ -526,7 +658,7 @@
                 </p>
             </div>
             <div class="header-actions">
-                <a href="{% url 'store_analysis:forms' %}" class="cta-button">
+                <a href="{% url 'store_analysis:products' %}" class="cta-button">
                     <span>🚀</span>
                     <span>تحلیل جدید</span>
                 </a>
@@ -584,6 +716,9 @@
                                         {% elif analysis.status == 'processing' %}
                                             <span>⏳</span>
                                             <span>در حال پردازش</span>
+                                        {% elif analysis.status == 'pending' %}
+                                            <span>✨</span>
+                                            <span>در انتظار شروع</span>
                                         {% elif analysis.status == 'failed' %}
                                             <span>❌</span>
                                             <span>تحلیل ناموفق</span>
@@ -596,28 +731,54 @@
                                     <!-- دکمه‌های عملی -->
                                     {% if analysis.status == 'failed' %}
                                     <!-- دکمه‌های تحلیل ناموفق -->
-                                    <a href="/store/forms/" class="view-details-btn main-btn">
+                                    <a href="{% url 'store_analysis:products' %}" class="view-details-btn main-btn">
                                         <span>🔄</span>
                                         <span>تلاش مجدد</span>
                                     </a>
-                                    <a href="/store/forms/" class="view-details-btn pdf-btn">
+                                    <a href="{% url 'store_analysis:products' %}" class="view-details-btn pdf-btn">
                                         <span>📝</span>
                                         <span>تحلیل جدید</span>
                                     </a>
-                                    {% elif analysis.order and analysis.order.order_number %}
+                                    {% elif analysis.status == 'completed' %}
                                     <!-- دکمه اصلی: مشاهده نتایج -->
-                                    <a href="/store/order/{{ analysis.order.order_number }}/results/" class="view-details-btn main-btn">
+                                    <a href="/store/analysis/{{ analysis.pk }}/results/" class="view-details-btn main-btn">
                                         <span>📊</span>
                                         <span>مشاهده نتایج</span>
                                     </a>
                                     
                                     <!-- دکمه PDF (فقط برای تحلیل‌های کامل) -->
-                                    {% if analysis.status == 'completed' %}
                                     <a href="/store/analysis/{{ analysis.pk }}/download/?type=pdf" target="_blank" rel="noopener" class="view-details-btn pdf-btn">
                                         <span>📄</span>
                                         <span>دانلود PDF</span>
                                     </a>
-                                    {% endif %}
+                                    
+                                    {% elif analysis.status == 'pending' %}
+                                    <!-- پیام زیبا برای تحلیل‌های در انتظار -->
+                                    <div class="processing-message">
+                                        <div class="processing-icon">✨</div>
+                                        <div class="processing-text">
+                                            <div class="processing-title">تحلیل شما در صف انتظار است</div>
+                                            <div class="processing-subtitle">
+                                                🤖 چیدمانو AI در حال آماده‌سازی تحلیل جامع فروشگاه شما است<br>
+                                                ⏰ لطفاً حدود 30 دقیقه صبر کنید تا تحلیل کامل شود<br>
+                                                🔍 پس از تکمیل، دکمه "مشاهده نتایج" فعال خواهد شد
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% elif analysis.status == 'processing' %}
+                                    <!-- پیام زیبا برای تحلیل‌های در حال پردازش -->
+                                    <div class="processing-message">
+                                        <div class="processing-icon">⏳</div>
+                                        <div class="processing-text">
+                                            <div class="processing-title">تحلیل در حال انجام است</div>
+                                            <div class="processing-subtitle">
+                                                🧠 چیدمانو AI در حال تحلیل عمیق فروشگاه شما است<br>
+                                                ⏰ حدود 15-20 دقیقه دیگر تحلیل کامل می‌شود<br>
+                                                💎 گزارش جامع با پیشنهادات حرفه‌ای آماده خواهد شد
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% elif analysis.order and analysis.order.order_number %}
                                     
                                     <!-- دکمه تحلیل پیشرفته (فقط برای تحلیل‌های اولیه) -->
                                     {% if analysis.status == 'preliminary_completed' %}
@@ -641,7 +802,7 @@
                                 <p class="cta-subtitle">اولین تحلیل فروشگاه خود را شروع کنید و ببینید چقدر می‌توانید فروش خود را افزایش دهید</p>
                             {% endif %}
                             <div class="cta-buttons">
-                                <a href="{% url 'store_analysis:forms' %}" class="cta-button">
+                                <a href="{% url 'store_analysis:products' %}" class="cta-button">
                                     <span>🚀</span>
                                     <span>{% if failed_analyses > 0 %}تلاش مجدد{% else %}شروع تحلیل جدید{% endif %}</span>
                                 </a>
@@ -654,12 +815,12 @@
                     {% endif %}
                     
                     <!-- نمایش محدودیت تحلیل برای کاربران رایگان -->
-                    {% if total_analyses >= 1 %}
-                        {% if not active_subscriptions %}
+                    {% if all_analyses_count >= 1 %}
+                        {% if not active_subscriptions and user_has_free_plan %}
                         <div class="upgrade-notice">
                             <div class="notice-content">
                                 <h4>📊 شما در طرح رایگان هستید</h4>
-                                <p>شما {{ total_analyses }} تحلیل انجام داده‌اید. برای تحلیل‌های بیشتر، پلن پولی تهیه کنید.</p>
+                                <p>شما {{ all_analyses_count }} تحلیل انجام داده‌اید. برای تحلیل‌های بیشتر، پلن پولی تهیه کنید.</p>
                                 <a href="{% url 'store_analysis:payment_packages' %}" class="upgrade-btn">
                                     <span>💎</span>
                                     <span>ارتقا به پلن پولی</span>
@@ -667,6 +828,28 @@
                             </div>
                         </div>
                         {% endif %}
+                    {% endif %}
+                    
+                    <!-- دکمه حذف تحلیل‌های ناقص -->
+                    {% if pending_analyses > 0 or failed_analyses > 0 or processing_analyses > 0 %}
+                    <div class="cleanup-section">
+                        <div class="cleanup-card">
+                            <div class="cleanup-icon">🧹</div>
+                            <div class="cleanup-content">
+                                <h4>پاکسازی تحلیل‌های ناقص</h4>
+                                <p>
+                                    شما {{ pending_analyses|add:failed_analyses|add:processing_analyses }} تحلیل ناقص دارید که می‌توانید آن‌ها را حذف کنید.
+                                </p>
+                                <form method="post" action="{% url 'store_analysis:delete_incomplete_analyses' %}" class="cleanup-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="cleanup-btn" onclick="return confirm('آیا مطمئن هستید که می‌خواهید تحلیل‌های ناقص را حذف کنید؟')">
+                                        <span>🗑️</span>
+                                        <span>حذف تحلیل‌های ناقص</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
             </div>
         </div>
@@ -681,7 +864,7 @@
                 </div>
                 <div class="card-body">
                     <div class="quick-actions">
-                        <a href="{% url 'store_analysis:forms' %}" class="action-button">
+                        <a href="{% url 'store_analysis:products' %}" class="action-button">
                             <div class="action-icon">➕</div>
                             <div class="action-label">تحلیل جدید</div>
                         </a>
@@ -699,7 +882,7 @@
                             <div class="action-label">مشاور هوش مصنوعی</div>
                         </a>
                         {% else %}
-                        <a href="{% url 'store_analysis:forms' %}" class="action-button" style="background: linear-gradient(135deg, #999 0%, #666 100%); opacity: 0.6;">
+                        <a href="{% url 'store_analysis:products' %}" class="action-button" style="background: linear-gradient(135deg, #999 0%, #666 100%); opacity: 0.6;">
                             <div class="action-icon">🤖</div>
                             <div class="action-label">مشاور هوشمند (ابتدا تحلیل کنید)</div>
                         </a>

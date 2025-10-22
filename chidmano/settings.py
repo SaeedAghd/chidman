@@ -40,7 +40,7 @@ PAYMENT_GATEWAY = {
 }
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'  # Default to False for production
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for local development
 
 # Enable debug for Render if needed
 if os.getenv('RENDER'):
@@ -79,6 +79,9 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,*.lia
 
 # Application definition
 
+# Site ID for django.contrib.sites
+SITE_ID = 1
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -86,6 +89,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'django_filters',
     'corsheaders',
@@ -192,13 +196,25 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'fa-ir'
+LANGUAGE_CODE = 'en-us'  # Fixed: Use standard language code
 
 TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
+USE_L10N = True  # Added: Enable localization
+
 USE_TZ = True
+
+# Additional language settings to prevent i18n errors
+LANGUAGES = [
+    ('en', 'English'),
+    ('fa', 'فارسی'),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -220,7 +236,7 @@ if os.getenv('LIARA') == 'true':
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
 elif not DEBUG:
-    STATIC_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATIC_BACKEND = 'whitenoise.storage.CompressedStaticFilesStorage'  # تغییر از ManifestStaticFilesStorage
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
@@ -369,13 +385,13 @@ FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 
 # Payment - PayPing
 # PayPing Settings - Token جدید برای پرداخت و کیف پول
-PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', 'F0936F0E72CD01580921BA4ED9D8D740D8924C98895D48A32E387FCD9C1EEFBF-1')
+PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', 'D0C2E2134B072175DAC950AAEB776938C8E024C4B1942AF6FF760A3615B67685-1')
 PAYPING_SANDBOX = os.getenv('PAYPING_SANDBOX', 'False').lower() == 'true'  # Force production due to sandbox DNS issues
 PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/')
 PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
 
 # Mock mode for testing when PayPing token has restrictions
-PAYPING_MOCK_MODE = os.getenv('PAYPING_MOCK_MODE', 'False').lower() == 'true'
+PAYPING_MOCK_MODE = os.getenv('PAYPING_MOCK_MODE', 'True').lower() == 'true'
 
 # AI Analysis Settings
 AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour

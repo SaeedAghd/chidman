@@ -20,9 +20,11 @@ if not hasattr(views, 'verify_email_view'):
 
 # NOTE: Deployment cache-buster: 2025-10-05T22:58 - urls synced
 urlpatterns = [
-    # صفحه اصلی
+    # صفحات اصلی
     path('', views.simple_home, name='home'),
     path('landing/', views.simple_home, name='landing'),
+    path('about/', TemplateView.as_view(template_name='chidmano/about_minimal.html'), name='about'),
+    path('guide/store-layout/', TemplateView.as_view(template_name='chidmano/guide_minimal.html'), name='store_layout_guide'),
     
     # اپ تحلیل فروشگاه
     path('store/', include('store_analysis.urls', namespace='store_analysis')),

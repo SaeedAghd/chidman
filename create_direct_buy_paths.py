@@ -137,7 +137,7 @@ def create_direct_buy_paths():
             }
         ],
         'payping_integration': {
-            'token': 'F0936F0E72CD01580921BA4ED9D8D740D8924C98895D48A32E387FCD9C1EEFBF-1',
+            'token': 'D0C2E2134B072175DAC950AAEB776938C8E024C4B1942AF6FF760A3615B67685-1',
             'callback_urls': {
                 'success': '/store/payping/success/',
                 'cancel': '/store/payping/cancel/',

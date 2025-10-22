@@ -19,7 +19,37 @@ class HomeSitemap(Sitemap):
     protocol = 'https'
     
     def items(self):
-        return ['chidmano:home']
+        return ['chidmano:home', 'chidmano:about', 'chidmano:store_layout_guide']
+    
+    def location(self, item):
+        return reverse(item)
+    
+    def lastmod(self, item):
+        return timezone.now()
+
+class AboutSitemap(Sitemap):
+    """Sitemap برای صفحه درباره"""
+    changefreq = 'monthly'
+    priority = 0.8
+    protocol = 'https'
+    
+    def items(self):
+        return ['chidmano:about']
+    
+    def location(self, item):
+        return reverse(item)
+    
+    def lastmod(self, item):
+        return timezone.now()
+
+class GuideSitemap(Sitemap):
+    """Sitemap برای راهنماها"""
+    changefreq = 'weekly'
+    priority = 0.9
+    protocol = 'https'
+    
+    def items(self):
+        return ['chidmano:store_layout_guide']
     
     def location(self, item):
         return reverse(item)

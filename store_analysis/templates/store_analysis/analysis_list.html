@@ -22,7 +22,7 @@
                                         </h3>
                                     </div>
                                     <div class="col-md-4 text-end">
-                                        <a href="{% url 'store_analysis:forms' %}" class="btn btn-light btn-lg">
+                                        <a href="{% url 'store_analysis:products' %}" class="btn btn-light btn-lg">
                                             <i class="fas fa-plus me-2"></i>
                                             تحلیل جدید
                                         </a>
@@ -94,7 +94,7 @@
                             <div class="card-footer bg-light">
                                 <div class="row">
                                     <div class="col-4">
-                                        <a href="{% url 'store_analysis:order_analysis_results' order_id=analysis.order.order_number %}" 
+                                        <a href="{% url 'store_analysis:analysis_results' analysis.pk %}" 
                                            class="btn btn-outline-primary btn-sm w-100">
                                             <i class="fas fa-eye me-1"></i>
                                             مشاهده
@@ -147,7 +147,7 @@
                         <i class="fas fa-inbox text-muted fa-4x mb-4"></i>
                         <h4 class="text-muted mb-3">هنوز تحلیلی ثبت نکرده‌اید</h4>
                         <p class="text-muted mb-4">برای شروع، اولین تحلیل فروشگاه خود را ثبت کنید.</p>
-                        <a href="{% url 'store_analysis:forms' %}" class="btn btn-primary btn-lg">
+                        <a href="{% url 'store_analysis:products' %}" class="btn btn-primary btn-lg">
                             <i class="fas fa-plus me-2"></i>
                             شروع تحلیل جدید
                         </a>

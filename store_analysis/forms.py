@@ -286,15 +286,16 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
-            # ایجاد UserProfile با شماره موبایل
-            from store_analysis.models import UserProfile
-            UserProfile.objects.create(
-                user=user,
-                phone=self.cleaned_data['phone'],
-                legal_agreement_accepted=False,
-                newsletter_subscription=True,
-                email_notifications=True,
-                sms_notifications=False,
-                bio=''
-            )
+            # ایجاد UserProfile ساده
+            try:
+                from store_analysis.models import UserProfile
+                UserProfile.objects.create(
+                    user=user,
+                    phone=self.cleaned_data['phone']
+                )
+            except Exception as e:
+                # اگر UserProfile ایجاد نشد، لاگ کن اما کاربر را ایجاد کن
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error creating UserProfile for user {user.username}: {e}")
         return user

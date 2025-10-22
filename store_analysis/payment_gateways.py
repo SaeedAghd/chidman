@@ -176,10 +176,13 @@ class PayPingGateway:
                 # Generate mock payment code
                 mock_code = f"MOCK_{uuid.uuid4().hex[:8].upper()}"
                 
+                # Use current domain for mock payment URL
+                base_url = f"http://127.0.0.1:8000" if settings.DEBUG else f"https://chidmano.ir"
+                
                 return {
                     "status": "success",
                     "authority": mock_code,
-                    "payment_url": f"https://chidmano.ir/store/mock/payment/success/{mock_code}/",
+                    "payment_url": f"{base_url}/store/mock/payment/success/{mock_code}/",
                     "mock_mode": True
                 }
             

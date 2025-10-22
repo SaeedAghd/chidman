@@ -257,6 +257,26 @@ class UserSubscription(models.Model):
         return False
 
 
+class Order(models.Model):
+    """مدل سفارش موقت - برای سازگاری با کد موجود"""
+    id = models.AutoField(primary_key=True)
+    order_number = models.CharField(max_length=50, unique=True, verbose_name='شماره سفارش')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    status = models.CharField(max_length=20, default='pending', verbose_name='وضعیت')
+    original_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ اصلی')
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ نهایی')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
+    
+    class Meta:
+        verbose_name = 'سفارش'
+        verbose_name_plural = 'سفارشات'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"سفارش {self.order_number} - {self.user.username}"
+
+
 class StoreAnalysis(models.Model):
     """
     Store analysis model for tracking store analysis requests
@@ -279,22 +299,32 @@ class StoreAnalysis(models.Model):
     
     # Primary fields
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, verbose_name='کاربر')
     
     # Store information (match production DB schema)
     store_name = models.CharField(max_length=200, verbose_name='نام فروشگاه')
     store_url = models.URLField(blank=True, null=True, verbose_name='آدرس فروشگاه')
+    store_type = models.CharField(max_length=50, blank=True, verbose_name='نوع فروشگاه')
+    store_size = models.CharField(max_length=50, blank=True, verbose_name='اندازه فروشگاه')
+    store_address = models.TextField(blank=True, verbose_name='آدرس فروشگاه')
+    contact_phone = models.CharField(max_length=20, blank=True, verbose_name='شماره تماس')
+    contact_email = models.EmailField(blank=True, verbose_name='ایمیل تماس')
+    additional_info = models.TextField(blank=True, verbose_name='اطلاعات اضافی')
+    business_goals = models.TextField(blank=True, verbose_name='اهداف کسب‌وکار')
+    marketing_budget = models.CharField(max_length=50, blank=True, verbose_name='بودجه بازاریابی')
     
     # Analysis details
     analysis_type = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES, default='basic', verbose_name='نوع تحلیل')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
-    priority = models.CharField(max_length=10, default='medium', verbose_name='اولویت')
+    package_type = models.CharField(max_length=20, default='basic', verbose_name='نوع پکیج')
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ نهایی')
+    # priority = models.CharField(max_length=10, default='medium', verbose_name='اولویت')
     
     # Analysis data and order reference
     analysis_data = models.JSONField(default=dict, blank=True, verbose_name='داده‌های تحلیل')
     # AI results (structured)
     results = models.JSONField(default=dict, blank=True, null=True, verbose_name='نتایج هوش مصنوعی')
-    order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='سفارش')
+    # order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='سفارش')
     
     # Results
     preliminary_analysis = models.TextField(blank=True, verbose_name='تحلیل اولیه')
@@ -485,85 +515,9 @@ class FAQService(models.Model):
         return self.question
 
 
-class Order(models.Model):
-    """
-    Order model for tracking store analysis orders
-    """
-    
-    STATUS_CHOICES = [
-        ('pending', 'در انتظار'),
-        ('paid', 'پرداخت شده'),
-        ('processing', 'در حال پردازش'),
-        ('completed', 'تکمیل شده'),
-        ('cancelled', 'لغو شده'),
-        ('refunded', 'برگشت شده'),
-    ]
-    
-    # Primary fields
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
-    
-    # Order details
-    order_number = models.CharField(max_length=50, unique=True, verbose_name='شماره سفارش')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
-    # Payment meta (present in production DB)
-    payment_method = models.CharField(max_length=50, default='online', verbose_name='روش پرداخت')
-    transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
-    
-    # Pricing
-    original_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ اصلی')
-    base_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ پایه')
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ تخفیف')
-    final_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='مبلغ نهایی')
-    currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
-    
-    # Plan reference
-    plan = models.ForeignKey('ServicePackage', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='پکیج')
-    
-    # Payment reference
-    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='پرداخت')
-    
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
-    
-    class Meta:
-        verbose_name = 'سفارش'
-        verbose_name_plural = 'سفارش‌ها'
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['user']),
-            models.Index(fields=['status']),
-            models.Index(fields=['order_number']),
-            models.Index(fields=['created_at']),
-        ]
-    
-    def __str__(self):
-        return f"Order {self.order_number} - {self.final_amount} {self.currency}"
-    
-    def save(self, *args, **kwargs):
-        # Ensure payment_method always has a safe value to avoid NULL inserts
-        if not getattr(self, 'payment_method', None):
-            self.payment_method = 'online'
-        # Ensure transaction_id is present to satisfy NOT NULL in production DB
-        if not getattr(self, 'transaction_id', None):
-            # Generate a placeholder transaction id; real id will be set after gateway
-            try:
-                import uuid as _uuid
-                self.transaction_id = f"PENDING_{_uuid.uuid4().hex[:12].upper()}"
-            except Exception:
-                self.transaction_id = "PENDING_AUTO"
-        super().save(*args, **kwargs)
-
-    def mark_paid(self):
-        """Mark order as paid"""
-        self.status = 'paid'
-        self.save()
-    
-    def mark_completed(self):
-        """Mark order as completed"""
-        self.status = 'completed'
-        self.save()
+# Order model - کاملاً حذف شده (استفاده از StoreAnalysis مستقیم)
+# class Order(models.Model):
+#     pass
 
 
 class DiscountNotification(models.Model):
@@ -947,7 +901,7 @@ class UserProfile(models.Model):
     
     # اطلاعات شخصی
     phone = models.CharField(max_length=11, verbose_name='شماره موبایل', help_text='شماره موبایل برای پرداخت و ارسال پیامک الزامی است')
-    address = models.TextField(blank=True, null=True, verbose_name='آدرس')
+    # address = models.TextField(blank=True, null=True, verbose_name='آدرس')
     birth_date = models.DateField(blank=True, null=True, verbose_name='تاریخ تولد')
     
     # تنظیمات حساب
@@ -989,7 +943,8 @@ class UserProfile(models.Model):
 # مدل‌های مفقود که در views.py استفاده می‌شوند
 class AnalysisRequest(models.Model):
     """درخواست تحلیل"""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='سفارش')
+    # order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='سفارش')
+    store_analysis = models.ForeignKey(StoreAnalysis, on_delete=models.CASCADE, verbose_name='تحلیل فروشگاه')
     store_analysis_data = models.JSONField(default=dict, verbose_name='داده‌های تحلیل')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     
