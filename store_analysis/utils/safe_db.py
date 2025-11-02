@@ -122,13 +122,14 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
         'store_size': 'store_size',
         'store_address': 'store_address',
         'package_type': 'package_type',
-        'contact_phone': 'contact_phone',  # فقط اگر موجود باشد
-        'contact_email': 'contact_email',  # فقط اگر موجود باشد
         'final_amount': 'final_amount',
         'additional_info': 'additional_info',
         'business_goals': 'business_goals',
         'marketing_budget': 'marketing_budget',
     }
+    
+    # فیلدهای missing که نباید اضافه شوند حتی اگر در kwargs باشند
+    missing_fields = ['contact_phone', 'contact_email', 'priority']
     
     # اضافه کردن فیلدهای optional که موجود هستند
     for key, db_field in optional_mapping.items():
@@ -141,6 +142,12 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
                 # این فیلدها ممکن است در kwargs نباشند اما در available_columns باشند
                 # پس فقط اگر مقدار دارند اضافه می‌شوند
                 pass
+    
+    # contact_phone و contact_email را به صورت جداگانه بررسی کن (اگر موجود باشند)
+    for missing_field in ['contact_phone', 'contact_email']:
+        if missing_field in available_columns and missing_field in kwargs and kwargs[missing_field] is not None:
+            fields.append(missing_field)
+            values.append(kwargs[missing_field])
     
     # اگر analysis_data موجود است و ستون وجود دارد
     if 'analysis_data' in available_columns and 'analysis_data' in kwargs:
