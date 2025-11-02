@@ -926,8 +926,28 @@ def delete_incomplete_analyses(request):
         queryset = StoreAnalysis.objects.all()
         if not (request.user.is_staff or request.user.is_superuser):
             queryset = queryset.filter(user=request.user)
-        deleted_count, _ = queryset.filter(status__in=['pending', 'failed']).delete()
-        messages.success(request, f"{deleted_count} تحلیل ناقص حذف شد")
+        
+        # حذف AnalysisRequest های مرتبط (اگر وجود داشته باشند)
+        try:
+            from store_analysis.models import AnalysisRequest
+            incomplete_analyses = queryset.filter(status__in=['pending', 'failed'])
+            for analysis in incomplete_analyses:
+                try:
+                    AnalysisRequest.objects.filter(store_analysis=analysis).delete()
+                except Exception:
+                    # اگر AnalysisRequest یا فیلد store_analysis وجود نداشت، ادامه بده
+                    pass
+        except Exception:
+            # اگر AnalysisRequest مدل وجود نداشت، ادامه بده
+            pass
+        
+        # حذف تحلیل‌های ناقص
+        deleted_count, deleted_objects = queryset.filter(status__in=['pending', 'failed']).delete()
+        
+        # شمارش واقعی StoreAnalysis حذف شده
+        actual_count = deleted_objects.get('store_analysis.StoreAnalysis', 0)
+        
+        messages.success(request, f"{actual_count} تحلیل ناقص حذف شد")
     except Exception as e:
         logger.error(f"delete_incomplete_analyses error: {e}")
         messages.error(request, 'خطا در حذف تحلیل‌های ناقص')
