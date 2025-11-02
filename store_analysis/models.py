@@ -983,6 +983,9 @@ class TicketMessage(models.Model):
     content = models.TextField(verbose_name='محتوای پیام')
     message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE_CHOICES, default='user', verbose_name='نوع پیام')
     
+    # فیلد برای تشخیص پیام داخلی (برای ادمین‌ها)
+    is_internal = models.BooleanField(default=False, verbose_name='پیام داخلی', help_text='اگر True باشد، فقط برای ادمین‌ها قابل مشاهده است')
+    
     # پیوست‌ها
     attachments = models.JSONField(default=list, verbose_name='پیوست‌ها')
     

@@ -4689,67 +4689,151 @@ def payping_callback(request, order_id):
             order.save(update_fields=['status', 'payment_method', 'payment', 'transaction_id'])
 
             if store_analysis and store_analysis.status not in ['completed']:
-                store_analysis.status = 'paid'
+                store_analysis.status = 'processing'  # تغییر به processing برای شروع تحلیل
                 store_analysis.save(update_fields=['status'])
+                logger.info(f"🚀 وضعیت تحلیل {store_analysis.id} به 'processing' تغییر کرد - شروع تحلیل واقعی")
 
-            if store_analysis and store_analysis.package_type in ['professional', 'enterprise']:
+            # شروع تحلیل واقعی با Liara AI برای تمام پکیج‌ها
+            if store_analysis:
                 try:
-                    from django.core.files.storage import default_storage
-
-                    images_data = None
-                    videos_data = None
-
-                    images_path = f'analyses/{store_analysis.id}/images/'
-                    videos_path = f'analyses/{store_analysis.id}/videos/'
-
-                    if default_storage.exists(images_path):
-                        images_list = default_storage.listdir(images_path)[1]
-                        if images_list:
-                            images_data = {'count': len(images_list), 'files': images_list[:20]}
-
-                    if default_storage.exists(videos_path):
-                        videos_list = default_storage.listdir(videos_path)[1]
-                        if videos_list:
-                            videos_data = {'video_count': len(videos_list), 'files': videos_list[:5]}
-
-                    report_generator = PremiumReportGenerator()
-                    premium_report = report_generator.generate_premium_report(
-                        analysis=store_analysis,
-                        images_data=images_data,
-                        video_data=videos_data,
-                        sales_data=None
-                    )
-
-                    current_results = store_analysis.results or {}
-                    current_results.update({
-                        'premium_report': premium_report,
-                        'report_type': f'premium_{store_analysis.package_type}',
-                        'generated_at': timezone.now().isoformat(),
-                        'payment_refid': refid
-                    })
-                    store_analysis.results = current_results
-                    store_analysis.status = 'completed'
-                    store_analysis.save(update_fields=['results', 'status'])
+                    # شروع تحلیل در background thread
+                    import threading
                     
-                    # ایجاد یادآوری بازبینی
-                    try:
-                        from .models import ReviewReminder
-                        ReviewReminder.create_for_analysis(
-                            analysis=store_analysis,
-                            days_until_reminder=30,
-                            discount_percentage=30
-                        )
-                        logger.info(f"Review reminder created for analysis {store_analysis.id}")
-                    except Exception as e:
-                        logger.error(f"Error creating review reminder: {e}", exc_info=True)
-
-                    logger.info("✅ Premium report generated for analysis %s", store_analysis.id)
+                    def start_real_analysis():
+                        """شروع تحلیل واقعی با Liara AI در background"""
+                        try:
+                            logger.info(f"🤖 شروع تحلیل واقعی با Liara AI برای تحلیل {store_analysis.id}")
+                            
+                            # آماده‌سازی داده‌های فروشگاه
+                            analysis_data = store_analysis.analysis_data or {}
+                            store_data = {
+                                'store_name': store_analysis.store_name or 'فروشگاه',
+                                'store_type': analysis_data.get('store_type', 'عمومی'),
+                                'store_size': str(analysis_data.get('store_size', 0)),
+                                'store_address': analysis_data.get('store_address', ''),
+                                'description': analysis_data.get('description', ''),
+                                **analysis_data
+                            }
+                            
+                            # استخراج تصاویر از uploaded_files
+                            images = []
+                            if 'uploaded_files' in analysis_data:
+                                uploaded_files = analysis_data['uploaded_files']
+                                image_fields = ['store_photos', 'store_layout', 'shelf_photos', 
+                                              'window_display_photos', 'entrance_photos', 'checkout_photos']
+                                for field in image_fields:
+                                    if field in uploaded_files:
+                                        file_info = uploaded_files[field]
+                                        if isinstance(file_info, dict) and 'path' in file_info:
+                                            images.append(file_info['path'])
+                            
+                            # استفاده از LiaraAIService برای تحلیل جامع
+                            from .ai_services.liara_ai_service import LiaraAIService
+                            liara_service = LiaraAIService()
+                            
+                            logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر...")
+                            
+                            # تحلیل جامع با Liara AI
+                            comprehensive_analysis = liara_service.analyze_store_comprehensive(
+                                store_data=store_data,
+                                images=images if images else None
+                            )
+                            
+                            if comprehensive_analysis and not comprehensive_analysis.get('error'):
+                                logger.info(f"✅ تحلیل Liara AI تکمیل شد برای تحلیل {store_analysis.id}")
+                                
+                                # به‌روزرسانی نتایج تحلیل
+                                current_results = store_analysis.results or {}
+                                current_results.update({
+                                    'liara_analysis': comprehensive_analysis,
+                                    'analysis_source': 'liara_ai',
+                                    'models_used': comprehensive_analysis.get('models_used', []),
+                                    'analysis_quality': 'premium',
+                                    'analyzed_at': timezone.now().isoformat(),
+                                    'payment_refid': refid
+                                })
+                                
+                                # برای پکیج‌های professional و enterprise، گزارش premium هم تولید کن
+                                if store_analysis.package_type in ['professional', 'enterprise']:
+                                    try:
+                                        from django.core.files.storage import default_storage
+                                        
+                                        images_data = None
+                                        videos_data = None
+                                        
+                                        images_path = f'analyses/{store_analysis.id}/images/'
+                                        videos_path = f'analyses/{store_analysis.id}/videos/'
+                                        
+                                        if default_storage.exists(images_path):
+                                            images_list = default_storage.listdir(images_path)[1]
+                                            if images_list:
+                                                images_data = {'count': len(images_list), 'files': images_list[:20]}
+                                        
+                                        if default_storage.exists(videos_path):
+                                            videos_list = default_storage.listdir(videos_path)[1]
+                                            if videos_list:
+                                                videos_data = {'video_count': len(videos_list), 'files': videos_list[:5]}
+                                        
+                                        from .services.premium_report_generator import PremiumReportGenerator
+                                        report_generator = PremiumReportGenerator()
+                                        premium_report = report_generator.generate_premium_report(
+                                            analysis=store_analysis,
+                                            images_data=images_data,
+                                            video_data=videos_data,
+                                            sales_data=None
+                                        )
+                                        
+                                        current_results.update({
+                                            'premium_report': premium_report,
+                                            'report_type': f'premium_{store_analysis.package_type}',
+                                        })
+                                        logger.info(f"✅ گزارش Premium برای تحلیل {store_analysis.id} تولید شد")
+                                    except Exception as e:
+                                        logger.error(f"⚠️ خطا در تولید گزارش Premium: {e}", exc_info=True)
+                                
+                                # ذخیره نتایج
+                                store_analysis.results = current_results
+                                store_analysis.status = 'completed'
+                                store_analysis.save(update_fields=['results', 'status'])
+                                
+                                # ایجاد یادآوری بازبینی
+                                try:
+                                    from .models import ReviewReminder
+                                    ReviewReminder.create_for_analysis(
+                                        analysis=store_analysis,
+                                        days_until_reminder=30,
+                                        discount_percentage=30
+                                    )
+                                    logger.info(f"✅ یادآوری بازبینی برای تحلیل {store_analysis.id} ایجاد شد")
+                                except Exception as e:
+                                    logger.error(f"⚠️ خطا در ایجاد یادآوری بازبینی: {e}", exc_info=True)
+                                
+                                logger.info(f"🎉 تحلیل {store_analysis.id} با موفقیت تکمیل شد!")
+                            else:
+                                logger.error(f"❌ تحلیل Liara AI خالی یا خطا داشت برای تحلیل {store_analysis.id}")
+                                store_analysis.status = 'failed'
+                                store_analysis.error_message = comprehensive_analysis.get('error', 'خطا در تحلیل AI')
+                                store_analysis.save(update_fields=['status', 'error_message'])
+                                
+                        except Exception as e:
+                            logger.error(f"❌ خطا در تحلیل background برای تحلیل {store_analysis.id}: {e}", exc_info=True)
+                            store_analysis.status = 'failed'
+                            store_analysis.error_message = str(e)
+                            store_analysis.save(update_fields=['status', 'error_message'])
+                    
+                    # شروع تحلیل در background
+                    analysis_thread = threading.Thread(target=start_real_analysis, daemon=True)
+                    analysis_thread.start()
+                    logger.info(f"🧵 Thread تحلیل برای {store_analysis.id} شروع شد")
+                    
+                    # هدایت کاربر به صفحه نتایج با پیغام مناسب
                     redirect_url = 'store_analysis:analysis_results'
-                    messages.success(request, '✅ پرداخت با موفقیت انجام شد! گزارش حرفه‌ای در حال آماده‌سازی است.')
+                    messages.success(request, '✅ پرداخت با موفقیت انجام شد! تحلیل هوشمند در حال انجام است. پس از حدود 30 دقیقه می‌توانید نتایج را مشاهده کنید.')
                     return redirect(redirect_url, pk=store_analysis.id)
+                    
                 except Exception as err:
-                    logger.error("❌ خطا در تولید گزارش پولی: %s", err, exc_info=True)
-                    messages.warning(request, '⏳ گزارش در حال تولید است. لطفاً صبور باشید.')
+                    logger.error(f"❌ خطا در شروع تحلیل برای تحلیل {store_analysis.id}: {err}", exc_info=True)
+                    messages.warning(request, '⏳ تحلیل در حال شروع است. لطفاً صبور باشید.')
 
             messages.success(request, '✅ پرداخت با موفقیت انجام شد! لطفاً فرم تحلیل را تکمیل کنید.')
             if store_analysis:
@@ -5841,7 +5925,8 @@ def ticket_detail(request, ticket_id):
                     ticket=ticket,
                     sender=request.user,
                     content=content,
-                    message_type='admin' if request.user.is_staff else 'user'
+                    message_type='admin' if request.user.is_staff else 'user',
+                    is_internal=False  # پیام‌های معمولی برای کاربران قابل مشاهده است
                 )
                 
                 # به‌روزرسانی وضعیت تیکت
@@ -7389,7 +7474,8 @@ def admin_ticket_detail(request, ticket_id):
                     ticket=ticket,
                     sender=request.user,
                     content=message_text,
-                    message_type='admin' if request.user.is_staff else 'user'
+                    message_type='admin' if request.user.is_staff else 'user',
+                    is_internal=False  # پیام‌های معمولی برای کاربران قابل مشاهده است
                 )
                 messages.success(request, 'پاسخ ارسال شد')
         elif action == 'close':
@@ -8459,10 +8545,10 @@ def forms_submit(request):
             
             logger.info(f"✅ Analysis {store_analysis.id} created for order {order.order_number}")
             
-            # هدایت به صفحه پرداخت
+            # هدایت به صفحه پرداخت با پیغام مناسب
             return JsonResponse({
                 'success': True,
-                'message': 'فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...',
+                'message': '✅ فرم با موفقیت ارسال شد! پس از پرداخت، تحلیل هوشمند با استفاده از Liara AI و کتابخانه‌های تخصصی به صورت خودکار شروع خواهد شد و نتایج پس از حدود 30 دقیقه در دسترس خواهد بود.',
                 'redirect_url': f'/store/payment/{order.order_number}/',
                 'payment_required': True
             })
