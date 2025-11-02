@@ -71,7 +71,7 @@
             <!-- لیست تیکت‌ها -->
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-0">
-                    {% if page_obj %}
+                    {% if page_obj and page_obj.paginator.count > 0 %}
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
@@ -183,7 +183,7 @@
             </div>
 
             <!-- آمار سریع -->
-            {% if page_obj %}
+            {% if page_obj and page_obj.paginator.count > 0 %}
             <div class="row mt-4">
                 <div class="col-md-3">
                     <div class="card border-0 shadow-sm text-center">

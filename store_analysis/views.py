@@ -5789,12 +5789,17 @@ def create_ticket(request):
 def ticket_list(request):
     """لیست تیکت‌های کاربر"""
     try:
+        # استفاده از Manager که ممکن است فیلدهای missing را defer کند
         tickets = SupportTicket.objects.filter(user=request.user).order_by('-created_at')
         
         # فیلتر بر اساس وضعیت
         status_filter = request.GET.get('status', '')
         if status_filter:
             tickets = tickets.filter(status=status_filter)
+        
+        # لاگ برای debugging
+        total_count = tickets.count()
+        logger.info(f"🔍 تعداد تیکت‌های کاربر {request.user.username}: {total_count}")
         
         # صفحه‌بندی
         paginator = Paginator(tickets, 10)
@@ -5803,6 +5808,8 @@ def ticket_list(request):
         
         context = {
             'page_obj': page_obj,
+            'tickets': list(page_obj),  # اضافه کردن لیست مستقیم تیکت‌ها برای template
+            'tickets_count': total_count,  # تعداد کل تیکت‌ها
             'status_choices': [('open', 'باز'), ('in_progress', 'در حال بررسی'), ('resolved', 'حل شده'), ('closed', 'بسته')],
             'current_status': status_filter,
         }
@@ -5810,9 +5817,13 @@ def ticket_list(request):
         return render(request, 'store_analysis/ticket_list.html', context)
         
     except Exception as e:
-        logger.error(f"خطا در ticket_list: {e}")
+        logger.error(f"خطا در ticket_list: {e}", exc_info=True)
         messages.error(request, 'خطایی رخ داده است.')
-        return render(request, 'store_analysis/ticket_list.html', {})
+        return render(request, 'store_analysis/ticket_list.html', {
+            'page_obj': None,
+            'tickets': [],
+            'tickets_count': 0,
+        })
 
 
 @login_required
