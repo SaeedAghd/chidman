@@ -7808,7 +7808,8 @@ def analysis_payment_page(request, pk):
         base_amount=Decimal(str(cost['total'])),
         discount_amount=Decimal(str(cost.get('discount', 0))),
         final_amount=Decimal(str(cost['final'])),
-        status='pending'
+        status='pending',
+        transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
     )
     
     context = {
@@ -8429,7 +8430,8 @@ def forms_submit(request):
                 base_amount=Decimal(str(cost_breakdown['total'])),
                 discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
                 final_amount=Decimal(str(cost_breakdown['final'])),
-                status='pending'
+                status='pending',
+                transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
             )
             
             # اتصال تحلیل به سفارش
