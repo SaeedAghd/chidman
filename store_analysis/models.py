@@ -345,7 +345,11 @@ class StoreAnalysisManager(models.Manager):
             available_columns = get_available_columns(table_name)
             
             # فیلدهایی که ممکن است در دیتابیس موجود نباشند
-            missing_fields = ['contact_phone', 'contact_email', 'priority']
+            missing_fields = [
+                'contact_phone', 'contact_email', 'priority',
+                'additional_info', 'business_goals', 'marketing_budget',
+                'final_amount'
+            ]
             
             # defer کردن فیلدهای missing
             defer_fields = []

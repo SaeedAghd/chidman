@@ -8745,6 +8745,7 @@ def buy_complete(request):
                 }
             )
 
+            import uuid
             order = Order.objects.create(
                 user=request.user,
                 original_amount=original_amount,
@@ -8752,7 +8753,8 @@ def buy_complete(request):
                 discount_amount=discount_amount,
                 final_amount=final_amount,
                 status='pending',
-                payment_method='payping'
+                payment_method='payping',
+                transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"  # مقدار پیش‌فرض برای transaction_id
             )
 
             analysis.order = order
