@@ -108,6 +108,12 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
         fields.append('priority')
         values.append(priority_value)
     
+    # اضافه کردن package_type با مقدار پیش‌فرض (اگر موجود است و NOT NULL)
+    if 'package_type' in available_columns:
+        package_type_value = kwargs.get('package_type', 'basic')  # پیش‌فرض: 'basic'
+        fields.append('package_type')
+        values.append(package_type_value)
+    
     # اضافه کردن created_at و updated_at
     if 'created_at' in available_columns:
         fields.append('created_at')
@@ -121,7 +127,6 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
         'store_type': 'store_type',
         'store_size': 'store_size',
         'store_address': 'store_address',
-        'package_type': 'package_type',
         'final_amount': 'final_amount',
         'additional_info': 'additional_info',
         'business_goals': 'business_goals',
@@ -138,7 +143,7 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
             if key in kwargs and kwargs[key] is not None:
                 fields.append(db_field)
                 values.append(kwargs[key])
-            elif db_field in ['store_type', 'store_size', 'package_type']:
+            elif db_field in ['store_type', 'store_size']:
                 # این فیلدها ممکن است در kwargs نباشند اما در available_columns باشند
                 # پس فقط اگر مقدار دارند اضافه می‌شوند
                 pass
