@@ -6484,12 +6484,18 @@ def checkout(request, order_id):
             if latest_analysis and latest_analysis.analysis_data:
                 form_data = latest_analysis.analysis_data
         
-        analysis_request = AnalysisRequest.objects.create(
-            order=order,
-            store_analysis_data=form_data or {},
-            status='pending',
-            estimated_completion=timezone.now() + timedelta(hours=24)
-        )
+        # ایجاد AnalysisRequest - با بررسی وجود مدل
+        try:
+            analysis_request = AnalysisRequest.objects.create(
+                order=order,
+                store_analysis_data=form_data or {},
+                status='pending',
+                estimated_completion=timezone.now() + timedelta(hours=24)
+            )
+        except (AttributeError, Exception) as e:
+            # اگر AnalysisRequest وجود نداشت، فقط لاگ کن
+            logger.warning(f"AnalysisRequest model not available: {e}")
+            analysis_request = None
         
         # پاک کردن داده‌های session
         request.session.pop('store_analysis_data', None)
