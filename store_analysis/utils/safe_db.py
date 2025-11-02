@@ -219,6 +219,139 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
         raise
 
 
+def safe_get_store_analysis(**filters) -> Optional[Any]:
+    """
+    Safe retrieval of StoreAnalysis object - handles missing fields
+    Returns None if not found or on error
+    """
+    from store_analysis.models import StoreAnalysis
+    
+    try:
+        # استفاده از Manager که به صورت خودکار defer می‌کند
+        return StoreAnalysis.objects.get(**filters)
+    except StoreAnalysis.DoesNotExist:
+        return None
+    except Exception as e:
+        if 'contact_phone' in str(e) or 'contact_email' in str(e) or 'UndefinedColumn' in str(e):
+            logger.warning(f"Using raw SQL for StoreAnalysis retrieval due to: {e}")
+            # استفاده از raw SQL
+            return _get_store_analysis_raw_sql(**filters)
+        else:
+            logger.error(f"Error retrieving StoreAnalysis: {e}")
+            raise
+
+
+def _get_store_analysis_raw_sql(**filters) -> Optional[Any]:
+    """دریافت StoreAnalysis با raw SQL"""
+    from store_analysis.models import StoreAnalysis
+    
+    table_name = 'store_analysis_storeanalysis'
+    available_columns = get_available_columns(table_name)
+    
+    # ساخت SELECT statement - فقط فیلدهای موجود
+    select_fields = ['id']  # همیشه id وجود دارد
+    
+    # اضافه کردن فیلدهای موجود
+    common_fields = [
+        'user_id', 'store_name', 'store_url', 'store_type', 'store_size',
+        'store_address', 'additional_info', 'business_goals', 'marketing_budget',
+        'analysis_type', 'status', 'package_type', 'final_amount',
+        'analysis_data', 'results', 'order_id', 'preliminary_analysis',
+        'ai_insights', 'recommendations', 'store_images', 'analysis_files',
+        'price', 'currency', 'created_at', 'updated_at', 'completed_at',
+        'store_info_id', 'estimated_duration', 'actual_duration',
+        'error_message'
+    ]
+    
+    # فقط فیلدهای موجود را اضافه کن
+    for field in common_fields:
+        if field in available_columns:
+            select_fields.append(field)
+    
+    # اضافه کردن contact_phone و contact_email فقط اگر موجود باشند
+    if 'contact_phone' in available_columns:
+        select_fields.append('contact_phone')
+    if 'contact_email' in available_columns:
+        select_fields.append('contact_email')
+    if 'priority' in available_columns:
+        select_fields.append('priority')
+    
+    select_fields_str = ', '.join([connection.ops.quote_name(f) for f in select_fields])
+    quoted_table = connection.ops.quote_name(table_name)
+    
+    # ساخت WHERE clause از filters
+    where_clauses = []
+    values = []
+    
+    for key, value in filters.items():
+        if key == 'pk':
+            key = 'id'
+        elif key == 'user':
+            key = 'user_id'
+            value = value.id if hasattr(value, 'id') else value
+        elif key == 'id':
+            key = 'id'
+        
+        db_field = key
+        if db_field in available_columns or db_field == 'id':
+            where_clauses.append(f"{connection.ops.quote_name(db_field)} = %s")
+            values.append(value)
+    
+    if not where_clauses:
+        return None
+    
+    where_clause = ' AND '.join(where_clauses)
+    
+    try:
+        with connection.cursor() as cursor:
+            query = f"""
+                SELECT {select_fields_str}
+                FROM {quoted_table}
+                WHERE {where_clause}
+                LIMIT 1
+            """
+            cursor.execute(query, values)
+            row = cursor.fetchone()
+            
+            if not row:
+                return None
+            
+            # ساخت یک object ساده
+            from types import SimpleNamespace
+            obj = SimpleNamespace()
+            for i, field in enumerate(select_fields):
+                if i < len(row):
+                    setattr(obj, field, row[i])
+            
+            # تبدیل به StoreAnalysis object
+            try:
+                analysis = StoreAnalysis.objects.raw(f"""
+                    SELECT {select_fields_str}
+                    FROM {quoted_table}
+                    WHERE {where_clause}
+                    LIMIT 1
+                """, values)
+                
+                for a in analysis:
+                    return a
+                return None
+            except Exception:
+                # آخرین راه: ساخت object دستی
+                analysis = StoreAnalysis(id=obj.id)
+                for field in select_fields:
+                    if hasattr(obj, field):
+                        try:
+                            setattr(analysis, field, getattr(obj, field))
+                        except Exception:
+                            pass
+                analysis._state.adding = False
+                analysis._state.db = connection.alias
+                return analysis
+    except Exception as e:
+        logger.error(f"Error in _get_store_analysis_raw_sql: {e}")
+        return None
+
+
 def safe_create_userprofile(user, phone: str) -> Any:
     """
     Safe creation of UserProfile object - handles missing birth_date field

@@ -332,10 +332,44 @@ class Order(models.Model):
         super().save(*args, **kwargs)
 
 
+class StoreAnalysisManager(models.Manager):
+    """Manager سفارشی برای StoreAnalysis که فیلدهای missing را به صورت خودکار defer می‌کند"""
+    
+    def get_queryset(self):
+        """Override queryset برای defer کردن فیلدهای missing"""
+        try:
+            from store_analysis.utils.safe_db import get_available_columns
+            
+            queryset = super().get_queryset()
+            table_name = 'store_analysis_storeanalysis'
+            available_columns = get_available_columns(table_name)
+            
+            # فیلدهایی که ممکن است در دیتابیس موجود نباشند
+            missing_fields = ['contact_phone', 'contact_email', 'priority']
+            
+            # defer کردن فیلدهای missing
+            defer_fields = []
+            for field in missing_fields:
+                if field not in available_columns:
+                    defer_fields.append(field)
+            
+            if defer_fields:
+                queryset = queryset.defer(*defer_fields)
+            
+            return queryset
+        except Exception as e:
+            # اگر خطا داشت، queryset عادی را برگردان
+            logger.warning(f"Error in StoreAnalysisManager.get_queryset: {e}")
+            return super().get_queryset()
+
+
 class StoreAnalysis(models.Model):
     """
     Store analysis model for tracking store analysis requests
     """
+    
+    # استفاده از Manager سفارشی
+    objects = StoreAnalysisManager()
     
     STATUS_CHOICES = [
         ('pending', 'در انتظار'),
@@ -432,6 +466,30 @@ class StoreAnalysis(models.Model):
     def has_results(self):
         """Check if analysis has AI results"""
         return bool(self.results and isinstance(self.results, dict))
+    
+    def _safe_get_field(self, field_name, default=None):
+        """Get field value safely - returns default if field doesn't exist"""
+        try:
+            if hasattr(self, field_name):
+                return getattr(self, field_name)
+            return default
+        except Exception:
+            return default
+    
+    @property
+    def safe_contact_phone(self):
+        """Get contact_phone safely"""
+        return self._safe_get_field('contact_phone', '')
+    
+    @property
+    def safe_contact_email(self):
+        """Get contact_email safely"""
+        return self._safe_get_field('contact_email', '')
+    
+    @property
+    def safe_priority(self):
+        """Get priority safely"""
+        return self._safe_get_field('priority', 'normal')
     
     def get_progress(self):
         """Get analysis progress percentage"""
