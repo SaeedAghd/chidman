@@ -1,0 +1,152 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""مشترک: کلاینت ارتباط با سرویس Liara AI"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
+
+import requests
+
+
+logger = logging.getLogger(__name__)
+
+
+class LiaraAIError(RuntimeError):
+    """خطای عمومی هنگام ارتباط با Liara AI"""
+
+
+@dataclass
+class LiaraAIResponse:
+    """نتیجه استاندارد از Liara"""
+
+    model: str
+    content: str
+    raw: Dict[str, Any]
+
+    def json(self) -> Dict[str, Any]:
+        """تبدیل محتوا به JSON (با مدیریت خطا)"""
+        try:
+            return json.loads(self.content)
+        except Exception as exc:  # pragma: no cover - خطای پارس به صورت کنترل‌شده
+            raise LiaraAIError(f"خطا در پارس JSON پاسخ Liara: {exc}") from exc
+
+
+class LiaraAIClient:
+    """کلاینت ساده برای تماس با Liara AI"""
+
+    def __init__(self) -> None:
+        self.api_key: Optional[str] = os.getenv("LIARA_AI_API_KEY")
+        # Liara AI endpoint - بر اساس مستندات رسمی
+        # ممکن است نیاز به تنظیم در environment variable باشد
+        self.base_url: str = os.getenv(
+            "LIARA_AI_BASE_URL", 
+            "https://api.liara.ir/v1"  # Endpoint پیش‌فرض
+        )
+        self.session = requests.Session()
+        self.timeout: int = int(os.getenv("LIARA_AI_TIMEOUT", "90"))  # 90 ثانیه برای production
+        
+        # تنظیمات session برای performance بهتر
+        self.session.headers.update({
+            'User-Agent': 'Chidmano-AI-Client/1.0',
+        })
+
+        if not self.api_key:
+            logger.warning("⚠️ متغیر LIARA_AI_API_KEY تنظیم نشده است؛ از fallback استفاده می‌شود.")
+        else:
+            logger.info(f"✅ LiaraAIClient initialized with endpoint: {self.base_url}")
+
+    @property
+    def enabled(self) -> bool:
+        return bool(self.api_key)
+
+    def chat(
+        self,
+        *,
+        model: str,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float = 0.3,
+        max_output_tokens: int = 4096,
+        response_format: Optional[str] = "json_object",
+    ) -> LiaraAIResponse:
+        if not self.api_key:
+            raise LiaraAIError("LIARA_AI_API_KEY تعریف نشده است")
+
+        url = f"{self.base_url.rstrip('/')}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        payload: Dict[str, Any] = {
+            "model": model,
+            "temperature": temperature,
+            "max_output_tokens": max_output_tokens,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        }
+
+        if response_format == "json_object":
+            payload["response_format"] = {"type": "json_object"}
+
+        try:
+            logger.info(f"🚀 ارسال درخواست به Liara AI (model={model}, url={url})")
+            response = self.session.post(
+                url, 
+                json=payload, 
+                headers=headers, 
+                timeout=self.timeout
+            )
+        except requests.Timeout as exc:
+            logger.error(f"⏱️ Timeout در ارتباط با Liara AI بعد از {self.timeout} ثانیه")
+            raise LiaraAIError(f"Timeout در ارتباط با Liara AI: {exc}") from exc
+        except requests.ConnectionError as exc:
+            logger.error(f"🔌 خطای اتصال به Liara AI: {exc}")
+            raise LiaraAIError(f"عدم دسترسی به Liara AI (اتصال): {exc}") from exc
+        except requests.RequestException as exc:  # pragma: no cover - خطای شبکه
+            logger.error(f"❌ خطای شبکه در ارتباط با Liara AI: {exc}")
+            raise LiaraAIError(f"عدم دسترسی به Liara AI: {exc}") from exc
+
+        # بررسی status code
+        if response.status_code == 401:
+            logger.error("🔐 خطای احراز هویت: API key نامعتبر است")
+            raise LiaraAIError("API key نامعتبر است یا منقضی شده")
+        elif response.status_code == 429:
+            logger.warning("⏸ Rate limit: درخواست‌ها زیاد است، لطفاً صبر کنید")
+            raise LiaraAIError("Rate limit: تعداد درخواست‌ها بیش از حد مجاز است")
+        elif response.status_code >= 400:
+            error_text = response.text[:500]  # افزایش طول برای debugging بهتر
+            logger.error(f"❌ پاسخ ناموفق Liara AI (status={response.status_code}): {error_text}")
+            raise LiaraAIError(
+                f"پاسخ ناموفق Liara AI (status={response.status_code}): {error_text}"
+            )
+
+        # پارس JSON response
+        try:
+            data = response.json()
+        except ValueError as json_exc:
+            logger.error(f"❌ خطا در پارس JSON پاسخ: {response.text[:200]}")
+            raise LiaraAIError(f"پاسخ Liara AI فرمت JSON معتبری ندارد: {json_exc}") from json_exc
+        
+        # استخراج content
+        try:
+            choices = data.get("choices", [])
+            if not choices:
+                raise LiaraAIError(f"پاسخ Liara AI شامل choices نیست: {data}")
+            content = choices[0].get("message", {}).get("content", "")
+            if not content:
+                raise LiaraAIError(f"محتوای پاسخ Liara AI خالی است: {data}")
+        except (KeyError, IndexError) as exc:
+            logger.error(f"❌ ساختار پاسخ Liara نامعتبر است: {data}")
+            raise LiaraAIError(f"ساختار پاسخ Liara نامعتبر است: {data}") from exc
+
+        logger.info(f"✅ پاسخ Liara AI دریافت شد با مدل {model} (length={len(content)} chars)")
+        return LiaraAIResponse(model=model, content=content, raw=data)
+

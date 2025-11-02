@@ -132,6 +132,14 @@ test_*.py
 professional_test.py
 comprehensive_*.py
 *_test_results.json
+check_*.py
+demo*.py
+full_*.py
+create_*_report.py
+# Test outputs
+test_outputs/
+*.test.html
+premium_report_*.html
 
 # SSL certificates
 *.pem
@@ -157,6 +165,8 @@ logs/
 backup_*/
 *.zip
 *.tar.gz
+*_backup.py
+*_backup.*
 
 # Large ML/AI files
 *.pyd
@@ -200,7 +210,12 @@ backup_*/
 *.mov
 *.wmv
 *.flv
-*.pdf
+# Test PDFs (keep only production PDFs if needed)
+test_report.pdf
+download.pdf
+premium_report_*.pdf
+# Production PDFs (uncomment if needed in git)
+# *.pdf
 *.doc
 *.docx
 *.ppt

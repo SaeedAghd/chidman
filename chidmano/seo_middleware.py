@@ -38,8 +38,9 @@ class AdvancedSEOMiddleware(MiddlewareMixin):
             'referer': request.META.get('HTTP_REFERER', ''),
         }
         
-        # تشخیص bot ها
+        # تشخیص bot ها (شامل AI bots)
         request.is_bot = self._is_bot(request)
+        request.is_ai_bot = self._is_ai_bot(request)
         
         return None
     
@@ -85,16 +86,26 @@ class AdvancedSEOMiddleware(MiddlewareMixin):
             return 'other'
     
     def _is_bot(self, request):
-        """تشخیص bot ها"""
+        """تشخیص bot ها (شامل AI bots)"""
         user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
         
         bot_keywords = [
+            # Search Engine Bots
             'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider',
             'yandexbot', 'facebookexternalhit', 'twitterbot', 'linkedinbot',
-            'whatsapp', 'telegram', 'skype', 'discord', 'slack'
+            'whatsapp', 'telegram', 'skype', 'discord', 'slack',
+            # AI Bots
+            'gptbot', 'chatgpt', 'claudebot', 'anthropic', 'perplexity',
+            'google-extended', 'ccbot', 'applebot-extended', 'bingpreview'
         ]
         
         return any(keyword in user_agent for keyword in bot_keywords)
+    
+    def _is_ai_bot(self, request):
+        """تشخیص AI bot ها"""
+        from .ai_seo_optimizer import AIBotDetector
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        return AIBotDetector.is_ai_bot(user_agent)
     
     def _add_seo_headers(self, request, response):
         """اضافه کردن headers برای SEO"""
@@ -136,8 +147,13 @@ class AdvancedSEOMiddleware(MiddlewareMixin):
         
         # HTML pages
         if response.get('Content-Type', '').startswith('text/html'):
-            if request.is_bot:
-                # Bot ها می‌توانند cache کنند
+            if hasattr(request, 'is_ai_bot') and request.is_ai_bot:
+                # AI bots: cache بیشتر برای دسترسی سریع
+                response['Cache-Control'] = 'public, max-age=7200'  # 2 hours
+                # اضافه کردن header برای AI bots
+                response['X-AI-Friendly'] = 'true'
+            elif request.is_bot:
+                # سایر Bot ها می‌توانند cache کنند
                 response['Cache-Control'] = 'public, max-age=3600'
             else:
                 # کاربران عادی cache کمتری دارند

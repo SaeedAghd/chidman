@@ -10,7 +10,7 @@ from django.core.cache import cache
 import time
 
 from .liara_ai_service import LiaraAIService
-from ..ai_analysis import StoreAnalysisAI
+# from ..ai_analysis import StoreAnalysisAI  # فایل ai_analysis وجود ندارد
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class AdvancedAIManager:
     
     def __init__(self):
         self.liara_ai = LiaraAIService()
-        self.ollama_ai = StoreAnalysisAI()
+        # self.ollama_ai = StoreAnalysisAI()  # فایل ai_analysis وجود ندارد
         self.use_liara = getattr(settings, 'USE_LIARA_AI', True)
         self.fallback_to_ollama = getattr(settings, 'FALLBACK_TO_OLLAMA', True)
     
@@ -70,30 +70,9 @@ class AdvancedAIManager:
     
     def _analyze_with_ollama(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
         """تحلیل با Ollama"""
-        try:
-            result = self.ollama_ai.generate_detailed_analysis(store_data)
-            
-            # تبدیل به فرمت یکسان
-            formatted_result = {
-                'final_report': result.get('analysis_text', 'تحلیل با Ollama انجام شد'),
-                'detailed_analyses': {
-                    'ollama_analysis': {
-                        'type': 'ollama_analysis',
-                        'content': result.get('analysis_text', ''),
-                        'model': 'llama3.2'
-                    }
-                },
-                'store_info': store_data,
-                'analysis_timestamp': time.time(),
-                'ai_provider': 'ollama',
-                'analysis_quality': 'standard',
-                'models_used': ['llama3.2']
-            }
-            
-            return formatted_result
-        except Exception as e:
-            logger.error(f"خطا در تحلیل Ollama: {e}")
-            return None
+        # موقتاً غیرفعال شده - فایل ai_analysis وجود ندارد
+        logger.warning("Ollama analysis is temporarily disabled - ai_analysis module not found")
+        return None
     
     def _get_emergency_analysis(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
         """تحلیل اضطراری"""

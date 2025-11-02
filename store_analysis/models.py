@@ -8,6 +8,19 @@ from django.utils import timezone
 from decimal import Decimal
 import uuid
 from datetime import timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def generate_order_number() -> str:
+    """تولید شماره سفارش یکتا"""
+    return f"ORD-{uuid.uuid4().hex[:12].upper()}"
+
+
+def default_banner_end_date():
+    """تاریخ پیش‌فرض پایان بنر تبلیغاتی (۳۰ روز آینده)"""
+    return timezone.now() + timedelta(days=30)
 
 class Payment(models.Model):
     """
@@ -50,6 +63,7 @@ class Payment(models.Model):
     # Status and method
     status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending', verbose_name='وضعیت')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='ping_payment', verbose_name='روش پرداخت')
+    store_analysis = models.ForeignKey('StoreAnalysis', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments', verbose_name='تحلیل فروشگاه')
     
     # Gateway specific fields
     gateway_response = models.JSONField(blank=True, null=True, verbose_name='پاسخ درگاه')
@@ -258,23 +272,64 @@ class UserSubscription(models.Model):
 
 
 class Order(models.Model):
-    """مدل سفارش موقت - برای سازگاری با کد موجود"""
+    """مدیریت سفارش‌های تحلیل"""
+
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار'),
+        ('paid', 'پرداخت شده'),
+        ('processing', 'در حال پردازش'),
+        ('completed', 'تکمیل شده'),
+        ('cancelled', 'لغو شده'),
+        ('refunded', 'برگشت شده'),
+    ]
+
+    PAYMENT_METHOD_CHOICES = [
+        ('online', 'آنلاین'),
+        ('wallet', 'کیف پول'),
+        ('free', 'رایگان'),
+        ('manual', 'دستی'),
+        ('ping_payment', 'پی‌پینگ'),
+    ]
+
     id = models.AutoField(primary_key=True)
-    order_number = models.CharField(max_length=50, unique=True, verbose_name='شماره سفارش')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')
-    status = models.CharField(max_length=20, default='pending', verbose_name='وضعیت')
-    original_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ اصلی')
-    final_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='مبلغ نهایی')
+    order_number = models.CharField(max_length=50, unique=True, default=generate_order_number, verbose_name='شماره سفارش')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='کاربر')
+    plan = models.ForeignKey('PricingPlan', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='پلن انتخابی')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='وضعیت')
+    original_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name='مبلغ اصلی')
+    base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name='مبلغ پایه')
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name='مبلغ تخفیف')
+    final_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), verbose_name='مبلغ نهایی')
+    currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='online', verbose_name='روش پرداخت')
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='شناسه تراکنش')
+    payment = models.ForeignKey('Payment', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders', verbose_name='پرداخت مرتبط')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
-    
+
     class Meta:
         verbose_name = 'سفارش'
         verbose_name_plural = 'سفارشات'
         ordering = ['-created_at']
-    
+        indexes = [
+            models.Index(fields=['order_number']),
+            models.Index(fields=['user']),
+            models.Index(fields=['status']),
+            models.Index(fields=['created_at']),
+        ]
+
     def __str__(self):
-        return f"سفارش {self.order_number} - {self.user.username}"
+        user_display = self.user.username if self.user else 'کاربر نامشخص'
+        return f"سفارش {self.order_number} - {user_display}"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = generate_order_number()
+        if self.base_amount == Decimal('0.00') and self.original_amount:
+            self.base_amount = self.original_amount
+        if self.original_amount == Decimal('0.00') and self.base_amount:
+            self.original_amount = self.base_amount
+        super().save(*args, **kwargs)
 
 
 class StoreAnalysis(models.Model):
@@ -324,7 +379,7 @@ class StoreAnalysis(models.Model):
     analysis_data = models.JSONField(default=dict, blank=True, verbose_name='داده‌های تحلیل')
     # AI results (structured)
     results = models.JSONField(default=dict, blank=True, null=True, verbose_name='نتایج هوش مصنوعی')
-    # order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='سفارش')
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True, related_name='analyses', verbose_name='سفارش')
     
     # Results
     preliminary_analysis = models.TextField(blank=True, verbose_name='تحلیل اولیه')
@@ -1114,7 +1169,7 @@ class PromotionalBanner(models.Model):
     link_url = models.URLField(blank=True, verbose_name='لینک تبلیغاتی')
     is_active = models.BooleanField(default=True, verbose_name='فعال')
     start_date = models.DateTimeField(default=timezone.now, verbose_name='تاریخ شروع')
-    end_date = models.DateTimeField(default=timezone.now() + timedelta(days=30), verbose_name='تاریخ پایان')
+    end_date = models.DateTimeField(default=default_banner_end_date, verbose_name='تاریخ پایان')
     priority = models.IntegerField(default=1, verbose_name='اولویت نمایش')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='آخرین بروزرسانی')
@@ -1203,4 +1258,235 @@ class ChatMessage(models.Model):
     
     def __str__(self):
         return f"{self.role}: {self.content[:50]}..."
-        ordering = ['-priority', '-created_at']
+
+
+class FreeUsageTracking(models.Model):
+    """
+    🛡️ System Tracking Model - محافظت یکبار استفاده از پلن رایگان
+    
+    این مدل اطلاعات کاربرانی که از پلن رایگان استفاده کرده‌اند را ذخیره می‌کند
+    تا مانع استفاده مجدد آن‌ها از پلن رایگان شود.
+    """
+    
+    # اطلاعات شناسایی
+    username = models.CharField(max_length=150, db_index=True, verbose_name='نام کاربری')
+    email = models.EmailField(db_index=True, blank=True, null=True, verbose_name='ایمیل')
+    phone = models.CharField(max_length=20, db_index=True, blank=True, null=True, verbose_name='شماره موبایل')
+    
+    # IP Address (Hashed for privacy)
+    ip_address = models.CharField(max_length=255, db_index=True, verbose_name='آدرس IP')
+    
+    # اطلاعات تحلیل
+    analysis_id = models.IntegerField(blank=True, null=True, verbose_name='شناسه تحلیل')
+    store_name = models.CharField(max_length=200, blank=True, verbose_name='نام فروشگاه')
+    
+    # وضعیت
+    is_blocked = models.BooleanField(default=False, verbose_name='مسدود شده')
+    block_reason = models.TextField(blank=True, verbose_name='دلیل مسدودیت')
+    
+    # Timestamps
+    first_usage = models.DateTimeField(auto_now_add=True, verbose_name='اولین استفاده')
+    last_checked = models.DateTimeField(auto_now=True, verbose_name='آخرین بررسی')
+    
+    # Metadata
+    user_agent = models.TextField(blank=True, verbose_name='User Agent')
+    additional_info = models.JSONField(default=dict, blank=True, verbose_name='اطلاعات اضافی')
+    
+    class Meta:
+        verbose_name = 'ردیابی استفاده رایگان'
+        verbose_name_plural = 'ردیابی استفاده رایگان'
+        ordering = ['-first_usage']
+        indexes = [
+            models.Index(fields=['username']),
+            models.Index(fields=['email']),
+            models.Index(fields=['phone']),
+            models.Index(fields=['ip_address']),
+            models.Index(fields=['is_blocked']),
+            models.Index(fields=['first_usage']),
+        ]
+        
+        # Unique constraint to prevent duplicate entries
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username'],
+                name='unique_username_free_usage'
+            ),
+        ]
+    
+    def __str__(self):
+        return f"{self.username} - {self.first_usage.strftime('%Y/%m/%d %H:%M')}"
+    
+    def has_used_free(self):
+        """بررسی اینکه آیا کاربر از پلن رایگان استفاده کرده است"""
+        return self.analysis_id is not None
+    
+    def can_use_free_again(self):
+        """بررسی امکان استفاده مجدد (بعد از 30 روز)"""
+        from datetime import timedelta
+        return timezone.now() - self.first_usage > timedelta(days=30)
+    
+    def get_usage_age_days(self):
+        """محاسبه مدت زمان سپری شده از اولین استفاده (روز)"""
+        return (timezone.now() - self.first_usage).days
+
+
+class ReviewReminder(models.Model):
+    """مدل یادآوری بازبینی برای تحلیل‌های انجام شده"""
+    
+    REMINDER_STATUS_CHOICES = [
+        ('pending', 'در انتظار ارسال'),
+        ('scheduled', 'زمان‌بندی شده'),
+        ('sent', 'ارسال شده'),
+        ('expired', 'منقضی شده'),
+        ('used', 'استفاده شده'),
+    ]
+    
+    # ارتباط با تحلیل
+    analysis = models.ForeignKey(
+        StoreAnalysis,
+        on_delete=models.CASCADE,
+        related_name='review_reminders',
+        verbose_name='تحلیل'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='کاربر'
+    )
+    
+    # کد تخفیف
+    discount_code = models.ForeignKey(
+        'DiscountCode',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='کد تخفیف'
+    )
+    discount_percentage = models.PositiveIntegerField(
+        default=30,
+        verbose_name='درصد تخفیف'
+    )
+    
+    # تاریخ‌ها
+    analysis_completed_at = models.DateTimeField(
+        verbose_name='تاریخ تکمیل تحلیل'
+    )
+    reminder_date = models.DateTimeField(
+        verbose_name='تاریخ یادآوری'
+    )
+    email_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='تاریخ ارسال ایمیل'
+    )
+    
+    # وضعیت
+    status = models.CharField(
+        max_length=20,
+        choices=REMINDER_STATUS_CHOICES,
+        default='pending',
+        verbose_name='وضعیت'
+    )
+    
+    # اطلاعات ایمیل
+    email_sent = models.BooleanField(
+        default=False,
+        verbose_name='ایمیل ارسال شده'
+    )
+    email_subject = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name='موضوع ایمیل'
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ بروزرسانی'
+    )
+    
+    class Meta:
+        verbose_name = 'یادآوری بازبینی'
+        verbose_name_plural = 'یادآوری‌های بازبینی'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['analysis']),
+            models.Index(fields=['user']),
+            models.Index(fields=['status']),
+            models.Index(fields=['reminder_date']),
+            models.Index(fields=['email_sent']),
+        ]
+    
+    def __str__(self):
+        return f"یادآوری برای {self.analysis.store_name} - {self.user.username}"
+    
+    def is_due(self):
+        """بررسی اینکه آیا زمان ارسال یادآوری رسیده است"""
+        return timezone.now() >= self.reminder_date and not self.email_sent
+    
+    def mark_sent(self):
+        """علامت‌گذاری ایمیل به عنوان ارسال شده"""
+        self.email_sent = True
+        self.email_sent_at = timezone.now()
+        self.status = 'sent'
+        self.save()
+    
+    def mark_used(self):
+        """علامت‌گذاری تخفیف به عنوان استفاده شده"""
+        self.status = 'used'
+        if self.discount_code:
+            self.discount_code.use_discount()
+        self.save()
+    
+    @classmethod
+    def create_for_analysis(cls, analysis, days_until_reminder=30, discount_percentage=30):
+        """ایجاد یادآوری برای یک تحلیل"""
+        from datetime import timedelta
+        import uuid
+        
+        # بررسی وجود یادآوری قبلی
+        existing = cls.objects.filter(
+            analysis=analysis,
+            status__in=['pending', 'scheduled', 'sent']
+        ).first()
+        
+        if existing:
+            return existing
+        
+        # تولید کد تخفیف
+        discount_code_obj = None
+        try:
+            from .models import DiscountCode
+            code = f"REVIEW-{analysis.id}-{uuid.uuid4().hex[:8].upper()}"
+            reminder_date = timezone.now() + timedelta(days=days_until_reminder)
+            
+            discount_code_obj = DiscountCode.objects.create(
+                code=code,
+                discount_type='percentage',
+                discount_percentage=discount_percentage,
+                max_uses=1,  # فقط یک‌بار قابل استفاده
+                valid_from=timezone.now(),
+                valid_until=reminder_date + timedelta(days=60),  # 60 روز بعد از یادآوری
+                is_active=True,
+                description=f"تخفیف بازبینی برای تحلیل {analysis.store_name}"
+            )
+            
+            reminder = cls.objects.create(
+                analysis=analysis,
+                user=analysis.user,
+                discount_code=discount_code_obj,
+                discount_percentage=discount_percentage,
+                analysis_completed_at=analysis.updated_at or analysis.created_at,
+                reminder_date=reminder_date,
+                status='scheduled',
+                email_subject=f"یادآوری بازبینی - {analysis.store_name}"
+            )
+            
+            return reminder
+        except Exception as e:
+            logger.error(f"Error creating review reminder: {e}")
+            return None

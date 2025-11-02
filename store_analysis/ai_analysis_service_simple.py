@@ -7,13 +7,16 @@ import logging
 import asyncio
 import aiohttp
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-from django.utils import timezone
-from django.core.cache import cache
-import pandas as pd
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from pathlib import Path
 import os
+import pandas as pd
+from django.core.cache import cache
+from django.utils import timezone
+from pathlib import Path
+
+from .services.liara_ai_client import LiaraAIClient, LiaraAIError
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +27,7 @@ class SimpleAIAnalysisService:
         self.cache_timeout = 3600  # 1 hour cache
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
         self.analysis_cache = {}
+        self.ai_client = LiaraAIClient()
         
     async def analyze_store_async(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
         """تحلیل ناهمزمان فروشگاه با استفاده از AI پیشرفته"""
@@ -214,6 +218,17 @@ class SimpleAIAnalysisService:
                 "timestamp": timezone.now().isoformat()
             }
             
+            if self.ai_client.enabled:
+                try:
+                    enriched = self._generate_managerial_summary_with_ai(store_data, final_report)
+                    if enriched:
+                        final_report.update(enriched)
+                        final_report.setdefault('metadata', {})['summary_model'] = 'openai/gpt-4o-mini'
+                except LiaraAIError as exc:
+                    logger.warning("⚠️ خطا در تولید خلاصه مدیریتی با Liara: %s", exc)
+                except Exception as exc:  # pragma: no cover
+                    logger.error("❌ خطای غیرمنتظره در خلاصه مدیریتی: %s", exc, exc_info=True)
+
             return final_report
             
         except Exception as e:
@@ -240,6 +255,68 @@ class SimpleAIAnalysisService:
             "report_ready": True,
             "timestamp": timezone.now().isoformat()
         }
+
+    def _generate_managerial_summary_with_ai(self, store_data: Dict[str, Any], base_report: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """تهیه خلاصه مدیریتی دقیق با GPT-4o-mini"""
+
+        system_prompt = (
+            "تو یک مشاور ارشد خرده‌فروشی هستی. خروجی باید JSON با کلیدهای "
+            "summary (متن مدیریتی حداکثر 180 کلمه)، key_findings (لیست بولت کوتاه)، "
+            "recommendations (لیستی شامل سه پیشنهاد اجرایی با تمرکز مدیریتی) باشد."
+        )
+
+        data_snippet = {
+            "store": store_data,
+            "report": {
+                "summary": base_report.get('summary'),
+                "key_findings": base_report.get('key_findings'),
+                "recommendations": base_report.get('recommendations'),
+                "predictions": base_report.get('predictions'),
+                "overall_score": base_report.get('overall_score'),
+            }
+        }
+
+        # محدود کردن طول prompt
+        data_snippet_str = json.dumps(data_snippet, ensure_ascii=False, default=str)
+        if len(data_snippet_str) > 2500:
+            data_snippet_str = data_snippet_str[:2500]
+            logger.warning("⚠️ Managerial summary prompt truncated to 2500 chars")
+        
+        user_prompt = (
+            "تحلیل اولیه انجام شده است. لطفاً بر اساس داده‌های زیر خلاصه مدیریتی ارائه کن:\n"
+            f"{data_snippet_str}"
+        )
+
+        try:
+            response = self.ai_client.chat(
+                model='openai/gpt-4o-mini',
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                temperature=0.25,
+                max_output_tokens=1500,
+            )
+
+            data = response.json()
+            enriched: Dict[str, Any] = {}
+            if data.get('summary'):
+                enriched['summary'] = data['summary']
+            if data.get('key_findings'):
+                enriched['key_findings'] = data['key_findings']
+            if data.get('recommendations'):
+                enriched['executive_recommendations'] = data['recommendations']
+            
+            if enriched:
+                logger.info("✅ Managerial summary با AI تولید شد")
+            else:
+                logger.warning("⚠️ Managerial summary خالی است")
+            
+            return enriched
+        except LiaraAIError as exc:
+            logger.warning("⚠️ خطا در تولید Managerial summary با Liara: %s", exc)
+            return None
+        except Exception as exc:
+            logger.error("❌ خطای غیرمنتظره در Managerial summary: %s", exc, exc_info=True)
+            return None
     
     # متدهای کمکی برای تحلیل پیشرفته
     def _get_layout_recommendations(self, store_type: str, store_size: float) -> List[str]:
@@ -733,12 +810,16 @@ class SimpleAIAnalysisService:
                 overall_analysis
             )
             
+            # پردازش متن فارسی برای PDF
+            formatted_text = self._format_final_report_for_pdf(final_report, store_data)
+            
             logger.info(f"تحلیل AI تکمیل شد برای فروشگاه: {store_data.get('store_name', 'نامشخص')}")
             
             return {
                 'status': 'completed',
                 'timestamp': timezone.now().isoformat(),
                 'store_name': store_data.get('store_name', 'نامشخص'),
+                'formatted_text': formatted_text,  # متن فرمت شده برای PDF
                 'analysis_summary': final_report['summary'],
                 'detailed_analysis': final_report['detailed'],
                 'recommendations': final_report['recommendations'],
@@ -980,6 +1061,91 @@ class SimpleAIAnalysisService:
             },
             'metrics': metrics
         }
+    
+    def _format_final_report_for_pdf(self, report: Dict[str, Any], store_data: Dict[str, Any]) -> str:
+        """فرمت کردن گزارش نهایی برای PDF با پردازش فارسی"""
+        try:
+            # استخراج داده‌های کلیدی
+            name = store_data.get("store_name", "فروشگاه شما")
+            store_type = store_data.get("store_type", "عمومی")
+            score = report.get("metrics", {}).get("overall_performance", 70)
+            summary = report.get("summary", "تحلیل انجام شد")
+            recs = report.get("recommendations", [])
+            improvements = report.get("improvements", {})
+            
+            # پردازش متن فارسی برای PDF
+            def process_persian_text_for_pdf(text):
+                """پردازش متن فارسی برای PDF"""
+                if not text:
+                    return text
+                
+                try:
+                    import arabic_reshaper
+                    # اعمال Character Shaping برای اتصال کاراکترها
+                    processed_text = arabic_reshaper.reshape(text)
+                    return processed_text
+                except Exception as e:
+                    logger.warning(f"⚠️ خطا در پردازش متن فارسی: {e}")
+                    return text
+            
+            # فرمت کردن توصیه‌ها
+            formatted_recs = ""
+            for i, rec in enumerate(recs[:10], 1):  # حداکثر 10 توصیه
+                formatted_recs += f"\n📌 {i}. {rec}"
+            
+            # پردازش متن فارسی برای توصیه‌ها
+            formatted_recs = process_persian_text_for_pdf(formatted_recs)
+            
+            # فرمت کردن پیش‌بینی بهبودها
+            improvements_text = ""
+            if isinstance(improvements, dict):
+                for key, value in improvements.items():
+                    improvements_text += f"\n• {key}: {value}"
+            
+            # پردازش متن فارسی برای بهبودها
+            improvements_text = process_persian_text_for_pdf(improvements_text)
+            
+            # تولید گزارش نهایی
+            final_text = f"""
+{'='*60}
+🛍️ گزارش تحلیلی هوشمند فروشگاه {name}
+{'='*60}
+
+📋 مشخصات فروشگاه:
+   • نام: {name}
+   • نوع: {store_type}
+   • امتیاز کلی: {score:.1f}/100
+
+{'='*60}
+📊 خلاصه اجرایی:
+{'='*60}
+
+{summary.strip()}
+
+{'='*60}
+✅ توصیه‌های کلیدی برای بهبود:
+{'='*60}
+{formatted_recs.strip()}
+
+{'='*60}
+📈 پیش‌بینی بهبودها پس از اجرای توصیه‌ها:
+{'='*60}
+{improvements_text.strip() if improvements_text else '• افزایش کلی عملکرد فروشگاه'}
+
+{'='*60}
+📅 تاریخ تحلیل: {timezone.now().strftime('%Y/%m/%d - %H:%M')}
+💡 این گزارش توسط سیستم هوش مصنوعی چیدمانو تولید شده است
+{'='*60}
+            """
+            
+            # پردازش نهایی متن فارسی برای PDF
+            final_text = process_persian_text_for_pdf(final_text)
+            
+            return final_text.strip()
+            
+        except Exception as e:
+            logger.error(f"خطا در فرمت کردن گزارش نهایی: {str(e)}")
+            return f"گزارش تحلیلی فروشگاه {store_data.get('store_name', 'نامشخص')}"
 
 def perform_ai_analysis_for_order(order_id: str, store_data: Dict) -> Dict[str, Any]:
     """تابع کمکی برای اجرای تحلیل AI"""

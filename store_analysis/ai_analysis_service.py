@@ -406,6 +406,21 @@ class AIAnalysisService:
             recs = report.get("recommendations", [])
             improvements = report.get("improvements", {})
             
+            # پردازش متن فارسی برای PDF
+            def process_persian_text_for_pdf(text):
+                """پردازش متن فارسی برای PDF"""
+                if not text:
+                    return text
+                
+                try:
+                    import arabic_reshaper
+                    # اعمال Character Shaping برای اتصال کاراکترها
+                    processed_text = arabic_reshaper.reshape(text)
+                    return processed_text
+                except Exception as e:
+                    logger.warning(f"⚠️ خطا در پردازش متن فارسی: {e}")
+                    return text
+            
             # فرمت کردن توصیه‌ها
             formatted_recs = ""
             for i, rec in enumerate(recs[:10], 1):  # حداکثر 10 توصیه
@@ -420,6 +435,9 @@ class AIAnalysisService:
                 else:
                     formatted_recs += f"\n📌 {i}. {rec}"
             
+            # پردازش متن فارسی برای توصیه‌ها
+            formatted_recs = process_persian_text_for_pdf(formatted_recs)
+            
             # فرمت کردن پیش‌بینی بهبودها
             improvements_text = ""
             if isinstance(improvements, dict):
@@ -430,6 +448,9 @@ class AIAnalysisService:
                         improvement_val = value.get('improvement', value.get('value', ''))
                         if improvement_val:
                             improvements_text += f"\n• {key}: {improvement_val}"
+            
+            # پردازش متن فارسی برای بهبودها
+            improvements_text = process_persian_text_for_pdf(improvements_text)
             
             # تولید گزارش نهایی
             final_text = f"""
@@ -463,6 +484,9 @@ class AIAnalysisService:
 💡 این گزارش توسط سیستم هوش مصنوعی چیدمانو تولید شده است
 {'='*60}
             """
+            
+            # پردازش نهایی متن فارسی برای PDF
+            final_text = process_persian_text_for_pdf(final_text)
             
             return final_text.strip()
             

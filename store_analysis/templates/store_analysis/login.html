@@ -449,7 +449,7 @@ body {
                 {% endfor %}
             {% endif %}
             
-            {% if form.errors %}
+            {% if form and form.errors %}
                 <div class="alert alert-error">
                     <i class="fas fa-exclamation-triangle"></i>
                     نام کاربری یا رمز عبور اشتباه است. لطفاً دوباره تلاش کنید.
@@ -474,7 +474,7 @@ body {
                            required
                            autofocus
                            autocomplete="username"
-                           value="{{ form.username.value|default:'' }}">
+                           value="{% if form and form.username.value %}{{ form.username.value }}{% endif %}">
                 </div>
                 
                 <!-- رمز عبور -->
@@ -501,7 +501,7 @@ body {
                 
                 <!-- فراموشی رمز عبور -->
                 <div class="forgot-password">
-                    <a href="#">
+                    <a href="{% url 'password_reset' %}">
                         <i class="fas fa-question-circle"></i>
                         رمز عبور خود را فراموش کرده‌اید؟
                     </a>

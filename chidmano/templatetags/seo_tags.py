@@ -7,6 +7,19 @@ from datetime import datetime
 
 register = template.Library()
 
+
+@register.filter(name='add_class')
+def add_class(value, arg):
+    """افزودن کلاس CSS به فیلد فرم"""
+    css_classes = value.field.widget.attrs.get('class', '')
+    if css_classes:
+        css_classes = css_classes.split(' ')
+    else:
+        css_classes = []
+    if arg and arg not in css_classes:
+        css_classes.append(arg)
+    return value.as_widget(attrs={'class': ' '.join(css_classes)})
+
 @register.simple_tag
 def seo_title(title, site_name="چیدمانو"):
     """Generate SEO optimized title"""

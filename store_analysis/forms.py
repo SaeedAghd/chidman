@@ -286,13 +286,10 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
-            # ایجاد UserProfile ساده
+            # ایجاد UserProfile ساده (safe برای فیلدهای missing)
             try:
-                from store_analysis.models import UserProfile
-                UserProfile.objects.create(
-                    user=user,
-                    phone=self.cleaned_data['phone']
-                )
+                from .utils.safe_db import safe_create_userprofile
+                safe_create_userprofile(user, self.cleaned_data['phone'])
             except Exception as e:
                 # اگر UserProfile ایجاد نشد، لاگ کن اما کاربر را ایجاد کن
                 import logging

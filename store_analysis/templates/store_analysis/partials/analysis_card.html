@@ -1,0 +1,26 @@
+<div class="card shadow-lg border-0 h-100">
+  <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="fas fa-store me-2"></i>{{ analysis.store_name|default:"نامشخص" }}</h5>
+    {% if analysis.package_type == 'professional' %}<span class="badge bg-warning">حرفه‌ای</span>{% elif analysis.package_type == 'enterprise' %}<span class="badge bg-danger">سازمانی</span>{% else %}<span class="badge bg-light text-dark">رایگان</span>{% endif %}
+  </div>
+  <div class="card-body p-4">
+    <div class="row mb-3">
+      <div class="col-6"><strong>وضعیت:</strong> <span class="badge bg-{% if analysis.status == 'completed' %}success{% elif analysis.status == 'processing' %}warning{% else %}secondary{% endif %}">{{ analysis.get_status_display }}</span></div>
+      <div class="col-6"><strong>تاریخ:</strong> {{ analysis.created_at|date:"Y/m/d" }}</div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-12">
+        <div class="progress"><div class="progress-bar bg-primary" style="width: {{ analysis.progress|default:0 }}%">{{ analysis.progress|default:0 }}%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-light d-grid gap-2">
+    <a href="{% url 'store_analysis:analysis_results' analysis.pk %}" class="btn btn-outline-primary btn-sm">مشاهده</a>
+    {% if analysis.status == 'completed' %}
+      <a href="{% url 'store_analysis:download_analysis' pk=analysis.pk %}?type=pdf" class="btn btn-warning btn-sm">دانلود</a>
+    {% else %}
+      <button class="btn btn-secondary btn-sm" disabled>در انتظار</button>
+    {% endif %}
+  </div>
+</div>
+

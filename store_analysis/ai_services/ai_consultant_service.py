@@ -150,6 +150,7 @@ class AIConsultantService:
 3. پیشنهادات عملی و قابل اجرا ارائه دهید
 4. از تخصص خود در چیدمان استفاده کنید
 5. اگر سوال خارج از حوزه تخصص است، راهنمایی کلی بدهید
+6. هرگز از کلمات انگلیسی مثل regards، Small، Kids_Clothing، Neutral، attractiveness، Design، functionality، example استفاده نکنید
 """
         
         messages = [

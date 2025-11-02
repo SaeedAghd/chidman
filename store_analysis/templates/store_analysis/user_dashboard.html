@@ -706,30 +706,35 @@
                                     <p>{{ analysis.created_at|date:"j F Y" }} • {{ analysis.get_store_type_display|default:"نوع نامشخص" }}</p>
                                 </div>
                                 <div class="analysis-actions">
-                                    <div class="analysis-status status-{{ analysis.status }}">
-                                        {% if analysis.status == 'completed' %}
+                                    <div class="analysis-status status-{{ analysis.normalized_status|default:analysis.status }}">
+                                        {% with status=analysis.normalized_status|default:analysis.status %}
+                                        {% if status == 'completed' %}
                                             <span>✅</span>
                                             <span>تحلیل کامل</span>
-                                        {% elif analysis.status == 'preliminary_completed' %}
+                                        {% elif status == 'preliminary_completed' %}
                                             <span>📋</span>
                                             <span>تحلیل اولیه</span>
-                                        {% elif analysis.status == 'processing' %}
+                                        {% elif status == 'processing' %}
                                             <span>⏳</span>
                                             <span>در حال پردازش</span>
-                                        {% elif analysis.status == 'pending' %}
+                                        {% elif status == 'awaiting_form' %}
+                                            <span>📝</span>
+                                            <span>در انتظار تکمیل فرم</span>
+                                        {% elif status == 'pending' %}
                                             <span>✨</span>
                                             <span>در انتظار شروع</span>
-                                        {% elif analysis.status == 'failed' %}
+                                        {% elif status == 'failed' %}
                                             <span>❌</span>
                                             <span>تحلیل ناموفق</span>
                                         {% else %}
                                             <span>⏸️</span>
                                             <span>در انتظار</span>
                                         {% endif %}
+                                        {% endwith %}
                                     </div>
                                     
-                                    <!-- دکمه‌های عملی -->
-                                    {% if analysis.status == 'failed' %}
+                                    {% with status=analysis.normalized_status|default:analysis.status %}
+                                    {% if status == 'failed' %}
                                     <!-- دکمه‌های تحلیل ناموفق -->
                                     <a href="{% url 'store_analysis:products' %}" class="view-details-btn main-btn">
                                         <span>🔄</span>
@@ -739,7 +744,7 @@
                                         <span>📝</span>
                                         <span>تحلیل جدید</span>
                                     </a>
-                                    {% elif analysis.status == 'completed' %}
+                                    {% elif status == 'completed' %}
                                     <!-- دکمه اصلی: مشاهده نتایج -->
                                     <a href="/store/analysis/{{ analysis.pk }}/results/" class="view-details-btn main-btn">
                                         <span>📊</span>
@@ -752,21 +757,28 @@
                                         <span>دانلود PDF</span>
                                     </a>
                                     
-                                    {% elif analysis.status == 'pending' %}
-                                    <!-- پیام زیبا برای تحلیل‌های در انتظار -->
+                                    {% elif status == 'awaiting_form' %}
                                     <div class="processing-message">
-                                        <div class="processing-icon">✨</div>
+                                        <div class="processing-icon">📝</div>
                                         <div class="processing-text">
-                                            <div class="processing-title">تحلیل شما در صف انتظار است</div>
+                                            <div class="processing-title">برای شروع تحلیل فرم را تکمیل کنید</div>
                                             <div class="processing-subtitle">
-                                                🤖 چیدمانو AI در حال آماده‌سازی تحلیل جامع فروشگاه شما است<br>
-                                                ⏰ لطفاً حدود 30 دقیقه صبر کنید تا تحلیل کامل شود<br>
-                                                🔍 پس از تکمیل، دکمه "مشاهده نتایج" فعال خواهد شد
+                                                فرم ۷ مرحله‌ای هنوز تکمیل نشده است.<br>
+                                                پس از تکمیل فرم، تحلیل هوشمند به‌صورت خودکار آغاز می‌شود.
                                             </div>
                                         </div>
                                     </div>
-                                    {% elif analysis.status == 'processing' %}
-                                    <!-- پیام زیبا برای تحلیل‌های در حال پردازش -->
+                                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                                        <a href="{% url 'store_analysis:analysis_results' analysis.id %}" class="view-details-btn main-btn">
+                                            <span>📊</span>
+                                            <span>مشاهده نتایج اولیه</span>
+                                        </a>
+                                        <a href="{% url 'store_analysis:forms' analysis.id %}" class="view-details-btn ai-btn">
+                                            <span>📝</span>
+                                            <span>تکمیل فرم تحلیل</span>
+                                        </a>
+                                    </div>
+                                    {% elif status == 'processing' %}
                                     <div class="processing-message">
                                         <div class="processing-icon">⏳</div>
                                         <div class="processing-text">
@@ -778,16 +790,29 @@
                                             </div>
                                         </div>
                                     </div>
+                                    {% elif status == 'pending' %}
+                                    <div class="processing-message">
+                                        <div class="processing-icon">✨</div>
+                                        <div class="processing-text">
+                                            <div class="processing-title">تحلیل شما در صف انتظار است</div>
+                                            <div class="processing-subtitle">
+                                                🤖 چیدمانو AI در حال آماده‌سازی تحلیل جامع فروشگاه شما است<br>
+                                                ⏰ لطفاً حدود 30 دقیقه صبر کنید تا تحلیل کامل شود<br>
+                                                🔍 پس از تکمیل، دکمه "مشاهده نتایج" فعال خواهد شد
+                                            </div>
+                                        </div>
+                                    </div>
                                     {% elif analysis.order and analysis.order.order_number %}
                                     
                                     <!-- دکمه تحلیل پیشرفته (فقط برای تحلیل‌های اولیه) -->
-                                    {% if analysis.status == 'preliminary_completed' %}
+                                    {% if status == 'preliminary_completed' %}
                                     <a href="/store/order/{{ analysis.order.order_number }}/results/" class="view-details-btn ai-btn">
                                         <span>🤖</span>
                                         <span>تحلیل پیشرفته</span>
                                     </a>
                                     {% endif %}
                                     {% endif %}
+                                    {% endwith %}
                                 </div>
                             </div>
                             {% endfor %}

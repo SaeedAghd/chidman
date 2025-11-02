@@ -13,8 +13,7 @@ urlpatterns = [
     # صفحه اصلی
     path('', views.index, name='index'),
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
-    path('check-legal-agreement/', views.check_legal_agreement, name='check_legal_agreement'),
-    path('accept-legal-agreement/', views.accept_legal_agreement, name='accept_legal_agreement'),
+    path('dashboard/cleanup/', views.delete_incomplete_analyses, name='delete_incomplete_analyses'),
     
     # محصولات و خرید
     path('products/', views.products_page, name='products'),
@@ -24,89 +23,54 @@ urlpatterns = [
     
     # فرم‌ها و تحلیل
     path('forms/', views.store_analysis_form, name='forms'),
+    path('forms/<int:analysis_id>/', views.store_analysis_form, name='forms'),
     path('forms/submit/', views.forms_submit, name='forms_submit'),
-    path('forms/professional/', views.store_analysis_form, name='professional_form'),
+    path('check-legal-agreement/', views.check_legal_agreement, name='check_legal_agreement'),
+    path('accept-legal-agreement/', views.accept_legal_agreement, name='accept_legal_agreement'),
     
-    # تحلیل مسیر کاربر SEO
-    path('seo-analysis/', views.seo_user_journey_analysis, name='seo_user_journey_analysis'),
-    path('seo-analysis/download/', views.download_seo_analysis_report, name='download_seo_analysis_report'),
-    
-    # مدیریت تحلیل‌ها
+    # مدیریت تحلیل‌ها - فقط توابع اصلی
     path('analysis/', include([
         path('create/', views.analysis_create, name='analysis_create'),
         path('list/', views.analysis_list, name='analysis_list'),
         path('<int:pk>/results/', views.analysis_results, name='analysis_results'),
-        # analysis_detail حذف شد - مستقیماً به نتایج مدرن هدایت می‌شود
-        # path('<uuid:pk>/edit/', views.edit_analysis, name='edit_analysis'),  # Function removed
-        # path('<uuid:pk>/delete/', views.delete_analysis, name='delete_analysis'),  # Function removed  
-        # path('<uuid:pk>/payment/', views.analysis_payment_page, name='analysis_payment'),  # Function removed
-        # Compatibility: support both int and legacy uuid patterns for reverse()
         path('<int:pk>/download/', views.download_analysis_report, name='download_analysis'),
-        path('<uuid:pk>/download/', views.download_analysis_report, name='download_analysis'),
-    path('<int:pk>/download-complete/', views.download_complete_analysis_pdf, name='download_complete_analysis'),
-    path('<int:pk>/view-complete/', views.view_complete_analysis_report, name='view_complete_analysis'),
-    path('<int:pk>/download-unified/', views.download_unified_analysis_pdf, name='download_unified_analysis'),
+        path('<int:pk>/view-report/', views.view_analysis_report, name='view_analysis_report'),
         path('<int:pk>/progress/', views.analysis_progress, name='analysis_progress'),
         path('<int:pk>/start/', views.start_analysis, name='start_analysis'),
         path('<int:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
-        path('<int:pk>/insights/', views.analysis_insights, name='analysis_insights'),
-        path('<int:pk>/ml/', views.advanced_ml_analysis, name='advanced_ml_analysis'),
-        path('<int:pk>/ai/', views.ai_detailed_analysis, name='ai_detailed_analysis'),
+        path('<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
         
         # AI Consultant (چت‌بات هوشمند)
         path('<str:analysis_id>/chat/', chat_views.ai_consultant_chat, name='ai_consultant_chat'),
         path('<str:analysis_id>/chat/send/', chat_views.ai_consultant_send, name='ai_consultant_send'),
-        path('<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
-        path('<int:pk>/generate-ai/', views.generate_ai_report, name='generate_ai_report'),
-        path('<int:pk>/reprocess-ollama/', views.reprocess_analysis_with_ollama, name='reprocess_analysis_with_ollama'),
-        path('<int:pk>/processing-status/', views.processing_status, name='processing_status'),
-        path('<int:pk>/start-ollama-processing/', views.start_ollama_processing, name='start_ollama_processing'),
-        path('<int:pk>/start-advanced-ai-processing/', views.start_advanced_ai_processing, name='start_advanced_ai_processing'),
-        path('<int:pk>/check-processing-status/', views.check_processing_status, name='check_processing_status'),
     ])),
     
-    # پشتیبانی
+    # پشتیبانی - فقط توابع اصلی
     path('support/', include([
         path('', views.support_center, name='support_center'),
-        path('faq/search/', views.faq_search, name='faq_search'),
-        path('faq/<int:faq_id>/', views.faq_detail, name='faq_detail'),
         path('ticket/create/', views.create_ticket, name='create_ticket'),
         path('tickets/', views.ticket_list, name='ticket_list'),
-        path('ticket/<str:ticket_id>/', views.ticket_detail, name='ticket_detail'),
     ])),
     
-    # کیف پول و پرداخت
-    # کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
-    
-    # آموزش و مقالات
+    # آموزش - فقط توابع اصلی
     path('education/', include([
         path('', views.education_library, name='education_library'),
-        path('article/<slug:slug>/', views.article_detail, name='article_detail'),
         path('ai-guide/', views.ai_analysis_guide, name='ai_analysis_guide'),
     ])),
     
     # ویژگی‌ها
     path('features/', views.features, name='features'),
     
-    # حذف تحلیل‌های ناقص
-    path('delete-incomplete/', views.delete_incomplete_analyses, name='delete_incomplete_analyses'),
-    
-    # نتایج سفارش
-    path('order/<str:order_id>/results/', views.order_analysis_results, name='order_analysis_results'),
-    path('order/<str:order_id>/status/', views.check_processing_status, name='check_processing_status'),
-    
-    # URL های موجود (حذف شد چون در بالا تعریف شده)
+    # URL های اصلی
     path('payment/<str:order_id>/', views.payment_page, name='payment_page'),
-    # path('payment/<str:order_id>/activate-wallet/', views.activate_launch_wallet, name='activate_launch_wallet'),  # Function removed
     path('payment/<str:order_id>/payping/', views.payping_payment, name='payping_payment'),
     path('payment/<str:order_id>/process/', views.process_payment, name='process_payment'),
     path('payment/success/', views.payment_success, name='payment_success'),
-    path('analysis/<int:pk>/pdf/', views.view_analysis_pdf_inline, name='view_analysis_pdf_inline'),
-    path('analysis/<int:pk>/pdf-detailed/', views.download_detailed_pdf, name='download_detailed_pdf'),
     path('store-comparison/', views.store_comparison, name='store_comparison'),
     path('ai-consultant/', views.ai_consultant_list, name='ai_consultant_list'),
     path('ai-consultant/<int:analysis_id>/', views.ai_consultant, name='ai_consultant'),
-    # مدیریت ادمین کامل
+    
+    # مدیریت ادمین - فقط توابع اصلی
     path('admin/', include([
         path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
         path('users/', views.admin_users, name='admin_users'),
@@ -114,23 +78,16 @@ urlpatterns = [
         path('analyses/', views.admin_analyses, name='admin_analyses'),
         path('analyses/<str:analysis_id>/', views.admin_analysis_detail, name='admin_analysis_detail'),
         path('analyses/<str:analysis_id>/delete/', views.admin_delete_analysis, name='admin_delete_analysis'),
-        path('analyses/<str:analysis_id>/rerun/', views.admin_rerun_analysis, name='admin_rerun_analysis'),
-        path('test-operations/', views.test_operations, name='test_operations'),
         path('orders/', views.admin_orders, name='admin_orders'),
         path('orders/<str:order_id>/', views.admin_order_detail, name='admin_order_detail'),
         path('tickets/', views.admin_tickets, name='admin_tickets'),
         path('tickets/<str:ticket_id>/', views.admin_ticket_detail, name='admin_ticket_detail'),
-        # کیف‌پول حذف شده
         path('pricing/', views.admin_pricing_management, name='admin_pricing'),
         path('discounts/', views.admin_discounts, name='admin_discounts'),
+        path('reports/', views.admin_reports, name='admin_reports'),
         path('settings/', views.admin_settings, name='admin_settings'),
         path('analytics/', views.admin_analytics, name='admin_analytics'),
-        path('reports/', views.admin_reports, name='admin_reports'),
     ])),
-    
-    # دیباگ
-    path('debug/payping/', views.debug_payping, name='debug_payping'),
-    path('test/payping/', views.test_payping_connection, name='test_payping'),
     
     # Payment URLs
     path('payment/packages/', payment_views.payment_packages, name='payment_packages'),
@@ -140,11 +97,8 @@ urlpatterns = [
     path('payment/history/', payment_views.payment_history, name='payment_history'),
     path('payment/detail/<int:payment_id>/', payment_views.payment_detail, name='payment_detail'),
     path('subscriptions/', payment_views.user_subscriptions, name='user_subscriptions'),
+        path('mock/payment/success/<str:authority>/', views.mock_payment_success, name='mock_payment_success'),
     
     # PayPing Callback URLs
     path('payment/<str:order_id>/payping/callback/', views.payping_callback, name='payping_callback'),
-    # کیف‌پول حذف شده
-    
-    # Mock testing endpoints
-    path('mock/payment/success/<str:authority>/', views.mock_payment_success, name='mock_payment_success'),
 ]

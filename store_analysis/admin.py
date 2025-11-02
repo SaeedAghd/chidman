@@ -13,7 +13,7 @@ import csv
 from datetime import datetime, timedelta
 from .models import (
     Payment, PaymentLog, ServicePackage, UserSubscription,
-    ChatSession, ChatMessage
+    ChatSession, ChatMessage, FreeUsageTracking
 )
 
 # --- Custom Filters ---
@@ -405,6 +405,33 @@ class ChatSessionAdmin(admin.ModelAdmin):
         """تعداد پیام‌ها"""
         return obj.get_messages_count()
     messages_count.short_description = 'تعداد پیام‌ها'
+
+
+# --- Free Usage Tracking Admin ---
+@admin.register(FreeUsageTracking)
+class FreeUsageTrackingAdmin(admin.ModelAdmin):
+    """مدیریت ردیابی استفاده رایگان"""
+    list_display = ('username', 'email', 'phone', 'is_blocked', 'first_usage', 'last_checked')
+    list_filter = ('is_blocked', 'first_usage')
+    search_fields = ('username', 'email', 'phone', 'store_name')
+    readonly_fields = ('first_usage', 'last_checked', 'analysis_id')
+    date_hierarchy = 'first_usage'
+    
+    fieldsets = (
+        ('اطلاعات کاربر', {
+            'fields': ('username', 'email', 'phone', 'ip_address')
+        }),
+        ('اطلاعات استفاده', {
+            'fields': ('analysis_id', 'store_name', 'first_usage', 'last_checked')
+        }),
+        ('وضعیت', {
+            'fields': ('is_blocked', 'block_reason')
+        }),
+        ('اطلاعات اضافی', {
+            'fields': ('user_agent', 'additional_info'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 # --- Admin Site Configuration ---

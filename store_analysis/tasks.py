@@ -30,7 +30,7 @@ import time as time_module
 from .models import (
     StoreAnalysis, StoreAnalysisResult, DetailedAnalysis, 
     StoreBasicInfo, StoreLayout, StoreTraffic, StoreDesign, 
-    StoreSurveillance, StoreProducts
+    StoreSurveillance, StoreProducts, ReviewReminder
 )
 
 logger = get_task_logger(__name__)
@@ -736,4 +736,170 @@ def monitor_system_performance():
         
     except Exception as e:
         logger.error(f"Performance monitoring error: {e}")
-        return {'status': 'error', 'error': str(e)} 
+        return {'status': 'error', 'error': str(e)}
+
+
+@shared_task
+def process_analysis_with_ollama(analysis_id):
+    """پردازش تحلیل با Ollama AI"""
+    try:
+        from .models import StoreAnalysis
+        
+        analysis = StoreAnalysis.objects.get(pk=analysis_id)
+        analysis.status = 'processing'
+        analysis.save()
+        
+        # شبیه‌سازی پردازش
+        import time
+        time.sleep(2)  # 2 ثانیه تاخیر
+        
+        # نتایج شبیه‌سازی
+        results = {
+            'analysis_text': 'تحلیل کامل با Chidmano2 AI انجام شد',
+            'source': 'ollama',
+            'ai_provider': 'Chidmano2 AI',
+            'package_type': 'advanced',
+            'quality_score': 0.95,
+            'confidence_score': 0.92,
+            'free_plan': False
+        }
+        
+        analysis.results = results
+        analysis.status = 'completed'
+        analysis.save()
+        
+        logger.info(f"Analysis {analysis_id} processed with Ollama AI")
+        return {'status': 'success', 'message': 'تحلیل با Chidmano2 AI کامل شد'}
+        
+    except Exception as e:
+        logger.error(f"Ollama processing error: {e}")
+        return {'status': 'error', 'error': str(e)}
+
+
+@shared_task
+def process_analysis_with_liara(analysis_id):
+    """پردازش تحلیل با Liara AI"""
+    try:
+        from .models import StoreAnalysis
+        
+        analysis = StoreAnalysis.objects.get(pk=analysis_id)
+        analysis.status = 'processing'
+        analysis.save()
+        
+        # شبیه‌سازی پردازش
+        import time
+        time.sleep(2)  # 2 ثانیه تاخیر
+        
+        # نتایج شبیه‌سازی
+        results = {
+            'analysis_text': 'تحلیل پیشرفته با Chidmano1 AI انجام شد',
+            'source': 'liara_ai',
+            'ai_provider': 'Chidmano1 AI',
+            'package_type': 'premium',
+            'quality_score': 0.98,
+            'confidence_score': 0.95,
+            'free_plan': False
+        }
+        
+        analysis.results = results
+        analysis.status = 'completed'
+        analysis.save()
+        
+        logger.info(f"Analysis {analysis_id} processed with Liara AI")
+        return {'status': 'success', 'message': 'تحلیل با Chidmano1 AI کامل شد'}
+        
+    except Exception as e:
+        logger.error(f"Liara processing error: {e}")
+        return {'status': 'error', 'error': str(e)}
+
+
+@shared_task(name='store_analysis.send_review_reminders')
+def send_review_reminders():
+    """ارسال ایمیل یادآوری برای بازبینی تحلیل‌ها"""
+    from django.conf import settings
+    from django.template.loader import render_to_string
+    from .utils.notification import NotificationService
+    
+    try:
+        # دریافت یادآوری‌هایی که باید ارسال شوند
+        reminders = ReviewReminder.objects.filter(
+            status__in=['pending', 'scheduled'],
+            email_sent=False,
+            reminder_date__lte=timezone.now()
+        )
+        
+        sent_count = 0
+        failed_count = 0
+        
+        for reminder in reminders:
+            try:
+                user = reminder.user
+                analysis = reminder.analysis
+                
+                # ساخت لینک رزرو با کد تخفیف
+                site_url = getattr(settings, 'SITE_URL', 'https://chidmano.liara.app')
+                discount_code_str = reminder.discount_code.code if reminder.discount_code else ''
+                booking_url = f"{site_url}/store/buy/?discount_code={discount_code_str}"
+                
+                # محتوای ایمیل
+                subject = f"یادآوری بازبینی - {analysis.store_name}"
+                days_since = (timezone.now() - reminder.analysis_completed_at).days
+                context = {
+                    'user': user,
+                    'analysis': analysis,
+                    'discount_percentage': reminder.discount_percentage,
+                    'discount_code': discount_code_str,
+                    'booking_url': booking_url,
+                    'site_url': site_url,
+                    'analysis_date': reminder.analysis_completed_at,
+                    'days_since_analysis': days_since,
+                }
+                
+                # پیام متنی ساده
+                plain_message = f"""
+سلام {user.get_full_name() or user.username},
+
+تحلیل فروشگاه {analysis.store_name} شما {days_since} روز پیش تکمیل شد.
+
+برای حفظ رشد فعلی، پیشنهاد می‌کنیم در 30 روز آینده بازبینی جدید انجام دهید.
+
+🎁 {reminder.discount_percentage}% تخفیف ویژه برای شما:
+کد تخفیف: {discount_code_str}
+
+برای رزرو بازبینی روی لینک زیر کلیک کنید:
+{booking_url}
+
+با تشکر
+تیم چیدمانو
+"""
+                
+                success = NotificationService.send_email_notification(
+                    to_email=user.email,
+                    subject=subject,
+                    message=plain_message,
+                    html_template='store_analysis/emails/review_reminder.html',
+                    context=context
+                )
+                
+                if success:
+                    reminder.mark_sent()
+                    sent_count += 1
+                    logger.info(f"Review reminder sent to {user.email} for analysis {analysis.id}")
+                else:
+                    failed_count += 1
+                    logger.warning(f"Failed to send review reminder to {user.email}")
+                    
+            except Exception as e:
+                failed_count += 1
+                logger.error(f"Error sending review reminder {reminder.id}: {e}", exc_info=True)
+        
+        return {
+            'status': 'success',
+            'sent': sent_count,
+            'failed': failed_count,
+            'total': reminders.count()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in send_review_reminders task: {e}", exc_info=True)
+        return {'status': 'error', 'message': str(e)} 

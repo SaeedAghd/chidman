@@ -138,14 +138,8 @@
                     <td>{{ user.date_joined|date:"Y/m/d H:i" }}</td>
                     <td>
                         <div style="display: flex; gap: 8px;">
-                            <a href="{% url 'store_analysis:admin_user_detail' user.id %}" class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">
+                            <a href="{% url 'store_analysis:admin_user_detail' user.id %}" class="btn-admin btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" title="مشاهده جزئیات">
                                 <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn-admin btn-warning" style="padding: 5px 10px; font-size: 0.8rem;">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="#" class="btn-admin btn-danger" style="padding: 5px 10px; font-size: 0.8rem;">
-                                <i class="fas fa-trash"></i>
                             </a>
                         </div>
                     </td>

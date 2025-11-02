@@ -5,22 +5,17 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
 from . import views
-from .seo_views import sitemap_xml, robots_txt, sitemap_images, seo_analysis, seo_home, seo_features, seo_analytics_dashboard
+from .seo_views import sitemap_xml, robots_txt, sitemap_images, seo_analysis, seo_home, seo_features, seo_analytics_dashboard, seo_submit_to_google
 from django.views.generic import TemplateView, RedirectView
 from django.urls import re_path
 from django.views.generic import RedirectView
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
-# NOTE: Deployment cache-buster: 2025-10-05T22:58 - urls synced
-# Fallback to prevent import-time errors if an old build references verify_email_view
-if not hasattr(views, 'verify_email_view'):
-    def verify_email_view(request, user_id):
-        return redirect('signup')
-
-# NOTE: Deployment cache-buster: 2025-10-05T22:58 - urls synced
+# NOTE: Deployment cache-buster: 2025-11-02T11:30 - urls synced
 urlpatterns = [
     # صفحات اصلی
+    path('health/', views.health_check, name='health'),
     path('', views.simple_home, name='home'),
     path('landing/', views.simple_home, name='landing'),
     path('about/', TemplateView.as_view(template_name='chidmano/about_minimal.html'), name='about'),
@@ -32,18 +27,33 @@ urlpatterns = [
     # احراز هویت
     path('accounts/', include([
         path('signup/', views.signup_view, name='signup'),
-        # Email verification view removed
+        path('verify-email/<int:user_id>/', views.verify_email_view, name='verify_email'),
         path('resend-code/<int:user_id>/', views.resend_verification_code, name='resend_verification_code'),
         path('login/', views.simple_login_view, name='login'),
         path('logout/', views.logout_view, name='logout'),
         path('password_change/', auth_views.PasswordChangeView.as_view(
             template_name='store_analysis/password_change.html',
-            success_url='store_analysis:password_change_done'
+            success_url=reverse_lazy('password_change_done')
         ), name='password_change'),
         path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(
             template_name='store_analysis/password_change_done.html'
         ), name='password_change_done'),
-        path('password_reset/', lambda request: HttpResponse('بازیابی رمز عبور فعال نیست.'), name='password_reset'),
+        path('password_reset/', auth_views.PasswordResetView.as_view(
+            template_name='registration/password_reset_form.html',
+            email_template_name='registration/password_reset_email.html',
+            subject_template_name='registration/password_reset_subject.txt',
+            success_url=reverse_lazy('password_reset_done')
+        ), name='password_reset'),
+        path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+            template_name='registration/password_reset_done.html'
+        ), name='password_reset_done'),
+        path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+            template_name='registration/password_reset_confirm.html',
+            success_url=reverse_lazy('password_reset_complete')
+        ), name='password_reset_confirm'),
+        path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+            template_name='registration/password_reset_complete.html'
+        ), name='password_reset_complete'),
     ])),
     
     # ویژگی‌ها
@@ -87,6 +97,7 @@ urlpatterns = [
     path('seo/home/', seo_home, name='seo_home'),
     path('seo/features/', seo_features, name='seo_features'),
     path('seo/analytics/', seo_analytics_dashboard, name='seo_analytics'),
+    path('seo/submit-google/', seo_submit_to_google, name='seo_submit_google'),
     path('37797489.txt', TemplateView.as_view(template_name='verification/37797489.txt', content_type='text/plain'), name='enamad_37797489'),
     re_path(r'^favicon\.ico$', RedirectView.as_view(url='/static/images/favicon.ico', permanent=True)),
     # Serve service worker at root to avoid 404 in some browsers

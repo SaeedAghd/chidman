@@ -109,7 +109,7 @@
     <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'chidmano:home' %}">
+            <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="{% static 'images/logo.png' %}" alt="چیدمانو - تحلیل هوشمند فروشگاه" height="40">
             </a>
             
@@ -120,7 +120,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'chidmano:home' %}">خانه</a>
+                        <a class="nav-link" href="{% url 'home' %}">خانه</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'store_analysis:features' %}">ویژگی‌ها</a>
@@ -129,10 +129,10 @@
                         <a class="nav-link" href="{% url 'store_analysis:products' %}">شروع تحلیل</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'chidmano:about' %}">درباره ما</a>
+                        <a class="nav-link" href="{% url 'about' %}">درباره ما</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'chidmano:contact' %}">تماس</a>
+                        <a class="nav-link" href="{% url 'home' %}#contact">تماس</a>
                     </li>
                 </ul>
                 
@@ -154,7 +154,7 @@
                             <a class="nav-link" href="{% url 'login' %}">ورود</a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary" href="{% url 'register' %}">ثبت‌نام</a>
+                            <a class="btn btn-primary" href="{% url 'signup' %}">ثبت‌نام</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -207,10 +207,10 @@
                 <div class="col-lg-2 col-md-6 mb-4">
                     <h6>لینک‌های مفید</h6>
                     <ul class="list-unstyled">
-                        <li><a href="{% url 'chidmano:home' %}" class="text-muted">خانه</a></li>
+                        <li><a href="{% url 'home' %}" class="text-muted">خانه</a></li>
                         <li><a href="{% url 'store_analysis:features' %}" class="text-muted">ویژگی‌ها</a></li>
                         <li><a href="{% url 'store_analysis:products' %}" class="text-muted">شروع تحلیل</a></li>
-                        <li><a href="{% url 'chidmano:about' %}" class="text-muted">درباره ما</a></li>
+                        <li><a href="{% url 'about' %}" class="text-muted">درباره ما</a></li>
                     </ul>
                 </div>
                 
@@ -241,8 +241,8 @@
                     <p class="text-muted mb-0">&copy; 2024 چیدمانو. تمامی حقوق محفوظ است.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a href="{% url 'chidmano:privacy' %}" class="text-muted me-3">حریم خصوصی</a>
-                    <a href="{% url 'chidmano:terms' %}" class="text-muted">شرایط استفاده</a>
+                    <a href="{% url 'home' %}#privacy" class="text-muted me-3">حریم خصوصی</a>
+                    <a href="{% url 'home' %}#terms" class="text-muted">شرایط استفاده</a>
                 </div>
             </div>
         </div>

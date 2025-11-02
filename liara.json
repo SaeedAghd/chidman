@@ -6,7 +6,7 @@
     "settingsFile": "chidmano/settings.py"
   },
   "build": {
-    "buildCommand": "python manage.py collectstatic --noinput && python manage.py migrate --no-input",
+    "buildCommand": "python manage.py collectstatic --noinput",
     "files": [
       {
         "source": "staticfiles/",
@@ -24,6 +24,7 @@
         "PYTHONPATH": "/app",
         "PRODUCTION": "True",
         "DEBUG": "False",
+        "LIARA": "true",
         "WEB_CONCURRENCY": "1",
         "TIMEOUT": "120"
       },

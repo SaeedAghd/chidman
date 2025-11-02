@@ -4,10 +4,13 @@ Django settings for chidmano project.
 
 from pathlib import Path
 import os
+import logging
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 # Force-disable PostgreSQL SSL at libpq level to avoid "SSL was required" on Liara private DB
 os.environ['PGSSLMODE'] = 'disable'
@@ -41,6 +44,28 @@ PAYMENT_GATEWAY = {
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'  # Default to True for local development
+
+# Email Configuration for Password Reset
+# در محیط local از console backend استفاده می‌کنیم تا ایمیل‌ها در ترمینال نمایش داده شوند
+if DEBUG:
+    # برای محیط development: ایمیل‌ها در console نمایش داده می‌شوند
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@chidmano.local'
+    print("📧 Email Backend: Console (برای مشاهده ایمیل‌ها در ترمینال)")
+else:
+    # برای محیط production: استفاده از SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'info@chidmano.com')
+
+# Password Reset Settings
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
+PASSWORD_RESET_EMAIL_TEMPLATE = 'registration/password_reset_email.html'
+PASSWORD_RESET_SUBJECT_TEMPLATE = 'registration/password_reset_subject.txt'
 
 # Enable debug for Render if needed
 if os.getenv('RENDER'):
@@ -379,9 +404,18 @@ ZARINPAL_MERCHANT_ID = os.getenv('ZARINPAL_MERCHANT_ID', 'test-merchant-id')
 ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
 
 # Liara AI Settings
-LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiI2OGRlMGJiODg3OWEyMmVhNTY4ZjgwMGQiLCJ0eXBlIjoiYWlfa2V5IiwiaWF0IjoxNzU5MzgyNDU2fQ.PyG78aKySoeSlrohHSA52tT605gO1sY-UNhU_ia82Fo')
+# ⚠️ مهم: در production، API key باید از environment variable خوانده شود
+# هرگز API key را مستقیماً در کد قرار ندهید
+LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', '')
+LIARA_AI_BASE_URL = os.getenv('LIARA_AI_BASE_URL', 'https://api.liara.ir/v1')
+LIARA_AI_TIMEOUT = int(os.getenv('LIARA_AI_TIMEOUT', '90'))  # ثانیه
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
+
+if not LIARA_AI_API_KEY:
+    logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - AI features غیرفعال خواهند بود")
+else:
+    logger.info(f"✅ Liara AI configured (base_url={LIARA_AI_BASE_URL}, timeout={LIARA_AI_TIMEOUT}s)")
 
 # Payment - PayPing
 # PayPing Settings - Token جدید برای پرداخت و کیف پول
@@ -398,14 +432,9 @@ AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour
 AI_ANALYSIS_MAX_RETRIES = 3
 AI_ANALYSIS_TIMEOUT = 30
 
-# Email Settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@chidmano.com')
+# Email Settings (این تنظیمات قبلاً در بالا انجام شده است)
+# اگر DEBUG=True باشد از console backend استفاده می‌شود
+# در غیر این صورت از SMTP استفاده می‌شود
 
 # Site Settings
 SITE_URL = os.getenv('SITE_URL', 'https://chidmano.liara.app')
@@ -484,40 +513,101 @@ CSRF_COOKIE_SAMESITE = 'Lax'  # برای سازگاری با مرورگرها
 CSRF_USE_SESSIONS = False
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
-# Logging configuration - simplified for Liara read-only filesystem
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'simple': {
-            'format': '{asctime} {levelname} {name} {message}',
-            'style': '{',
+# Logging configuration - optimized for Liara (read-only filesystem)
+# در Liara، فقط از console handler استفاده می‌کنیم
+if os.getenv('LIARA') == 'true' or not DEBUG:
+    # Production/Liara: فقط console logging (Liara logs را capture می‌کند)
+    import logging.config
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'simple': {
+                'format': '{asctime} {levelname} {name} {message}',
+                'style': '{',
+            },
+            'verbose': {
+                'format': '{asctime} {levelname} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
         },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+        'handlers': {
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+                'stream': 'ext://sys.stdout',
+            },
         },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
+        'root': {
             'handlers': ['console'],
             'level': 'INFO',
-            'propagate': False,
         },
-        'store_analysis': {
-            'handlers': ['console'],
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'store_analysis': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }
+else:
+    # Development: console + file logging
+    import logging.config
+    # Ensure logs directory exists
+    logs_dir = os.path.join(BASE_DIR, 'logs')
+    os.makedirs(logs_dir, exist_ok=True)
+    
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'simple': {
+                'format': '{asctime} {levelname} {name} {message}',
+                'style': '{',
+            },
+            'verbose': {
+                'format': '{asctime} {levelname} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
+            },
+            'file': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': os.path.join(logs_dir, 'django.log'),
+                'formatter': 'verbose',
+            },
+        },
+        'root': {
+            'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': False,
         },
-    },
-}
+        'loggers': {
+            'django': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'store_analysis': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }
+
+# Django will apply logging configuration automatically
 
 # Performance monitoring
 PERFORMANCE_MONITORING = {

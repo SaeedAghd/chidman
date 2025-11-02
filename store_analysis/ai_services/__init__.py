@@ -4,6 +4,6 @@
 """
 
 from .liara_ai_service import LiaraAIService
-from .advanced_ai_manager import AdvancedAIManager
+# from .advanced_ai_manager import AdvancedAIManager  # فایل ai_analysis وجود ندارد
 
-__all__ = ['LiaraAIService', 'AdvancedAIManager']
+__all__ = ['LiaraAIService']  # , 'AdvancedAIManager']

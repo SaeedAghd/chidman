@@ -136,6 +136,180 @@
     align-items: start;
 }
 
+.confirmation-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.confirmation-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.confirmation-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.confirmation-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #34d399, #10b981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+}
+
+.confirmation-title h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.confirmation-title p {
+    color: #4b5563;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.next-steps {
+    margin-top: 2rem;
+    display: grid;
+    gap: 1.5rem;
+}
+
+.step-item {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    transition: all 0.25s ease;
+}
+
+.step-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.15);
+    background: white;
+}
+
+.step-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.step-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.step-content p {
+    color: #4b5563;
+    margin: 0;
+    line-height: 1.7;
+}
+
+.cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.cta-button.primary {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+}
+
+.cta-button.secondary {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.cta-button.secondary:hover {
+    background: #e2e8f0;
+}
+
+.analysis-mini-card {
+    background: rgba(15, 23, 42, 0.85);
+    color: white;
+    padding: 2rem;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
+}
+
+.analysis-mini-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.analysis-meta {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.analysis-meta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.analysis-meta-item span:last-child {
+    font-weight: 600;
+}
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.status-chip.completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+}
+
+.status-chip.processing {
+    background: rgba(59, 130, 246, 0.15);
+    color: #1d4ed8;
+}
+
+.status-chip.pending {
+    background: rgba(251, 191, 36, 0.18);
+    color: #b45309;
+}
+
 /* Order Summary */
 .order-summary {
     background: white;
@@ -571,6 +745,7 @@
         <p>مرحله نهایی برای دریافت تحلیل حرفه‌ای فروشگاه شما</p>
     </div>
     
+    {% if show_payment %}
     <div class="payment-content">
         <!-- Order Summary -->
         <div class="order-summary">
@@ -734,8 +909,100 @@
             </form>
         </div>
     </div>
+    {% else %}
+    <div class="confirmation-content">
+        <div class="confirmation-card">
+            <div class="confirmation-header">
+                <div class="confirmation-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="confirmation-title">
+                    <h2>پرداخت با موفقیت انجام شد</h2>
+                    <p>تحلیل {% if store_analysis %}{{ store_analysis.store_name }}{% else %}فروشگاه شما{% endif %} آماده دریافت اطلاعات تکمیلی است.</p>
+                </div>
+            </div>
+
+            <div class="next-steps">
+                <div class="step-item">
+                    <div class="step-icon">📝</div>
+                    <div class="step-content">
+                        <h3>مرحله ۱: تکمیل فرم تحلیل</h3>
+                        <p>فرم تخصصی تحلیل را با اطلاعات دقیق فروشگاه تکمیل کنید تا تحلیلگر AI بتواند گزارش حرفه‌ای شما را آماده کند.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon">📷</div>
+                    <div class="step-content">
+                        <h3>مرحله ۲: بارگذاری فایل‌ها</h3>
+                        <p>تصاویر محیط، مسیر مشتری، نقشه چیدمان و فایل‌های فروش را بارگذاری نمایید تا پیشنهادها دقیق‌تر شود.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon">📈</div>
+                    <div class="step-content">
+                        <h3>مرحله ۳: مشاهده نتایج و گزارش</h3>
+                        <p>پس از ارسال فرم، وضعیت تحلیل را در داشبورد بررسی کنید و گزارش ۱۵۰ صفحه‌ای را دانلود نمایید.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-actions">
+                {% if results_url %}
+                <a href="{{ results_url }}" class="cta-button primary">
+                    <i class="fas fa-chart-line"></i>
+                    مشاهده نتایج اولیه
+                </a>
+                {% endif %}
+                {% if form_url %}
+                <a href="{{ form_url }}" class="cta-button secondary">
+                    <i class="fas fa-edit"></i>
+                    تکمیل فرم تحلیل
+                </a>
+                {% endif %}
+                {% if progress_url %}
+                <a href="{{ progress_url }}" class="cta-button secondary">
+                    <i class="fas fa-spinner"></i>
+                    وضعیت تحلیل
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="analysis-mini-card">
+            <div class="status-chip {{ status_tag }}">
+                <i class="fas fa-info-circle"></i>
+                {{ status_label }}
+            </div>
+            <h3>مشخصات سفارش</h3>
+            <div class="analysis-meta">
+                <div class="analysis-meta-item">
+                    <span>کد سفارش</span>
+                    <span>{{ order.order_number }}</span>
+                </div>
+                {% if store_analysis %}
+                <div class="analysis-meta-item">
+                    <span>نام فروشگاه</span>
+                    <span>{{ store_analysis.store_name }}</span>
+                </div>
+                {% endif %}
+                <div class="analysis-meta-item">
+                    <span>مبلغ پرداختی</span>
+                    <span>{{ order.final_amount|floatformat:0 }} تومان</span>
+                </div>
+                <div class="analysis-meta-item">
+                    <span>تاریخ ثبت</span>
+                    <span>{{ order.created_at|date:"Y/m/d H:i" }}</span>
+                </div>
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.8; color: rgba(255,255,255,0.85);">
+                برای دریافت بهترین نتیجه، همین حالا فرم تحلیل را کامل کنید. تیم چیدمانو بلافاصله پردازش گزارش حرفه‌ای را شروع می‌کند.
+            </p>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
+{% if show_payment %}
 <script>
 // ساده‌سازی JavaScript - فقط loading state
 document.addEventListener('DOMContentLoaded', function() {
@@ -787,4 +1054,6 @@ function showLoadingOverlay() {
     document.body.insertAdjacentHTML('beforeend', loadingHTML);
 }
 </script>
+{% endif %}
+{% endblock %}
 {% endblock %}

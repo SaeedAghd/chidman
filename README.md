@@ -12,18 +12,18 @@
 
 ## 🛠️ تکنولوژی‌ها
 
-- **Backend**: Django 5.2.1
-- **Frontend**: Bootstrap 5, HTML5, CSS3, JavaScript
-- **Database**: PostgreSQL
-- **AI**: OpenAI API
-- **Deployment**: Render
+- **Backend**: Django 4.2.23 (Python 3.11)
+- **Frontend**: Bootstrap 5، HTML5، CSS3، JavaScript
+- **Database**: PostgreSQL (SQLite برای توسعه محلی)
+- **AI**: Liara AI، OpenAI، Ollama (قابل پیکربندی)
+- **Deployment**: Liara (PaaS)
 
 ## 📦 نصب و راه‌اندازی
 
 ### پیش‌نیازها
-- Python 3.13+
-- PostgreSQL
-- OpenAI API Key
+- Python 3.11+
+- PostgreSQL (برای محیط تولید)
+- دسترسی به Liara CLI و یک حساب کاربری Liara
 
 ### نصب محلی
 
@@ -67,30 +67,65 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-## 🌐 دیپلوی روی Render
+## 🌐 دیپلوی روی لیارا
 
-### مراحل دیپلوی:
+### 1. نصب و احراز هویت CLI
 
-1. **اتصال به گیت‌هاب**:
-   - پروژه را در گیت‌هاب push کنید
-   - در Render، "New Web Service" را انتخاب کنید
-   - گیت‌هاب repository را متصل کنید
+```bash
+npm install -g @liara/cli
+liara login
+```
 
-2. **تنظیمات Render**:
-   - **Environment**: Python
-   - **Build Command**: `chmod +x build.sh && ./build.sh`
-   - **Start Command**: `gunicorn chidmano.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+### 2. آماده‌سازی پروژه
 
-3. **متغیرهای محیطی**:
-   - `SECRET_KEY`: (توسط Render تولید می‌شود)
-   - `DEBUG`: `False`
-   - `ALLOWED_HOSTS`: `your-app-name.onrender.com`
-   - `DATABASE_URL`: (از Render Database)
-   - `OPENAI_API_KEY`: کلید API شما
+- فایل‌های اصلی دیپلوی در مخزن موجود هستند:
+  - `liara.json` (پلتفرم Django، Python 3.11، فرمان build برای collectstatic)
+  - `Procfile` (`web: python3 main.py`)
+  - `runtime.txt` (نسخه پایتون)
+  - `main.py` (اجرای مایگریشن و راه‌اندازی Gunicorn)
+- مطمئن شوید `STATIC_ROOT` و `MEDIA_ROOT` به ترتیب روی `staticfiles/` و `media/` تنظیم شده‌اند (در `settings.py` انجام شده است).
 
-4. **دیتابیس**:
-   - در Render، یک PostgreSQL database ایجاد کنید
-   - `DATABASE_URL` را به متغیرهای محیطی اضافه کنید
+### 3. تنظیم متغیرهای محیطی در لیارا
+
+در داشبورد لیارا یا با CLI (دستور `liara env:set`) مقادیر زیر را تنظیم کنید:
+
+- `SECRET_KEY`
+- `DEBUG=False`
+- `PRODUCTION=true`
+- `LIARA=true`
+- `ALLOWED_HOSTS=your-app.liara.app,your-domain.com`
+- `DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME`
+- کلیدهای سرویسی مانند `LIARA_AI_API_KEY`، `OPENAI_API_KEY`، `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`
+
+### 4. دیتابیس PostgreSQL
+
+1. در لیارا یک سرویس PostgreSQL ایجاد کنید.
+2. از بخش «اتصال» مقدار `DATABASE_URL` را کپی و در متغیر محیطی وارد کنید.
+3. در صورت نیاز `PGSSLMODE=disable` را روی سرویس دیتابیس تنظیم کنید (در کد نیز پیش‌فرض غیرفعال شده است).
+
+### 5. اجرای دیپلوی
+
+```bash
+liara deploy
+# یا در صورت داشتن چند برنامه:
+# liara deploy --app <APP_NAME>
+```
+
+CLI فایل‌ها را طبق `liara.json` آپلود می‌کند، `collectstatic` در مرحله build اجرا می‌شود و سرویس با `gunicorn` بالا می‌آید. در نخستین اجرای برنامه، `main.py` به‌صورت خودکار مایگریشن‌ها و فرمان سفارشی `create_servicepackage_table` را اجرا می‌کند.
+
+### 6. بررسی سلامت پس از دیپلوی
+
+- مسیر سلامت: `https://your-app.liara.app/health`
+- برای اطمینان از بارگذاری فایل‌های استاتیک، درخواست `GET /static/css/modern-ui.css` را تست کنید.
+- امکان اجرای مایگریشن دستی: `liara ssh` سپس `python manage.py migrate`
+
+### 7. چک‌لیست پس از هر استقرار
+
+- ✅ `python manage.py migrate` بدون خطا اجرا شد (خودکار در `main.py`، در صورت نیاز دستی تکرار شود)
+- ✅ `python manage.py collectstatic --noinput` در مرحله build بدون خطا تمام شد (در لاگ‌ها بررسی کنید)
+- ✅ صفحه نتایج تحلیل (`/store/analysis/<id>/results/`) و گزارش (`/store/analysis/<id>/view-report/`) با وضعیت 200 بارگذاری می‌شوند
+- ✅ دانلود PDF گزارش (`/store/analysis/<id>/download/?type=pdf`) فایل معتبر تولید می‌کند
+- ✅ لاگ‌های برنامه (`logs/django.log` یا لیارا Logs) خطای بحرانی نشان نمی‌دهند
 
 ## 📁 ساختار پروژه
 
@@ -108,9 +143,10 @@ chidman/
 ├── static/                  # فایل‌های استاتیک
 ├── media/                   # فایل‌های آپلود شده
 ├── requirements.txt         # وابستگی‌های Python
-├── render.yaml             # تنظیمات Render
-├── build.sh                # اسکریپت build
-└── Procfile                # تنظیمات Heroku/Render
+├── liara.json               # تنظیمات دیپلوی لیارا
+├── runtime.txt              # نسخه پایتون برای لیارا
+├── Procfile                 # فرمان اجرای برنامه در لیارا
+└── main.py                  # راه‌اندازی مایگریشن و Gunicorn
 ```
 
 ## 🔧 تنظیمات مهم

@@ -1,0 +1,31 @@
+# دستورات برای اجرا در Liara Shell
+
+## باز کردن Shell:
+liara shell
+
+## سپس دستورات زیر را به ترتیب اجرا کنید:
+
+### 1. اضافه کردن فیلد address:
+python -c "
+import os, django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
+django.setup()
+from django.db import connection
+cursor = connection.cursor()
+cursor.execute('ALTER TABLE store_analysis_userprofile ADD COLUMN IF NOT EXISTS address TEXT')
+connection.commit()
+print('✅ فیلد address اضافه شد')
+"
+
+### 2. اجرای Migration 0117:
+python manage.py migrate store_analysis 0117 --verbosity=2
+
+### 3. اجرای Migration 0116:
+python manage.py migrate store_analysis 0116 --verbosity=2
+
+### 4. یا اجرای تمام Migration ها:
+python manage.py migrate --verbosity=2
+
+### 5. خروج:
+exit
+

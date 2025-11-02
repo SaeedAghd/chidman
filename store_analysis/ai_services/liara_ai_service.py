@@ -45,7 +45,7 @@ class LiaraAIService:
                 "messages": [
                     {
                         "role": "system",
-                        "content": "شما بهترین متخصص تحلیل فروشگاه و مشاور کسب‌وکار دنیا هستید. تخصص شما در بهینه‌سازی چیدمان فروشگاه‌ها و افزایش فروش است."
+                        "content": "شما بهترین متخصص تحلیل فروشگاه و مشاور کسب‌وکار دنیا هستید. تخصص شما در بهینه‌سازی چیدمان فروشگاه‌ها و افزایش فروش است. فقط از زبان فارسی استفاده کنید و هرگز از کلمات انگلیسی مثل regards، Small، Kids_Clothing، Neutral، attractiveness، Design، functionality، example استفاده نکنید."
                     },
                     {
                         "role": "user",
@@ -135,6 +135,7 @@ class LiaraAIService:
         3. فقط از کلمات و اصطلاحات فارسی استفاده کنید
         4. تحلیل باید حرفه‌ای و قابل فهم برای صاحب فروشگاه باشد
         5. از اعداد و ارقام فارسی استفاده کنید (مثال: ۶.۸ به جای 6.8)
+        6. هرگز از کلمات انگلیسی مثل regards، Small، Kids_Clothing، Neutral، attractiveness، Design، functionality، example استفاده نکنید
 
         **اطلاعات فروشگاه:**
         - نام: {store_data.get('store_name', 'نامشخص')}

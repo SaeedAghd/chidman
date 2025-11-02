@@ -31,10 +31,69 @@
                             </div>
             </div>
 
-            <!-- لیست تحلیل‌ها -->
-            {% if analyses %}
+            <!-- تب‌بندی پلن‌ها -->
+            <ul class="nav nav-tabs mb-3" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-free" type="button" role="tab">پلن ۱ - رایگان</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-pro" type="button" role="tab">پلن ۲ - حرفه‌ای</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ent" type="button" role="tab">پلن ۳ - سازمانی</button>
+              </li>
+            </ul>
+
+            <div class="tab-content">
+              <!-- Free Plan -->
+              <div class="tab-pane fade show active" id="tab-free" role="tabpanel">
+                {% if free_plan %}
                 <div class="row">
-{% for analysis in analyses %}
+                  {% for analysis in free_plan %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                      {% include 'store_analysis/partials/analysis_card.html' %}
+                    </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                  <div class="alert alert-secondary">هیچ تحلیل رایگانی ثبت نشده است.</div>
+                {% endif %}
+              </div>
+
+              <!-- Professional Plan -->
+              <div class="tab-pane fade" id="tab-pro" role="tabpanel">
+                {% if professional_plan %}
+                <div class="row">
+                  {% for analysis in professional_plan %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                      {% include 'store_analysis/partials/analysis_card.html' %}
+                    </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                  <div class="alert alert-warning">برای فعال شدن این پلن نیاز به پرداخت دارید.</div>
+                {% endif %}
+              </div>
+
+              <!-- Enterprise Plan -->
+              <div class="tab-pane fade" id="tab-ent" role="tabpanel">
+                {% if enterprise_plan %}
+                <div class="row">
+                  {% for analysis in enterprise_plan %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                      {% include 'store_analysis/partials/analysis_card.html' %}
+                    </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                  <div class="alert alert-warning">برای فعال شدن این پلن نیاز به پرداخت دارید.</div>
+                {% endif %}
+              </div>
+            </div>
+            {% if analyses %}
+                <!-- fallback قدیمی: نمایش همه -->
+                <div class="row d-none">
+            {% for analysis in analyses %}
                     <div class="col-lg-6 col-xl-4 mb-4">
                         <div class="card shadow-lg border-0 h-100">
                             <div class="card-header bg-primary text-white py-3">

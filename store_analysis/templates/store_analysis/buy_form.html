@@ -4,6 +4,47 @@
 {% block title %}خرید {{ product_name }} | چیدمانو{% endblock %}
 
 {% block extra_css %}
+{% if is_used_before %}
+<style>
+    .free-usage-warning {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(243, 156, 18, 0.3);
+    }
+
+    .free-usage-warning h3 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .free-usage-warning p {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+
+    .free-usage-warning .btn-upgrade {
+        display: inline-block;
+        background: white;
+        color: #f39c12;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: bold;
+        text-decoration: none;
+        margin-top: 15px;
+        transition: all 0.3s;
+    }
+
+    .free-usage-warning .btn-upgrade:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endif %}
+
 <style>
 .buy-container {
     max-width: 800px;
@@ -181,8 +222,18 @@
         <div class="product-delivery">تحویل در {{ delivery_time }}</div>
     </div>
 
+    <!-- Free Usage Warning -->
+    {% if is_used_before %}
+    <div class="free-usage-warning">
+        <h3>⚠️ شما قبلاً از پلن رایگان استفاده کرده‌اید</h3>
+        <p>🚫 برای استفاده مجدد، لطفاً از پلن‌های حرفه‌ای استفاده کنید</p>
+        <p>💎 پلن‌های ما شامل تحلیل‌های جامع‌تر و پشتیبانی تخصصی هستند</p>
+        <a href="{% url 'store_analysis:products' %}" class="btn-upgrade">مشاهده پلن‌های پولی</a>
+    </div>
+    {% endif %}
+    
     <!-- Buy Form -->
-    <form method="post" class="buy-form">
+    <form method="post" enctype="multipart/form-data" class="buy-form" {% if is_used_before %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
         {% csrf_token %}
         
         <div class="form-group">
@@ -254,6 +305,23 @@
                 <option value="5-10 میلیون تومان">5-10 میلیون تومان</option>
                 <option value="بیش از 10 میلیون تومان">بیش از 10 میلیون تومان</option>
             </select>
+        </div>
+        {% endif %}
+
+        {% if product_name == 'تحلیل کامل فروشگاه' or product_name == 'تحلیل پیشرفته فروشگاه' %}
+        <!-- 💎 Upload Images and Videos for Premium Plans -->
+        <div class="form-group">
+            <label for="images">📸 آپلود تصاویر فروشگاه (اختیاری)</label>
+            <p class="help-text">برای دریافت تحلیل دقیق‌تر، تصاویر مختلف از فروشگاه خود آپلود کنید (نما، فضاهای داخلی، کابینت‌ها، ویترین)</p>
+            <input type="file" id="images" name="images" multiple accept="image/*">
+            <small class="help-text">مجموعاً حداکثر 20 تصویر (JPG, PNG)</small>
+        </div>
+
+        <div class="form-group">
+            <label for="videos">🎥 آپلود ویدیو از فروشگاه (اختیاری)</label>
+            <p class="help-text">یک ویدیو کوتاه از فروشگاه و نحوه چیدمان محصولات</p>
+            <input type="file" id="videos" name="videos" multiple accept="video/*">
+            <small class="help-text">حداکثر 5 ویدیو (MP4, AVI, MOV) - حداکثر 100 مگابایت</small>
         </div>
         {% endif %}
 

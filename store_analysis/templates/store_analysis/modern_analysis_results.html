@@ -5,7 +5,48 @@
 
 {% block extra_css %}
 <style>
-    /* Professional Loading States for Results Page */
+    /* Persian Text Styling */
+    .persian-title {
+        color: #667eea;
+        font-weight: bold;
+        margin: 15px 0 10px 0;
+        text-align: right;
+        direction: rtl;
+    }
+    
+    .persian-subtitle {
+        color: #4a5568;
+        font-weight: 600;
+        margin: 12px 0 8px 0;
+        text-align: right;
+        direction: rtl;
+    }
+    
+    .persian-text {
+        color: #2d3748;
+        line-height: 1.8;
+        margin: 8px 0;
+        text-align: right;
+        direction: rtl;
+    }
+    
+    .persian-item {
+        color: #4a5568;
+        margin: 5px 0;
+        text-align: right;
+        direction: rtl;
+        list-style-type: none;
+        position: relative;
+        padding-right: 20px;
+    }
+    
+    .persian-item:before {
+        content: "•";
+        color: #667eea;
+        font-weight: bold;
+        position: absolute;
+        right: 0;
+    }
     .analysis-loading-overlay {
         position: fixed;
         top: 0;
@@ -864,6 +905,8 @@
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
+        position: relative;
+        z-index: 10;
     }
     
     .dashboard-btn {
@@ -888,6 +931,19 @@
         background: linear-gradient(135deg, #20c997, #17a2b8);
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .html-btn {
+        background: linear-gradient(135deg, #007bff, #6610f2);
+        color: white;
+    }
+    
+    .html-btn:hover {
+        background: linear-gradient(135deg, #6610f2, #6f42c1);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,123,255,0.3);
         color: white;
         text-decoration: none;
     }
@@ -958,7 +1014,12 @@
             </a>
             
             {% if store_analysis.status == 'completed' %}
-            <a href="/store/analysis/{{ store_analysis.pk }}/download/?type=pdf" target="_blank" class="nav-btn pdf-btn">
+            <a href="{{ view_report_url }}" target="_blank" rel="noopener" class="nav-btn html-btn" id="viewReportBtn">
+                <i class="fas fa-mobile-alt"></i>
+                <span>مشاهده در مرورگر</span>
+            </a>
+            
+            <a href="{{ download_pdf_url }}" class="nav-btn pdf-btn">
                 <i class="fas fa-file-pdf"></i>
                 <span>دانلود PDF</span>
             </a>
@@ -1069,7 +1130,7 @@
                     <!-- نمایش نوع تحلیل -->
                     <div class="analysis-type-badge">
                         {% if store_analysis.status == 'completed' %}
-                            <span class="badge badge-success">✅ تحلیل کامل</span>
+                            <span class="badge badge-success">✅ تحلیل اولیه</span>
                         {% elif store_analysis.status == 'preliminary_completed' %}
                             <span class="badge badge-warning">📋 تحلیل اولیه</span>
                         {% elif store_analysis.status == 'processing' %}
@@ -1083,7 +1144,7 @@
                     <div class="analysis-summary">
                         {% if results.analysis_text %}
                         <div class="analysis-content">
-                            <h4>📊 نتایج تحلیل کامل:</h4>
+                            <h4>📊 نتایج تحلیل اولیه:</h4>
                             {{ results.analysis_text|linebreaks }}
                         </div>
                         {% elif store_analysis.preliminary_analysis %}
@@ -1102,7 +1163,7 @@
                     <!-- دکمه‌های عملی -->
                     <div class="analysis-actions mt-4">
                         {% if store_analysis.status == 'completed' %}
-                            <a href="{% url 'store_analysis:view_analysis_pdf_inline' store_analysis.pk %}" target="_blank" class="btn btn-success">
+                            <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}?type=pdf" class="btn btn-success">
                                 <i class="fas fa-file-pdf"></i> دانلود PDF کامل
                             </a>
                         {% elif store_analysis.status == 'preliminary_completed' %}
@@ -1185,28 +1246,37 @@
                         </div>
                         {% else %}
                         <!-- مشاور هوشمند AI (دکمه جدید) -->
-                        <a href="{% url 'store_analysis:ai_consultant_chat' store_analysis.id %}" 
+                        <a href="{% url 'store_analysis:ai_consultant_chat' store_analysis.pk %}" 
                            class="btn btn-gradient"
                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
                             <i class="fas fa-robot"></i>
                             💬 مشاور هوشمند
                         </a>
                         
-                        <!-- دانلود گزارش -->
-                        <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}?type=pdf" 
-                           class="btn btn-primary"
+                        <!-- مشاهده در مرورگر - مناسب برای موبایل -->
+                        <a href="{% url 'store_analysis:view_analysis_report' store_analysis.pk %}" 
+                           class="btn btn-success"
                            target="_blank"
                            rel="noopener noreferrer"
-                           onclick="downloadPDF(event)">
+                           style="background: #4CAF50; margin-left: 10px;">
+                            <i class="fas fa-mobile-alt"></i>
+                            مشاهده گزارش در مرورگر
+                        </a>
+                        
+                        <!-- دانلود گزارش PDF -->
+                        <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}?type=pdf" 
+                           class="btn btn-primary"
+                           rel="noopener noreferrer">
                             <i class="fas fa-download"></i>
-                            دانلود گزارش PDF
+                            دانلود PDF
                         </a>
                         
                         <!-- دانلود گواهینامه AI -->
                         <a href="{% url 'store_analysis:download_analysis' store_analysis.pk %}?type=html" 
-                           class="btn btn-success"
+                           class="btn btn-info"
                            target="_blank"
-                           rel="noopener noreferrer">
+                           rel="noopener noreferrer"
+                           style="background: #17a2b8;">
                             <i class="fas fa-certificate"></i>
                             دانلود گواهینامه AI
                         </a>
@@ -1679,10 +1749,13 @@
     
     // Manual refresh function
     function refreshPage() {
+        const refreshBtn = document.querySelector('.meta-item[onclick="refreshPage()"]');
+        if (refreshBtn) {
+            refreshBtn.classList.add('loading');
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>در حال بروزرسانی...</span>';
+        }
         showToast('در حال بروزرسانی...', 'info');
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
+        window.location.href = window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'stay=1';
     }
     
     // Show notification for incomplete analysis
@@ -1736,7 +1809,7 @@
             showLoadingModal('در حال درخواست تحلیل پیشرفته با Chidmano1 AI...<br><small style="color: #666;">زمان تقریبی: 2-4 دقیقه</small>');
             
             // Send request to reprocess with Liara AI
-            fetch(`{% url 'store_analysis:analysis_results' store_analysis.pk %}`, {
+            fetch(`{% url 'store_analysis:analysis_results' pk=store_analysis.pk %}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1751,7 +1824,7 @@
             .then(response => response.json())
             .then(data => {
                 hideLoadingModal();
-                if (data.success) {
+                if (data.status === 'success') {
                     showSuccessMessage('درخواست تحلیل پیشرفته ارسال شد. زمان تقریبی: 2-4 دقیقه<br>لطفاً دکمه بروزرسانی را فشار دهید.');
                     // حذف auto-reload
                     // setTimeout(() => {
@@ -1780,7 +1853,7 @@
             showLoadingModal('در حال درخواست تحلیل با Chidmano2 AI...<br><small style="color: #666;">زمان تقریبی: 5-7 دقیقه</small>');
             
             // Send request to reprocess with Ollama
-            fetch(`{% url 'store_analysis:analysis_results' store_analysis.pk %}`, {
+            fetch(`{% url 'store_analysis:analysis_results' pk=store_analysis.pk %}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1795,7 +1868,7 @@
             .then(response => response.json())
             .then(data => {
                 hideLoadingModal();
-                if (data.success) {
+                if (data.status === 'success') {
                     showSuccessMessage('درخواست تحلیل با Chidmano2 AI ارسال شد. زمان تقریبی: 5-7 دقیقه<br>لطفاً دکمه بروزرسانی را فشار دهید.');
                     // حذف auto-reload
                     // setTimeout(() => {
