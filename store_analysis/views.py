@@ -8380,8 +8380,9 @@ def forms_submit(request):
             # بررسی نوع تحلیل
             analysis_type = form_data.get('analysis_type', 'preliminary')
             
-            # ایجاد تحلیل جدید (ساده)
-            store_analysis = StoreAnalysis.objects.create(
+            # ایجاد تحلیل جدید (ساده) - با استفاده از safe_create_store_analysis
+            from store_analysis.utils.safe_db import safe_create_store_analysis
+            store_analysis = safe_create_store_analysis(
                 user=request.user,
                 store_name=form_data.get('store_name', 'فروشگاه'),
                 status='pending',
