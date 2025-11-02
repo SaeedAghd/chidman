@@ -5759,10 +5759,12 @@ def create_ticket(request):
                     status='open',
                     tags=[]  # فیلد tags با لیست خالی
                 )
+                logger.info(f"✅ تیکت ایجاد شد: {ticket.ticket_id} برای کاربر {request.user.username}")
                 messages.success(request, f'✅ تیکت شما با موفقیت ایجاد شد! شناسه تیکت: {ticket.ticket_id}')
-                return redirect('store_analysis:support_center')
+                # هدایت به لیست تیکت‌ها به جای support center
+                return redirect('store_analysis:ticket_list')
             except Exception as db_error:
-                logger.error(f"خطا در ایجاد تیکت: {db_error}")
+                logger.error(f"خطا در ایجاد تیکت: {db_error}", exc_info=True)
                 messages.error(request, f'❌ خطا در ایجاد تیکت: {str(db_error)}')
             return redirect('store_analysis:support_center')
         
