@@ -50,6 +50,7 @@ urlpatterns = [
         path('', views.support_center, name='support_center'),
         path('ticket/create/', views.create_ticket, name='create_ticket'),
         path('tickets/', views.ticket_list, name='ticket_list'),
+        path('faq/search/', views.faq_search, name='faq_search'),
     ])),
     
     # آموزش - فقط توابع اصلی
