@@ -10046,7 +10046,7 @@ def generate_professional_persian_pdf_report(analysis):
             ('FONTNAME', (0, 1), (-1, -1), font_name),
             ('FONTSIZE', (0, 1), (-1, -1), 9),
         ]))
-        story.append(drawing)
+        story.append(comp_table)
         story.append(Spacer(1, 20))
         
         # جدول پیشنهادات و هزینه‌ها
