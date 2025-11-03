@@ -6416,13 +6416,47 @@ def store_analysis_form(request, analysis_id=None):
                                 analysis_results = free_analysis_result.get('analysis_results', {})
                                 report_content = free_analysis_result.get('report', '')
                                 
-                                # استخراج analysis_text از نتایج
+                                # استخراج analysis_text از نتایج - چند روش مختلف
                                 analysis_text = None
-                                if isinstance(analysis_results, dict):
-                                    analysis_text = analysis_results.get('analysis_text') or analysis_results.get('summary')
                                 
+                                # روش 1: از analysis_results
+                                if isinstance(analysis_results, dict):
+                                    analysis_text = (
+                                        analysis_results.get('analysis_text') or 
+                                        analysis_results.get('summary') or
+                                        analysis_results.get('executive_summary', {}).get('summary') if isinstance(analysis_results.get('executive_summary'), dict) else None
+                                    )
+                                
+                                # روش 2: از report_content
                                 if not analysis_text and report_content:
                                     analysis_text = report_content
+                                
+                                # روش 3: ساخت analysis_text از بخش‌های مختلف
+                                if not analysis_text and isinstance(analysis_results, dict):
+                                    # ساخت متن از بخش‌های مختلف تحلیل
+                                    text_parts = []
+                                    
+                                    if analysis_results.get('executive_summary'):
+                                        exec_summary = analysis_results['executive_summary']
+                                        if isinstance(exec_summary, dict):
+                                            text_parts.append(f"خلاصه اجرایی: {exec_summary.get('summary', exec_summary.get('store_name', ''))}")
+                                    
+                                    if analysis_results.get('current_condition'):
+                                        current = analysis_results['current_condition']
+                                        if isinstance(current, dict):
+                                            text_parts.append(f"وضعیت فعلی: امتیاز کلی {current.get('overall_score', 'نامشخص')}/10")
+                                    
+                                    if analysis_results.get('recommendations'):
+                                        recs = analysis_results['recommendations']
+                                        if isinstance(recs, list) and len(recs) > 0:
+                                            text_parts.append(f"توصیه‌ها: {', '.join(str(r) for r in recs[:5])}")
+                                    
+                                    if text_parts:
+                                        analysis_text = "\n\n".join(text_parts)
+                                
+                                # اگر هنوز analysis_text نداریم، از report استفاده کن
+                                if not analysis_text:
+                                    analysis_text = report_content or 'تحلیل جامع فروشگاه انجام شد.'
                                 
                                 current_results = analysis.results or {}
                                 current_results.update({
