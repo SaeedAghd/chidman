@@ -966,6 +966,18 @@ def analysis_results(request, pk):
         from django.http import Http404
         raise Http404("تحلیل مورد نظر یافت نشد")
     
+    # بررسی وضعیت تحلیل و نمایش پیام مناسب
+    if analysis.status == 'processing':
+        messages.info(request, '⏳ تحلیل شما در حال پردازش است. در حال پردازش اطلاعات و تحلیل هستیم، تا ۳۰ دقیقه دیگه آماده می‌شه. لطفاً صبور باشید.')
+    elif analysis.status == 'failed':
+        messages.warning(request, '❌ تحلیل به مشکل برخورده. لطفاً مجدد اقدام کنید یا با پشتیبانی تماس بگیرید.')
+    elif analysis.status == 'pending':
+        # بررسی اینکه آیا فرم تکمیل شده یا نه
+        has_form_data = analysis.analysis_data and analysis.analysis_data.get('uploaded_files')
+        if not has_form_data:
+            messages.warning(request, '📝 فرم تحلیل هنوز تکمیل نشده است. لطفاً ابتدا فرم را تکمیل کنید.')
+            return redirect('store_analysis:forms', analysis_id=pk)
+    
     # Handle POST requests for AI analysis
     if request.method == 'POST':
         try:
@@ -3436,12 +3448,40 @@ def user_dashboard(request):
 
     for analysis in recent_analyses:
         normalized_status = analysis.status
-        if analysis.status in ['pending']:
-            if not analysis.analysis_data or not analysis.analysis_data.get('uploaded_files'):
+        
+        # بررسی تکمیل فرم: اگر analysis_data و uploaded_files وجود داشته باشد، فرم تکمیل شده
+        has_form_data = analysis.analysis_data and analysis.analysis_data.get('uploaded_files')
+        is_form_complete = bool(has_form_data)
+        
+        # تعیین وضعیت نرمالیزه شده
+        if analysis.status == 'completed':
+            normalized_status = 'completed'
+        elif analysis.status == 'failed':
+            normalized_status = 'failed'
+        elif analysis.status == 'processing':
+            # اگر در حال پردازش است، وضعیت را حفظ کن
+            normalized_status = 'processing'
+        elif analysis.status == 'pending':
+            # اگر pending است، بررسی کن که فرم تکمیل شده یا نه
+            if not is_form_complete:
+                # فرم تکمیل نشده - باید فرم را تکمیل کند
                 normalized_status = 'awaiting_form'
             else:
-                normalized_status = 'processing'
+                # فرم تکمیل شده اما تحلیل شروع نشده - احتمالاً در انتظار پرداخت یا شروع تحلیل
+                # اگر سفارش مرتبط وجود دارد و پرداخت شده، باید به processing تغییر کند
+                if hasattr(analysis, 'order') and analysis.order:
+                    if analysis.order.status in ['paid', 'processing', 'completed']:
+                        normalized_status = 'processing'
+                    else:
+                        normalized_status = 'pending'
+                else:
+                    normalized_status = 'pending'
+        else:
+            # برای سایر وضعیت‌ها، وضعیت اصلی را حفظ کن
+            normalized_status = analysis.status
+        
         analysis.normalized_status = normalized_status
+        analysis.is_form_complete = is_form_complete
     
     # آمار تحلیل‌ها (شامل همه وضعیت‌ها)
     total_analyses = StoreAnalysis.objects.filter(user=request.user).count()
@@ -4705,8 +4745,27 @@ def payping_callback(request, order_id):
                         try:
                             logger.info(f"🤖 شروع تحلیل واقعی با Liara AI برای تحلیل {store_analysis.id}")
                             
+                            # بررسی وجود API Key
+                            from django.conf import settings
+                            liara_api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
+                            if not liara_api_key:
+                                error_msg = "⚠️ LIARA_AI_API_KEY تنظیم نشده است. تحلیل نمی‌تواند انجام شود."
+                                logger.error(f"❌ {error_msg}")
+                                store_analysis.status = 'failed'
+                                store_analysis.error_message = error_msg
+                                store_analysis.save(update_fields=['status', 'error_message'])
+                                return
+                            
                             # آماده‌سازی داده‌های فروشگاه
                             analysis_data = store_analysis.analysis_data or {}
+                            if not analysis_data:
+                                error_msg = "⚠️ داده‌های تحلیل موجود نیست. لطفاً فرم را تکمیل کنید."
+                                logger.error(f"❌ {error_msg}")
+                                store_analysis.status = 'failed'
+                                store_analysis.error_message = error_msg
+                                store_analysis.save(update_fields=['status', 'error_message'])
+                                return
+                            
                             store_data = {
                                 'store_name': store_analysis.store_name or 'فروشگاه',
                                 'store_type': analysis_data.get('store_type', 'عمومی'),
@@ -4732,6 +4791,15 @@ def payping_callback(request, order_id):
                             from .ai_services.liara_ai_service import LiaraAIService
                             liara_service = LiaraAIService()
                             
+                            # بررسی مجدد API key در سرویس
+                            if not liara_service.api_key:
+                                error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
+                                logger.error(f"❌ {error_msg}")
+                                store_analysis.status = 'failed'
+                                store_analysis.error_message = error_msg
+                                store_analysis.save(update_fields=['status', 'error_message'])
+                                return
+                            
                             logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر...")
                             
                             # تحلیل جامع با Liara AI
@@ -4740,15 +4808,52 @@ def payping_callback(request, order_id):
                                 images=images if images else None
                             )
                             
-                            if comprehensive_analysis and not comprehensive_analysis.get('error'):
+                            # بررسی وجود خطا در تحلیل
+                            if comprehensive_analysis and comprehensive_analysis.get('error'):
+                                error_type = comprehensive_analysis.get('error', 'unknown_error')
+                                error_message = comprehensive_analysis.get('error_message', 'خطا در تحلیل AI')
+                                
+                                logger.error(f"❌ تحلیل Liara AI با خطا مواجه شد برای تحلیل {store_analysis.id}: {error_type} - {error_message}")
+                                
+                                # بررسی نوع خطا و نمایش پیام مناسب
+                                if error_type == 'api_key_missing':
+                                    error_message = "⚠️ LIARA_AI_API_KEY تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید."
+                                elif error_type == 'authentication_failed':
+                                    error_message = "⚠️ خطا در احراز هویت API. لطفاً API key را بررسی کنید."
+                                elif error_type == 'all_analyses_failed':
+                                    error_message = f"⚠️ همه تحلیل‌ها با خطا مواجه شدند: {error_message}"
+                                elif error_type == 'timeout':
+                                    error_message = "⚠️ زمان درخواست به پایان رسید. لطفاً دوباره تلاش کنید."
+                                elif error_type == 'connection_error':
+                                    error_message = "⚠️ خطا در اتصال به سرور. لطفاً اتصال اینترنت را بررسی کنید."
+                                
+                                store_analysis.status = 'failed'
+                                store_analysis.error_message = error_message
+                                store_analysis.save(update_fields=['status', 'error_message'])
+                                
+                            elif comprehensive_analysis and not comprehensive_analysis.get('error'):
                                 logger.info(f"✅ تحلیل Liara AI تکمیل شد برای تحلیل {store_analysis.id}")
                                 
                                 # به‌روزرسانی نتایج تحلیل
                                 current_results = store_analysis.results or {}
+                                
+                                # استخراج analysis_text از final_report یا محتوای تحلیل
+                                analysis_text = None
+                                if 'final_report' in comprehensive_analysis:
+                                    analysis_text = comprehensive_analysis['final_report']
+                                elif 'detailed_analyses' in comprehensive_analysis:
+                                    # ترکیب تحلیل‌های جزئی
+                                    combined = ""
+                                    for key, analysis in comprehensive_analysis['detailed_analyses'].items():
+                                        if analysis and 'content' in analysis:
+                                            combined += f"\n\n{analysis['content']}\n"
+                                    analysis_text = combined if combined else None
+                                
                                 current_results.update({
                                     'liara_analysis': comprehensive_analysis,
                                     'analysis_source': 'liara_ai',
-                                    'models_used': comprehensive_analysis.get('models_used', []),
+                                    'analysis_text': analysis_text or comprehensive_analysis.get('final_report', ''),
+                                    'models_used': comprehensive_analysis.get('ai_models_used', comprehensive_analysis.get('models_used', [])),
                                     'analysis_quality': 'premium',
                                     'analyzed_at': timezone.now().isoformat(),
                                     'payment_refid': refid
@@ -4811,9 +4916,10 @@ def payping_callback(request, order_id):
                                 
                                 logger.info(f"🎉 تحلیل {store_analysis.id} با موفقیت تکمیل شد!")
                             else:
-                                logger.error(f"❌ تحلیل Liara AI خالی یا خطا داشت برای تحلیل {store_analysis.id}")
+                                # تحلیل خالی یا None
+                                logger.error(f"❌ تحلیل Liara AI خالی برگشت برای تحلیل {store_analysis.id}")
                                 store_analysis.status = 'failed'
-                                store_analysis.error_message = comprehensive_analysis.get('error', 'خطا در تحلیل AI')
+                                store_analysis.error_message = 'تحلیل AI خالی برگشت. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.'
                                 store_analysis.save(update_fields=['status', 'error_message'])
                                 
                         except Exception as e:

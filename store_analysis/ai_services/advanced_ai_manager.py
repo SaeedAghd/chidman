@@ -170,11 +170,13 @@ class AdvancedAIManager:
             'liara_ai': {
                 'available': self.use_liara,
                 'models': [
-                    'openai/gpt-4.1',  # جدیدترین و قدرتمندترین مدل
+                    'openai/gpt-4.1',  # جدیدترین و قدرتمندترین مدل GPT
+                    'google/gemini-2.5-pro-preview',  # قدرتمندترین مدل Gemini
+                    'google/gemini-2.5-flash',  # سریع و کارآمد
+                    'google/gemini-2.0-flash-001',  # سریع برای تحلیل‌های سبک
+                    'google/gemini-2.0-flash-lite-001',  # سبک‌ترین مدل
                     'openai/gpt-4-turbo',
-                    'openai/gpt-4o',
-                    'claude-3-opus',
-                    'claude-3-sonnet'
+                    'openai/gpt-4o'
                 ],
                 'capabilities': [
                     'تحلیل جامع فروشگاه با GPT-4.1',

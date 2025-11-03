@@ -26,11 +26,16 @@ class PremiumReportGenerator:
     def __init__(self) -> None:
         self.service_name = "Premium Analysis Report"
         self.ai_client = LiaraAIClient()
+        # مدل‌های بر اساس پکیج - به‌روزرسانی شده
+        # تحلیل اولیه: از GPT-4o-mini برای همه پلن‌ها (سریع و ارزان)
+        # تحلیل محبوب (basic): از Gemini 2.5 Flash برای سرعت و کارایی
+        # تحلیل پیشرفته (professional): از GPT-5-mini برای بهترین کیفیت
+        # Enterprise نداریم - حذف شده
         self.model_map = {
-            'preliminary': 'openai/gpt-4o-mini',
-            'basic': 'openai/gpt-4o-mini',
-            'professional': 'google/gemini-2.0-flash',
-            'enterprise': 'openai/gpt-5-mini',
+            'preliminary': 'openai/gpt-4o-mini',           # تحلیل اولیه - برای همه پلن‌ها
+            'basic': 'google/gemini-2.5-flash',            # تحلیل محبوب - سریع و کارآمد
+            'professional': 'openai/gpt-5-mini',           # تحلیل پیشرفته - بهترین کیفیت
+            # 'enterprise': حذف شده - Enterprise نداریم
         }
         logger.info(
             "🚀 PremiumReportGenerator آماده شد (Liara فعال=%s)",

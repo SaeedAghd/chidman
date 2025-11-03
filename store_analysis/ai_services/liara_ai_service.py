@@ -20,6 +20,10 @@ class LiaraAIService:
         # URL صحیح API لیارا بر اساس مستندات
         self.base_url = "https://ai.liara.ir/api/68cb388afcfe30ace3a2a314/v1"
         self.api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
+        
+        if not self.api_key:
+            logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - تحلیل AI غیرفعال خواهد بود")
+        
         self.headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json',
@@ -28,6 +32,7 @@ class LiaraAIService:
         }
         
         # مدل‌های موجود در لیارا بر اساس مستندات
+        # تمام مدل‌های لیارا سازگار با OpenAI SDK هستند
         self.models = {
             'analysis': 'openai/gpt-4.1',           # تحلیل اصلی
             'design': 'openai/gpt-4.1',             # تحلیل طراحی
@@ -39,6 +44,14 @@ class LiaraAIService:
     
     def _make_request(self, model: str, prompt: str, max_tokens: int = 4000, temperature: float = 0.7) -> Dict:
         """ارسال درخواست به API لیارا"""
+        # بررسی وجود API key
+        if not self.api_key:
+            logger.error("❌ LIARA_AI_API_KEY تنظیم نشده است - نمی‌توان درخواست ارسال کرد")
+            return {
+                'error': 'LIARA_AI_API_KEY تنظیم نشده است',
+                'error_message': 'کلید API لیارا تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید.'
+            }
+        
         try:
             payload = {
                 "model": model,
@@ -67,23 +80,59 @@ class LiaraAIService:
             )
             
             if response.status_code == 200:
-                return response.json()
+                result = response.json()
+                logger.info(f"✅ درخواست به Liara AI موفق: model={model}")
+                return result
+            elif response.status_code == 401:
+                logger.error(f"❌ خطا در احراز هویت Liara AI: API key نامعتبر")
+                return {
+                    'error': 'authentication_failed',
+                    'error_message': 'خطا در احراز هویت API. لطفاً API key را بررسی کنید.'
+                }
+            elif response.status_code == 429:
+                logger.warning(f"⚠️ Rate limit در Liara AI")
+                return {
+                    'error': 'rate_limit',
+                    'error_message': 'درخواست بیش از حد. لطفاً کمی صبر کنید.'
+                }
             else:
-                logger.error(f"خطا در API لیارا: {response.status_code} - {response.text}")
-                return None
+                logger.error(f"❌ خطا در API لیارا: {response.status_code} - {response.text}")
+                return {
+                    'error': f'api_error_{response.status_code}',
+                    'error_message': f'خطا در ارتباط با API: {response.status_code}'
+                }
                 
         except requests.exceptions.Timeout:
-            logger.warning(f"Timeout در ارتباط با لیارا AI - درخواست بیش از 2 دقیقه طول کشید")
-            return None
+            logger.warning(f"⚠️ Timeout در ارتباط با لیارا AI - درخواست بیش از 45 ثانیه طول کشید")
+            return {
+                'error': 'timeout',
+                'error_message': 'زمان درخواست به پایان رسید. لطفاً دوباره تلاش کنید.'
+            }
         except requests.exceptions.ConnectionError:
-            logger.error(f"خطا در اتصال به لیارا AI - بررسی اتصال اینترنت")
-            return None
+            logger.error(f"❌ خطا در اتصال به لیارا AI - بررسی اتصال اینترنت")
+            return {
+                'error': 'connection_error',
+                'error_message': 'خطا در اتصال به سرور. لطفاً اتصال اینترنت را بررسی کنید.'
+            }
         except Exception as e:
-            logger.error(f"خطا در ارتباط با لیارا AI: {e}")
-            return None
+            logger.error(f"❌ خطا در ارتباط با لیارا AI: {e}", exc_info=True)
+            return {
+                'error': 'unexpected_error',
+                'error_message': f'خطای غیرمنتظره: {str(e)}'
+            }
     
     def analyze_store_comprehensive(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """تحلیل جامع و حرفه‌ای فروشگاه با استفاده از چندین مدل AI و پردازش تصاویر"""
+        
+        # بررسی وجود API key
+        if not self.api_key:
+            error_msg = "LIARA_AI_API_KEY تنظیم نشده است. تحلیل نمی‌تواند انجام شود."
+            logger.error(f"❌ {error_msg}")
+            return {
+                'error': 'api_key_missing',
+                'error_message': error_msg,
+                'analysis_text': f'⚠️ خطا: {error_msg} لطفاً با پشتیبانی تماس بگیرید.'
+            }
         
         store_name = store_data.get('store_name', 'فروشگاه')
         store_type = store_data.get('store_type', 'عمومی')
@@ -92,34 +141,65 @@ class LiaraAIService:
         
         # تحلیل‌های موازی با مدل‌های مختلف
         analyses = {}
+        errors = []
         
         # 1. تحلیل اصلی با GPT-4 Turbo (شامل اطلاعات تصاویر)
         main_analysis = self._analyze_main_store(store_data, images)
-        if main_analysis:
+        if main_analysis and not main_analysis.get('error'):
             analyses['main'] = main_analysis
+        elif main_analysis and main_analysis.get('error'):
+            errors.append(f"تحلیل اصلی: {main_analysis.get('error_message', 'خطای نامشخص')}")
+            logger.error(f"❌ خطا در تحلیل اصلی: {main_analysis.get('error_message', 'خطای نامشخص')}")
         
         # 2. تحلیل طراحی با Claude-3 Opus (با تمرکز بر تصاویر)
         design_analysis = self._analyze_store_design(store_data, images)
-        if design_analysis:
+        if design_analysis and not design_analysis.get('error'):
             analyses['design'] = design_analysis
+        elif design_analysis and design_analysis.get('error'):
+            errors.append(f"تحلیل طراحی: {design_analysis.get('error_message', 'خطای نامشخص')}")
+            logger.error(f"❌ خطا در تحلیل طراحی: {design_analysis.get('error_message', 'خطای نامشخص')}")
         
         # 3. تحلیل روانشناسی مشتری با Claude-3 Sonnet
         psychology_analysis = self._analyze_customer_psychology(store_data)
-        if psychology_analysis:
+        if psychology_analysis and not psychology_analysis.get('error'):
             analyses['psychology'] = psychology_analysis
+        elif psychology_analysis and psychology_analysis.get('error'):
+            errors.append(f"تحلیل روانشناسی: {psychology_analysis.get('error_message', 'خطای نامشخص')}")
+            logger.error(f"❌ خطا در تحلیل روانشناسی: {psychology_analysis.get('error_message', 'خطای نامشخص')}")
         
         # 4. تحلیل بازاریابی با GPT-4o
         marketing_analysis = self._analyze_marketing_potential(store_data)
-        if marketing_analysis:
+        if marketing_analysis and not marketing_analysis.get('error'):
             analyses['marketing'] = marketing_analysis
+        elif marketing_analysis and marketing_analysis.get('error'):
+            errors.append(f"تحلیل بازاریابی: {marketing_analysis.get('error_message', 'خطای نامشخص')}")
+            logger.error(f"❌ خطا در تحلیل بازاریابی: {marketing_analysis.get('error_message', 'خطای نامشخص')}")
         
         # 5. بهینه‌سازی با GPT-4 Turbo
         optimization_analysis = self._analyze_optimization(store_data)
-        if optimization_analysis:
+        if optimization_analysis and not optimization_analysis.get('error'):
             analyses['optimization'] = optimization_analysis
+        elif optimization_analysis and optimization_analysis.get('error'):
+            errors.append(f"تحلیل بهینه‌سازی: {optimization_analysis.get('error_message', 'خطای نامشخص')}")
+            logger.error(f"❌ خطا در تحلیل بهینه‌سازی: {optimization_analysis.get('error_message', 'خطای نامشخص')}")
+        
+        # اگر هیچ تحلیلی موفق نبود، خطا برگردان
+        if not analyses:
+            error_msg = "همه تحلیل‌ها با خطا مواجه شدند. " + " | ".join(errors) if errors else "خطای نامشخص"
+            logger.error(f"❌ {error_msg}")
+            return {
+                'error': 'all_analyses_failed',
+                'error_message': error_msg,
+                'analysis_text': f'⚠️ خطا: {error_msg} لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.'
+            }
         
         # ترکیب و خلاصه‌سازی نتایج
         final_analysis = self._combine_analyses(analyses, store_data, images)
+        
+        # اگر خطاهایی وجود داشت، به نتایج اضافه کن
+        if errors:
+            final_analysis['warnings'] = errors
+            logger.warning(f"⚠️ برخی تحلیل‌ها با خطا مواجه شدند: {len(errors)} خطا")
         
         return final_analysis
     
@@ -283,13 +363,18 @@ class LiaraAIService:
         """
         
         result = self._make_request(self.models['analysis'], prompt, max_tokens=4000)
+        if result and 'error' in result:
+            return result  # برگرداندن خطا
         if result and 'choices' in result:
             return {
                 'type': 'main_analysis',
                 'content': result['choices'][0]['message']['content'],
                 'model': 'gpt-4-turbo'
             }
-        return None
+        return {
+            'error': 'api_request_failed',
+            'error_message': 'خطا در دریافت پاسخ از API. لطفاً دوباره تلاش کنید.'
+        }
     
     def _analyze_store_design(self, store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """تحلیل طراحی با Claude-3 Opus"""
@@ -348,13 +433,18 @@ class LiaraAIService:
         """
         
         result = self._make_request(self.models['design'], prompt, max_tokens=3000)
+        if result and 'error' in result:
+            return result  # برگرداندن خطا
         if result and 'choices' in result:
             return {
                 'type': 'design_analysis',
                 'content': result['choices'][0]['message']['content'],
                 'model': 'claude-3-opus'
             }
-        return None
+        return {
+            'error': 'api_request_failed',
+            'error_message': 'خطا در دریافت پاسخ از API طراحی. لطفاً دوباره تلاش کنید.'
+        }
     
     def _analyze_customer_psychology(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
         """تحلیل روانشناسی مشتری با Claude-3 Sonnet"""
@@ -419,13 +509,18 @@ class LiaraAIService:
         """
         
         result = self._make_request(self.models['psychology'], prompt, max_tokens=3000)
+        if result and 'error' in result:
+            return result  # برگرداندن خطا
         if result and 'choices' in result:
             return {
                 'type': 'psychology_analysis',
                 'content': result['choices'][0]['message']['content'],
                 'model': 'claude-3-sonnet'
             }
-        return None
+        return {
+            'error': 'api_request_failed',
+            'error_message': 'خطا در دریافت پاسخ از API روانشناسی. لطفاً دوباره تلاش کنید.'
+        }
     
     def _analyze_marketing_potential(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
         """تحلیل بازاریابی با GPT-4o"""
@@ -494,13 +589,18 @@ class LiaraAIService:
         """
         
         result = self._make_request(self.models['marketing'], prompt, max_tokens=3000)
+        if result and 'error' in result:
+            return result  # برگرداندن خطا
         if result and 'choices' in result:
             return {
                 'type': 'marketing_analysis',
                 'content': result['choices'][0]['message']['content'],
                 'model': 'gpt-4o'
             }
-        return None
+        return {
+            'error': 'api_request_failed',
+            'error_message': 'خطا در دریافت پاسخ از API بازاریابی. لطفاً دوباره تلاش کنید.'
+        }
     
     def _analyze_optimization(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
         """تحلیل بهینه‌سازی با GPT-4 Turbo"""
@@ -576,13 +676,18 @@ class LiaraAIService:
         """
         
         result = self._make_request(self.models['optimization'], prompt, max_tokens=3000)
+        if result and 'error' in result:
+            return result  # برگرداندن خطا
         if result and 'choices' in result:
             return {
                 'type': 'optimization_analysis',
                 'content': result['choices'][0]['message']['content'],
                 'model': 'gpt-4-turbo'
             }
-        return None
+        return {
+            'error': 'api_request_failed',
+            'error_message': 'خطا در دریافت پاسخ از API بهینه‌سازی. لطفاً دوباره تلاش کنید.'
+        }
     
     def _combine_analyses(self, analyses: Dict[str, Any], store_data: Dict[str, Any], images: List[str] = None) -> Dict[str, Any]:
         """ترکیب و خلاصه‌سازی تحلیل‌ها"""
@@ -647,6 +752,32 @@ class LiaraAIService:
         """
         
         result = self._make_request(self.models['summary'], summary_prompt, max_tokens=2000)
+        if result and 'error' in result:
+            # اگر خطا در خلاصه‌سازی باشد، ولی تحلیل‌های جزئی موفق بوده‌اند، از آن‌ها استفاده کن
+            logger.warning(f"⚠️ خطا در خلاصه‌سازی: {result.get('error_message')} - استفاده از تحلیل‌های جزئی")
+            # ترکیب دستی تحلیل‌های جزئی
+            combined_text = ""
+            for key, analysis in analyses.items():
+                if analysis and 'content' in analysis:
+                    combined_text += f"\n\n### {key.upper()}:\n{analysis['content']}\n"
+            
+            if combined_text:
+                return {
+                    'final_report': combined_text[:5000],  # محدود کردن طول
+                    'detailed_analyses': analyses,
+                    'store_info': store_data,
+                    'analysis_timestamp': time.time(),
+                    'ai_models_used': list(set([analysis.get('model', 'unknown') for analysis in analyses.values() if analysis])),
+                    'warning': 'خلاصه‌سازی با خطا مواجه شد، از تحلیل‌های جزئی استفاده شد'
+                }
+            else:
+                # اگر هیچ تحلیلی وجود ندارد، خطا برگردان
+                return {
+                    'error': result.get('error', 'summarization_failed'),
+                    'error_message': result.get('error_message', 'خطا در خلاصه‌سازی تحلیل'),
+                    'detailed_analyses': analyses,
+                    'store_info': store_data
+                }
         if result and 'choices' in result:
             return {
                 'final_report': result['choices'][0]['message']['content'],
@@ -656,6 +787,25 @@ class LiaraAIService:
                 'ai_models_used': list(set([analysis.get('model', 'unknown') for analysis in analyses.values() if analysis]))
             }
         
+        # اگر result None باشد، بررسی کن که آیا تحلیل‌های جزئی وجود دارند
+        if analyses:
+            logger.warning("⚠️ خلاصه‌سازی با خطا مواجه شد، استفاده از تحلیل‌های جزئی")
+            combined_text = ""
+            for key, analysis in analyses.items():
+                if analysis and 'content' in analysis:
+                    combined_text += f"\n\n### {key.upper()}:\n{analysis['content']}\n"
+            if combined_text:
+                return {
+                    'final_report': combined_text[:5000],
+                    'detailed_analyses': analyses,
+                    'store_info': store_data,
+                    'analysis_timestamp': time.time(),
+                    'ai_models_used': list(set([analysis.get('model', 'unknown') for analysis in analyses.values() if analysis])),
+                    'warning': 'خلاصه‌سازی با خطا مواجه شد'
+                }
+        
+        # فقط در صورت عدم وجود هیچ تحلیلی، به fallback برو
+        logger.error("❌ هیچ تحلیلی موفق نبود - استفاده از fallback")
         return self._get_fallback_analysis(store_data)
     
     def _get_fallback_analysis(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
