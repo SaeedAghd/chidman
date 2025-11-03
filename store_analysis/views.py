@@ -5854,9 +5854,7 @@ def create_ticket(request):
                 )
                 
                 # بررسی که تیکت واقعاً ایجاد شد
-                from django.db import transaction
-                transaction.commit()  # اطمینان از commit شدن transaction
-                
+                # Django خودش transaction را commit می‌کند
                 saved_ticket = SupportTicket.objects.get(id=ticket.id)
                 logger.info(f"✅ تیکت ایجاد شد: ID={saved_ticket.id}, ticket_id={saved_ticket.ticket_id}, user={request.user.username}, user_id={request.user.id}")
                 
@@ -8786,9 +8784,10 @@ def buy_basic(request):
             analysis_type='basic_free'
         )
         
-        # تحلیل اولیه رایگان است - مستقیماً به صفحه موفقیت
-        messages.success(request, '✅ سفارش شما با موفقیت ثبت شد! تحلیل رایگان شما در حال پردازش است.')
-        return redirect('store_analysis:user_dashboard')
+        # تحلیل اولیه رایگان است - هدایت به فرم برای تکمیل اطلاعات
+        request.session['analysis_id'] = store_analysis.id
+        messages.success(request, '✅ تحلیل رایگان شما ایجاد شد! لطفاً فرم را تکمیل کنید.')
+        return redirect('store_analysis:forms', analysis_id=store_analysis.id)
     
     # 🛡️ بررسی استفاده قبلی در صفحه فرم
     from .services.free_usage_checker import FreeUsageChecker
