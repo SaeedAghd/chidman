@@ -240,28 +240,33 @@ class SimpleFormManager {
             const formAction = form.action || window.location.pathname;
             const response = await fetch(formAction, fetchOptions);
 
+            // بررسی نوع پاسخ
+            const contentType = response.headers.get('content-type') || '';
+            
             if (response.ok) {
-                // بررسی نوع پاسخ
-                const contentType = response.headers.get('content-type');
-                
-                if (contentType && contentType.includes('application/json')) {
+                if (contentType.includes('application/json')) {
                     // پاسخ JSON
-                    const data = await response.json();
-                    if (data.success) {
-                        this.showMessage(data.message || '🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
-                        // هدایت به صفحه پرداخت
-                        console.log('Redirect URL:', data.redirect_url);
-                        setTimeout(() => {
-                            if (data.redirect_url) {
-                                console.log('Redirecting to:', data.redirect_url);
-                                window.location.href = data.redirect_url;
-                            } else {
-                                console.log('No redirect URL provided, staying on page');
-                                this.showMessage('فرم با موفقیت ارسال شد! لطفاً منتظر بمانید...', 'success');
-                            }
-                        }, 1500);
-                    } else {
-                        this.showMessage(data.message || 'خطا در ارسال فرم', 'error');
+                    try {
+                        const data = await response.json();
+                        if (data.success) {
+                            this.showMessage(data.message || '🎉 فرم با موفقیت ارسال شد! در حال هدایت به صفحه پرداخت...', 'success');
+                            // هدایت به صفحه پرداخت
+                            console.log('Redirect URL:', data.redirect_url);
+                            setTimeout(() => {
+                                if (data.redirect_url) {
+                                    console.log('Redirecting to:', data.redirect_url);
+                                    window.location.href = data.redirect_url;
+                                } else {
+                                    console.log('No redirect URL provided, staying on page');
+                                    this.showMessage('فرم با موفقیت ارسال شد! لطفاً منتظر بمانید...', 'success');
+                                }
+                            }, 1500);
+                        } else {
+                            this.showMessage(data.message || 'خطا در ارسال فرم', 'error');
+                        }
+                    } catch (jsonError) {
+                        console.error('JSON parsing error:', jsonError);
+                        throw new Error('خطا در پردازش پاسخ سرور');
                     }
                 } else {
                     // پاسخ HTML - احتمالاً redirect
@@ -288,19 +293,50 @@ class SimpleFormManager {
                     window.location.href = '/store/dashboard/';
                 }, 1000);
             } else {
-                throw new Error(`خطا در سرور: ${response.status}`);
+                // پاسخ خطا - تلاش برای خواندن پیغام خطا
+                let errorMessage = `خطا در سرور: ${response.status} ${response.statusText}`;
+                try {
+                    if (contentType.includes('application/json')) {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } else {
+                        const errorText = await response.text();
+                        if (errorText) {
+                            // تلاش برای استخراج پیغام خطا از HTML
+                            const errorMatch = errorText.match(/<title>(.*?)<\/title>/i) || 
+                                              errorText.match(/خطا[^<]*/i);
+                            if (errorMatch) {
+                                errorMessage = errorMatch[1] || errorMatch[0];
+                            }
+                        }
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing error response:', parseError);
+                }
+                throw new Error(errorMessage);
             }
         } catch (error) {
             console.error('Form submission error:', error);
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             
-            // بررسی نوع خطا
+            // بررسی نوع خطا و نمایش پیغام مناسب
+            let errorMessage = 'خطایی در ارسال فرم رخ داد. لطفاً دوباره تلاش کنید.';
+            
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                this.showMessage('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.', 'error');
-            } else if (error.message.includes('CSRF')) {
-                this.showMessage('خطا در احراز هویت. لطفاً صفحه را رفرش کنید و دوباره تلاش کنید.', 'error');
-            } else {
-                this.showMessage('خطایی در ارسال فرم رخ داد. لطفاً دوباره تلاش کنید.', 'error');
+                errorMessage = 'خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.';
+            } else if (error.message.includes('CSRF') || error.message.includes('Forbidden')) {
+                errorMessage = 'خطا در احراز هویت. لطفاً صفحه را رفرش کنید و دوباره تلاش کنید.';
+            } else if (error.message.includes('خطا در سرور')) {
+                errorMessage = error.message; // استفاده از پیغام سرور
+            } else if (error.message) {
+                errorMessage = `خطا: ${error.message}`;
             }
+            
+            this.showMessage(errorMessage, 'error');
         } finally {
             // بازگردانی دکمه
             if (submitBtn) {

@@ -4296,8 +4296,9 @@ def process_payment(request, order_id):
 
             # بررسی نوع پرداخت
             if payment_method == 'wallet':
-                # هدایت به صفحه پرداخت کیف پول
-                return redirect('store_analysis:wallet_payment', order_id=order.order_number)
+                # پرداخت از طریق کیف پول موقتاً غیرفعال است
+                messages.warning(request, '⚠️ پرداخت از طریق کیف پول موقتاً غیرفعال است. لطفاً از روش پرداخت آنلاین استفاده کنید.')
+                return redirect('store_analysis:payment_page', order_id=order.order_number)
             elif payment_method == 'online':
                 # هدایت به PayPing
                 return redirect('store_analysis:payping_payment', order_id=order.order_number)
@@ -5830,8 +5831,16 @@ def create_ticket(request):
             
             # ایجاد تیکت در دیتابیس
             try:
-                # تولید شناسه تیکت منحصر به فرد (کوتاه‌تر)
-                ticket_id = f"TK-{timezone.now().strftime('%m%d%H%M')}-{request.user.id}"
+                # تولید شناسه تیکت منحصر به فرد (با ثانیه و microseconds برای اطمینان از uniqueness)
+                import time as time_module
+                timestamp = timezone.now()
+                unique_suffix = f"{timestamp.strftime('%m%d%H%M%S')}-{request.user.id}-{int(time_module.time() * 1000) % 10000}"
+                ticket_id = f"TK-{unique_suffix}"
+                
+                # بررسی اینکه ticket_id منحصر به فرد باشد
+                while SupportTicket.objects.filter(ticket_id=ticket_id).exists():
+                    unique_suffix = f"{timestamp.strftime('%m%d%H%M%S')}-{request.user.id}-{int(time_module.time() * 1000) % 10000}"
+                    ticket_id = f"TK-{unique_suffix}"
                 
                 ticket = SupportTicket.objects.create(
                     ticket_id=ticket_id,
@@ -5843,14 +5852,36 @@ def create_ticket(request):
                     status='open',
                     tags=[]  # فیلد tags با لیست خالی
                 )
-                logger.info(f"✅ تیکت ایجاد شد: {ticket.ticket_id} برای کاربر {request.user.username}")
+                
+                # بررسی که تیکت واقعاً ایجاد شد
+                from django.db import transaction
+                transaction.commit()  # اطمینان از commit شدن transaction
+                
+                saved_ticket = SupportTicket.objects.get(id=ticket.id)
+                logger.info(f"✅ تیکت ایجاد شد: ID={saved_ticket.id}, ticket_id={saved_ticket.ticket_id}, user={request.user.username}, user_id={request.user.id}")
+                
+                # بررسی تعداد تیکت‌های کاربر (با refresh از دیتابیس)
+                user_tickets_count = SupportTicket.objects.filter(user=request.user).count()
+                logger.info(f"📊 تعداد کل تیکت‌های کاربر {request.user.username}: {user_tickets_count}")
+                
+                # بررسی اینکه تیکت جدید در query وجود دارد
+                user_tickets = list(SupportTicket.objects.filter(user=request.user).values_list('ticket_id', flat=True))
+                logger.info(f"📋 لیست ticket_id های کاربر: {user_tickets[:5]}")
+                
+                if saved_ticket.ticket_id not in user_tickets:
+                    logger.error(f"⚠️ تیکت {saved_ticket.ticket_id} در query کاربر یافت نشد!")
+                else:
+                    logger.info(f"✅ تیکت {saved_ticket.ticket_id} در query کاربر یافت شد")
+                
                 messages.success(request, f'✅ تیکت شما با موفقیت ایجاد شد! شناسه تیکت: {ticket.ticket_id}')
-                # هدایت به لیست تیکت‌ها به جای support center
+                
+                # هدایت به لیست تیکت‌ها
                 return redirect('store_analysis:ticket_list')
+                
             except Exception as db_error:
-                logger.error(f"خطا در ایجاد تیکت: {db_error}", exc_info=True)
+                logger.error(f"❌ خطا در ایجاد تیکت: {db_error}", exc_info=True)
                 messages.error(request, f'❌ خطا در ایجاد تیکت: {str(db_error)}')
-            return redirect('store_analysis:support_center')
+                return redirect('store_analysis:support_center')
         
         # نمایش فرم
         context = {
@@ -5881,14 +5912,27 @@ def ticket_list(request):
         if status_filter:
             tickets = tickets.filter(status=status_filter)
         
-        # لاگ برای debugging
+        # لاگ برای debugging - بررسی دقیق‌تر
         total_count = tickets.count()
         logger.info(f"🔍 تعداد تیکت‌های کاربر {request.user.username}: {total_count}")
+        
+        # لاگ کردن تیکت‌های موجود
+        if total_count > 0:
+            ticket_ids = list(tickets.values_list('ticket_id', flat=True)[:5])
+            logger.info(f"🔍 نمونه تیکت‌ها: {ticket_ids}")
+        else:
+            logger.warning(f"⚠️ هیچ تیکتی برای کاربر {request.user.username} یافت نشد!")
+            # بررسی اینکه آیا تیکت‌هایی در دیتابیس وجود دارند
+            all_tickets_count = SupportTicket.objects.count()
+            logger.info(f"🔍 تعداد کل تیکت‌ها در دیتابیس: {all_tickets_count}")
         
         # صفحه‌بندی
         paginator = Paginator(tickets, 10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
+        
+        # لاگ کردن اطلاعات paginator
+        logger.info(f"📄 Paginator: count={paginator.count}, num_pages={paginator.num_pages}, page_obj.number={page_obj.number}")
         
         context = {
             'page_obj': page_obj,
