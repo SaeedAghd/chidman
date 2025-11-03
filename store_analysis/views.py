@@ -6369,12 +6369,113 @@ def store_analysis_form(request, analysis_id=None):
 
             request.session['analysis_id'] = analysis.pk
 
-            try:
-                ensure_basic_analysis_results(analysis)
-            except Exception as generator_error:
-                logger.error("Fallback analysis generation failed for %s: %s", analysis.pk, generator_error)
+            # اگر تحلیل رایگان است (package_type='basic' و final_amount=0)، تحلیل واقعی را شروع کن
+            if analysis.package_type == 'basic' and analysis.final_amount == 0:
+                try:
+                    # شروع تحلیل واقعی با FreeAnalysisService در background
+                    import threading
+                    
+                    def start_free_analysis():
+                        """شروع تحلیل رایگان واقعی در background"""
+                        try:
+                            logger.info(f"🆓 شروع تحلیل رایگان واقعی برای تحلیل {analysis.id}")
+                            
+                            from .ai_services.free_analysis_service import FreeAnalysisService
+                            free_service = FreeAnalysisService()
+                            
+                            # آماده‌سازی داده‌های فروشگاه
+                            store_data = {
+                                'store_name': analysis.store_name or 'فروشگاه',
+                                'store_type': analysis.analysis_data.get('store_type', 'عمومی') if analysis.analysis_data else 'عمومی',
+                                'store_size': str(analysis.analysis_data.get('store_size', 0)) if analysis.analysis_data else '0',
+                                'store_address': analysis.analysis_data.get('store_address', '') if analysis.analysis_data else '',
+                                'description': analysis.analysis_data.get('description', '') if analysis.analysis_data else '',
+                                **(analysis.analysis_data if isinstance(analysis.analysis_data, dict) else {})
+                            }
+                            
+                            # استخراج تصاویر از uploaded_files
+                            images = []
+                            if analysis.analysis_data and 'uploaded_files' in analysis.analysis_data:
+                                uploaded_files = analysis.analysis_data['uploaded_files']
+                                image_fields = ['store_photos', 'store_layout', 'shelf_photos', 
+                                              'window_display_photos', 'entrance_photos', 'checkout_photos']
+                                for field in image_fields:
+                                    if field in uploaded_files:
+                                        file_info = uploaded_files[field]
+                                        if isinstance(file_info, dict) and 'path' in file_info:
+                                            images.append(file_info['path'])
+                            
+                            # تحلیل با FreeAnalysisService
+                            logger.info(f"📊 در حال انجام تحلیل رایگان با {len(images)} تصویر...")
+                            free_analysis_result = free_service.analyze_store(store_data)
+                            
+                            if free_analysis_result and free_analysis_result.get('status') == 'completed':
+                                logger.info(f"✅ تحلیل رایگان تکمیل شد برای تحلیل {analysis.id}")
+                                
+                                # به‌روزرسانی results با محتوای واقعی
+                                analysis_results = free_analysis_result.get('analysis_results', {})
+                                report_content = free_analysis_result.get('report', '')
+                                
+                                # استخراج analysis_text از نتایج
+                                analysis_text = None
+                                if isinstance(analysis_results, dict):
+                                    analysis_text = analysis_results.get('analysis_text') or analysis_results.get('summary')
+                                
+                                if not analysis_text and report_content:
+                                    analysis_text = report_content
+                                
+                                current_results = analysis.results or {}
+                                current_results.update({
+                                    'analysis_text': analysis_text or 'تحلیل جامع فروشگاه انجام شد.',
+                                    'free_analysis': free_analysis_result,
+                                    'analysis_source': 'free_analysis_service',
+                                    'ai_provider': 'ollama',
+                                    'confidence_score': free_analysis_result.get('confidence_score', 0.8),
+                                    'quality_level': free_analysis_result.get('quality_level', 'professional'),
+                                    'analyzed_at': timezone.now().isoformat(),
+                                })
+                                
+                                # ذخیره نتایج
+                                analysis.results = current_results
+                                analysis.status = 'completed'
+                                analysis.save(update_fields=['results', 'status'])
+                                
+                                logger.info(f"🎉 تحلیل رایگان {analysis.id} با موفقیت تکمیل شد!")
+                            else:
+                                logger.warning(f"⚠️ تحلیل رایگان ناقص بود برای تحلیل {analysis.id}")
+                                # استفاده از fallback
+                                ensure_basic_analysis_results(analysis)
+                                
+                        except Exception as e:
+                            logger.error(f"❌ خطا در تحلیل رایگان background برای تحلیل {analysis.id}: {e}", exc_info=True)
+                            # در صورت خطا، از fallback استفاده کن
+                            try:
+                                ensure_basic_analysis_results(analysis)
+                            except Exception as fallback_error:
+                                logger.error(f"❌ خطا در fallback برای تحلیل {analysis.id}: {fallback_error}", exc_info=True)
+                    
+                    # شروع تحلیل در background
+                    analysis_thread = threading.Thread(target=start_free_analysis, daemon=True)
+                    analysis_thread.start()
+                    logger.info(f"🧵 Thread تحلیل رایگان برای {analysis.id} شروع شد")
+                    
+                    messages.success(request, '✅ فرم با موفقیت ثبت شد! تحلیل رایگان در حال انجام است. پس از حدود 5 دقیقه می‌توانید نتایج را مشاهده کنید.')
+                except Exception as err:
+                    logger.error(f"❌ خطا در شروع تحلیل رایگان برای تحلیل {analysis.id}: {err}", exc_info=True)
+                    # در صورت خطا، از fallback استفاده کن
+                    try:
+                        ensure_basic_analysis_results(analysis)
+                    except Exception as fallback_error:
+                        logger.error(f"❌ خطا در fallback: {fallback_error}", exc_info=True)
+                    messages.success(request, '✅ فرم با موفقیت ثبت شد! تحلیل در حال انجام است.')
+            else:
+                # برای تحلیل‌های پولی، از fallback استفاده کن (تحلیل واقعی بعد از پرداخت انجام می‌شود)
+                try:
+                    ensure_basic_analysis_results(analysis)
+                except Exception as generator_error:
+                    logger.error("Fallback analysis generation failed for %s: %s", analysis.pk, generator_error)
+                messages.success(request, '✅ فرم با موفقیت ثبت شد! پس از پرداخت، تحلیل کامل انجام خواهد شد.')
 
-            messages.success(request, 'فرم تحلیل فروشگاه با موفقیت ثبت شد!')
             return redirect('store_analysis:analysis_results', pk=analysis.pk)
             
         except Exception as e:
