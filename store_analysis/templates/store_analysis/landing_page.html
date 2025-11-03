@@ -729,6 +729,15 @@
             <span style="color: var(--apple-green); font-weight: 600;">افزایش فروش تا 30%</span>
         </p>
         
+        <!-- شعار چیدمانو -->
+        <div style="max-width: 700px; margin: 2rem auto; padding: 1.5rem; background: rgba(255, 255, 255, 0.15); border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <p style="font-size: clamp(1rem, 1.5vw, 1.25rem); color: rgba(255, 255, 255, 0.95); line-height: 1.8; margin: 0; font-style: italic; text-align: center;">
+                <span style="font-size: 1.5em; color: var(--apple-yellow);">💡</span><br>
+                چیدمان فروشگاه فقط چیدن منظم و مرتب محصولات نیست<br>
+                <strong style="color: var(--apple-yellow); font-weight: 700;">بلکه "چیدمان هدایت مشتری برای خرید با رضایت هستش"</strong>
+            </p>
+        </div>
+        
         <div class="hero-cta">
             {% if user.is_authenticated %}
                 <a href="{% url 'store_analysis:forms' %}" class="cta-primary">
