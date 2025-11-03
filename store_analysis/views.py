@@ -10487,7 +10487,18 @@ def generate_professional_persian_pdf_report_fixed(analysis):
         # تحلیل کامل و تفصیلی
         story.append(Paragraph("تحلیل کامل و تفصیلی", subtitle_style))
         
-        detailed_analysis_text = f"""
+        # دریافت محتوای واقعی تحلیل از results
+        real_analysis_text = None
+        if analysis.results and isinstance(analysis.results, dict):
+            real_analysis_text = analysis.results.get('analysis_text') or analysis.results.get('liara_analysis', {}).get('analysis_text')
+            if isinstance(real_analysis_text, dict):
+                real_analysis_text = real_analysis_text.get('analysis_text') or str(real_analysis_text)
+        
+        # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
+        if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
+            detailed_analysis_text = f"""
+        {real_analysis_text}
+        
         تحلیل جامع فروشگاه با استفاده از استانداردهای جهانی و روش‌های پیشرفته انجام شده است. 
         این تحلیل شامل بررسی دقیق تمامی جنبه‌های فروشگاه از جمله چیدمان، نورپردازی، رنگ‌بندی، 
         ترافیک مشتریان و عوامل مؤثر بر فروش می‌باشد.
