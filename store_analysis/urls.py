@@ -3,6 +3,7 @@ from . import views
 from . import payment_views
 from . import chat_views
 from django.http import HttpResponse
+from django.views.generic import RedirectView
 
 app_name = 'store_analysis'
 
@@ -46,10 +47,11 @@ urlpatterns = [
     ])),
     
     # پشتیبانی - فقط توابع اصلی
-    path('support/', include([
+        path('support/', include([
         path('', views.support_center, name='support_center'),
         path('ticket/create/', views.create_ticket, name='create_ticket'),
         path('tickets/', views.ticket_list, name='ticket_list'),
+        path('tickets/<str:ticket_id>/', views.ticket_detail, name='ticket_detail'),
         path('faq/search/', views.faq_search, name='faq_search'),
     ])),
     
@@ -102,4 +104,7 @@ urlpatterns = [
     
     # PayPing Callback URLs
     path('payment/<str:order_id>/payping/callback/', views.payping_callback, name='payping_callback'),
+    
+    # Wallet redirect (wallet functionality removed)
+    path('wallet/', RedirectView.as_view(url='/store/dashboard/', permanent=True), name='wallet_redirect'),
 ]
