@@ -4827,19 +4827,21 @@ def payping_callback(request, order_id):
                     analysis_thread.start()
                     logger.info(f"🧵 Thread تحلیل برای {store_analysis.id} شروع شد")
                     
-                    # هدایت کاربر به صفحه نتایج با پیغام مناسب
-                    redirect_url = 'store_analysis:analysis_results'
-                    messages.success(request, '✅ پرداخت با موفقیت انجام شد! تحلیل هوشمند در حال انجام است. پس از حدود 30 دقیقه می‌توانید نتایج را مشاهده کنید.')
-                    return redirect(redirect_url, pk=store_analysis.id)
+                    # هدایت کاربر به فرم برای تکمیل اطلاعات
+                    messages.success(request, '✅ پرداخت با موفقیت انجام شد! تحلیل هوشمند در حال انجام است. لطفاً فرم را تکمیل کنید.')
+                    if store_analysis:
+                        request.session['analysis_id'] = store_analysis.id
+                    return redirect('store_analysis:forms', analysis_id=store_analysis.id)
                     
                 except Exception as err:
                     logger.error(f"❌ خطا در شروع تحلیل برای تحلیل {store_analysis.id}: {err}", exc_info=True)
                     messages.warning(request, '⏳ تحلیل در حال شروع است. لطفاً صبور باشید.')
 
+            # در صورت عدم شروع تحلیل، هدایت به فرم
             messages.success(request, '✅ پرداخت با موفقیت انجام شد! لطفاً فرم تحلیل را تکمیل کنید.')
             if store_analysis:
                 request.session['analysis_id'] = store_analysis.id
-            return redirect('store_analysis:forms')
+            return redirect('store_analysis:forms', analysis_id=store_analysis.id)
 
         error_msg = verification_result.get('message', 'خطا در تایید پرداخت')
         logger.error("❌ Payment verification failed for order %s: %s", order.order_number, error_msg)
@@ -6298,7 +6300,17 @@ def store_analysis_form(request, analysis_id=None):
     analysis = None
 
     if analysis_id is not None:
-        analysis = get_object_or_404(StoreAnalysis, pk=analysis_id, user=request.user)
+        # اگر کاربر لاگین است، فقط تیکت‌های خودش را ببیند
+        if request.user.is_authenticated:
+            analysis = get_object_or_404(StoreAnalysis, pk=analysis_id, user=request.user)
+        else:
+            # اگر کاربر لاگین نیست، از session استفاده کن
+            session_analysis_id = request.session.get('analysis_id')
+            if session_analysis_id == analysis_id:
+                analysis = get_object_or_404(StoreAnalysis, pk=analysis_id)
+            else:
+                messages.error(request, '❌ دسترسی غیرمجاز به این تحلیل')
+                return redirect('store_analysis:index')
     else:
         session_analysis_id = request.session.get('analysis_id')
         if session_analysis_id:
@@ -9026,16 +9038,51 @@ def buy_advanced(request):
             status='pending',
             package_type='enterprise',
             analysis_type='comprehensive_7step',
-            final_amount=final_amount
+            final_amount=final_amount,
+            analysis_data={
+                'source': 'buy_advanced',
+                'store_name': store_name,
+                'store_type': store_type,
+                'store_size': store_size,
+                'store_address': store_address,
+                'phone': phone,
+                'email': email,
+                'additional_info': additional_info,
+                'business_goals': business_goals,
+                'marketing_budget': marketing_budget
+            }
         )
+        
+        # ایجاد Order برای پرداخت
+        import uuid
+        from .models import Order
+        order = Order.objects.create(
+            user=user,
+            original_amount=original_amount,
+            base_amount=original_amount,
+            discount_amount=discount_amount,
+            final_amount=final_amount,
+            status='pending',
+            payment_method='payping',
+            transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
+        )
+        
+        # لینک کردن StoreAnalysis به Order
+        store_analysis.order = order
+        store_analysis.save(update_fields=['order'])
         
         # ذخیره اطلاعات در session برای پرداخت
         request.session['analysis_id'] = store_analysis.id
         request.session['final_amount'] = str(final_amount)
         request.session['service_package_id'] = service_package.id
         
-        # هدایت به صفحه پرداخت
-        return redirect('store_analysis:payment_page', order_id=store_analysis.id)
+        messages.success(
+            request,
+            '✅ سفارش پیشرفته ثبت شد! در حال هدایت به درگاه PayPing...'
+        )
+        
+        # هدایت به PayPing payment (مثل buy_complete)
+        return redirect('store_analysis:payping_payment', order_id=order.order_number)
     
     context = {
         'product_name': 'تحلیل پیشرفته فروشگاه',
