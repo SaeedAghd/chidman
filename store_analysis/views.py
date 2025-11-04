@@ -1820,13 +1820,13 @@ def download_analysis_report(request, pk):
                     pdf_content = b'%PDF-1.4\n1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \ntrailer\n<</Size 4/Root 1 0 R>>\nstartxref\n187\n%%EOF'
             
             # همیشه یک PDF معتبر برگردان
-                    response = HttpResponse(pdf_content, content_type='application/pdf')
-                    response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
-                    response['Content-Length'] = len(pdf_content)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
+            response['Content-Length'] = len(pdf_content)
             logger.info("Returning PDF response")
-                    return response
+            return response
         
-                else:
+        else:
             # تولید گزارش HTML تفصیلی - برای HTML هم مثل PDF، از گزارش تحلیل استفاده می‌کنیم
             # اما به جای PDF، یک HTML ساده از محتوای تحلیل می‌سازیم
             try:
@@ -1852,8 +1852,8 @@ def download_analysis_report(request, pk):
             except Exception as html_error:
                 logger.error(f"HTML generation error: {html_error}")
                 # Fallback به گواهینامه
-            html_content = generate_management_report(analysis, has_ai_results)
-            return HttpResponse(html_content, content_type='text/html; charset=utf-8')
+                html_content = generate_management_report(analysis, has_ai_results)
+                return HttpResponse(html_content, content_type='text/html; charset=utf-8')
         
     except Exception as e:
         logger.error(f"Error generating report: {e}")
@@ -4040,11 +4040,11 @@ def view_analysis_pdf_inline(request, pk):
                 return timezone.now().strftime("%Y/%m/%d")
 
         def fix_persian_text(text):
-                if not text:
-                    return text
+            if not text:
+                return text
             text = text.replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
             if arabic_reshaper and get_display:
-                    reshaped_text = arabic_reshaper.reshape(text)
+                reshaped_text = arabic_reshaper.reshape(text)
                 return get_display(reshaped_text)
             else:
                 return text
@@ -4775,12 +4775,12 @@ def payping_callback(request, order_id):
         
         if verification_result.get('status') == 'success':
             if payment is None:
-            payment = Payment.objects.create(
+                payment = Payment.objects.create(
                     user=order.user,
-                store_analysis=store_analysis,
+                    store_analysis=store_analysis,
                     order_id=order.order_number,
                     amount=order.final_amount,
-                payment_method='payping',
+                    payment_method='payping',
                     status='pending'
                 )
 
@@ -4961,7 +4961,7 @@ def payping_callback(request, order_id):
                                             'report_type': f'premium_{store_analysis.package_type}',
                                         })
                                         logger.info(f"✅ گزارش Premium برای تحلیل {store_analysis.id} تولید شد")
-    except Exception as e:
+                                    except Exception as e:
                                         logger.error(f"⚠️ خطا در تولید گزارش Premium: {e}", exc_info=True)
                                 
                                 # ذخیره نتایج
@@ -7023,12 +7023,12 @@ def checkout(request, order_id):
         
         # ایجاد AnalysisRequest - با بررسی وجود مدل
         try:
-        analysis_request = AnalysisRequest.objects.create(
-            order=order,
-            store_analysis_data=form_data or {},
-            status='pending',
-            estimated_completion=timezone.now() + timedelta(hours=24)
-        )
+            analysis_request = AnalysisRequest.objects.create(
+                order=order,
+                store_analysis_data=form_data or {},
+                status='pending',
+                estimated_completion=timezone.now() + timedelta(hours=24)
+            )
         except (AttributeError, Exception) as e:
             # اگر AnalysisRequest وجود نداشت، فقط لاگ کن
             logger.warning(f"AnalysisRequest model not available: {e}")
@@ -10057,14 +10057,14 @@ def generate_professional_persian_pdf_report(analysis):
             
             # مرحله 0: حذف کاراکترهای خاص که مشکل ایجاد می‌کنند
             text = str(text).replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
-                
-                # بررسی اینکه آیا متن فارسی است یا نه
-                persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
-                has_persian = any(char in persian_chars for char in text)
-                
-                if not has_persian:
-                    return text
-                
+            
+            # بررسی اینکه آیا متن فارسی است یا نه
+            persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
+            has_persian = any(char in persian_chars for char in text)
+            
+            if not has_persian:
+                return text
+            
             # روش استاندارد جهانی برای PDF فارسی
             try:
                 import arabic_reshaper
@@ -10084,13 +10084,18 @@ def generate_professional_persian_pdf_report(analysis):
                 reshaped_text = arabic_reshaper.reshape(text_with_persian_numbers)
                 
                 # مرحله 4: RTL Processing (راست به چپ)
-                    rtl_text = get_display(reshaped_text)
-                    
-                    return rtl_text
+                rtl_text = get_display(reshaped_text)
+                
+                return rtl_text
                     
             except ImportError:
                 logger.warning("arabic_reshaper or bidi not installed, using simple text")
                 # بدون کتابخانه‌ها، فقط اعداد را فارسی کنیم
+                def convert_numbers_simple(input_text):
+                    persian_digits = '۰۱۲۳۴۵۶۷۸۹'
+                    english_digits = '0123456789'
+                    digit_map = str.maketrans(english_digits, persian_digits)
+                    return input_text.translate(digit_map)
                 return convert_numbers_simple(text)
             except Exception as e:
                 logger.error(f"Error in fix_persian_text: {e}")
@@ -10207,7 +10212,7 @@ def generate_professional_persian_pdf_report(analysis):
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-        detailed_analysis_text = f"""
+            detailed_analysis_text = f"""
         {real_analysis_text}
         
         مشخصات فروشگاه:
@@ -10522,7 +10527,7 @@ def generate_professional_persian_pdf_report(analysis):
         # تقسیم متن برنامه اجرایی به پاراگراف‌های کوتاه‌تر
         implementation_paragraphs = implementation_plan_text.strip().split('\n\n')
         for paragraph in implementation_paragraphs:
-                if paragraph.strip():
+            if paragraph.strip():
                 clean_paragraph = paragraph.strip()
                 if clean_paragraph and len(clean_paragraph) > 10:
                     story.append(Paragraph(fix_persian_text(clean_paragraph), normal_style))
@@ -10734,7 +10739,7 @@ def generate_professional_persian_pdf_report_fixed(analysis):
             if not font_registered:
                 logger.warning("No suitable Persian font found, using Helvetica")
                 font_name = 'Helvetica'
-                except Exception as e:
+        except Exception as e:
             logger.error(f"Font registration error: {e}")
             font_name = 'Helvetica'
         
@@ -10957,7 +10962,7 @@ def generate_professional_persian_pdf_report_fixed(analysis):
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-        detailed_analysis_text = f"""
+            detailed_analysis_text = f"""
         {real_analysis_text}
         
         تحلیل جامع فروشگاه با استفاده از استانداردهای جهانی و روش‌های پیشرفته انجام شده است. 
