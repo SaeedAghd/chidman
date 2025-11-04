@@ -40,6 +40,7 @@ urlpatterns = [
         path('<int:pk>/start/', views.start_analysis, name='start_analysis'),
         path('<int:pk>/status/', views.get_analysis_status, name='get_analysis_status'),
         path('<int:pk>/process/', views.admin_process_analysis, name='admin_process_analysis'),
+        path('<int:pk>/delete/', views.delete_analysis, name='delete_analysis'),
         
         # AI Consultant (چت‌بات هوشمند)
         path('<str:analysis_id>/chat/', chat_views.ai_consultant_chat, name='ai_consultant_chat'),

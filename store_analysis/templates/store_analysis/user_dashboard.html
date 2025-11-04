@@ -736,14 +736,26 @@
                                     {% with status=analysis.normalized_status|default:analysis.status %}
                                     {% if status == 'failed' %}
                                     <!-- دکمه‌های تحلیل ناموفق -->
-                                    <a href="{% url 'store_analysis:products' %}" class="view-details-btn main-btn">
-                                        <span>🔄</span>
-                                        <span>تلاش مجدد</span>
-                                    </a>
-                                    <a href="{% url 'store_analysis:products' %}" class="view-details-btn pdf-btn">
-                                        <span>📝</span>
-                                        <span>تحلیل جدید</span>
-                                    </a>
+                                    <div class="processing-message" style="background: #fee2e2; border-color: #fca5a5;">
+                                        <div class="processing-icon">❌</div>
+                                        <div class="processing-text">
+                                            <div class="processing-title" style="color: #dc2626;">تحلیل به مشکل برخورده</div>
+                                            <div class="processing-subtitle" style="color: #991b1b;">
+                                                تحلیل شما به مشکل برخورده است.<br>
+                                                لطفاً مجدد اقدام کنید یا با پشتیبانی تماس بگیرید.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top: 1rem;">
+                                        <a href="{% url 'store_analysis:products' %}" class="view-details-btn main-btn">
+                                            <span>🔄</span>
+                                            <span>تلاش مجدد</span>
+                                        </a>
+                                        <a href="{% url 'store_analysis:support_center' %}" class="view-details-btn pdf-btn">
+                                            <span>📞</span>
+                                            <span>تماس با پشتیبانی</span>
+                                        </a>
+                                    </div>
                                     {% elif status == 'completed' %}
                                     <!-- دکمه اصلی: مشاهده نتایج -->
                                     <a href="/store/analysis/{{ analysis.pk }}/results/" class="view-details-btn main-btn">
@@ -758,26 +770,39 @@
                                     </a>
                                     
                                     {% elif status == 'awaiting_form' %}
-                                    <div class="processing-message">
-                                        <div class="processing-icon">📝</div>
+                                    <!-- فقط زمانی که فرم واقعاً تکمیل نشده نمایش داده می‌شود -->
+                                    {% if not analysis.is_form_complete %}
+                                    <div class="processing-message" style="background: #fef3c7; border-color: #fbbf24;">
+                                        <div class="processing-icon">⚠️</div>
                                         <div class="processing-text">
-                                            <div class="processing-title">برای شروع تحلیل فرم را تکمیل کنید</div>
-                                            <div class="processing-subtitle">
-                                                فرم ۷ مرحله‌ای هنوز تکمیل نشده است.<br>
-                                                پس از تکمیل فرم، تحلیل هوشمند به‌صورت خودکار آغاز می‌شود.
+                                            <div class="processing-title" style="color: #d97706;">فرم تکمیل نشده است</div>
+                                            <div class="processing-subtitle" style="color: #92400e;">
+                                                <strong>مشکل:</strong> هیچ فایلی آپلود نشده است.<br>
+                                                برای شروع تحلیل، باید حداقل یک فایل (مثلاً تصویر فروشگاه) را آپلود کنید.<br>
+                                                <br>
+                                                <strong>راه حل:</strong> روی دکمه زیر کلیک کنید و حداقل یک تصویر از فروشگاه خود را آپلود کنید.
                                             </div>
                                         </div>
                                     </div>
                                     <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-                                        <a href="{% url 'store_analysis:analysis_results' analysis.id %}" class="view-details-btn main-btn">
-                                            <span>📊</span>
-                                            <span>مشاهده نتایج اولیه</span>
-                                        </a>
                                         <a href="{% url 'store_analysis:forms' analysis.id %}" class="view-details-btn ai-btn">
                                             <span>📝</span>
-                                            <span>تکمیل فرم تحلیل</span>
+                                            <span>تکمیل فرم و آپلود فایل</span>
                                         </a>
                                     </div>
+                                    {% else %}
+                                    <!-- فرم تکمیل شده اما تحلیل شروع نشده -->
+                                    <div class="processing-message">
+                                        <div class="processing-icon">⏳</div>
+                                        <div class="processing-text">
+                                            <div class="processing-title">تحلیل در انتظار شروع</div>
+                                            <div class="processing-subtitle">
+                                                فرم شما تکمیل شده است.<br>
+                                                تحلیل در حال آماده‌سازی است و به زودی شروع می‌شود.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                     {% elif status == 'processing' %}
                                     <div class="processing-message">
                                         <div class="processing-icon">⏳</div>
@@ -785,10 +810,16 @@
                                             <div class="processing-title">تحلیل در حال انجام است</div>
                                             <div class="processing-subtitle">
                                                 🧠 چیدمانو AI در حال تحلیل عمیق فروشگاه شما است<br>
-                                                ⏰ حدود 15-20 دقیقه دیگر تحلیل کامل می‌شود<br>
+                                                ⏰ در حال پردازش اطلاعات و تحلیل هستیم، تا ۳۰ دقیقه دیگه آماده می‌شه<br>
                                                 💎 گزارش جامع با پیشنهادات حرفه‌ای آماده خواهد شد
                                             </div>
                                         </div>
+                                    </div>
+                                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top: 1rem;">
+                                        <a href="{% url 'store_analysis:analysis_results' analysis.id %}" class="view-details-btn main-btn">
+                                            <span>📊</span>
+                                            <span>مشاهده نتایج</span>
+                                        </a>
                                     </div>
                                     {% elif status == 'pending' %}
                                     <div class="processing-message">
@@ -813,6 +844,15 @@
                                     {% endif %}
                                     {% endif %}
                                     {% endwith %}
+                                    
+                                    <!-- دکمه حذف تحلیل -->
+                                    <form method="post" action="{% url 'store_analysis:delete_analysis' analysis.id %}" style="display: inline; margin-top: 0.5rem;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="view-details-btn" style="background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.875rem;" onclick="return confirm('⚠️ آیا مطمئن هستید که می‌خواهید این تحلیل را حذف کنید؟ این عمل قابل بازگشت نیست.');">
+                                            <span>🗑️</span>
+                                            <span>حذف تحلیل</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                             {% endfor %}

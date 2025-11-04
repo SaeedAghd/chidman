@@ -3451,29 +3451,46 @@ def user_dashboard(request):
         
         # بررسی تکمیل فرم: اگر analysis_data و uploaded_files وجود داشته باشد، فرم تکمیل شده
         has_form_data = analysis.analysis_data and analysis.analysis_data.get('uploaded_files')
-        is_form_complete = bool(has_form_data)
+        # بررسی اینکه آیا uploaded_files واقعاً محتوا دارد (نه فقط یک dict خالی)
+        if has_form_data:
+            uploaded_files = analysis.analysis_data.get('uploaded_files')
+            # اگر uploaded_files یک dict خالی است یا هیچ فایلی ندارد، فرم تکمیل نشده
+            if isinstance(uploaded_files, dict):
+                # بررسی اینکه آیا حداقل یک فایل واقعی وجود دارد
+                has_actual_files = any(
+                    isinstance(v, dict) and v.get('path') or v.get('name')
+                    for v in uploaded_files.values()
+                    if v and not isinstance(v, str)  # ignore string values
+                )
+                is_form_complete = has_actual_files
+            else:
+                is_form_complete = bool(uploaded_files)
+        else:
+            is_form_complete = False
         
-        # تعیین وضعیت نرمالیزه شده
-        if analysis.status == 'completed':
+        # تعیین وضعیت نرمالیزه شده - اول بررسی تکمیل فرم
+        if not is_form_complete:
+            # اگر فرم تکمیل نشده، همیشه awaiting_form نمایش بده
+            normalized_status = 'awaiting_form'
+        elif analysis.status == 'completed':
             normalized_status = 'completed'
         elif analysis.status == 'failed':
             normalized_status = 'failed'
         elif analysis.status == 'processing':
-            # اگر در حال پردازش است، وضعیت را حفظ کن
+            # اگر فرم تکمیل شده و در حال پردازش است، وضعیت را حفظ کن
             normalized_status = 'processing'
         elif analysis.status == 'pending':
-            # اگر pending است، بررسی کن که فرم تکمیل شده یا نه
-            if not is_form_complete:
-                # فرم تکمیل نشده - باید فرم را تکمیل کند
-                normalized_status = 'awaiting_form'
+            # اگر pending است و فرم تکمیل شده، بررسی کن که آیا باید processing باشد یا نه
+            # اگر سفارش مرتبط وجود دارد و پرداخت شده، باید به processing تغییر کند
+            if hasattr(analysis, 'order') and analysis.order:
+                if analysis.order.status in ['paid', 'processing', 'completed']:
+                    normalized_status = 'processing'
+                else:
+                    normalized_status = 'pending'
             else:
-                # فرم تکمیل شده اما تحلیل شروع نشده - احتمالاً در انتظار پرداخت یا شروع تحلیل
-                # اگر سفارش مرتبط وجود دارد و پرداخت شده، باید به processing تغییر کند
-                if hasattr(analysis, 'order') and analysis.order:
-                    if analysis.order.status in ['paid', 'processing', 'completed']:
-                        normalized_status = 'processing'
-                    else:
-                        normalized_status = 'pending'
+                # برای تحلیل رایگان، اگر فرم تکمیل شده و pending است، باید processing باشد
+                if getattr(analysis, 'package_type', None) == 'basic' and getattr(analysis, 'final_amount', None) == 0:
+                    normalized_status = 'processing'
                 else:
                     normalized_status = 'pending'
         else:
@@ -6438,29 +6455,80 @@ def store_analysis_form(request, analysis_id=None):
                           'store_map', 'window_display_photos', 'entrance_photos', 
                           'checkout_photos', 'surveillance_footage', 'sales_file', 'product_catalog']
             
+            upload_errors = []
+            upload_success_count = 0
+            
             for field in file_fields:
                 if field in request.FILES:
-                    file_obj = request.FILES[field]
-                    # ذخیره فایل
-                    from django.core.files.storage import default_storage
-                    file_path = default_storage.save(f'uploads/{field}/{file_obj.name}', file_obj)
-                    uploaded_files[field] = {
-                        'name': file_obj.name,
-                        'size': file_obj.size,
-                        'path': file_path,
-                        'url': default_storage.url(file_path)
-                    }
-                    logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
+                    try:
+                        file_obj = request.FILES[field]
+                        # بررسی اندازه فایل (حداکثر 10MB)
+                        max_size = 10 * 1024 * 1024  # 10MB
+                        if file_obj.size > max_size:
+                            upload_errors.append(f'فایل {field} بزرگتر از 10 مگابایت است و آپلود نشد.')
+                            continue
+                        
+                        # ذخیره فایل
+                        from django.core.files.storage import default_storage
+                        file_path = default_storage.save(f'uploads/{field}/{file_obj.name}', file_obj)
+                        uploaded_files[field] = {
+                            'name': file_obj.name,
+                            'size': file_obj.size,
+                            'path': file_path,
+                            'url': default_storage.url(file_path)
+                        }
+                        upload_success_count += 1
+                        logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
+                    except Exception as e:
+                        error_msg = f'خطا در آپلود فایل {field}: {str(e)}'
+                        upload_errors.append(error_msg)
+                        logger.error(f"Error uploading file {field}: {e}")
             
             # اضافه کردن اطلاعات فایل‌ها به form_data
             form_data['uploaded_files'] = uploaded_files
+            
+            # بررسی اینکه آیا حداقل یک فایل واقعی آپلود شده است
+            has_actual_files = bool(uploaded_files) and any(
+                isinstance(v, dict) and (v.get('path') or v.get('name'))
+                for v in uploaded_files.values()
+                if v and not isinstance(v, str)
+            )
+            
+            # نمایش پیغام‌های خطا یا موفقیت
+            if upload_errors:
+                error_message = '⚠️ برخی فایل‌ها آپلود نشدند:\n' + '\n'.join(upload_errors)
+                if has_actual_files:
+                    messages.warning(request, error_message)
+                else:
+                    messages.error(request, error_message + '\n\n❌ هیچ فایلی آپلود نشد. لطفاً حداقل یک فایل (مثلاً تصویر فروشگاه) را آپلود کنید.')
+            elif has_actual_files:
+                messages.success(request, f'✅ {upload_success_count} فایل با موفقیت آپلود شد.')
+            else:
+                messages.error(request, '❌ هیچ فایلی آپلود نشد. برای شروع تحلیل، حداقل یک فایل (مثلاً تصویر فروشگاه) را آپلود کنید.')
+            
+            # اگر هیچ فایلی آپلود نشده، کاربر را به فرم برگردان
+            if not has_actual_files:
+                if analysis:
+                    request.session['analysis_id'] = analysis.id
+                    return redirect('store_analysis:forms', analysis_id=analysis.id)
+                else:
+                    # اگر تحلیل وجود ندارد و فایلی هم آپلود نشده، یک تحلیل pending ایجاد کن و به فرم برگردان
+                    analysis = StoreAnalysis.objects.create(
+                        user=request.user,
+                        analysis_type='comprehensive_7step',
+                        store_name=form_data.get('store_name', 'فروشگاه جدید'),
+                        status='pending',
+                        analysis_data=form_data
+                    )
+                    request.session['analysis_id'] = analysis.id
+                    return redirect('store_analysis:forms', analysis_id=analysis.id)
             
             if analysis is None:
                 analysis = StoreAnalysis.objects.create(
                     user=request.user,
                     analysis_type='comprehensive_7step',
                     store_name=form_data.get('store_name', 'فروشگاه جدید'),
-                    status='pending',
+                    status='processing',
                     analysis_data=form_data
                 )
                 logger.info("StoreAnalysis created: %s for user %s", analysis.pk, request.user.username)
@@ -6470,7 +6538,13 @@ def store_analysis_form(request, analysis_id=None):
                 analysis.store_type = form_data.get('store_type', analysis.store_type)
                 analysis.store_size = form_data.get('store_size', analysis.store_size)
                 analysis.additional_info = form_data.get('additional_info', analysis.additional_info)
-                analysis.status = 'processing'
+                # فقط اگر فایل‌ها واقعاً آپلود شده‌اند، وضعیت را به processing تغییر بده
+                if has_actual_files:
+                    analysis.status = 'processing'
+                else:
+                    # اگر فرم تکمیل نشده، وضعیت را pending نگه دار
+                    if analysis.status not in ['completed', 'failed']:
+                        analysis.status = 'pending'
                 analysis.save()
 
             request.session['analysis_id'] = analysis.pk
