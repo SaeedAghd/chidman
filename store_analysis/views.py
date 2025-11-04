@@ -1703,7 +1703,9 @@ def download_analysis_report(request, pk):
         if not request.session.session_key:
             logger.warning("Session not found, creating new session")
             request.session.create()
-        
+    except Exception as e:
+        logger.error(f"Error in session check: {e}")
+    
     # اگر ادمین است، هر تحلیلی را دانلود کند
     if request.user.is_staff or request.user.is_superuser:
         analysis = get_object_or_404(StoreAnalysis, pk=pk)
@@ -1711,9 +1713,10 @@ def download_analysis_report(request, pk):
         analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
     
     # بررسی دسترسی به گزارش مدیریتی
-    is_admin = request.user.is_staff or request.user.is_superuser
-    show_management_report = False
-    
+    try:
+        is_admin = request.user.is_staff or request.user.is_superuser
+        show_management_report = False
+        
         logger.info(f"Checking access for analysis {analysis.id}. Status: {analysis.status}, Results: {bool(analysis.results)}, Is admin: {is_admin}")
         
         # برای تست: همیشه اجازه دانلود را بده
@@ -1732,9 +1735,8 @@ def download_analysis_report(request, pk):
         #     logger.warning(f"Access denied for analysis {analysis.id}. Redirecting to results page.")
         #     messages.error(request, "گزارش مدیریتی هنوز آماده نشده است.")
         #     return redirect('store_analysis:analysis_results', pk=analysis.pk)
-            
     except Exception as e:
-        logger.error(f"Error in download_analysis_report: {e}")
+        logger.error(f"Error in access check: {e}")
         return redirect('store_analysis:analysis_list')
     
     # دریافت نوع فایل درخواستی
