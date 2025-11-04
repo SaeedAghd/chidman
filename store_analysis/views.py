@@ -908,7 +908,7 @@ def analysis_list(request):
     free_plan = [a for a in analyses if a.package_type in [None, '', 'basic', 'free']]
     professional_plan = [a for a in analyses if a.package_type == 'professional']
     enterprise_plan = [a for a in analyses if a.package_type == 'enterprise']
-
+    
     context = {
         'analyses': analyses,
         'free_plan': free_plan,
@@ -1005,7 +1005,7 @@ def analysis_results(request, pk):
     
     # اطمینان از وجود گزارش پایه برای تحلیل‌های قدیمی
     ensure_basic_analysis_results(analysis)
-
+    
     # بررسی وجود نتیجه تحلیل
     try:
         result = analysis.storeanalysisresult_set.first()
@@ -1704,16 +1704,16 @@ def download_analysis_report(request, pk):
             logger.warning("Session not found, creating new session")
             request.session.create()
         
-        # اگر ادمین است، هر تحلیلی را دانلود کند
-        if request.user.is_staff or request.user.is_superuser:
-            analysis = get_object_or_404(StoreAnalysis, pk=pk)
-        else:
-            analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
-        
-        # بررسی دسترسی به گزارش مدیریتی
-        is_admin = request.user.is_staff or request.user.is_superuser
-        show_management_report = False
-        
+    # اگر ادمین است، هر تحلیلی را دانلود کند
+    if request.user.is_staff or request.user.is_superuser:
+        analysis = get_object_or_404(StoreAnalysis, pk=pk)
+    else:
+        analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    # بررسی دسترسی به گزارش مدیریتی
+    is_admin = request.user.is_staff or request.user.is_superuser
+    show_management_report = False
+    
         logger.info(f"Checking access for analysis {analysis.id}. Status: {analysis.status}, Results: {bool(analysis.results)}, Is admin: {is_admin}")
         
         # برای تست: همیشه اجازه دانلود را بده
@@ -1818,13 +1818,13 @@ def download_analysis_report(request, pk):
                     pdf_content = b'%PDF-1.4\n1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \ntrailer\n<</Size 4/Root 1 0 R>>\nstartxref\n187\n%%EOF'
             
             # همیشه یک PDF معتبر برگردان
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
-            response['Content-Length'] = len(pdf_content)
+                    response = HttpResponse(pdf_content, content_type='application/pdf')
+                    response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
+                    response['Content-Length'] = len(pdf_content)
             logger.info("Returning PDF response")
-            return response
+                    return response
         
-        else:
+                else:
             # تولید گزارش HTML تفصیلی - برای HTML هم مثل PDF، از گزارش تحلیل استفاده می‌کنیم
             # اما به جای PDF، یک HTML ساده از محتوای تحلیل می‌سازیم
             try:
@@ -1850,8 +1850,8 @@ def download_analysis_report(request, pk):
             except Exception as html_error:
                 logger.error(f"HTML generation error: {html_error}")
                 # Fallback به گواهینامه
-                html_content = generate_management_report(analysis, has_ai_results)
-                return HttpResponse(html_content, content_type='text/html; charset=utf-8')
+            html_content = generate_management_report(analysis, has_ai_results)
+            return HttpResponse(html_content, content_type='text/html; charset=utf-8')
         
     except Exception as e:
         logger.error(f"Error generating report: {e}")
@@ -3398,10 +3398,58 @@ def user_dashboard(request):
                         obj.store_size = ''
                     
                     # مطمئن شو که analysis_data و results dict هستند
-                    if not hasattr(obj, 'analysis_data') or not isinstance(getattr(obj, 'analysis_data', None), dict):
+                    # اگر analysis_data یک string (JSON) است، parse کن
+                    if hasattr(obj, 'analysis_data'):
+                        if isinstance(obj.analysis_data, str):
+                            try:
+                                import json
+                                obj.analysis_data = json.loads(obj.analysis_data)
+                            except:
+                                obj.analysis_data = {}
+                        elif not isinstance(obj.analysis_data, dict):
+                            obj.analysis_data = {}
+                    else:
                         obj.analysis_data = {}
-                    if not hasattr(obj, 'results') or not isinstance(getattr(obj, 'results', None), dict):
+                    
+                    # اگر results یک string (JSON) است، parse کن
+                    if hasattr(obj, 'results'):
+                        if isinstance(obj.results, str):
+                            try:
+                                import json
+                                obj.results = json.loads(obj.results)
+                            except:
+                                obj.results = {}
+                        elif not isinstance(obj.results, dict):
+                            obj.results = {}
+                    else:
                         obj.results = {}
+                    
+                    # اضافه کردن order از طریق raw SQL query
+                    try:
+                        if hasattr(obj, 'id'):
+                            with connection.cursor() as order_cursor:
+                                order_cursor.execute("""
+                                    SELECT id, order_number, status, final_amount
+                                    FROM store_analysis_order
+                                    WHERE id IN (
+                                        SELECT order_id FROM store_analysis_storeanalysis WHERE id = %s
+                                    )
+                                    LIMIT 1
+                                """, [obj.id])
+                                order_row = order_cursor.fetchone()
+                                if order_row:
+                                    from types import SimpleNamespace
+                                    order_obj = SimpleNamespace()
+                                    order_obj.id = order_row[0]
+                                    order_obj.order_number = order_row[1]
+                                    order_obj.status = order_row[2]
+                                    order_obj.final_amount = order_row[3]
+                                    obj.order = order_obj
+                                else:
+                                    obj.order = None
+                    except Exception as order_error:
+                        logger.warning(f"Error loading order for analysis {obj.id}: {order_error}")
+                        obj.order = None
                     
                     recent_analyses.append(obj)
             
@@ -3990,11 +4038,11 @@ def view_analysis_pdf_inline(request, pk):
                 return timezone.now().strftime("%Y/%m/%d")
 
         def fix_persian_text(text):
-            if not text:
-                return text
+                if not text:
+                    return text
             text = text.replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
             if arabic_reshaper and get_display:
-                reshaped_text = arabic_reshaper.reshape(text)
+                    reshaped_text = arabic_reshaper.reshape(text)
                 return get_display(reshaped_text)
             else:
                 return text
@@ -4242,7 +4290,7 @@ def payment_page(request, order_id):
         form_url = reverse('store_analysis:forms', kwargs={'analysis_id': store_analysis.id}) if store_analysis else reverse('store_analysis:forms')
         progress_url = reverse('store_analysis:analysis_progress', args=[store_analysis.id]) if store_analysis else None
         results_url = reverse('store_analysis:view_analysis_report', args=[store_analysis.id]) if store_analysis else None
-
+        
         context = {
             'order': order,
             'store_analysis': store_analysis,
@@ -4687,10 +4735,10 @@ def payping_callback(request, order_id):
         order = get_object_or_404(Order, order_number=order_id)
         store_analysis = order.analyses.first()
         payment = Payment.objects.filter(order_id=order.order_number).first()
-
+        
         refid = request.GET.get('refid') or request.GET.get('refId') or request.GET.get('RefId')
         clientrefid = request.GET.get('clientrefid') or request.GET.get('clientRefId')
-
+        
         logger.info(
             "🔔 PayPing callback received for order %s (analysis=%s): refid=%s clientrefid=%s",
             order.order_number,
@@ -4705,32 +4753,32 @@ def payping_callback(request, order_id):
             return redirect('store_analysis:payment_page', order_id=order.order_number)
 
         from .payment_gateways import PaymentGatewayManager
-
+        
         gateway_manager = PaymentGatewayManager()
         payping = gateway_manager.get_gateway('payping')
-
+        
         if not payping:
             logger.error("❌ PayPing gateway not available in callback for order %s", order.order_number)
             messages.error(request, '❌ خطا در تایید پرداخت. لطفاً با پشتیبانی تماس بگیرید.')
             return redirect('store_analysis:user_dashboard')
-
+        
         logger.info("🔍 Verifying payment: refid=%s, amount=%s", refid, order.final_amount)
-
+        
         verification_result = payping.verify_payment(
             authority=refid,
             amount=int(order.final_amount)
         )
-
+        
         logger.info("✅ Verification result for order %s: %s", order.order_number, verification_result)
-
+        
         if verification_result.get('status') == 'success':
             if payment is None:
-                payment = Payment.objects.create(
+            payment = Payment.objects.create(
                     user=order.user,
-                    store_analysis=store_analysis,
+                store_analysis=store_analysis,
                     order_id=order.order_number,
                     amount=order.final_amount,
-                    payment_method='payping',
+                payment_method='payping',
                     status='pending'
                 )
 
@@ -4911,7 +4959,7 @@ def payping_callback(request, order_id):
                                             'report_type': f'premium_{store_analysis.package_type}',
                                         })
                                         logger.info(f"✅ گزارش Premium برای تحلیل {store_analysis.id} تولید شد")
-                                    except Exception as e:
+    except Exception as e:
                                         logger.error(f"⚠️ خطا در تولید گزارش Premium: {e}", exc_info=True)
                                 
                                 # ذخیره نتایج
@@ -6004,7 +6052,7 @@ def create_ticket(request):
             except Exception as db_error:
                 logger.error(f"❌ خطا در ایجاد تیکت: {db_error}", exc_info=True)
                 messages.error(request, f'❌ خطا در ایجاد تیکت: {str(db_error)}')
-                return redirect('store_analysis:support_center')
+            return redirect('store_analysis:support_center')
         
         # نمایش فرم
         context = {
@@ -6548,7 +6596,7 @@ def store_analysis_form(request, analysis_id=None):
                 analysis.save()
 
             request.session['analysis_id'] = analysis.pk
-
+            
             # اگر تحلیل رایگان است (package_type='basic' و final_amount=0)، تحلیل واقعی را شروع کن
             if analysis.package_type == 'basic' and analysis.final_amount == 0:
                 try:
@@ -6741,10 +6789,10 @@ def submit_analysis(request):
             order = Order.objects.create(
                 user=request.user,
                 order_number=generated_order_number,
-            original_amount=Decimal(str(cost_breakdown['total'])),
-            base_amount=Decimal(str(cost_breakdown['total'])),
-            discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
-            final_amount=Decimal(str(cost_breakdown['final'])),
+                original_amount=Decimal(str(cost_breakdown['total'])),
+                base_amount=Decimal(str(cost_breakdown['total'])),
+                discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
+                final_amount=Decimal(str(cost_breakdown['final'])),
                 status='pending',
                 payment_method='online',
                 transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
@@ -6973,12 +7021,12 @@ def checkout(request, order_id):
         
         # ایجاد AnalysisRequest - با بررسی وجود مدل
         try:
-            analysis_request = AnalysisRequest.objects.create(
-                order=order,
-                store_analysis_data=form_data or {},
-                status='pending',
-                estimated_completion=timezone.now() + timedelta(hours=24)
-            )
+        analysis_request = AnalysisRequest.objects.create(
+            order=order,
+            store_analysis_data=form_data or {},
+            status='pending',
+            estimated_completion=timezone.now() + timedelta(hours=24)
+        )
         except (AttributeError, Exception) as e:
             # اگر AnalysisRequest وجود نداشت، فقط لاگ کن
             logger.warning(f"AnalysisRequest model not available: {e}")
@@ -8246,15 +8294,55 @@ def analysis_results_session(request):
 
 @login_required
 def delete_analysis(request, pk):
-    """حذف تحلیل"""
-    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    """حذف تحلیل با مدیریت وابستگی‌ها"""
+    try:
+        analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+        
+        if request.method == 'POST':
+            try:
+                # حذف وابستگی‌ها قبل از حذف تحلیل
+                from django.db import transaction
+                
+                with transaction.atomic():
+                    # حذف پیام‌های چت مرتبط
+                    try:
+                        from .models import ChatMessages
+                        ChatMessages.objects.filter(analysis=analysis).delete()
+                    except Exception as e:
+                        logger.warning(f"Error deleting chat messages: {e}")
+                    
+                    # حذف session‌های چت مرتبط
+                    try:
+                        from .models import ChatSession
+                        ChatSession.objects.filter(analysis=analysis).delete()
+                    except Exception as e:
+                        logger.warning(f"Error deleting chat sessions: {e}")
+                    
+                    # حذف پرداخت‌های مرتبط (اما Order را نگه دار)
+                    try:
+                        from .models import Payment
+                        Payment.objects.filter(store_analysis=analysis).update(store_analysis=None)
+                    except Exception as e:
+                        logger.warning(f"Error updating payments: {e}")
+                    
+                    # حذف تحلیل
+                    analysis.delete()
+                
+                messages.success(request, '✅ تحلیل با موفقیت حذف شد.')
+                logger.info(f"✅ Analysis {pk} deleted by user {request.user.username}")
+                
+            except Exception as e:
+                logger.error(f"❌ Error deleting analysis {pk}: {e}", exc_info=True)
+                messages.error(request, f'❌ خطا در حذف تحلیل: {str(e)}')
+            
+            return redirect('store_analysis:user_dashboard')
+        
+        return render(request, 'store_analysis/delete_analysis_confirm.html', {'analysis': analysis})
     
-    if request.method == 'POST':
-        analysis.delete()
-        messages.success(request, 'تحلیل با موفقیت حذف شد.')
+    except Exception as e:
+        logger.error(f"❌ Error in delete_analysis view: {e}", exc_info=True)
+        messages.error(request, '❌ خطا در حذف تحلیل')
         return redirect('store_analysis:user_dashboard')
-    
-    return render(request, 'store_analysis/delete_analysis_confirm.html', {'analysis': analysis})
 
 @login_required
 def analysis_payment_page(request, pk):
@@ -9221,12 +9309,12 @@ def buy_complete(request):
             analysis = safe_create_store_analysis(
                 user=request.user,
                 store_name=store_name or 'فروشگاه بدون نام',
-                store_type=store_type,
-                store_size=store_size,
-                store_address=store_address,
+            store_type=store_type,
+            store_size=store_size,
+            store_address=store_address,
                 contact_phone=phone,
                 contact_email=email,
-                additional_info=additional_info,
+            additional_info=additional_info,
                 status='pending',
                 package_type='professional',
                 analysis_type='comprehensive_7step',
@@ -9272,7 +9360,7 @@ def buy_complete(request):
 
             request.session['analysis_id'] = analysis.id
             request.session['service_package_id'] = service_package.id
-
+            
             messages.success(
                 request,
                 '✅ سفارش حرفه‌ای ثبت شد! در حال هدایت به درگاه PayPing...'
@@ -9911,14 +9999,14 @@ def generate_professional_persian_pdf_report(analysis):
             
             # مرحله 0: حذف کاراکترهای خاص که مشکل ایجاد می‌کنند
             text = str(text).replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
-            
-            # بررسی اینکه آیا متن فارسی است یا نه
-            persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
-            has_persian = any(char in persian_chars for char in text)
-            
-            if not has_persian:
-                return text
-            
+                
+                # بررسی اینکه آیا متن فارسی است یا نه
+                persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
+                has_persian = any(char in persian_chars for char in text)
+                
+                if not has_persian:
+                    return text
+                
             # روش استاندارد جهانی برای PDF فارسی
             try:
                 import arabic_reshaper
@@ -9938,9 +10026,9 @@ def generate_professional_persian_pdf_report(analysis):
                 reshaped_text = arabic_reshaper.reshape(text_with_persian_numbers)
                 
                 # مرحله 4: RTL Processing (راست به چپ)
-                rtl_text = get_display(reshaped_text)
-                
-                return rtl_text
+                    rtl_text = get_display(reshaped_text)
+                    
+                    return rtl_text
                     
             except ImportError:
                 logger.warning("arabic_reshaper or bidi not installed, using simple text")
@@ -10061,7 +10149,7 @@ def generate_professional_persian_pdf_report(analysis):
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-            detailed_analysis_text = f"""
+        detailed_analysis_text = f"""
         {real_analysis_text}
         
         مشخصات فروشگاه:
@@ -10376,7 +10464,7 @@ def generate_professional_persian_pdf_report(analysis):
         # تقسیم متن برنامه اجرایی به پاراگراف‌های کوتاه‌تر
         implementation_paragraphs = implementation_plan_text.strip().split('\n\n')
         for paragraph in implementation_paragraphs:
-            if paragraph.strip():
+                if paragraph.strip():
                 clean_paragraph = paragraph.strip()
                 if clean_paragraph and len(clean_paragraph) > 10:
                     story.append(Paragraph(fix_persian_text(clean_paragraph), normal_style))
@@ -10588,7 +10676,7 @@ def generate_professional_persian_pdf_report_fixed(analysis):
             if not font_registered:
                 logger.warning("No suitable Persian font found, using Helvetica")
                 font_name = 'Helvetica'
-        except Exception as e:
+                except Exception as e:
             logger.error(f"Font registration error: {e}")
             font_name = 'Helvetica'
         
@@ -10811,7 +10899,7 @@ def generate_professional_persian_pdf_report_fixed(analysis):
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-            detailed_analysis_text = f"""
+        detailed_analysis_text = f"""
         {real_analysis_text}
         
         تحلیل جامع فروشگاه با استفاده از استانداردهای جهانی و روش‌های پیشرفته انجام شده است. 
