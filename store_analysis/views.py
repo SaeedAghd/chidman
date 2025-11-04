@@ -8931,9 +8931,65 @@ def forms_submit(request):
     """پردازش فرم تک صفحه‌ای تحلیل فروشگاه - بهینه‌سازی شده"""
     if request.method == 'POST':
         try:
-            # ✅ محدودیت تحلیل رایگان حذف شد - همه درخواست‌ها به صفحه پرداخت می‌روند
-            # (سرویس اکنون پولی است)
+            # بررسی اینکه آیا تحلیل رایگان از session وجود دارد
+            session_analysis_id = request.session.get('analysis_id')
+            store_analysis = None
             
+            if session_analysis_id:
+                try:
+                    store_analysis = StoreAnalysis.objects.get(
+                        pk=session_analysis_id,
+                        user=request.user
+                    )
+                    # بررسی اینکه آیا تحلیل رایگان است
+                    is_free_analysis = (
+                        getattr(store_analysis, 'package_type', None) == 'basic' and
+                        getattr(store_analysis, 'final_amount', None) == 0
+                    )
+                    
+                    if is_free_analysis:
+                        # برای تحلیل رایگان، داده‌ها را update کن و به فرم redirect کن
+                        form_data = request.POST.dict()
+                        files_data = request.FILES
+                        
+                        # پردازش فایل‌های آپلود شده
+                        uploaded_files = {}
+                        if files_data:
+                            for field_name, file_obj in files_data.items():
+                                try:
+                                    from django.core.files.storage import default_storage
+                                    file_path = default_storage.save(f'uploads/{file_obj.name}', file_obj)
+                                    uploaded_files[field_name] = {
+                                        'name': file_obj.name,
+                                        'path': file_path,
+                                        'size': file_obj.size,
+                                        'type': file_obj.content_type
+                                    }
+                                    logger.info(f"File uploaded: {field_name} -> {file_path}")
+                                except Exception as e:
+                                    logger.error(f"Error saving file {field_name}: {e}")
+                                    uploaded_files[field_name] = {'error': str(e)}
+                        
+                        # به‌روزرسانی analysis_data
+                        current_data = store_analysis.analysis_data or {}
+                        current_data.update(form_data)
+                        current_data['uploaded_files'] = uploaded_files
+                        
+                        store_analysis.analysis_data = current_data
+                        store_analysis.store_name = form_data.get('store_name', store_analysis.store_name)
+                        store_analysis.save()
+                        
+                        # هدایت به فرم (نه پرداخت)
+                        return JsonResponse({
+                            'success': True,
+                            'message': '✅ فرم با موفقیت ثبت شد!',
+                            'redirect_url': f'/store/forms/{store_analysis.id}/',
+                            'payment_required': False
+                        })
+                except StoreAnalysis.DoesNotExist:
+                    pass
+            
+            # اگر تحلیل رایگان نیست یا تحلیل وجود ندارد، فرآیند عادی را ادامه بده
             # دریافت داده‌های فرم به صورت ساده
             form_data = request.POST.dict()
             files_data = request.FILES
