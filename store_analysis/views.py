@@ -3502,33 +3502,40 @@ def user_dashboard(request):
         # بررسی تکمیل فرم: اگر analysis_data و uploaded_files وجود داشته باشد، فرم تکمیل شده
         has_form_data = analysis.analysis_data and analysis.analysis_data.get('uploaded_files')
         # بررسی اینکه آیا uploaded_files واقعاً محتوا دارد (نه فقط یک dict خالی)
+        is_form_complete = False
         if has_form_data:
             uploaded_files = analysis.analysis_data.get('uploaded_files')
             # اگر uploaded_files یک dict خالی است یا هیچ فایلی ندارد، فرم تکمیل نشده
             if isinstance(uploaded_files, dict):
                 # بررسی اینکه آیا حداقل یک فایل واقعی وجود دارد
                 has_actual_files = any(
-                    isinstance(v, dict) and v.get('path') or v.get('name')
+                    isinstance(v, dict) and (v.get('path') or v.get('name'))
                     for v in uploaded_files.values()
                     if v and not isinstance(v, str)  # ignore string values
                 )
                 is_form_complete = has_actual_files
+                # لاگ برای دیباگ
+                if not is_form_complete:
+                    logger.debug(f"Analysis {analysis.id}: uploaded_files dict exists but no actual files found. Keys: {list(uploaded_files.keys())}")
             else:
                 is_form_complete = bool(uploaded_files)
         else:
             is_form_complete = False
+            logger.debug(f"Analysis {analysis.id}: No form data or uploaded_files found")
         
         # تعیین وضعیت نرمالیزه شده - اول بررسی تکمیل فرم
-        if not is_form_complete:
+        # اگر status در حال پردازش است، احتمالاً فرم تکمیل شده (حتی اگر parse نشده باشد)
+        if analysis.status == 'processing':
+            # اگر در حال پردازش است، فرم حتماً تکمیل شده
+            normalized_status = 'processing'
+            is_form_complete = True  # اگر processing است، فرم تکمیل شده
+        elif not is_form_complete:
             # اگر فرم تکمیل نشده، همیشه awaiting_form نمایش بده
             normalized_status = 'awaiting_form'
         elif analysis.status == 'completed':
             normalized_status = 'completed'
         elif analysis.status == 'failed':
             normalized_status = 'failed'
-        elif analysis.status == 'processing':
-            # اگر فرم تکمیل شده و در حال پردازش است، وضعیت را حفظ کن
-            normalized_status = 'processing'
         elif analysis.status == 'pending':
             # اگر pending است و فرم تکمیل شده، بررسی کن که آیا باید processing باشد یا نه
             # اگر سفارش مرتبط وجود دارد و پرداخت شده، باید به processing تغییر کند
@@ -8976,6 +8983,12 @@ def forms_submit(request):
                         
                         # به‌روزرسانی analysis_data
                         current_data = store_analysis.analysis_data or {}
+                        if isinstance(current_data, str):
+                            import json
+                            try:
+                                current_data = json.loads(current_data)
+                            except:
+                                current_data = {}
                         current_data.update(form_data)
                         current_data['uploaded_files'] = uploaded_files
                         
@@ -8985,7 +8998,9 @@ def forms_submit(request):
                         # اگر فایل واقعی آپلود شده، تحلیل را شروع کن
                         if has_actual_files:
                             store_analysis.status = 'processing'
+                            logger.info(f"✅ فرم تکمیل شد و تحلیل شروع شد برای تحلیل {store_analysis.id}. فایل‌های آپلود شده: {list(uploaded_files.keys())}")
                             store_analysis.save()
+                            logger.info(f"✅ تحلیل {store_analysis.id} ذخیره شد با status='processing' و {len(uploaded_files)} فایل")
                             
                             # شروع تحلیل رایگان در background
                             try:
