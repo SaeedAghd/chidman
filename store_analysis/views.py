@@ -923,34 +923,95 @@ def analysis_list(request):
 def delete_incomplete_analyses(request):
     """حذف تحلیل‌های ناقص کاربر برای پاکسازی داشبورد."""
     try:
+        from django.db import transaction
+        
         queryset = StoreAnalysis.objects.all()
         if not (request.user.is_staff or request.user.is_superuser):
             queryset = queryset.filter(user=request.user)
         
-        # حذف AnalysisRequest های مرتبط (اگر وجود داشته باشند)
-        try:
-            from store_analysis.models import AnalysisRequest
-            incomplete_analyses = queryset.filter(status__in=['pending', 'failed'])
+        incomplete_analyses = queryset.filter(status__in=['pending', 'failed'])
+        actual_count = 0
+        
+        with transaction.atomic():
             for analysis in incomplete_analyses:
                 try:
-                    AnalysisRequest.objects.filter(store_analysis=analysis).delete()
-                except Exception:
-                    # اگر AnalysisRequest یا فیلد store_analysis وجود نداشت، ادامه بده
-                    pass
-        except Exception:
-            # اگر AnalysisRequest مدل وجود نداشت، ادامه بده
-            pass
+                    # حذف وابستگی‌ها برای هر تحلیل
+                    # 1. ChatMessages
+                    try:
+                        from .models import ChatMessages
+                        ChatMessages.objects.filter(analysis=analysis).delete()
+                    except Exception:
+                        pass
+                    
+                    # 2. ChatSession
+                    try:
+                        from .models import ChatSession
+                        ChatSession.objects.filter(store_analysis=analysis).delete()
+                    except Exception:
+                        pass
+                    
+                    # 3. AnalysisRequest
+                    try:
+                        from .models import AnalysisRequest
+                        AnalysisRequest.objects.filter(store_analysis=analysis).delete()
+                    except Exception:
+                        pass
+                    
+                    # 4. StoreAnalysisResult
+                    try:
+                        from .models import StoreAnalysisResult
+                        StoreAnalysisResult.objects.filter(store_analysis=analysis).delete()
+                    except Exception:
+                        pass
+                    
+                    # 5. ReviewReminder
+                    try:
+                        from .models import ReviewReminder
+                        ReviewReminder.objects.filter(analysis=analysis).delete()
+                    except Exception:
+                        pass
+                    
+                    # 6. SupportTicket
+                    try:
+                        from .models import SupportTicket, TicketMessage
+                        tickets = SupportTicket.objects.filter(store_analysis=analysis)
+                        for ticket in tickets:
+                            TicketMessage.objects.filter(ticket=ticket).delete()
+                        tickets.delete()
+                    except Exception:
+                        pass
+                    
+                    # 7. Payment (update to null)
+                    try:
+                        from .models import Payment
+                        Payment.objects.filter(store_analysis=analysis).update(store_analysis=None)
+                    except Exception:
+                        pass
+                    
+                    # 8. Order
+                    try:
+                        if hasattr(analysis, 'order') and analysis.order:
+                            analysis.order.delete()
+                    except Exception:
+                        pass
+                    
+                    # 9. حذف تحلیل
+                    analysis.delete()
+                    actual_count += 1
+                    logger.info(f"✅ Incomplete analysis {analysis.id} deleted")
+                    
+                except Exception as e:
+                    logger.error(f"❌ Error deleting incomplete analysis {analysis.id}: {e}", exc_info=True)
         
-        # حذف تحلیل‌های ناقص
-        deleted_count, deleted_objects = queryset.filter(status__in=['pending', 'failed']).delete()
-        
-        # شمارش واقعی StoreAnalysis حذف شده
-        actual_count = deleted_objects.get('store_analysis.StoreAnalysis', 0)
-        
-        messages.success(request, f"{actual_count} تحلیل ناقص حذف شد")
+        if actual_count > 0:
+            messages.success(request, f"✅ {actual_count} تحلیل ناقص حذف شد")
+        else:
+            messages.info(request, "تحلیل ناقصی برای حذف یافت نشد")
+            
     except Exception as e:
-        logger.error(f"delete_incomplete_analyses error: {e}")
-        messages.error(request, 'خطا در حذف تحلیل‌های ناقص')
+        logger.error(f"❌ delete_incomplete_analyses error: {e}", exc_info=True)
+        messages.error(request, f'❌ خطا در حذف تحلیل‌های ناقص: {str(e)}')
+    
     return redirect('store_analysis:user_dashboard')
 @login_required
 def analysis_results(request, pk):
@@ -8313,29 +8374,76 @@ def delete_analysis(request, pk):
                 from django.db import transaction
                 
                 with transaction.atomic():
-                    # حذف پیام‌های چت مرتبط
+                    # 1. حذف پیام‌های چت مرتبط
                     try:
                         from .models import ChatMessages
                         ChatMessages.objects.filter(analysis=analysis).delete()
+                        logger.info(f"✅ ChatMessages deleted for analysis {pk}")
                     except Exception as e:
-                        logger.warning(f"Error deleting chat messages: {e}")
+                        logger.warning(f"⚠️ Error deleting chat messages: {e}")
                     
-                    # حذف session‌های چت مرتبط
+                    # 2. حذف session‌های چت مرتبط
                     try:
                         from .models import ChatSession
-                        ChatSession.objects.filter(analysis=analysis).delete()
+                        ChatSession.objects.filter(store_analysis=analysis).delete()
+                        logger.info(f"✅ ChatSessions deleted for analysis {pk}")
                     except Exception as e:
-                        logger.warning(f"Error deleting chat sessions: {e}")
+                        logger.warning(f"⚠️ Error deleting chat sessions: {e}")
                     
-                    # حذف پرداخت‌های مرتبط (اما Order را نگه دار)
+                    # 3. حذف AnalysisRequest مرتبط
+                    try:
+                        from .models import AnalysisRequest
+                        AnalysisRequest.objects.filter(store_analysis=analysis).delete()
+                        logger.info(f"✅ AnalysisRequests deleted for analysis {pk}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting analysis requests: {e}")
+                    
+                    # 4. حذف StoreAnalysisResult مرتبط
+                    try:
+                        from .models import StoreAnalysisResult
+                        StoreAnalysisResult.objects.filter(store_analysis=analysis).delete()
+                        logger.info(f"✅ StoreAnalysisResults deleted for analysis {pk}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting analysis results: {e}")
+                    
+                    # 5. حذف ReviewReminder مرتبط
+                    try:
+                        from .models import ReviewReminder
+                        ReviewReminder.objects.filter(analysis=analysis).delete()
+                        logger.info(f"✅ ReviewReminders deleted for analysis {pk}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting review reminders: {e}")
+                    
+                    # 6. حذف TicketMessage و SupportTicket مرتبط
+                    try:
+                        from .models import SupportTicket, TicketMessage
+                        tickets = SupportTicket.objects.filter(store_analysis=analysis)
+                        for ticket in tickets:
+                            TicketMessage.objects.filter(ticket=ticket).delete()
+                        tickets.delete()
+                        logger.info(f"✅ SupportTickets deleted for analysis {pk}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting support tickets: {e}")
+                    
+                    # 7. به‌روزرسانی پرداخت‌های مرتبط (store_analysis را null کن)
                     try:
                         from .models import Payment
                         Payment.objects.filter(store_analysis=analysis).update(store_analysis=None)
+                        logger.info(f"✅ Payments updated for analysis {pk}")
                     except Exception as e:
-                        logger.warning(f"Error updating payments: {e}")
+                        logger.warning(f"⚠️ Error updating payments: {e}")
                     
-                    # حذف تحلیل
+                    # 8. حذف Order مرتبط (اگر OneToOne باشد)
+                    try:
+                        if hasattr(analysis, 'order') and analysis.order:
+                            analysis.order.delete()
+                            logger.info(f"✅ Order deleted for analysis {pk}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting order: {e}")
+                    
+                    # 9. حذف تحلیل (باید آخر از همه باشد)
                     analysis.delete()
+                    logger.info(f"✅ StoreAnalysis {pk} deleted successfully")
                 
                 messages.success(request, '✅ تحلیل با موفقیت حذف شد.')
                 logger.info(f"✅ Analysis {pk} deleted by user {request.user.username}")
