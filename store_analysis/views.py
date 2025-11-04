@@ -8950,12 +8950,13 @@ def forms_submit(request):
                     )
                     
                     if is_free_analysis:
-                        # برای تحلیل رایگان، داده‌ها را update کن و به فرم redirect کن
+                        # برای تحلیل رایگان، داده‌ها را update کن و تحلیل را شروع کن
                         form_data = request.POST.dict()
                         files_data = request.FILES
                         
                         # پردازش فایل‌های آپلود شده
                         uploaded_files = {}
+                        has_actual_files = False
                         if files_data:
                             for field_name, file_obj in files_data.items():
                                 try:
@@ -8967,6 +8968,7 @@ def forms_submit(request):
                                         'size': file_obj.size,
                                         'type': file_obj.content_type
                                     }
+                                    has_actual_files = True
                                     logger.info(f"File uploaded: {field_name} -> {file_path}")
                                 except Exception as e:
                                     logger.error(f"Error saving file {field_name}: {e}")
@@ -8979,15 +8981,115 @@ def forms_submit(request):
                         
                         store_analysis.analysis_data = current_data
                         store_analysis.store_name = form_data.get('store_name', store_analysis.store_name)
-                        store_analysis.save()
                         
-                        # هدایت به فرم (نه پرداخت)
-                        return JsonResponse({
-                            'success': True,
-                            'message': '✅ فرم با موفقیت ثبت شد!',
-                            'redirect_url': f'/store/forms/{store_analysis.id}/',
-                            'payment_required': False
-                        })
+                        # اگر فایل واقعی آپلود شده، تحلیل را شروع کن
+                        if has_actual_files:
+                            store_analysis.status = 'processing'
+                            store_analysis.save()
+                            
+                            # شروع تحلیل رایگان در background
+                            try:
+                                import threading
+                                
+                                def start_free_analysis():
+                                    """شروع تحلیل رایگان واقعی در background"""
+                                    try:
+                                        logger.info(f"🆓 شروع تحلیل رایگان واقعی برای تحلیل {store_analysis.id}")
+                                        
+                                        from .ai_services.free_analysis_service import FreeAnalysisService
+                                        free_service = FreeAnalysisService()
+                                        
+                                        # آماده‌سازی داده‌های فروشگاه
+                                        store_data = {
+                                            'store_name': store_analysis.store_name or 'فروشگاه',
+                                            'store_type': current_data.get('store_type', 'عمومی'),
+                                            'store_size': str(current_data.get('store_size', 0)),
+                                            'store_address': current_data.get('store_address', ''),
+                                            'description': current_data.get('description', ''),
+                                            **current_data
+                                        }
+                                        
+                                        # استخراج تصاویر از uploaded_files
+                                        images = []
+                                        if 'uploaded_files' in current_data:
+                                            uploaded_files_dict = current_data['uploaded_files']
+                                            image_fields = ['store_photos', 'store_layout', 'shelf_photos', 
+                                                          'window_display_photos', 'entrance_photos', 'checkout_photos']
+                                            for field in image_fields:
+                                                if field in uploaded_files_dict:
+                                                    file_info = uploaded_files_dict[field]
+                                                    if isinstance(file_info, dict) and 'path' in file_info:
+                                                        images.append(file_info['path'])
+                                        
+                                        # تحلیل با FreeAnalysisService
+                                        logger.info(f"📊 در حال انجام تحلیل رایگان با {len(images)} تصویر...")
+                                        free_analysis_result = free_service.analyze_store(store_data)
+                                        
+                                        if free_analysis_result and free_analysis_result.get('status') == 'completed':
+                                            logger.info(f"✅ تحلیل رایگان تکمیل شد برای تحلیل {store_analysis.id}")
+                                            
+                                            # به‌روزرسانی results
+                                            analysis_results = free_analysis_result.get('analysis_results', {})
+                                            report_content = free_analysis_result.get('report', '')
+                                            
+                                            # استخراج analysis_text
+                                            analysis_text = None
+                                            if isinstance(analysis_results, dict):
+                                                analysis_text = (
+                                                    analysis_results.get('analysis_text') or 
+                                                    analysis_results.get('summary') or
+                                                    analysis_results.get('executive_summary', {}).get('summary') if isinstance(analysis_results.get('executive_summary'), dict) else None
+                                                )
+                                            
+                                            if not analysis_text and report_content:
+                                                analysis_text = report_content
+                                            
+                                            # ذخیره نتایج
+                                            store_analysis.results = {
+                                                'analysis_text': analysis_text or 'تحلیل رایگان تکمیل شد',
+                                                'report': report_content,
+                                                'analysis_results': analysis_results,
+                                                'free_analysis': True,
+                                                'completed_at': timezone.now().isoformat()
+                                            }
+                                            store_analysis.status = 'completed'
+                                            store_analysis.save()
+                                            logger.info(f"✅ نتایج تحلیل رایگان ذخیره شد برای تحلیل {store_analysis.id}")
+                                        else:
+                                            logger.warning(f"⚠️ تحلیل رایگان با خطا مواجه شد برای تحلیل {store_analysis.id}")
+                                            store_analysis.status = 'failed'
+                                            store_analysis.error_message = free_analysis_result.get('error', 'خطا در تحلیل') if isinstance(free_analysis_result, dict) else 'خطا در تحلیل'
+                                            store_analysis.save()
+                                    except Exception as e:
+                                        logger.error(f"❌ خطا در تحلیل رایگان برای تحلیل {store_analysis.id}: {e}", exc_info=True)
+                                        store_analysis.status = 'failed'
+                                        store_analysis.error_message = str(e)
+                                        store_analysis.save()
+                                
+                                # شروع تحلیل در background thread
+                                analysis_thread = threading.Thread(target=start_free_analysis, daemon=True)
+                                analysis_thread.start()
+                                logger.info(f"🚀 Thread تحلیل رایگان برای تحلیل {store_analysis.id} شروع شد")
+                                
+                            except Exception as e:
+                                logger.error(f"❌ خطا در شروع تحلیل رایگان: {e}", exc_info=True)
+                            
+                            # هدایت به داشبورد با پیغام موفقیت
+                            return JsonResponse({
+                                'success': True,
+                                'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
+                                'redirect_url': f'/store/dashboard/',
+                                'payment_required': False
+                            })
+                        else:
+                            # اگر فایلی آپلود نشده، فقط فرم را ذخیره کن
+                            store_analysis.save()
+                            return JsonResponse({
+                                'success': True,
+                                'message': '⚠️ فرم ثبت شد اما برای شروع تحلیل باید حداقل یک فایل آپلود کنید.',
+                                'redirect_url': f'/store/forms/{store_analysis.id}/',
+                                'payment_required': False
+                            })
                 except StoreAnalysis.DoesNotExist:
                     pass
             
