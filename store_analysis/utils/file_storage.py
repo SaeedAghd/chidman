@@ -23,7 +23,18 @@ def save_uploaded_file(file_obj, base_path='uploads'):
     Returns:
         dict with 'path', 'name', 'size', 'type', 'storage' keys
     """
-    is_liara = os.getenv('LIARA') == 'true'
+    # تشخیص Liara از طریق چند روش:
+    # 1. متغیر LIARA
+    # 2. وجود LIARA_AI_API_KEY (که در Liara تنظیم می‌شود)
+    # 3. hostname که شامل liara باشد
+    is_liara = (
+        os.getenv('LIARA') == 'true' or
+        bool(os.getenv('LIARA_AI_API_KEY')) or
+        'liara' in os.getenv('HOSTNAME', '').lower() or
+        'liara' in os.getenv('ALLOWED_HOSTS', '').lower()
+    )
+    
+    logger.debug(f"🔍 File storage check: is_liara={is_liara}, LIARA={os.getenv('LIARA')}, has_LIARA_AI_API_KEY={bool(os.getenv('LIARA_AI_API_KEY'))}")
     
     if is_liara:
         # در Liara، از /tmp استفاده می‌کنیم
