@@ -149,10 +149,21 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
                 pass
     
     # contact_phone و contact_email را به صورت جداگانه بررسی کن (اگر موجود باشند)
+    # فقط اگر ستون واقعاً در دیتابیس موجود باشد
     for missing_field in ['contact_phone', 'contact_email']:
+        # بررسی مجدد که ستون واقعاً موجود است (نه فقط در available_columns)
         if missing_field in available_columns and missing_field in kwargs and kwargs[missing_field] is not None:
-            fields.append(missing_field)
-            values.append(kwargs[missing_field])
+            # فقط اضافه کن اگر ستون واقعاً موجود باشد
+            try:
+                # بررسی نهایی: آیا ستون واقعاً وجود دارد؟
+                with connection.cursor() as test_cursor:
+                    test_cursor.execute(f"SELECT {connection.ops.quote_name(missing_field)} FROM {connection.ops.quote_name(table_name)} LIMIT 0")
+                fields.append(missing_field)
+                values.append(kwargs[missing_field])
+            except Exception:
+                # اگر ستون موجود نیست، skip کن
+                logger.debug(f"Skipping {missing_field} - column does not exist in database")
+                pass
     
     # اگر analysis_data موجود است و ستون وجود دارد
     if 'analysis_data' in available_columns and 'analysis_data' in kwargs:
@@ -161,6 +172,9 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
     
     fields_str = ', '.join([connection.ops.quote_name(f) for f in fields])
     placeholders = ', '.join(['%s'] * len(values))
+    
+    # متغیر برای نگه‌داری فیلدهای نهایی (در صورت retry)
+    final_fields = fields
     
     try:
         with connection.cursor() as cursor:
@@ -173,57 +187,94 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
             cursor.execute(query, values)
             analysis_id = cursor.fetchone()[0]
             connection.commit()
+    except Exception as insert_error:
+        # اگر خطا در INSERT داد، ممکن است فیلدهای missing باشند
+        error_str = str(insert_error).lower()
+        if 'contact_phone' in error_str or 'contact_email' in error_str or 'does not exist' in error_str:
+            # حذف فیلدهای problematic و دوباره تلاش کن
+            logger.warning(f"⚠️ Error inserting fields: {insert_error}. Retrying without problematic fields...")
+            problematic_fields = ['contact_phone', 'contact_email']
+            safe_fields = []
+            safe_values = []
+            for i, field in enumerate(fields):
+                if field not in problematic_fields:
+                    safe_fields.append(field)
+                    safe_values.append(values[i])
+            
+            if len(safe_fields) > 0:
+                fields_str = ', '.join([connection.ops.quote_name(f) for f in safe_fields])
+                placeholders = ', '.join(['%s'] * len(safe_values))
+                try:
+                    with connection.cursor() as cursor:
+                        quoted_table = connection.ops.quote_name(table_name)
+                        query = f"""
+                            INSERT INTO {quoted_table} ({fields_str})
+                            VALUES ({placeholders})
+                            RETURNING id
+                        """
+                        cursor.execute(query, safe_values)
+                        analysis_id = cursor.fetchone()[0]
+                        connection.commit()
+                        # استفاده از safe_fields برای select_fields
+                        final_fields = safe_fields
+                except Exception as retry_error:
+                    logger.error(f"❌ Error in retry insert: {retry_error}")
+                    raise
+            else:
+                raise
+        else:
+            raise
+    
+    # استفاده از raw SQL برای خواندن - چون ORM ممکن است فیلدهای missing را بخواند
+    # فقط فیلدهای موجود را می‌خوانیم
+    select_fields = ['id'] + [f for f in final_fields if f != 'id']
+    select_fields_str = ', '.join([connection.ops.quote_name(f) for f in select_fields])
+    
+    with connection.cursor() as cursor:
+        select_query = f"""
+            SELECT {select_fields_str}
+            FROM {quoted_table}
+            WHERE id = %s
+        """
+        cursor.execute(select_query, [analysis_id])
+        row = cursor.fetchone()
         
-        # استفاده از raw SQL برای خواندن - چون ORM ممکن است فیلدهای missing را بخواند
-        # فقط فیلدهای موجود را می‌خوانیم
-        select_fields = ['id'] + [f for f in fields if f != 'id']
-        select_fields_str = ', '.join([connection.ops.quote_name(f) for f in select_fields])
+        # ساخت یک object ساده
+        from types import SimpleNamespace
+        obj = SimpleNamespace()
+        for i, field in enumerate(select_fields):
+            if i < len(row):
+                setattr(obj, field, row[i])
         
-        with connection.cursor() as cursor:
-            select_query = f"""
+        # تبدیل به StoreAnalysis object با استفاده از _state
+        # این کار باعث می‌شود Django فیلدهای missing را ignore کند
+        try:
+            analysis = StoreAnalysis.objects.raw(f"""
                 SELECT {select_fields_str}
                 FROM {quoted_table}
                 WHERE id = %s
-            """
-            cursor.execute(select_query, [analysis_id])
-            row = cursor.fetchone()
-            
-            # ساخت یک object ساده
-            from types import SimpleNamespace
-            obj = SimpleNamespace()
-            for i, field in enumerate(select_fields):
-                if i < len(row):
-                    setattr(obj, field, row[i])
-            
-            # تبدیل به StoreAnalysis object با استفاده از _state
-            # این کار باعث می‌شود Django فیلدهای missing را ignore کند
+            """, [analysis_id])[0]
+            return analysis
+        except Exception:
+            # اگر raw query هم کار نکرد، از get استفاده کن اما با try-except
             try:
-                analysis = StoreAnalysis.objects.raw(f"""
-                    SELECT {select_fields_str}
-                    FROM {quoted_table}
-                    WHERE id = %s
-                """, [analysis_id])[0]
-                return analysis
+                return StoreAnalysis.objects.get(id=analysis_id)
             except Exception:
-                # اگر raw query هم کار نکرد، از get استفاده کن اما با try-except
-                try:
-                    return StoreAnalysis.objects.get(id=analysis_id)
-                except Exception:
-                    # آخرین راه: ساخت object دستی
-                    obj.id = analysis_id
-                    obj.store_name = store_name
-                    obj.status = status
-                    # تبدیل به StoreAnalysis instance
-                    analysis = StoreAnalysis(id=analysis_id)
-                    for field in select_fields:
-                        if hasattr(obj, field):
-                            try:
-                                setattr(analysis, field, getattr(obj, field))
-                            except Exception:
-                                pass
-                    analysis._state.adding = False
-                    analysis._state.db = connection.alias
-                    return analysis
+                # آخرین راه: ساخت object دستی
+                obj.id = analysis_id
+                obj.store_name = store_name
+                obj.status = status
+                # تبدیل به StoreAnalysis instance
+                analysis = StoreAnalysis(id=analysis_id)
+                for field in select_fields:
+                    if hasattr(obj, field):
+                        try:
+                            setattr(analysis, field, getattr(obj, field))
+                        except Exception:
+                            pass
+                analysis._state.adding = False
+                analysis._state.db = connection.alias
+                return analysis
     except Exception as e:
         logger.error(f"Error in _create_store_analysis_raw_sql: {e}")
         logger.error(f"Fields: {fields}")

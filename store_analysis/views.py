@@ -4599,6 +4599,7 @@ def payping_payment(request, order_id):
                 amount=order.final_amount,
                 payment_method='payping',
                 status='pending',
+                authority=payment_request['authority'],  # اضافه کردن authority برای mock payment
                 transaction_id=payment_request['authority']
             )
 
