@@ -400,8 +400,9 @@ class StoreAnalysis(models.Model):
     store_type = models.CharField(max_length=50, blank=True, verbose_name='نوع فروشگاه')
     store_size = models.CharField(max_length=50, blank=True, verbose_name='اندازه فروشگاه')
     store_address = models.TextField(blank=True, verbose_name='آدرس فروشگاه')
-    contact_phone = models.CharField(max_length=20, blank=True, verbose_name='شماره تماس')
-    contact_email = models.EmailField(blank=True, verbose_name='ایمیل تماس')
+    # contact_phone و contact_email در دیتابیس موجود نیستند - از model definition حذف شدند
+    # contact_phone = models.CharField(max_length=20, blank=True, verbose_name='شماره تماس')
+    # contact_email = models.EmailField(blank=True, verbose_name='ایمیل تماس')
     additional_info = models.TextField(blank=True, verbose_name='اطلاعات اضافی')
     business_goals = models.TextField(blank=True, verbose_name='اهداف کسب‌وکار')
     marketing_budget = models.CharField(max_length=50, blank=True, verbose_name='بودجه بازاریابی')

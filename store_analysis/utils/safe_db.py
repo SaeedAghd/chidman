@@ -275,11 +275,6 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
                 analysis._state.adding = False
                 analysis._state.db = connection.alias
                 return analysis
-    except Exception as e:
-        logger.error(f"Error in _create_store_analysis_raw_sql: {e}")
-        logger.error(f"Fields: {fields}")
-        logger.error(f"Available columns: {available_columns}")
-        raise
 
 
 def safe_get_store_analysis(**filters) -> Optional[Any]:
