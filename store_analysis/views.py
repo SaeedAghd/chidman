@@ -9724,8 +9724,15 @@ def forms_submit(request):
                             elif store_analysis.status == 'paid':
                                 is_paid = True
                             
-                            # اگر تحلیل پرداخت شده یا status=paid است، تحلیل را شروع کن
-                            if is_paid or store_analysis.status == 'paid':
+                            # اگر status به processing تغییر کرد و فایل دارد، تحلیل را شروع کن
+                            # (برای همه تحلیل‌ها، چه پولی چه رایگان)
+                            package_type = getattr(store_analysis, 'package_type', None)
+                            is_free = package_type == 'basic'
+                            
+                            # برای همه تحلیل‌ها (پولی یا رایگان) که فایل دارند، تحلیل را شروع کن
+                            should_start = True
+                            
+                            if should_start:
                                 try:
                                     import threading
                                     
