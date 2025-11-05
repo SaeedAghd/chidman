@@ -563,14 +563,25 @@ def index(request):
     context['active_banners'] = active_banners
     
     if request.user.is_authenticated:
-        # آمار برای کاربران ورود کرده
-        user_analyses = StoreAnalysis.objects.filter(user=request.user)
-        context.update({
-            'total_analyses': user_analyses.count(),
-            'completed_analyses': user_analyses.filter(status='completed').count(),
-            'processing_analyses': user_analyses.filter(status='processing').count(),
-            'pending_analyses': user_analyses.filter(status='pending').count(),
-        })
+        # آمار برای کاربران ورود کرده - استفاده از raw SQL برای جلوگیری از خطای contact_phone
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
+                    SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
+                FROM store_analysis_storeanalysis
+                WHERE user_id = %s
+            """, [request.user.id])
+            row = cursor.fetchone()
+            context.update({
+                'total_analyses': row[0] if row else 0,
+                'completed_analyses': row[1] if row else 0,
+                'processing_analyses': row[2] if row else 0,
+                'pending_analyses': row[3] if row else 0,
+            })
     
     return render(request, 'chidmano/landing.html', context)
 
@@ -3631,12 +3642,25 @@ def user_dashboard(request):
         analysis.normalized_status = normalized_status
         analysis.is_form_complete = is_form_complete
     
-    # آمار تحلیل‌ها (شامل همه وضعیت‌ها)
-    total_analyses = StoreAnalysis.objects.filter(user=request.user).count()
-    completed_analyses = StoreAnalysis.objects.filter(user=request.user, status='completed').count()
-    processing_analyses = StoreAnalysis.objects.filter(user=request.user, status='processing').count()
-    failed_analyses = StoreAnalysis.objects.filter(user=request.user, status='failed').count()
-    pending_analyses = StoreAnalysis.objects.filter(user=request.user, status='pending').count()
+    # آمار تحلیل‌ها (شامل همه وضعیت‌ها) - استفاده از raw SQL برای جلوگیری از خطای contact_phone
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
+                SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
+            FROM store_analysis_storeanalysis
+            WHERE user_id = %s
+        """, [request.user.id])
+        row = cursor.fetchone()
+        total_analyses = row[0] if row else 0
+        completed_analyses = row[1] if row else 0
+        processing_analyses = row[2] if row else 0
+        failed_analyses = row[3] if row else 0
+        pending_analyses = row[4] if row else 0
     
     context = {
         'total_payments': total_payments,
@@ -5118,6 +5142,13 @@ def payping_callback(request, order_id):
         return redirect('store_analysis:user_dashboard')
 
 
+# کیف‌پول - redirect به dashboard
+@login_required
+def wallet_dashboard(request):
+    """صفحه کیف پول - redirect به dashboard"""
+    messages.info(request, 'کیف پول در حال توسعه است. در حال حاضر می‌توانید از داشبورد استفاده کنید.')
+    return redirect('store_analysis:user_dashboard')
+
 # کیف‌پول حذف شده - فقط پرداخت بابت خدمت مشخص
 
 # @login_required
@@ -5258,7 +5289,11 @@ def find_or_create_store_analysis(order, user):
             return store_analysis
         
         # اگر هیچ تحلیل وجود ندارد، بررسی کن که آیا کاربر تحلیل‌های دیگری دارد
-        user_analyses = StoreAnalysis.objects.filter(user=user).count()
+        # استفاده از raw SQL برای جلوگیری از خطای contact_phone
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM store_analysis_storeanalysis WHERE user_id = %s", [user.id])
+            user_analyses = cursor.fetchone()[0]
         if user_analyses > 0:
             logger.warning(f"User {user.username} has {user_analyses} analyses but none available for Order {order.order_number}")
             return None
@@ -7321,7 +7356,11 @@ def admin_pricing_management(request):
                     return redirect('store_analysis:admin_pricing')
         
         # آمار کلی
-        total_analyses = StoreAnalysis.objects.count()
+        # استفاده از raw SQL برای جلوگیری از خطای contact_phone
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM store_analysis_storeanalysis")
+            total_analyses = cursor.fetchone()[0]
         paid_analyses = Order.objects.filter(status='paid').count()
         pending_analyses = Order.objects.filter(status='pending').count()
         

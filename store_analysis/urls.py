@@ -15,6 +15,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
     path('dashboard/cleanup/', views.delete_incomplete_analyses, name='delete_incomplete_analyses'),
+    path('wallet/', views.wallet_dashboard, name='wallet_dashboard'),  # کیف پول - redirect به dashboard
     
     # محصولات و خرید
     path('products/', views.products_page, name='products'),

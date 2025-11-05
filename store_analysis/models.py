@@ -345,16 +345,21 @@ class StoreAnalysisManager(models.Manager):
             available_columns = get_available_columns(table_name)
             
             # فیلدهایی که ممکن است در دیتابیس موجود نباشند
+            # فقط فیلدهایی که در model definition وجود دارند را defer کن
             missing_fields = [
-                'contact_phone', 'contact_email', 'priority',
+                'priority',  # contact_phone و contact_email از model حذف شدند
                 'additional_info', 'business_goals', 'marketing_budget',
                 'final_amount'
             ]
             
-            # defer کردن فیلدهای missing
+            # بررسی فیلدهای موجود در model (نه فقط دیتابیس)
+            model_fields = {f.name for f in self.model._meta.get_fields() if hasattr(f, 'name')}
+            
+            # defer کردن فیلدهای missing که در model وجود دارند
             defer_fields = []
             for field in missing_fields:
-                if field not in available_columns:
+                # فقط اگر فیلد در model وجود دارد و در دیتابیس موجود نیست
+                if field in model_fields and field not in available_columns:
                     defer_fields.append(field)
             
             if defer_fields:
