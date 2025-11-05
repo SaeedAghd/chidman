@@ -413,7 +413,13 @@ ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
 # Liara AI Settings
 # ⚠️ مهم: در production، API key باید از environment variable خوانده شود
 # هرگز API key را مستقیماً در کد قرار ندهید
-LIARA_AI_API_KEY = os.getenv('LIARA_AI_API_KEY', '')
+
+# Debug: بررسی environment variable
+_liara_ai_key_raw = os.getenv('LIARA_AI_API_KEY', '')
+_liara_ai_key_exists = 'LIARA_AI_API_KEY' in os.environ
+logger.debug(f"🔍 LIARA_AI_API_KEY check: exists_in_env={_liara_ai_key_exists}, value_length={len(_liara_ai_key_raw) if _liara_ai_key_raw else 0}")
+
+LIARA_AI_API_KEY = _liara_ai_key_raw
 LIARA_AI_BASE_URL = os.getenv('LIARA_AI_BASE_URL', 'https://api.liara.ir/v1')
 LIARA_AI_TIMEOUT = int(os.getenv('LIARA_AI_TIMEOUT', '90'))  # ثانیه
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
@@ -421,8 +427,12 @@ FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 
 if not LIARA_AI_API_KEY:
     logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - AI features غیرفعال خواهند بود")
+    logger.warning(f"   Environment check: LIARA_AI_API_KEY in os.environ = {_liara_ai_key_exists}")
+    logger.warning(f"   All env vars starting with LIARA_: {[k for k in os.environ.keys() if k.startswith('LIARA_')]}")
 else:
-    logger.info(f"✅ Liara AI configured (base_url={LIARA_AI_BASE_URL}, timeout={LIARA_AI_TIMEOUT}s)")
+    # نمایش فقط 10 کاراکتر اول و آخر برای امنیت
+    key_preview = f"{LIARA_AI_API_KEY[:10]}...{LIARA_AI_API_KEY[-10:]}" if len(LIARA_AI_API_KEY) > 20 else "***"
+    logger.info(f"✅ Liara AI configured (base_url={LIARA_AI_BASE_URL}, timeout={LIARA_AI_TIMEOUT}s, key_preview={key_preview})")
 
 # Payment - PayPing
 # PayPing Settings - Token جدید برای پرداخت و کیف پول
