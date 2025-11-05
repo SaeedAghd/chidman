@@ -281,7 +281,14 @@ STORAGES = {
 }
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
-MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
+# در Liara، از /tmp استفاده می‌کنیم چون read-only filesystem داریم
+if os.getenv('LIARA') == 'true':
+    MEDIA_ROOT = '/tmp/media'  # استفاده از /tmp که writeable است
+    # اطمینان از وجود directory
+    import os
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+else:
+    MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
 
 # SEO Settings
 BASE_DOMAIN = 'chidmano.ir'

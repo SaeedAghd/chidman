@@ -6677,14 +6677,9 @@ def store_analysis_form(request, analysis_id=None):
                             continue
                         
                         # ذخیره فایل
-                        from django.core.files.storage import default_storage
-                        file_path = default_storage.save(f'uploads/{field}/{file_obj.name}', file_obj)
-                        uploaded_files[field] = {
-                            'name': file_obj.name,
-                            'size': file_obj.size,
-                            'path': file_path,
-                            'url': default_storage.url(file_path)
-                        }
+                        from store_analysis.utils.file_storage import save_uploaded_file
+                        file_info = save_uploaded_file(file_obj, base_path=f'uploads/{field}')
+                        uploaded_files[field] = file_info
                         upload_success_count += 1
                         logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
                     except Exception as e:
@@ -9202,16 +9197,11 @@ def forms_submit(request):
                         if files_data:
                             for field_name, file_obj in files_data.items():
                                 try:
-                                    from django.core.files.storage import default_storage
-                                    file_path = default_storage.save(f'uploads/{file_obj.name}', file_obj)
-                                    uploaded_files[field_name] = {
-                                        'name': file_obj.name,
-                                        'path': file_path,
-                                        'size': file_obj.size,
-                                        'type': file_obj.content_type
-                                    }
+                                    from store_analysis.utils.file_storage import save_uploaded_file
+                                    file_info = save_uploaded_file(file_obj, base_path='uploads')
+                                    uploaded_files[field_name] = file_info
                                     has_actual_files = True
-                                    logger.info(f"File uploaded: {field_name} -> {file_path}")
+                                    logger.info(f"File uploaded: {field_name} -> {file_info.get('path')}")
                                 except Exception as e:
                                     logger.error(f"Error saving file {field_name}: {e}")
                                     uploaded_files[field_name] = {'error': str(e)}
@@ -9366,17 +9356,12 @@ def forms_submit(request):
             if files_data:
                 for field_name, file_obj in files_data.items():
                     try:
-                        # ذخیره فایل در media
-                        from django.core.files.storage import default_storage
-                        file_path = default_storage.save(f'uploads/{file_obj.name}', file_obj)
-                        uploaded_files[field_name] = {
-                            'name': file_obj.name,
-                            'path': file_path,
-                            'size': file_obj.size,
-                            'type': file_obj.content_type
-                        }
+                        # ذخیره فایل با استفاده از helper function
+                        from store_analysis.utils.file_storage import save_uploaded_file
+                        file_info = save_uploaded_file(file_obj, base_path='uploads')
+                        uploaded_files[field_name] = file_info
                         has_actual_files = True
-                        logger.info(f"✅ File uploaded: {field_name} -> {file_path}, size={file_obj.size}")
+                        logger.info(f"✅ File uploaded: {field_name} -> {file_info.get('path')}, size={file_info.get('size')}")
                     except Exception as e:
                         logger.error(f"❌ Error saving file {field_name}: {e}", exc_info=True)
                         uploaded_files[field_name] = {'error': str(e)}
