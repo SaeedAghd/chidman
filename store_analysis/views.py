@@ -955,8 +955,24 @@ def delete_incomplete_analyses(request):
                     # 3. حذف AnalysisRequest (اگر فیلد وجود داشته باشد)
                     try:
                         from .models import AnalysisRequest
-                        if hasattr(AnalysisRequest, 'store_analysis'):
-                            AnalysisRequest.objects.filter(store_analysis=analysis).delete()
+                        from django.db import connection
+                        # بررسی وجود ستون با raw SQL
+                        with connection.cursor() as cursor:
+                            cursor.execute("""
+                                SELECT column_name 
+                                FROM information_schema.columns 
+                                WHERE table_name='store_analysis_analysisrequest' 
+                                AND column_name='store_analysis_id'
+                            """)
+                            if cursor.fetchone():
+                                # استفاده از raw SQL برای حذف
+                                cursor.execute("""
+                                    DELETE FROM store_analysis_analysisrequest 
+                                    WHERE store_analysis_id = %s
+                                """, [analysis.id])
+                                logger.info(f"✅ AnalysisRequests deleted for analysis {analysis.id}")
+                            else:
+                                logger.debug(f"⚠️ store_analysis_id column does not exist in AnalysisRequest table")
                     except Exception as e:
                         logger.warning(f"⚠️ Error deleting analysis requests for {analysis.id}: {e}")
                     
@@ -8405,8 +8421,14 @@ def delete_analysis(request, pk):
                             AND column_name='store_analysis_id'
                         """)
                         if cursor.fetchone():
-                            AnalysisRequest.objects.filter(store_analysis=analysis).delete()
+                            # استفاده از raw SQL برای حذف به جای ORM
+                            cursor.execute("""
+                                DELETE FROM store_analysis_analysisrequest 
+                                WHERE store_analysis_id = %s
+                            """, [analysis.id])
                             logger.info(f"✅ AnalysisRequests deleted for analysis {pk}")
+                        else:
+                            logger.debug(f"⚠️ store_analysis_id column does not exist in AnalysisRequest table")
                 except Exception as e:
                     logger.warning(f"⚠️ Error deleting analysis requests: {e}")
                 
