@@ -9311,13 +9311,24 @@ def forms_submit(request):
                 except StoreAnalysis.DoesNotExist:
                     pass
             
-            # اگر تحلیل رایگان نیست یا تحلیل وجود ندارد، فرآیند عادی را ادامه بده
+            # بررسی اینکه آیا تحلیل پولی موجود است که باید update شود
+            if session_analysis_id and not store_analysis:
+                try:
+                    store_analysis = StoreAnalysis.objects.get(
+                        pk=session_analysis_id,
+                        user=request.user
+                    )
+                    logger.info(f"📝 تحلیل موجود پیدا شد: {store_analysis.id}, status={store_analysis.status}")
+                except StoreAnalysis.DoesNotExist:
+                    store_analysis = None
+            
             # دریافت داده‌های فرم به صورت ساده
             form_data = request.POST.dict()
             files_data = request.FILES
             
             # پردازش و ذخیره فایل‌های آپلود شده
             uploaded_files = {}
+            has_actual_files = False
             if files_data:
                 for field_name, file_obj in files_data.items():
                     try:
@@ -9330,11 +9341,66 @@ def forms_submit(request):
                             'size': file_obj.size,
                             'type': file_obj.content_type
                         }
-                        logger.info(f"File uploaded: {field_name} -> {file_path}")
+                        has_actual_files = True
+                        logger.info(f"✅ File uploaded: {field_name} -> {file_path}")
                     except Exception as e:
-                        logger.error(f"Error saving file {field_name}: {e}")
+                        logger.error(f"❌ Error saving file {field_name}: {e}")
                         uploaded_files[field_name] = {'error': str(e)}
             
+            # اگر تحلیل موجود است، آن را update کن
+            if store_analysis:
+                logger.info(f"🔄 Updating existing analysis {store_analysis.id}")
+                
+                # به‌روزرسانی analysis_data
+                current_data = store_analysis.analysis_data or {}
+                if isinstance(current_data, str):
+                    import json
+                    try:
+                        current_data = json.loads(current_data)
+                    except:
+                        current_data = {}
+                
+                # ادغام داده‌های جدید
+                current_data.update(form_data)
+                
+                # ادغام فایل‌های آپلود شده
+                if 'uploaded_files' in current_data:
+                    existing_files = current_data['uploaded_files']
+                    if isinstance(existing_files, dict):
+                        existing_files.update(uploaded_files)
+                        uploaded_files = existing_files
+                current_data['uploaded_files'] = uploaded_files
+                
+                # به‌روزرسانی فیلدهای تحلیل
+                store_analysis.analysis_data = current_data
+                store_analysis.store_name = form_data.get('store_name', store_analysis.store_name)
+                
+                # اگر فایل آپلود شده و تحلیل پرداخت شده، status را به processing تغییر بده
+                if has_actual_files:
+                    # بررسی اینکه آیا تحلیل پرداخت شده است
+                    is_paid = False
+                    if hasattr(store_analysis, 'order') and store_analysis.order:
+                        if store_analysis.order.status in ['paid', 'processing', 'completed']:
+                            is_paid = True
+                    elif store_analysis.status in ['paid', 'processing']:
+                        is_paid = True
+                    
+                    if is_paid or store_analysis.status == 'pending':
+                        store_analysis.status = 'processing'
+                        logger.info(f"✅ فرم تکمیل شد و تحلیل شروع شد برای تحلیل {store_analysis.id}. فایل‌های آپلود شده: {list(uploaded_files.keys())}")
+                
+                store_analysis.save()
+                logger.info(f"✅ تحلیل {store_analysis.id} به‌روزرسانی شد با {len(uploaded_files)} فایل")
+                
+                # هدایت به داشبورد
+                return JsonResponse({
+                    'success': True,
+                    'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
+                    'redirect_url': f'/store/dashboard/',
+                    'payment_required': False
+                })
+            
+            # اگر تحلیل موجود نیست، تحلیل جدید ایجاد کن (فقط برای موارد خاص)
             # اضافه کردن اطلاعات فایل‌ها به form_data
             form_data['uploaded_files'] = uploaded_files
             
