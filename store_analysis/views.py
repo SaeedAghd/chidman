@@ -929,79 +929,76 @@ def delete_incomplete_analyses(request):
         if not (request.user.is_staff or request.user.is_superuser):
             queryset = queryset.filter(user=request.user)
         
-        incomplete_analyses = queryset.filter(status__in=['pending', 'failed'])
+        incomplete_analyses = list(queryset.filter(status__in=['pending', 'failed']))
         actual_count = 0
         
-        with transaction.atomic():
-            for analysis in incomplete_analyses:
-                try:
-                    # حذف وابستگی‌ها برای هر تحلیل
-                    # 1. ChatMessages
+        # حذف هر تحلیل در یک transaction جداگانه
+        for analysis in incomplete_analyses:
+            try:
+                with transaction.atomic():
+                    # 1. حذف پیام‌های چت مرتبط (از طریق session)
                     try:
-                        from .models import ChatMessages
-                        ChatMessages.objects.filter(analysis=analysis).delete()
-                    except Exception:
-                        pass
+                        from .models import ChatMessage, ChatSession
+                        chat_sessions = ChatSession.objects.filter(store_analysis=analysis)
+                        for session in chat_sessions:
+                            ChatMessage.objects.filter(session=session).delete()
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting chat messages for {analysis.id}: {e}")
                     
-                    # 2. ChatSession
+                    # 2. حذف ChatSession
                     try:
                         from .models import ChatSession
                         ChatSession.objects.filter(store_analysis=analysis).delete()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting chat sessions for {analysis.id}: {e}")
                     
-                    # 3. AnalysisRequest
+                    # 3. حذف AnalysisRequest (اگر فیلد وجود داشته باشد)
                     try:
                         from .models import AnalysisRequest
-                        AnalysisRequest.objects.filter(store_analysis=analysis).delete()
-                    except Exception:
-                        pass
+                        if hasattr(AnalysisRequest, 'store_analysis'):
+                            AnalysisRequest.objects.filter(store_analysis=analysis).delete()
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting analysis requests for {analysis.id}: {e}")
                     
-                    # 4. StoreAnalysisResult
+                    # 4. حذف StoreAnalysisResult
                     try:
                         from .models import StoreAnalysisResult
                         StoreAnalysisResult.objects.filter(store_analysis=analysis).delete()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting analysis results for {analysis.id}: {e}")
                     
-                    # 5. ReviewReminder
+                    # 5. حذف ReviewReminder
                     try:
                         from .models import ReviewReminder
                         ReviewReminder.objects.filter(analysis=analysis).delete()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting review reminders for {analysis.id}: {e}")
                     
-                    # 6. SupportTicket
-                    try:
-                        from .models import SupportTicket, TicketMessage
-                        tickets = SupportTicket.objects.filter(store_analysis=analysis)
-                        for ticket in tickets:
-                            TicketMessage.objects.filter(ticket=ticket).delete()
-                        tickets.delete()
-                    except Exception:
-                        pass
+                    # 6. SupportTicket فیلد store_analysis ندارد - skip
                     
-                    # 7. Payment (update to null)
+                    # 7. به‌روزرسانی Payment (update to null)
                     try:
                         from .models import Payment
                         Payment.objects.filter(store_analysis=analysis).update(store_analysis=None)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error updating payments for {analysis.id}: {e}")
                     
-                    # 8. Order
+                    # 8. حذف Order
                     try:
                         if hasattr(analysis, 'order') and analysis.order:
                             analysis.order.delete()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting order for {analysis.id}: {e}")
                     
                     # 9. حذف تحلیل
                     analysis.delete()
                     actual_count += 1
                     logger.info(f"✅ Incomplete analysis {analysis.id} deleted")
                     
-                except Exception as e:
-                    logger.error(f"❌ Error deleting incomplete analysis {analysis.id}: {e}", exc_info=True)
+            except Exception as e:
+                logger.error(f"❌ Error deleting incomplete analysis {analysis.id}: {e}", exc_info=True)
+                # ادامه به تحلیل بعدی
+                continue
         
         if actual_count > 0:
             messages.success(request, f"✅ {actual_count} تحلیل ناقص حذف شد")
@@ -8370,80 +8367,86 @@ def delete_analysis(request, pk):
         
         if request.method == 'POST':
             try:
-                # حذف وابستگی‌ها قبل از حذف تحلیل
                 from django.db import transaction
                 
-                with transaction.atomic():
-                    # 1. حذف پیام‌های چت مرتبط
-                    try:
-                        from .models import ChatMessages
-                        ChatMessages.objects.filter(analysis=analysis).delete()
-                        logger.info(f"✅ ChatMessages deleted for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error deleting chat messages: {e}")
-                    
-                    # 2. حذف session‌های چت مرتبط
-                    try:
-                        from .models import ChatSession
-                        ChatSession.objects.filter(store_analysis=analysis).delete()
-                        logger.info(f"✅ ChatSessions deleted for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error deleting chat sessions: {e}")
-                    
-                    # 3. حذف AnalysisRequest مرتبط
-                    try:
-                        from .models import AnalysisRequest
-                        AnalysisRequest.objects.filter(store_analysis=analysis).delete()
-                        logger.info(f"✅ AnalysisRequests deleted for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error deleting analysis requests: {e}")
-                    
-                    # 4. حذف StoreAnalysisResult مرتبط
-                    try:
-                        from .models import StoreAnalysisResult
-                        StoreAnalysisResult.objects.filter(store_analysis=analysis).delete()
-                        logger.info(f"✅ StoreAnalysisResults deleted for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error deleting analysis results: {e}")
-                    
-                    # 5. حذف ReviewReminder مرتبط
-                    try:
-                        from .models import ReviewReminder
-                        ReviewReminder.objects.filter(analysis=analysis).delete()
-                        logger.info(f"✅ ReviewReminders deleted for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error deleting review reminders: {e}")
-                    
-                    # 6. حذف TicketMessage و SupportTicket مرتبط
-                    try:
-                        from .models import SupportTicket, TicketMessage
-                        tickets = SupportTicket.objects.filter(store_analysis=analysis)
-                        for ticket in tickets:
-                            TicketMessage.objects.filter(ticket=ticket).delete()
-                        tickets.delete()
-                        logger.info(f"✅ SupportTickets deleted for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error deleting support tickets: {e}")
-                    
-                    # 7. به‌روزرسانی پرداخت‌های مرتبط (store_analysis را null کن)
-                    try:
-                        from .models import Payment
-                        Payment.objects.filter(store_analysis=analysis).update(store_analysis=None)
-                        logger.info(f"✅ Payments updated for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error updating payments: {e}")
-                    
-                    # 8. حذف Order مرتبط (اگر OneToOne باشد)
-                    try:
-                        if hasattr(analysis, 'order') and analysis.order:
-                            analysis.order.delete()
-                            logger.info(f"✅ Order deleted for analysis {pk}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ Error deleting order: {e}")
-                    
-                    # 9. حذف تحلیل (باید آخر از همه باشد)
-                    analysis.delete()
-                    logger.info(f"✅ StoreAnalysis {pk} deleted successfully")
+                # حذف وابستگی‌ها قبل از حذف تحلیل
+                # هر کدام را جداگانه try-except می‌کنیم تا اگر یکی خطا داد، بقیه ادامه پیدا کنند
+                
+                # 1. حذف پیام‌های چت مرتبط (از طریق session)
+                try:
+                    from .models import ChatMessage, ChatSession
+                    chat_sessions = ChatSession.objects.filter(store_analysis=analysis)
+                    for session in chat_sessions:
+                        ChatMessage.objects.filter(session=session).delete()
+                    logger.info(f"✅ ChatMessages deleted for analysis {pk}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting chat messages: {e}")
+                
+                # 2. حذف session‌های چت مرتبط
+                try:
+                    from .models import ChatSession
+                    ChatSession.objects.filter(store_analysis=analysis).delete()
+                    logger.info(f"✅ ChatSessions deleted for analysis {pk}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting chat sessions: {e}")
+                
+                # 3. حذف AnalysisRequest مرتبط (اگر فیلد وجود داشته باشد)
+                try:
+                    from .models import AnalysisRequest
+                    # استفاده از raw SQL برای اطمینان از وجود فیلد
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        # بررسی وجود جدول و ستون
+                        cursor.execute("""
+                            SELECT column_name 
+                            FROM information_schema.columns 
+                            WHERE table_name='store_analysis_analysisrequest' 
+                            AND column_name='store_analysis_id'
+                        """)
+                        if cursor.fetchone():
+                            AnalysisRequest.objects.filter(store_analysis=analysis).delete()
+                            logger.info(f"✅ AnalysisRequests deleted for analysis {pk}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting analysis requests: {e}")
+                
+                # 4. حذف StoreAnalysisResult مرتبط
+                try:
+                    from .models import StoreAnalysisResult
+                    StoreAnalysisResult.objects.filter(store_analysis=analysis).delete()
+                    logger.info(f"✅ StoreAnalysisResults deleted for analysis {pk}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting analysis results: {e}")
+                
+                # 5. حذف ReviewReminder مرتبط
+                try:
+                    from .models import ReviewReminder
+                    ReviewReminder.objects.filter(analysis=analysis).delete()
+                    logger.info(f"✅ ReviewReminders deleted for analysis {pk}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting review reminders: {e}")
+                
+                # 6. SupportTicket فیلد store_analysis ندارد - skip
+                # (SupportTicket فقط user دارد، نه store_analysis)
+                
+                # 7. به‌روزرسانی پرداخت‌های مرتبط (store_analysis را null کن)
+                try:
+                    from .models import Payment
+                    Payment.objects.filter(store_analysis=analysis).update(store_analysis=None)
+                    logger.info(f"✅ Payments updated for analysis {pk}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error updating payments: {e}")
+                
+                # 8. حذف Order مرتبط (اگر OneToOne باشد)
+                try:
+                    if hasattr(analysis, 'order') and analysis.order:
+                        analysis.order.delete()
+                        logger.info(f"✅ Order deleted for analysis {pk}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting order: {e}")
+                
+                # 9. حذف تحلیل (باید آخر از همه باشد)
+                analysis.delete()
+                logger.info(f"✅ StoreAnalysis {pk} deleted successfully")
                 
                 messages.success(request, '✅ تحلیل با موفقیت حذف شد.')
                 logger.info(f"✅ Analysis {pk} deleted by user {request.user.username}")
