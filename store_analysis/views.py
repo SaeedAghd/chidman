@@ -9666,8 +9666,21 @@ def buy_complete(request):
         try:
             service_package = ServicePackage.objects.get(package_type='professional')
         except ServicePackage.DoesNotExist:
-            messages.error(request, 'خطا: پکیج حرفه‌ای یافت نشد. لطفاً با پشتیبانی تماس بگیرید.')
-            return redirect('store_analysis:products')
+            logger.error(f"❌ ServicePackage 'professional' not found in database")
+            # ایجاد ServicePackage اگر وجود ندارد
+            try:
+                service_package = ServicePackage.objects.create(
+                    package_type='professional',
+                    name='تحلیل کامل فروشگاه',
+                    description='تحلیل جامع و حرفه‌ای فروشگاه با GPT-4.1',
+                    price=Decimal('1500000'),
+                    is_active=True
+                )
+                logger.info(f"✅ ServicePackage 'professional' created")
+            except Exception as create_error:
+                logger.error(f"❌ Failed to create ServicePackage 'professional': {create_error}")
+                messages.error(request, 'خطا: پکیج حرفه‌ای یافت نشد. لطفاً با پشتیبانی تماس بگیرید.')
+                return redirect('store_analysis:products')
 
         try:
             original_amount = Decimal('1500000')
@@ -9747,8 +9760,9 @@ def buy_complete(request):
             return redirect('store_analysis:payping_payment', order_id=order.order_number)
 
         except Exception as exc:
-            logger.error('❌ خطا در ایجاد سفارش پولی', exc_info=True)
-            messages.error(request, f'خطا در ایجاد سفارش: {exc}')
+            logger.error(f'❌ خطا در ایجاد سفارش پولی (buy_complete): {exc}', exc_info=True)
+            logger.error(f'❌ Exception type: {type(exc).__name__}, Message: {str(exc)}')
+            messages.error(request, f'خطا در ایجاد سفارش: {str(exc)[:100]}... لطفاً دوباره تلاش کنید.')
             return redirect('store_analysis:products')
     
     context = {
@@ -9780,7 +9794,24 @@ def buy_advanced(request):
         
         # دریافت ServicePackage
         from .models import ServicePackage
-        service_package = ServicePackage.objects.get(package_type='enterprise')
+        try:
+            service_package = ServicePackage.objects.get(package_type='enterprise')
+        except ServicePackage.DoesNotExist:
+            logger.error(f"❌ ServicePackage 'enterprise' not found in database")
+            # ایجاد ServicePackage اگر وجود ندارد
+            try:
+                service_package = ServicePackage.objects.create(
+                    package_type='enterprise',
+                    name='تحلیل پیشرفته فروشگاه',
+                    description='تحلیل پیشرفته و جامع فروشگاه با GPT-5-mini',
+                    price=Decimal('3000000'),
+                    is_active=True
+                )
+                logger.info(f"✅ ServicePackage 'enterprise' created")
+            except Exception as create_error:
+                logger.error(f"❌ Failed to create ServicePackage 'enterprise': {create_error}")
+                messages.error(request, 'خطا: پکیج پیشرفته یافت نشد. لطفاً با پشتیبانی تماس بگیرید.')
+                return redirect('store_analysis:products')
         
         # محاسبات با 50% تخفیف
         original_amount = 3000000
