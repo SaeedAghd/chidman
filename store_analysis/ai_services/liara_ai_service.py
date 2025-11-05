@@ -18,8 +18,12 @@ class LiaraAIService:
     
     def __init__(self):
         # URL صحیح API لیارا بر اساس مستندات
-        self.base_url = "https://ai.liara.ir/api/68cb388afcfe30ace3a2a314/v1"
+        # استفاده از LIARA_AI_BASE_URL از settings یا URL پیش‌فرض
+        self.base_url = getattr(settings, 'LIARA_AI_BASE_URL', 'https://api.liara.ir/v1')
         self.api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
+        
+        # لاگ برای ردیابی تنظیمات
+        logger.info(f"🔧 LiaraAIService initialized: base_url={self.base_url}, api_key_exists={'✅' if self.api_key else '❌'}")
         
         if not self.api_key:
             logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - تحلیل AI غیرفعال خواهد بود")
@@ -72,12 +76,18 @@ class LiaraAIService:
                 "presence_penalty": 0.1
             }
             
+            # لاگ برای ردیابی
+            api_url = f"{self.base_url}/chat/completions"
+            logger.info(f"🚀 ارسال درخواست به Liara AI: URL={api_url}, Model={model}, API Key موجود={'✅' if self.api_key else '❌'}")
+            
             response = requests.post(
-                f"{self.base_url}/chat/completions",
+                api_url,
                 headers=self.headers,
                 json=payload,
                 timeout=45  # کاهش timeout برای سرعت بیشتر
             )
+            
+            logger.info(f"📡 پاسخ Liara AI: Status={response.status_code}, URL={api_url}")
             
             if response.status_code == 200:
                 result = response.json()
