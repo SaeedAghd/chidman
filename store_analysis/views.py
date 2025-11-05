@@ -3621,17 +3621,27 @@ def user_dashboard(request):
             # اگر uploaded_files یک dict خالی است یا هیچ فایلی ندارد، فرم تکمیل نشده
             if isinstance(uploaded_files, dict):
                 # بررسی اینکه آیا حداقل یک فایل واقعی وجود دارد
-                has_actual_files = any(
-                    isinstance(v, dict) and (v.get('path') or v.get('name'))
-                    for v in uploaded_files.values()
-                    if v and not isinstance(v, str)  # ignore string values
-                )
+                valid_files = []
+                for key, value in uploaded_files.items():
+                    if value and not isinstance(value, str):  # ignore string values
+                        if isinstance(value, dict):
+                            # بررسی اینکه آیا فایل واقعی است (نه error)
+                            if 'error' not in value and (value.get('path') or value.get('name')):
+                                valid_files.append(key)
+                                logger.debug(f"Analysis {analysis.id}: Valid file found - {key}: {value.get('path') or value.get('name')}")
+                            else:
+                                logger.debug(f"Analysis {analysis.id}: Invalid file entry - {key}: {value}")
+                        else:
+                            logger.debug(f"Analysis {analysis.id}: Non-dict value in uploaded_files - {key}: {type(value)}")
+                
+                has_actual_files = len(valid_files) > 0
                 is_form_complete = has_actual_files
+                
                 # لاگ برای دیباگ
                 if not is_form_complete:
-                    logger.warning(f"Analysis {analysis.id}: uploaded_files dict exists but no actual files found. Keys: {list(uploaded_files.keys())}, Values preview: {str(list(uploaded_files.values())[:2])[:100] if uploaded_files else 'empty'}")
+                    logger.warning(f"Analysis {analysis.id}: uploaded_files dict exists but no actual files found. Keys: {list(uploaded_files.keys())}, Values: {str(list(uploaded_files.values())[:3])[:200] if uploaded_files else 'empty'}")
                 else:
-                    logger.info(f"✅ Analysis {analysis.id}: Form is complete with {len([v for v in uploaded_files.values() if isinstance(v, dict) and (v.get('path') or v.get('name'))])} files")
+                    logger.info(f"✅ Analysis {analysis.id}: Form is complete with {len(valid_files)} files: {valid_files}")
             else:
                 is_form_complete = bool(uploaded_files)
                 logger.debug(f"Analysis {analysis.id}: uploaded_files is not a dict: {type(uploaded_files)}")
@@ -9402,9 +9412,20 @@ def forms_submit(request):
                         logger.debug(f"Merged with existing files: {len(uploaded_files)} total files")
                 current_data['uploaded_files'] = uploaded_files
                 
+                # لاگ کامل برای دیباگ
+                logger.info(f"📦 Analysis {store_analysis.id}: Final uploaded_files structure: {list(uploaded_files.keys())}")
+                for key, value in uploaded_files.items():
+                    if isinstance(value, dict):
+                        logger.info(f"  - {key}: path={value.get('path')}, name={value.get('name')}, size={value.get('size')}, error={value.get('error', 'None')}")
+                    else:
+                        logger.info(f"  - {key}: {type(value)} = {value}")
+                
                 # به‌روزرسانی فیلدهای تحلیل
                 store_analysis.analysis_data = current_data
                 store_analysis.store_name = form_data.get('store_name', store_analysis.store_name)
+                
+                # لاگ برای بررسی اینکه analysis_data به درستی set شده
+                logger.info(f"💾 Analysis {store_analysis.id}: analysis_data saved. Type: {type(store_analysis.analysis_data)}, Has uploaded_files: {'uploaded_files' in (current_data if isinstance(current_data, dict) else {})}")
                 
                 # اگر فایل آپلود شده، status را به processing تغییر بده
                 if has_actual_files:
@@ -9456,15 +9477,42 @@ def forms_submit(request):
                 else:
                     logger.warning(f"⚠️ No actual files uploaded, status remains {store_analysis.status}")
                 
+                # بررسی نهایی قبل از save
+                logger.info(f"🔍 Analysis {store_analysis.id}: Before save - status={store_analysis.status}, has_actual_files={has_actual_files}")
+                logger.info(f"🔍 Analysis {store_analysis.id}: uploaded_files count={len(uploaded_files)}, keys={list(uploaded_files.keys())}")
+                
                 store_analysis.save()
+                
+                # بررسی بعد از save - reload از دیتابیس
+                store_analysis.refresh_from_db()
                 logger.info(f"✅ تحلیل {store_analysis.id} به‌روزرسانی شد با status={store_analysis.status} و {len(uploaded_files)} فایل")
+                
+                # بررسی نهایی analysis_data
+                final_data = store_analysis.analysis_data
+                if isinstance(final_data, str):
+                    import json
+                    try:
+                        final_data = json.loads(final_data)
+                        logger.info(f"🔍 Analysis {store_analysis.id}: analysis_data was JSON string, parsed successfully")
+                    except Exception as e:
+                        logger.error(f"❌ Analysis {store_analysis.id}: Failed to parse analysis_data after save: {e}")
+                
+                if isinstance(final_data, dict) and 'uploaded_files' in final_data:
+                    final_files = final_data['uploaded_files']
+                    logger.info(f"🔍 Analysis {store_analysis.id}: Final check - uploaded_files in DB: {len(final_files) if isinstance(final_files, dict) else 'N/A'} files")
+                    if isinstance(final_files, dict):
+                        valid_count = sum(1 for v in final_files.values() if isinstance(v, dict) and v.get('path') and 'error' not in v)
+                        logger.info(f"🔍 Analysis {store_analysis.id}: Valid files in DB: {valid_count}")
                 
                 # هدایت به داشبورد
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
                     'redirect_url': f'/store/dashboard/',
-                    'payment_required': False
+                    'payment_required': False,
+                    'analysis_id': store_analysis.id,
+                    'files_count': len(uploaded_files),
+                    'status': store_analysis.status
                 })
             
             # اگر تحلیل موجود نیست، تحلیل جدید ایجاد کن (فقط برای موارد خاص)
