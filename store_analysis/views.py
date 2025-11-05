@@ -12231,30 +12231,161 @@ def generate_professional_persian_pdf_report_fixed(analysis):
 
 
 def mock_payment_success(request, authority):
-    """Mock payment success for testing"""
+    """Mock payment success for testing - با شروع تحلیل"""
     try:
         logger.info(f"🎭 MOCK: Payment success callback for authority: {authority}")
         
         # Find payment by authority
-        from .models import Payment
+        from .models import Payment, Order
         try:
             payment = Payment.objects.get(authority=authority)
             logger.info(f"🎭 MOCK: Found payment {payment.id} for authority {authority}")
             
             # Update payment status
             payment.status = 'completed'
-            payment.save()
+            payment.transaction_id = authority
+            payment.completed_at = timezone.now()
+            payment.save(update_fields=['status', 'transaction_id', 'completed_at'])
             
             logger.info(f"🎭 MOCK: Payment {payment.id} marked as completed")
             
+            # Update order status
+            order = None
+            if hasattr(payment, 'order') and payment.order:
+                order = payment.order
+            elif payment.store_analysis and hasattr(payment.store_analysis, 'order') and payment.store_analysis.order:
+                order = payment.store_analysis.order
+            
+            if order:
+                order.status = 'paid'
+                order.payment_method = 'payping'
+                order.payment = payment
+                order.transaction_id = authority
+                order.save(update_fields=['status', 'payment_method', 'payment', 'transaction_id'])
+                logger.info(f"🎭 MOCK: Order {order.order_number} marked as paid")
+            
             # Add success message
-            messages.success(request, '✅ پرداخت آزمایشی با موفقیت انجام شد!')
+            messages.success(request, '✅ پرداخت آزمایشی با موفقیت انجام شد! تحلیل شروع شد.')
 
             if payment.store_analysis_id:
                 from .models import StoreAnalysis
-                StoreAnalysis.objects.filter(pk=payment.store_analysis_id).update(status='paid')
+                store_analysis = StoreAnalysis.objects.get(pk=payment.store_analysis_id)
+                
+                # Update analysis status
+                store_analysis.status = 'processing'
+                store_analysis.save(update_fields=['status'])
+                logger.info(f"🎭 MOCK: Analysis {store_analysis.id} status changed to processing")
+                
                 request.session['analysis_id'] = payment.store_analysis_id
-            return redirect('store_analysis:forms')
+                
+                # شروع تحلیل در background (مشابه payping_callback)
+                try:
+                    import threading
+                    
+                    def start_mock_analysis():
+                        """شروع تحلیل با Liara AI در background برای mock payment"""
+                        try:
+                            logger.info(f"🤖 شروع تحلیل با Liara AI برای تحلیل {store_analysis.id} (MOCK)")
+                            
+                            # Reload analysis
+                            from .models import StoreAnalysis
+                            analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                            analysis_data = analysis.get_analysis_data() or {}
+                            
+                            if not analysis_data or not analysis_data.get('uploaded_files'):
+                                error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست."
+                                logger.error(f"❌ {error_msg}")
+                                analysis.status = 'failed'
+                                analysis.error_message = error_msg
+                                analysis.save(update_fields=['status', 'error_message'])
+                                return
+                            
+                            # آماده‌سازی داده‌های فروشگاه
+                            store_data = {
+                                'store_name': analysis.store_name or 'فروشگاه',
+                                'store_type': analysis_data.get('store_type', 'عمومی'),
+                                'store_size': str(analysis_data.get('store_size', 0)),
+                                'store_address': analysis_data.get('store_address', ''),
+                                'description': analysis_data.get('description', ''),
+                                **analysis_data
+                            }
+                            
+                            # استخراج فایل‌ها
+                            images = []
+                            videos = []
+                            uploaded_files_dict = analysis_data.get('uploaded_files', {})
+                            
+                            image_fields = ['store_plan', 'structure_photos', 'design_photos', 
+                                          'product_photos', 'store_photos', 'store_layout', 
+                                          'shelf_photos', 'window_display_photos', 
+                                          'entrance_photos', 'checkout_photos']
+                            
+                            video_fields = ['store_video', 'surveillance_footage', 'customer_flow_video']
+                            
+                            for field in image_fields:
+                                if field in uploaded_files_dict:
+                                    file_info = uploaded_files_dict[field]
+                                    if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
+                                        images.append(file_info['path'])
+                            
+                            for field in video_fields:
+                                if field in uploaded_files_dict:
+                                    file_info = uploaded_files_dict[field]
+                                    if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
+                                        videos.append(file_info['path'])
+                            
+                            # استفاده از LiaraAIService
+                            from .ai_services.liara_ai_service import LiaraAIService
+                            liara_service = LiaraAIService()
+                            
+                            if not liara_service.api_key:
+                                error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
+                                logger.error(f"❌ {error_msg}")
+                                analysis.status = 'failed'
+                                analysis.error_message = error_msg
+                                analysis.save(update_fields=['status', 'error_message'])
+                                return
+                            
+                            logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر و {len(videos)} ویدیو... (MOCK)")
+                            
+                            # تحلیل جامع با Liara AI
+                            comprehensive_analysis = liara_service.analyze_store_comprehensive(
+                                store_data=store_data,
+                                images=images if images else None,
+                                videos=videos if videos else None
+                            )
+                            
+                            if comprehensive_analysis and comprehensive_analysis.get('success'):
+                                analysis.status = 'completed'
+                                analysis.results = comprehensive_analysis.get('analysis', {})
+                                analysis.completed_at = timezone.now()
+                                analysis.save(update_fields=['status', 'results', 'completed_at'])
+                                logger.info(f"✅ تحلیل {analysis.id} با موفقیت تکمیل شد (MOCK)")
+                            else:
+                                error_msg = comprehensive_analysis.get('error', 'خطای نامشخص در تحلیل') if isinstance(comprehensive_analysis, dict) else 'خطای نامشخص در تحلیل'
+                                logger.error(f"❌ خطا در تحلیل (MOCK): {error_msg}")
+                                analysis.status = 'failed'
+                                analysis.error_message = error_msg
+                                analysis.save(update_fields=['status', 'error_message'])
+                        
+                        except Exception as e:
+                            logger.error(f"❌ خطا در شروع تحلیل (MOCK): {e}", exc_info=True)
+                            try:
+                                from .models import StoreAnalysis
+                                analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                analysis.status = 'failed'
+                                analysis.error_message = f"خطا در پردازش: {str(e)}"
+                                analysis.save(update_fields=['status', 'error_message'])
+                            except:
+                                pass
+                    
+                    analysis_thread = threading.Thread(target=start_mock_analysis, daemon=True)
+                    analysis_thread.start()
+                    logger.info(f"🚀 Thread تحلیل برای تحلیل {store_analysis.id} شروع شد (MOCK)")
+                except Exception as e:
+                    logger.error(f"❌ خطا در شروع thread تحلیل (MOCK): {e}", exc_info=True)
+                
+            return redirect('store_analysis:dashboard')
             
         except Payment.DoesNotExist:
             logger.error(f"🎭 MOCK: Payment not found for authority: {authority}")
@@ -12262,6 +12393,6 @@ def mock_payment_success(request, authority):
             return redirect('store_analysis:forms')
             
     except Exception as e:
-        logger.error(f"🎭 MOCK: Error in payment success callback: {str(e)}")
+        logger.error(f"🎭 MOCK: Error in payment success callback: {str(e)}", exc_info=True)
         messages.error(request, '❌ خطا در پردازش پرداخت')
         return redirect('store_analysis:forms')
