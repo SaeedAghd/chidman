@@ -414,8 +414,11 @@ ZARINPAL_SANDBOX = os.getenv('ZARINPAL_SANDBOX', 'True').lower() == 'true'
 # ⚠️ مهم: در production، API key باید از environment variable خوانده شود
 # هرگز API key را مستقیماً در کد قرار ندهید
 
-# Debug: بررسی environment variable
+# Debug: بررسی environment variable - چند روش مختلف برای خواندن
 _liara_ai_key_raw = os.getenv('LIARA_AI_API_KEY', '')
+# اگر از os.getenv پیدا نشد، مستقیماً از os.environ بررسی کن
+if not _liara_ai_key_raw:
+    _liara_ai_key_raw = os.environ.get('LIARA_AI_API_KEY', '')
 _liara_ai_key_exists = 'LIARA_AI_API_KEY' in os.environ
 logger.debug(f"🔍 LIARA_AI_API_KEY check: exists_in_env={_liara_ai_key_exists}, value_length={len(_liara_ai_key_raw) if _liara_ai_key_raw else 0}")
 
@@ -429,6 +432,12 @@ if not LIARA_AI_API_KEY:
     logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - AI features غیرفعال خواهند بود")
     logger.warning(f"   Environment check: LIARA_AI_API_KEY in os.environ = {_liara_ai_key_exists}")
     logger.warning(f"   All env vars starting with LIARA_: {[k for k in os.environ.keys() if k.startswith('LIARA_')]}")
+    # بررسی همه متغیرهای محیطی برای debug
+    all_env_vars = list(os.environ.keys())
+    logger.warning(f"   Total env vars: {len(all_env_vars)}")
+    liara_vars = [k for k in all_env_vars if 'LIARA' in k.upper()]
+    if liara_vars:
+        logger.warning(f"   Found LIARA-related vars: {liara_vars}")
 else:
     # نمایش فقط 10 کاراکتر اول و آخر برای امنیت
     key_preview = f"{LIARA_AI_API_KEY[:10]}...{LIARA_AI_API_KEY[-10:]}" if len(LIARA_AI_API_KEY) > 20 else "***"
