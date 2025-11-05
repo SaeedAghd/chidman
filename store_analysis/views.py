@@ -9713,6 +9713,124 @@ def forms_submit(request):
                         if store_analysis.status in ['pending', 'paid']:
                             store_analysis.status = 'processing'
                             logger.info(f"✅ Updated existing analysis {store_analysis.id} to processing with {len(uploaded_files)} files")
+                            
+                            # بررسی اینکه آیا تحلیل پرداخت شده است
+                            is_paid = False
+                            order_status = None
+                            if hasattr(store_analysis, 'order') and store_analysis.order:
+                                order_status = store_analysis.order.status
+                                if order_status in ['paid', 'processing', 'completed']:
+                                    is_paid = True
+                            elif store_analysis.status == 'paid':
+                                is_paid = True
+                            
+                            # اگر تحلیل پرداخت شده یا status=paid است، تحلیل را شروع کن
+                            if is_paid or store_analysis.status == 'paid':
+                                try:
+                                    import threading
+                                    
+                                    def start_existing_analysis():
+                                        """شروع تحلیل برای تحلیل موجود که به‌روزرسانی شده"""
+                                        try:
+                                            logger.info(f"🤖 شروع تحلیل برای تحلیل موجود {store_analysis.id} با Liara AI")
+                                            
+                                            # Reload analysis
+                                            from .models import StoreAnalysis
+                                            analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                            analysis_data = analysis.get_analysis_data() or {}
+                                            
+                                            if not analysis_data or not analysis_data.get('uploaded_files'):
+                                                error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست."
+                                                logger.error(f"❌ {error_msg}")
+                                                analysis.status = 'failed'
+                                                analysis.error_message = error_msg
+                                                analysis.save(update_fields=['status', 'error_message'])
+                                                return
+                                            
+                                            # آماده‌سازی داده‌های فروشگاه
+                                            store_data = {
+                                                'store_name': analysis.store_name or 'فروشگاه',
+                                                'store_type': analysis_data.get('store_type', 'عمومی'),
+                                                'store_size': str(analysis_data.get('store_size', 0)),
+                                                'store_address': analysis_data.get('store_address', ''),
+                                                'description': analysis_data.get('description', ''),
+                                                **analysis_data
+                                            }
+                                            
+                                            # استخراج فایل‌ها
+                                            images = []
+                                            videos = []
+                                            uploaded_files_dict = analysis_data.get('uploaded_files', {})
+                                            
+                                            image_fields = ['store_plan', 'structure_photos', 'design_photos', 
+                                                          'product_photos', 'store_photos', 'store_layout', 
+                                                          'shelf_photos', 'window_display_photos', 
+                                                          'entrance_photos', 'checkout_photos']
+                                            
+                                            video_fields = ['store_video', 'surveillance_footage', 'customer_flow_video']
+                                            
+                                            for field in image_fields:
+                                                if field in uploaded_files_dict:
+                                                    file_info = uploaded_files_dict[field]
+                                                    if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
+                                                        images.append(file_info['path'])
+                                            
+                                            for field in video_fields:
+                                                if field in uploaded_files_dict:
+                                                    file_info = uploaded_files_dict[field]
+                                                    if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
+                                                        videos.append(file_info['path'])
+                                            
+                                            # استفاده از LiaraAIService
+                                            from .ai_services.liara_ai_service import LiaraAIService
+                                            liara_service = LiaraAIService()
+                                            
+                                            if not liara_service.api_key:
+                                                error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
+                                                logger.error(f"❌ {error_msg}")
+                                                analysis.status = 'failed'
+                                                analysis.error_message = error_msg
+                                                analysis.save(update_fields=['status', 'error_message'])
+                                                return
+                                            
+                                            logger.info(f"📊 در حال انجام تحلیل جامع برای تحلیل موجود با {len(images)} تصویر و {len(videos)} ویدیو...")
+                                            
+                                            # تحلیل جامع با Liara AI
+                                            comprehensive_analysis = liara_service.analyze_store_comprehensive(
+                                                store_data=store_data,
+                                                images=images if images else None,
+                                                videos=videos if videos else None
+                                            )
+                                            
+                                            if comprehensive_analysis and comprehensive_analysis.get('success'):
+                                                analysis.status = 'completed'
+                                                analysis.results = comprehensive_analysis.get('analysis', {})
+                                                analysis.completed_at = timezone.now()
+                                                analysis.save(update_fields=['status', 'results', 'completed_at'])
+                                                logger.info(f"✅ تحلیل موجود {analysis.id} با موفقیت تکمیل شد")
+                                            else:
+                                                error_msg = comprehensive_analysis.get('error', 'خطای نامشخص در تحلیل') if isinstance(comprehensive_analysis, dict) else 'خطای نامشخص در تحلیل'
+                                                logger.error(f"❌ خطا در تحلیل موجود: {error_msg}")
+                                                analysis.status = 'failed'
+                                                analysis.error_message = error_msg
+                                                analysis.save(update_fields=['status', 'error_message'])
+                                        
+                                        except Exception as e:
+                                            logger.error(f"❌ خطا در شروع تحلیل موجود: {e}", exc_info=True)
+                                            try:
+                                                from .models import StoreAnalysis
+                                                analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                                analysis.status = 'failed'
+                                                analysis.error_message = f"خطا در پردازش: {str(e)}"
+                                                analysis.save(update_fields=['status', 'error_message'])
+                                            except:
+                                                pass
+                                    
+                                    analysis_thread = threading.Thread(target=start_existing_analysis, daemon=True)
+                                    analysis_thread.start()
+                                    logger.info(f"🚀 Thread تحلیل برای تحلیل موجود {store_analysis.id} شروع شد")
+                                except Exception as e:
+                                    logger.error(f"❌ خطا در شروع thread تحلیل موجود: {e}", exc_info=True)
                     
                     try:
                         store_analysis.save(update_fields=['analysis_data', 'store_name', 'status', 'updated_at'])
