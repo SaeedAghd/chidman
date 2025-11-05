@@ -9661,7 +9661,91 @@ def forms_submit(request):
                     'status': store_analysis.status
                 })
             
-            # اگر تحلیل موجود نیست، تحلیل جدید ایجاد کن (فقط برای موارد خاص)
+            # اگر تحلیل موجود نیست، ابتدا بررسی کن که آیا تحلیل pending یا incomplete وجود دارد
+            # که بتواند update شود (برای جلوگیری از ایجاد تحلیل‌های تکراری)
+            # دریافت داده‌های فرم (اگر قبلاً تعریف نشده)
+            if 'form_data' not in locals():
+                form_data = request.POST.dict()
+            existing_analysis = None
+            try:
+                # جستجوی تحلیل‌های pending یا incomplete که متعلق به کاربر است
+                existing_analysis = StoreAnalysis.objects.filter(
+                    user=request.user,
+                    status__in=['pending', 'paid', 'processing']
+                ).order_by('-created_at').first()
+                
+                if existing_analysis:
+                    logger.info(f"🔍 Found existing analysis {existing_analysis.id} with status {existing_analysis.status}, updating instead of creating new one")
+                    store_analysis = existing_analysis
+                    
+                    # به‌روزرسانی analysis_data
+                    current_data = store_analysis.analysis_data or {}
+                    if isinstance(current_data, str):
+                        import json
+                        try:
+                            current_data = json.loads(current_data)
+                        except:
+                            current_data = {}
+                    
+                    # اضافه کردن اطلاعات فایل‌ها به form_data
+                    form_data['uploaded_files'] = uploaded_files
+                    current_data.update(form_data)
+                    
+                    # ادغام فایل‌های آپلود شده
+                    if 'uploaded_files' in current_data:
+                        existing_files = current_data['uploaded_files']
+                        if isinstance(existing_files, dict):
+                            existing_files.update(uploaded_files)
+                            uploaded_files = existing_files
+                    current_data['uploaded_files'] = uploaded_files
+                    
+                    store_analysis.analysis_data = current_data
+                    store_analysis.store_name = form_data.get('store_name', store_analysis.store_name)
+                    
+                    # بررسی اینکه آیا فایل واقعی آپلود شده
+                    has_actual_files = any(
+                        isinstance(v, dict) and v.get('path') and 'error' not in v 
+                        for v in uploaded_files.values()
+                    )
+                    
+                    if has_actual_files:
+                        # اگر فایل آپلود شده و status در ['pending', 'paid'] است، به processing تغییر بده
+                        if store_analysis.status in ['pending', 'paid']:
+                            store_analysis.status = 'processing'
+                            logger.info(f"✅ Updated existing analysis {store_analysis.id} to processing with {len(uploaded_files)} files")
+                    
+                    try:
+                        store_analysis.save(update_fields=['analysis_data', 'store_name', 'status', 'updated_at'])
+                        logger.info(f"✅ Existing analysis {store_analysis.id} updated successfully")
+                    except Exception as save_error:
+                        logger.warning(f"⚠️ Error saving with update_fields: {save_error}, using raw SQL")
+                        from django.db import connection
+                        import json
+                        with connection.cursor() as cursor:
+                            cursor.execute("""
+                                UPDATE store_analysis_storeanalysis 
+                                SET analysis_data = %s, store_name = %s, status = %s, updated_at = NOW()
+                                WHERE id = %s
+                            """, [
+                                json.dumps(current_data) if isinstance(current_data, dict) else current_data,
+                                store_analysis.store_name,
+                                store_analysis.status,
+                                store_analysis.id
+                            ])
+                    
+                    # هدایت به داشبورد
+                    return JsonResponse({
+                        'success': True,
+                        'message': '✅ فرم با موفقیت به‌روزرسانی شد!',
+                        'redirect_url': f'/store/dashboard/',
+                        'payment_required': False,
+                        'analysis_id': store_analysis.id
+                    })
+            except Exception as e:
+                logger.warning(f"⚠️ Error checking for existing analysis: {e}")
+            
+            # اگر تحلیل موجود نیست و هیچ تحلیل pending هم پیدا نشد، تحلیل جدید ایجاد کن
+            logger.info(f"📝 Creating new analysis (no existing analysis found)")
             # اضافه کردن اطلاعات فایل‌ها به form_data
             form_data['uploaded_files'] = uploaded_files
             
