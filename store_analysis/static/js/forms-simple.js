@@ -588,18 +588,80 @@ class SimpleFormManager {
         }
 
         // Handle multiple files
+        const validFiles = [];
         Array.from(files).forEach((file, index) => {
-            console.log('Processing file:', file.name, file.type);
-            if (file.type.startsWith('image/')) {
+            console.log('Processing file:', file.name, file.type, 'Size:', file.size);
+            
+            // Validation for video files
+            if (file.type.startsWith('video/') || this.isVideoFile(file)) {
+                if (this.validateVideoFile(file)) {
+                    this.createVideoPreview(file, previewContainer, index);
+                    validFiles.push(file);
+                } else {
+                    this.showMessage(`❌ فایل ویدیو "${file.name}" با فرمت یا MIME type پشتیبانی نشده است. فرمت‌های مجاز: MP4, MOV, AVI (حداکثر 50MB)`, 'error');
+                }
+            } else if (file.type.startsWith('image/')) {
                 this.createImagePreview(file, previewContainer, index);
-            } else if (file.type.startsWith('video/')) {
-                this.createVideoPreview(file, previewContainer, index);
+                validFiles.push(file);
             } else {
                 this.createFilePreview(file, previewContainer, index);
+                validFiles.push(file);
             }
         });
 
-        this.showMessage(`${files.length} فایل با موفقیت انتخاب شد`, 'success');
+        if (validFiles.length > 0) {
+            this.showMessage(`${validFiles.length} فایل با موفقیت انتخاب شد`, 'success');
+        }
+    }
+
+    isVideoFile(file) {
+        // Check by extension if MIME type is not available
+        const videoExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.mkv', '.flv', '.webm'];
+        const fileName = file.name.toLowerCase();
+        return videoExtensions.some(ext => fileName.endsWith(ext));
+    }
+
+    validateVideoFile(file) {
+        // Allowed MIME types
+        const allowedMimeTypes = [
+            'video/mp4',
+            'video/x-m4v',
+            'video/quicktime', // MOV
+            'video/x-msvideo', // AVI
+            'video/x-ms-wmv', // WMV
+            'video/webm',
+            'video/x-matroska' // MKV
+        ];
+
+        // Allowed extensions
+        const allowedExtensions = ['.mp4', '.m4v', '.mov', '.avi', '.wmv', '.webm', '.mkv'];
+        
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+        
+        // Check file size (50MB max)
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        if (file.size > maxSize) {
+            this.showMessage(`❌ حجم فایل ویدیو "${file.name}" بیشتر از 50MB است.`, 'error');
+            return false;
+        }
+
+        // Check MIME type
+        if (file.type && allowedMimeTypes.includes(file.type.toLowerCase())) {
+            return true;
+        }
+
+        // Check extension if MIME type is not available or not in list
+        if (allowedExtensions.includes(fileExtension)) {
+            return true;
+        }
+
+        // If MIME type is video/* but not in allowed list, still accept if extension is valid
+        if (file.type && file.type.startsWith('video/') && allowedExtensions.includes(fileExtension)) {
+            return true;
+        }
+
+        return false;
     }
 
     createImagePreview(file, container, index) {
@@ -690,7 +752,8 @@ class SimpleFormManager {
         `;
 
         const video = document.createElement('video');
-        video.src = URL.createObjectURL(file);
+        const objectURL = URL.createObjectURL(file);
+        video.src = objectURL;
         video.controls = true;
         video.preload = 'metadata';
         video.style.cssText = `
@@ -700,19 +763,49 @@ class SimpleFormManager {
             display: block;
         `;
         
+        // Handle video errors
+        video.onerror = (e) => {
+            console.error('Video load error:', e);
+            // Show error message but still allow file upload
+            video.style.display = 'none';
+            const errorMsg = document.createElement('div');
+            errorMsg.style.cssText = `
+                width: 120px;
+                height: 120px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f3f4f6;
+                color: #6b7280;
+                font-size: 12px;
+                text-align: center;
+                padding: 8px;
+            `;
+            errorMsg.textContent = 'ویدیو';
+            previewItem.appendChild(errorMsg);
+        };
+        
         // اضافه کردن poster برای ویدیو
         video.onloadedmetadata = function() {
-            // ایجاد thumbnail از ویدیو
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 120;
-            canvas.height = 120;
-            
-            video.currentTime = 1; // گرفتن فریم در ثانیه 1
-            video.onseeked = function() {
-                ctx.drawImage(video, 0, 0, 120, 120);
-                video.poster = canvas.toDataURL();
-            };
+            try {
+                // ایجاد thumbnail از ویدیو
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 120;
+                canvas.height = 120;
+                
+                video.currentTime = Math.min(1, video.duration / 2); // گرفتن فریم در وسط ویدیو
+                video.onseeked = function() {
+                    try {
+                        ctx.drawImage(video, 0, 0, 120, 120);
+                        video.poster = canvas.toDataURL();
+                    } catch (e) {
+                        console.error('Error creating video thumbnail:', e);
+                    }
+                };
+            } catch (e) {
+                console.error('Error in onloadedmetadata:', e);
+            }
         };
 
         const overlay = document.createElement('div');
