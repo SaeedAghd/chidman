@@ -1017,10 +1017,25 @@ def delete_incomplete_analyses(request):
                     except Exception as e:
                         logger.warning(f"⚠️ Error deleting order for {analysis.id}: {e}")
                     
-                    # 9. حذف تحلیل
-                    analysis.delete()
-                    actual_count += 1
-                    logger.info(f"✅ Incomplete analysis {analysis.id} deleted")
+                    # 9. حذف تحلیل (استفاده از raw SQL برای جلوگیری از بررسی روابط Django)
+                    try:
+                        from django.db import connection
+                        with connection.cursor() as cursor:
+                            cursor.execute("""
+                                DELETE FROM store_analysis_storeanalysis 
+                                WHERE id = %s
+                            """, [analysis.id])
+                        actual_count += 1
+                        logger.info(f"✅ Incomplete analysis {analysis.id} deleted using raw SQL")
+                    except Exception as e:
+                        # اگر raw SQL خطا داد، سعی می‌کنیم با ORM حذف کنیم
+                        try:
+                            analysis.delete()
+                            actual_count += 1
+                            logger.info(f"✅ Incomplete analysis {analysis.id} deleted using ORM")
+                        except Exception as orm_error:
+                            logger.error(f"❌ Error deleting analysis {analysis.id} with ORM: {orm_error}")
+                            raise
                     
             except Exception as e:
                 logger.error(f"❌ Error deleting incomplete analysis {analysis.id}: {e}", exc_info=True)
@@ -8507,8 +8522,23 @@ def delete_analysis(request, pk):
                     logger.warning(f"⚠️ Error deleting order: {e}")
                 
                 # 9. حذف تحلیل (باید آخر از همه باشد)
-                analysis.delete()
-                logger.info(f"✅ StoreAnalysis {pk} deleted successfully")
+                # استفاده از _raw_delete برای جلوگیری از بررسی روابط Django
+                try:
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            DELETE FROM store_analysis_storeanalysis 
+                            WHERE id = %s
+                        """, [analysis.id])
+                    logger.info(f"✅ StoreAnalysis {pk} deleted successfully using raw SQL")
+                except Exception as e:
+                    # اگر raw SQL خطا داد، سعی می‌کنیم با ORM حذف کنیم
+                    try:
+                        analysis.delete()
+                        logger.info(f"✅ StoreAnalysis {pk} deleted successfully using ORM")
+                    except Exception as orm_error:
+                        logger.error(f"❌ Error deleting analysis with ORM: {orm_error}")
+                        raise
                 
                 messages.success(request, '✅ تحلیل با موفقیت حذف شد.')
                 logger.info(f"✅ Analysis {pk} deleted by user {request.user.username}")
