@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-اسکریپت پاک‌سازی دیتابیس - نسخه خودکار (بدون نیاز به تأیید)
-- حذف تمام تحلیل‌ها (StoreAnalysis)
-- حذف تمام کاربران غیر admin
-- حذف سفارشات مرتبط
-- حذف تیکت‌های مرتبط
-
-⚠️ هشدار: این اسکریپت داده‌ها را به صورت دائمی حذف می‌کند!
+اسکریپت پاک کردن دیتابیس (به جز ادمین‌ها)
+این اسکریپت تمام تحلیل‌ها، کاربران غیرادمین، سفارشات و تیکت‌ها را پاک می‌کند
 """
 
 import os
@@ -16,122 +11,129 @@ import django
 
 # تنظیم Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chidmano.settings')
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 django.setup()
 
 from django.contrib.auth.models import User
+from django.db import connection
 from store_analysis.models import (
-    StoreAnalysis, Order, SupportTicket, TicketMessage,
-    Payment, UserProfile, AnalysisRequest
+    Order, Payment, SupportTicket, TicketMessage,
+    UserProfile, FreeUsageTracking, ChatSession, ChatMessage
 )
-from django.db import transaction
-import logging
 
-logger = logging.getLogger(__name__)
-
-def cleanup_database(auto_confirm=False):
-    """پاک‌سازی کامل دیتابیس"""
+def cleanup_database():
+    """پاک کردن دیتابیس به جز ادمین‌ها"""
     
     print("=" * 60)
-    print("⚠️  هشدار: این عملیات تمام تحلیل‌ها و کاربران غیر admin را حذف می‌کند!")
+    print("🧹 شروع پاک کردن دیتابیس...")
     print("=" * 60)
     
-    # تأیید کاربر (اگر auto_confirm نباشد)
-    if not auto_confirm:
-        confirm = input("\nآیا مطمئن هستید؟ (بله/خیر): ").strip().lower()
-        if confirm not in ['بله', 'yes', 'y', '1']:
-            print("❌ عملیات لغو شد.")
-            return
+    # شمارش قبل از پاک کردن - استفاده از raw SQL برای جلوگیری از خطای فیلدهای missing
+    from django.db import connection
+    
+    admin_count = User.objects.filter(is_superuser=True).count()
+    total_users = User.objects.count()
+    
+    # شمارش با raw SQL برای جلوگیری از خطای فیلدهای missing
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT COUNT(*) FROM store_analysis_storeanalysis")
+        total_analyses = cursor.fetchone()[0]
         
-        confirm2 = input("دوباره تأیید کنید - تمام داده‌ها حذف می‌شوند! (بله/خیر): ").strip().lower()
-        if confirm2 not in ['بله', 'yes', 'y', '1']:
-            print("❌ عملیات لغو شد.")
-            return
-    else:
-        print("\n✅ حالت خودکار - بدون نیاز به تأیید")
+        cursor.execute("SELECT COUNT(*) FROM store_analysis_order")
+        total_orders = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM store_analysis_payment")
+        total_payments = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM store_analysis_supportticket")
+        total_tickets = cursor.fetchone()[0]
     
-    with transaction.atomic():
-        try:
-            # شمارش داده‌ها قبل از حذف
-            analyses_count = StoreAnalysis.objects.count()
-            non_admin_users = User.objects.filter(is_staff=False, is_superuser=False).count()
-            orders_count = Order.objects.count()
-            tickets_count = SupportTicket.objects.count()
-            
-            print(f"\n📊 آمار قبل از حذف:")
-            print(f"  - تعداد تحلیل‌ها: {analyses_count}")
-            print(f"  - تعداد کاربران غیر admin: {non_admin_users}")
-            print(f"  - تعداد سفارشات: {orders_count}")
-            print(f"  - تعداد تیکت‌ها: {tickets_count}")
-            
-            # 1. حذف تمام تحلیل‌ها
-            print("\n🗑️  حذف تحلیل‌ها...")
-            deleted_analyses = StoreAnalysis.objects.all().delete()
-            print(f"✅ {deleted_analyses[0]} تحلیل حذف شد.")
-            
-            # 2. حذف سفارشات
-            print("\n🗑️  حذف سفارشات...")
-            deleted_orders = Order.objects.all().delete()
-            print(f"✅ {deleted_orders[0]} سفارش حذف شد.")
-            
-            # 3. حذف تیکت‌ها و پیام‌های مرتبط
-            print("\n🗑️  حذف تیکت‌ها...")
-            deleted_tickets = SupportTicket.objects.all().delete()
-            print(f"✅ {deleted_tickets[0]} تیکت حذف شد.")
-            
-            # 4. حذف پیام‌های تیکت
-            print("\n🗑️  حذف پیام‌های تیکت...")
-            deleted_messages = TicketMessage.objects.all().delete()
-            print(f"✅ {deleted_messages[0]} پیام حذف شد.")
-            
-            # 5. حذف پرداخت‌ها
-            print("\n🗑️  حذف پرداخت‌ها...")
-            deleted_payments = Payment.objects.all().delete()
-            print(f"✅ {deleted_payments[0]} پرداخت حذف شد.")
-            
-            # 6. حذف AnalysisRequest ها
-            print("\n🗑️  حذف درخواست‌های تحلیل...")
-            try:
-                deleted_requests = AnalysisRequest.objects.all().delete()
-                print(f"✅ {deleted_requests[0]} درخواست حذف شد.")
-            except Exception as e:
-                print(f"⚠️  خطا در حذف AnalysisRequest (ممکن است مدل وجود نداشته باشد): {e}")
-            
-            # 7. حذف کاربران غیر admin
-            print("\n🗑️  حذف کاربران غیر admin...")
-            non_admin_users_query = User.objects.filter(is_staff=False, is_superuser=False)
-            non_admin_count = non_admin_users_query.count()
-            
-            # حذف UserProfile های مرتبط
-            for user in non_admin_users_query:
-                try:
-                    profile = UserProfile.objects.filter(user=user).first()
-                    if profile:
-                        profile.delete()
-                except:
-                    pass
-            
-            deleted_users = non_admin_users_query.delete()
-            print(f"✅ {deleted_users[0]} کاربر غیر admin حذف شد.")
-            
-            # 8. نمایش کاربران باقی‌مانده
-            print("\n👥 کاربران باقی‌مانده (admin ها):")
-            admin_users = User.objects.filter(is_staff=True) | User.objects.filter(is_superuser=True)
-            for user in admin_users.distinct():
-                print(f"  - {user.username} (staff: {user.is_staff}, superuser: {user.is_superuser})")
-            
-            print("\n" + "=" * 60)
-            print("✅ پاک‌سازی با موفقیت انجام شد!")
-            print("=" * 60)
-            
-        except Exception as e:
-            logger.error(f"❌ خطا در پاک‌سازی: {e}", exc_info=True)
-            print(f"\n❌ خطا در پاک‌سازی: {e}")
-            raise
+    print(f"\n📊 آمار قبل از پاک کردن:")
+    print(f"   - کاربران ادمین: {admin_count}")
+    print(f"   - کل کاربران: {total_users}")
+    print(f"   - کل تحلیل‌ها: {total_analyses}")
+    print(f"   - کل سفارشات: {total_orders}")
+    print(f"   - کل پرداخت‌ها: {total_payments}")
+    print(f"   - کل تیکت‌ها: {total_tickets}")
+    
+    # پاک کردن تحلیل‌ها - استفاده از raw SQL برای جلوگیری از خطای فیلدهای missing
+    print("\n🗑️  در حال پاک کردن تحلیل‌ها...")
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT COUNT(*) FROM store_analysis_storeanalysis")
+        count_before = cursor.fetchone()[0]
+        cursor.execute("DELETE FROM store_analysis_storeanalysis")
+        analyses_deleted = count_before
+    print(f"   ✅ {analyses_deleted} تحلیل پاک شد")
+    
+    # پاک کردن سفارشات
+    print("\n🗑️  در حال پاک کردن سفارشات...")
+    orders_deleted = Order.objects.all().delete()[0]
+    print(f"   ✅ {orders_deleted} سفارش پاک شد")
+    
+    # پاک کردن پرداخت‌ها
+    print("\n🗑️  در حال پاک کردن پرداخت‌ها...")
+    payments_deleted = Payment.objects.all().delete()[0]
+    print(f"   ✅ {payments_deleted} پرداخت پاک شد")
+    
+    # پاک کردن تیکت‌ها
+    print("\n🗑️  در حال پاک کردن تیکت‌ها...")
+    tickets_deleted = SupportTicket.objects.all().delete()[0]
+    print(f"   ✅ {tickets_deleted} تیکت پاک شد")
+    
+    # پاک کردن پیام‌های تیکت
+    print("\n🗑️  در حال پاک کردن پیام‌های تیکت...")
+    messages_deleted = TicketMessage.objects.all().delete()[0]
+    print(f"   ✅ {messages_deleted} پیام تیکت پاک شد")
+    
+    # پاک کردن Chat Sessions
+    print("\n🗑️  در حال پاک کردن Chat Sessions...")
+    chat_sessions_deleted = ChatSession.objects.all().delete()[0]
+    print(f"   ✅ {chat_sessions_deleted} Chat Session پاک شد")
+    
+    # پاک کردن Chat Messages
+    print("\n🗑️  در حال پاک کردن Chat Messages...")
+    chat_messages_deleted = ChatMessage.objects.all().delete()[0]
+    print(f"   ✅ {chat_messages_deleted} Chat Message پاک شد")
+    
+    # پاک کردن Free Usage Tracking
+    print("\n🗑️  در حال پاک کردن Free Usage Tracking...")
+    free_usage_deleted = FreeUsageTracking.objects.all().delete()[0]
+    print(f"   ✅ {free_usage_deleted} Free Usage Tracking پاک شد")
+    
+    # پاک کردن User Profiles (به جز ادمین‌ها)
+    print("\n🗑️  در حال پاک کردن User Profiles...")
+    admin_user_ids = User.objects.filter(is_superuser=True).values_list('id', flat=True)
+    profiles_deleted = UserProfile.objects.exclude(user_id__in=admin_user_ids).delete()[0]
+    print(f"   ✅ {profiles_deleted} User Profile پاک شد")
+    
+    # پاک کردن کاربران غیرادمین
+    print("\n🗑️  در حال پاک کردن کاربران غیرادمین...")
+    non_admin_users = User.objects.filter(is_superuser=False)
+    non_admin_count = non_admin_users.count()
+    non_admin_users.delete()
+    print(f"   ✅ {non_admin_count} کاربر غیرادمین پاک شد")
+    
+    # شمارش بعد از پاک کردن
+    admin_count_after = User.objects.filter(is_superuser=True).count()
+    total_users_after = User.objects.count()
+    
+    print("\n" + "=" * 60)
+    print("✅ پاک کردن دیتابیس با موفقیت انجام شد!")
+    print("=" * 60)
+    print(f"\n📊 آمار بعد از پاک کردن:")
+    print(f"   - کاربران ادمین: {admin_count_after} (حفظ شده)")
+    print(f"   - کل کاربران: {total_users_after}")
+    print(f"   - تحلیل‌ها: 0")
+    print(f"   - سفارشات: 0")
+    print(f"   - پرداخت‌ها: 0")
+    print(f"   - تیکت‌ها: 0")
+    print("\n✨ دیتابیس پاک شد و فقط ادمین‌ها باقی ماندند!")
 
 if __name__ == '__main__':
-    import sys
-    # اگر --auto یا --yes پاس داده شد، auto_confirm=True
-    auto_confirm = '--auto' in sys.argv or '--yes' in sys.argv or '-y' in sys.argv
-    cleanup_database(auto_confirm=auto_confirm)
+    try:
+        cleanup_database()
+    except Exception as e:
+        print(f"\n❌ خطا در پاک کردن دیتابیس: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 

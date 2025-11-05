@@ -17,12 +17,12 @@ class AdvancedSEO:
     
     def __init__(self):
         self.base_domain = getattr(settings, 'BASE_DOMAIN', 'chidmano.ir')
-        self.site_name = "چیدمانو - تحلیل هوشمند فروشگاه و مغازه"
+        self.site_name = "چیدمانو - چیدمان فروشگاه با هوش مصنوعی"
         self.default_keywords = [
-            "تحلیل فروشگاه", "طراحی مغازه", "چیدمان فروشگاه", "بهینه سازی فروشگاه",
-            "طراحی داخلی مغازه", "تحلیل هوش مصنوعی فروشگاه", "مشاوره فروشگاه",
+            "چیدمان فروشگاه", "چیدمان فروشگاه با هوش مصنوعی", "بهینه‌سازی چیدمان", "طراحی مغازه", "بهینه سازی فروشگاه",
+            "طراحی داخلی مغازه", "مشاوره فروشگاه",
             "طراحی ویترین", "چیدمان قفسه", "تحلیل ترافیک مشتری", "بهینه سازی فروش",
-            "طراحی تجاری", "مشاوره خرده فروشی", "تحلیل عملکرد فروشگاه", "طراحی مدرن مغازه"
+            "طراحی تجاری", "مشاوره خرده فروشی", "تحلیل عملکرد فروشگاه", "طراحی مدرن مغازه", "افزایش فروش"
         ]
         
     def generate_meta_tags(self, page_type="home", **kwargs):
@@ -44,19 +44,19 @@ class AdvancedSEO:
     def _home_meta_tags(self):
         """متاتگ‌های صفحه اصلی"""
         return {
-            'title': 'چیدمانو - تحلیل هوشمند فروشگاه و مغازه | طراحی و بهینه‌سازی فروشگاه',
-            'description': 'چیدمانو اولین پلتفرم تحلیل هوشمند فروشگاه و مغازه در ایران. با استفاده از هوش مصنوعی پیشرفته، فروشگاه شما را تحلیل کرده و راهکارهای افزایش فروش ارائه می‌دهیم.',
+            'title': 'چیدمانو - چیدمان فروشگاه با هوش مصنوعی | بهینه‌سازی و افزایش فروش',
+            'description': 'چیدمان فروشگاه با هوش مصنوعی - اولین پلتفرم چیدمان فروشگاه با هوش مصنوعی در ایران. با استفاده از هوش مصنوعی پیشرفته، چیدمان فروشگاه شما را بهینه کرده و راهکارهای افزایش فروش ارائه می‌دهیم.',
             'keywords': ', '.join(self.default_keywords + [
                 "پلتفرم تحلیل فروشگاه", "هوش مصنوعی فروشگاه", "نرم افزار تحلیل مغازه",
                 "مشاوره رایگان فروشگاه", "تحلیل عملکرد مغازه", "بهینه سازی خرده فروشی"
             ]),
             'canonical': f'https://{self.base_domain}/',
-            'og_title': 'چیدمانو - تحلیل هوشمند فروشگاه و مغازه',
-            'og_description': 'اولین پلتفرم تحلیل هوشمند فروشگاه در ایران. افزایش فروش با تحلیل علمی و هوش مصنوعی.',
+            'og_title': 'چیدمانو - چیدمان فروشگاه با هوش مصنوعی',
+            'og_description': 'اولین پلتفرم چیدمان فروشگاه با هوش مصنوعی در ایران. افزایش فروش با بهینه‌سازی چیدمان و هوش مصنوعی.',
             'og_image': f'https://{self.base_domain}/static/images/seo/og-home.jpg',
             'twitter_card': 'summary_large_image',
-            'twitter_title': 'چیدمانو - تحلیل هوشمند فروشگاه',
-            'twitter_description': 'افزایش فروش فروشگاه شما با تحلیل هوش مصnوعی پیشرفته',
+            'twitter_title': 'چیدمانو - چیدمان فروشگاه با هوش مصنوعی',
+            'twitter_description': 'افزایش فروش فروشگاه شما با چیدمان فروشگاه با هوش مصنوعی',
             'twitter_image': f'https://{self.base_domain}/static/images/seo/twitter-home.jpg'
         }
     
@@ -117,11 +117,11 @@ class AdvancedSEO:
         """متاتگ‌های پیش‌فرض"""
         return {
             'title': kwargs.get('title', self.site_name),
-            'description': kwargs.get('description', 'چیدمانو - تحلیل هوشمند فروشگاه و مغازه'),
+            'description': kwargs.get('description', 'چیدمانو - چیدمان فروشگاه با هوش مصنوعی'),
             'keywords': kwargs.get('keywords', ', '.join(self.default_keywords)),
             'canonical': kwargs.get('canonical', f'https://{self.base_domain}/'),
             'og_title': kwargs.get('og_title', self.site_name),
-            'og_description': kwargs.get('og_description', 'تحلیل هوشمند فروشگاه و مغازه'),
+            'og_description': kwargs.get('og_description', 'چیدمان فروشگاه با هوش مصنوعی'),
             'og_image': kwargs.get('og_image', f'https://{self.base_domain}/static/images/seo/og-default.jpg')
         }
     

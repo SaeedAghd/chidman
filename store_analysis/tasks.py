@@ -810,7 +810,7 @@ def process_analysis_with_liara(analysis_id):
         
     except Exception as e:
         logger.error(f"Liara processing error: {e}")
-        return {'status': 'error', 'error': str(e)}
+        return {'status': 'error', 'error': str(e)} 
 
 
 @shared_task(name='store_analysis.send_review_reminders')

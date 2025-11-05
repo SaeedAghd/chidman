@@ -14,9 +14,9 @@ def seo_meta_tags(page_type='home', title='', description='', keywords='', image
     """تولید meta tags برای SEO"""
     
     # تنظیمات پیش‌فرض
-    default_title = "چیدمانو - تحلیل هوشمند فروشگاه با هوش مصنوعی"
-    default_description = "تحلیل پیشرفته فروشگاه با هوش مصنوعی. بهبود چیدمان، روشنایی و تجربه مشتری برای افزایش فروش."
-    default_keywords = "تحلیل فروشگاه، چیدمان فروشگاه، هوش مصنوعی، تحلیل فروش، بهینه‌سازی فروشگاه"
+    default_title = "چیدمانو - چیدمان فروشگاه با هوش مصنوعی | بهینه‌سازی و افزایش فروش"
+    default_description = "چیدمان فروشگاه با هوش مصنوعی - راهکار جامع بهینه‌سازی چیدمان، روشنایی و تجربه مشتری برای افزایش فروش. مشاوره حرفه‌ای چیدمان فروشگاه."
+    default_keywords = "چیدمان فروشگاه، چیدمان فروشگاه با هوش مصنوعی، بهینه‌سازی چیدمان، افزایش فروش، تحلیل فروشگاه"
     default_image = "https://chidmano.ir/static/images/logo.png"
     
     # تنظیمات بر اساس نوع صفحه
@@ -26,9 +26,9 @@ def seo_meta_tags(page_type='home', title='', description='', keywords='', image
         keywords = keywords or default_keywords
         image = image or default_image
     elif page_type == 'store':
-        title = title or "تحلیل فروشگاه - چیدمانو"
-        description = description or "تحلیل هوشمند فروشگاه شما با تکنولوژی هوش مصنوعی پیشرفته"
-        keywords = keywords or "تحلیل فروشگاه، چیدمان، روشنایی، تجربه مشتری"
+        title = title or "چیدمان فروشگاه - چیدمانو"
+        description = description or "چیدمان فروشگاه با هوش مصنوعی - تحلیل و بهینه‌سازی چیدمان فروشگاه شما با تکنولوژی پیشرفته"
+        keywords = keywords or "چیدمان فروشگاه، چیدمان فروشگاه با هوش مصنوعی، بهینه‌سازی چیدمان، روشنایی، تجربه مشتری"
     elif page_type == 'guide':
         title = title or "راهنمای چیدمان فروشگاه - چیدمانو"
         description = description or "راهنمای کامل چیدمان فروشگاه برای افزایش فروش و بهبود تجربه مشتری"
@@ -96,7 +96,7 @@ def seo_structured_data():
         "name": "چیدمانو",
         "alternateName": "Chidmano",
         "url": "https://chidmano.ir",
-        "description": "تحلیل پیشرفته فروشگاه با هوش مصنوعی. بهبود چیدمان، روشنایی و تجربه مشتری برای افزایش فروش.",
+            "description": "چیدمان فروشگاه با هوش مصنوعی - راهکار جامع بهینه‌سازی چیدمان، روشنایی و تجربه مشتری برای افزایش فروش.",
         "inLanguage": "fa-IR",
         "copyrightYear": "2025",
         "creator": {
