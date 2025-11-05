@@ -6900,6 +6900,7 @@ def store_analysis_form(request, analysis_id=None):
     # نمایش فرم
     context = {
         'analysis': analysis,
+        'analysis_id': analysis.id if analysis else None,
         'form_data': (analysis.analysis_data if analysis and isinstance(analysis.analysis_data, dict) else {})
     }
     return render(request, 'store_analysis/forms.html', context)
@@ -9159,14 +9160,19 @@ def forms_submit(request):
     """پردازش فرم تک صفحه‌ای تحلیل فروشگاه - بهینه‌سازی شده"""
     if request.method == 'POST':
         try:
-            # بررسی اینکه آیا تحلیل رایگان از session وجود دارد
+            # بررسی اینکه آیا تحلیل از session یا POST data وجود دارد
             session_analysis_id = request.session.get('analysis_id')
+            # همچنین بررسی POST data برای analysis_id
+            post_analysis_id = request.POST.get('analysis_id') or request.POST.get('session_analysis_id')
+            analysis_id = post_analysis_id or session_analysis_id
             store_analysis = None
             
-            if session_analysis_id:
+            logger.info(f"🔍 forms_submit: session_analysis_id={session_analysis_id}, post_analysis_id={post_analysis_id}, final_analysis_id={analysis_id}")
+            
+            if analysis_id:
                 try:
                     store_analysis = StoreAnalysis.objects.get(
-                        pk=session_analysis_id,
+                        pk=analysis_id,
                         user=request.user
                     )
                     # بررسی اینکه آیا تحلیل رایگان است
@@ -9328,16 +9334,15 @@ def forms_submit(request):
                     pass
             
             # بررسی اینکه آیا تحلیل پولی موجود است که باید update شود
-            logger.info(f"🔍 forms_submit: session_analysis_id={session_analysis_id}, store_analysis={store_analysis}")
-            if session_analysis_id and not store_analysis:
+            if analysis_id and not store_analysis:
                 try:
                     store_analysis = StoreAnalysis.objects.get(
-                        pk=session_analysis_id,
+                        pk=analysis_id,
                         user=request.user
                     )
                     logger.info(f"📝 تحلیل موجود پیدا شد: {store_analysis.id}, status={store_analysis.status}, package_type={getattr(store_analysis, 'package_type', None)}, final_amount={getattr(store_analysis, 'final_amount', None)}")
                 except StoreAnalysis.DoesNotExist:
-                    logger.warning(f"⚠️ تحلیل با ID {session_analysis_id} یافت نشد")
+                    logger.warning(f"⚠️ تحلیل با ID {analysis_id} یافت نشد")
                     store_analysis = None
             
             # دریافت داده‌های فرم به صورت ساده
@@ -9401,11 +9406,20 @@ def forms_submit(request):
                 store_analysis.analysis_data = current_data
                 store_analysis.store_name = form_data.get('store_name', store_analysis.store_name)
                 
-                # اگر فایل آپلود شده و تحلیل پرداخت شده، status را به processing تغییر بده
+                # اگر فایل آپلود شده، status را به processing تغییر بده
                 if has_actual_files:
                     # بررسی اینکه آیا تحلیل پرداخت شده است
                     is_paid = False
+                    is_free = False
                     order_status = None
+                    package_type = getattr(store_analysis, 'package_type', None)
+                    final_amount = getattr(store_analysis, 'final_amount', 0)
+                    
+                    # بررسی تحلیل رایگان
+                    if package_type == 'basic' and final_amount == 0:
+                        is_free = True
+                    
+                    # بررسی پرداخت
                     if hasattr(store_analysis, 'order') and store_analysis.order:
                         order_status = store_analysis.order.status
                         if order_status in ['paid', 'processing', 'completed']:
@@ -9413,14 +9427,32 @@ def forms_submit(request):
                     elif store_analysis.status in ['paid', 'processing']:
                         is_paid = True
                     
-                    logger.info(f"📊 Analysis status check: current_status={store_analysis.status}, order_status={order_status}, is_paid={is_paid}")
+                    logger.info(f"📊 Analysis status check: current_status={store_analysis.status}, order_status={order_status}, is_paid={is_paid}, is_free={is_free}, package_type={package_type}, final_amount={final_amount}")
                     
-                    if is_paid or store_analysis.status == 'pending':
+                    # اگر فایل آپلود شده و (پرداخت شده یا رایگان یا pending)، status را به processing تغییر بده
+                    if is_paid or is_free or store_analysis.status == 'pending':
                         old_status = store_analysis.status
                         store_analysis.status = 'processing'
                         logger.info(f"✅ فرم تکمیل شد و تحلیل شروع شد برای تحلیل {store_analysis.id}. Status changed: {old_status} -> processing. فایل‌های آپلود شده: {list(uploaded_files.keys())}")
+                        
+                        # اگر تحلیل رایگان است، شروع تحلیل در background
+                        if is_free:
+                            try:
+                                import threading
+                                def start_free_analysis():
+                                    try:
+                                        from store_analysis.views import perform_free_store_analysis
+                                        perform_free_store_analysis(store_analysis.id)
+                                    except Exception as e:
+                                        logger.error(f"❌ خطا در شروع تحلیل رایگان: {e}", exc_info=True)
+                                
+                                analysis_thread = threading.Thread(target=start_free_analysis, daemon=True)
+                                analysis_thread.start()
+                                logger.info(f"🚀 Thread تحلیل رایگان برای تحلیل {store_analysis.id} شروع شد")
+                            except Exception as e:
+                                logger.error(f"❌ خطا در شروع تحلیل رایگان: {e}", exc_info=True)
                     else:
-                        logger.warning(f"⚠️ Analysis {store_analysis.id} not paid yet, status remains {store_analysis.status}")
+                        logger.warning(f"⚠️ Analysis {store_analysis.id} not paid yet and not free, status remains {store_analysis.status}")
                 else:
                     logger.warning(f"⚠️ No actual files uploaded, status remains {store_analysis.status}")
                 

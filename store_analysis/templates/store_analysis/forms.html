@@ -268,6 +268,10 @@
             <!-- Hidden fields for plan detection -->
             <input type="hidden" name="package_type" value="basic" id="package_type_input">
             <input type="hidden" name="ai_provider" value="ollama_only" id="ai_provider_input">
+            {% if analysis_id %}
+            <input type="hidden" name="analysis_id" value="{{ analysis_id }}" id="analysis_id_input">
+            <input type="hidden" name="session_analysis_id" value="{{ analysis_id }}" id="session_analysis_id_input">
+            {% endif %}
             
             <!-- Step 1: Basic Information -->
             <div class="form-section active" data-step="1">
