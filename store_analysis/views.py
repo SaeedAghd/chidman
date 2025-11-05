@@ -3600,11 +3600,24 @@ def user_dashboard(request):
         normalized_status = analysis.status
         
         # بررسی تکمیل فرم: اگر analysis_data و uploaded_files وجود داشته باشد، فرم تکمیل شده
-        has_form_data = analysis.analysis_data and analysis.analysis_data.get('uploaded_files')
+        # Parse کردن analysis_data اگر string باشد
+        analysis_data = analysis.analysis_data
+        if isinstance(analysis_data, str):
+            import json
+            try:
+                analysis_data = json.loads(analysis_data)
+                logger.debug(f"Analysis {analysis.id}: Parsed analysis_data from JSON string")
+            except Exception as e:
+                logger.warning(f"Analysis {analysis.id}: Failed to parse analysis_data: {e}")
+                analysis_data = {}
+        
+        has_form_data = analysis_data and analysis_data.get('uploaded_files')
         # بررسی اینکه آیا uploaded_files واقعاً محتوا دارد (نه فقط یک dict خالی)
         is_form_complete = False
         if has_form_data:
-            uploaded_files = analysis.analysis_data.get('uploaded_files')
+            uploaded_files = analysis_data.get('uploaded_files')
+            logger.debug(f"Analysis {analysis.id}: uploaded_files found: {type(uploaded_files)}, Keys: {list(uploaded_files.keys()) if isinstance(uploaded_files, dict) else 'N/A'}")
+            
             # اگر uploaded_files یک dict خالی است یا هیچ فایلی ندارد، فرم تکمیل نشده
             if isinstance(uploaded_files, dict):
                 # بررسی اینکه آیا حداقل یک فایل واقعی وجود دارد
@@ -3616,12 +3629,15 @@ def user_dashboard(request):
                 is_form_complete = has_actual_files
                 # لاگ برای دیباگ
                 if not is_form_complete:
-                    logger.debug(f"Analysis {analysis.id}: uploaded_files dict exists but no actual files found. Keys: {list(uploaded_files.keys())}")
+                    logger.warning(f"Analysis {analysis.id}: uploaded_files dict exists but no actual files found. Keys: {list(uploaded_files.keys())}, Values preview: {str(list(uploaded_files.values())[:2])[:100] if uploaded_files else 'empty'}")
+                else:
+                    logger.info(f"✅ Analysis {analysis.id}: Form is complete with {len([v for v in uploaded_files.values() if isinstance(v, dict) and (v.get('path') or v.get('name'))])} files")
             else:
                 is_form_complete = bool(uploaded_files)
+                logger.debug(f"Analysis {analysis.id}: uploaded_files is not a dict: {type(uploaded_files)}")
         else:
             is_form_complete = False
-            logger.debug(f"Analysis {analysis.id}: No form data or uploaded_files found")
+            logger.warning(f"Analysis {analysis.id}: No form data or uploaded_files found. analysis_data type: {type(analysis.analysis_data)}, has_data: {bool(analysis.analysis_data)}")
         
         # تعیین وضعیت نرمالیزه شده - اول بررسی تکمیل فرم
         # اگر status در حال پردازش است، احتمالاً فرم تکمیل شده (حتی اگر parse نشده باشد)
@@ -9312,14 +9328,16 @@ def forms_submit(request):
                     pass
             
             # بررسی اینکه آیا تحلیل پولی موجود است که باید update شود
+            logger.info(f"🔍 forms_submit: session_analysis_id={session_analysis_id}, store_analysis={store_analysis}")
             if session_analysis_id and not store_analysis:
                 try:
                     store_analysis = StoreAnalysis.objects.get(
                         pk=session_analysis_id,
                         user=request.user
                     )
-                    logger.info(f"📝 تحلیل موجود پیدا شد: {store_analysis.id}, status={store_analysis.status}")
+                    logger.info(f"📝 تحلیل موجود پیدا شد: {store_analysis.id}, status={store_analysis.status}, package_type={getattr(store_analysis, 'package_type', None)}, final_amount={getattr(store_analysis, 'final_amount', None)}")
                 except StoreAnalysis.DoesNotExist:
+                    logger.warning(f"⚠️ تحلیل با ID {session_analysis_id} یافت نشد")
                     store_analysis = None
             
             # دریافت داده‌های فرم به صورت ساده
@@ -9329,6 +9347,7 @@ def forms_submit(request):
             # پردازش و ذخیره فایل‌های آپلود شده
             uploaded_files = {}
             has_actual_files = False
+            logger.info(f"📁 Processing files: {len(files_data)} files received")
             if files_data:
                 for field_name, file_obj in files_data.items():
                     try:
@@ -9342,14 +9361,16 @@ def forms_submit(request):
                             'type': file_obj.content_type
                         }
                         has_actual_files = True
-                        logger.info(f"✅ File uploaded: {field_name} -> {file_path}")
+                        logger.info(f"✅ File uploaded: {field_name} -> {file_path}, size={file_obj.size}")
                     except Exception as e:
-                        logger.error(f"❌ Error saving file {field_name}: {e}")
+                        logger.error(f"❌ Error saving file {field_name}: {e}", exc_info=True)
                         uploaded_files[field_name] = {'error': str(e)}
+            else:
+                logger.warning(f"⚠️ No files in request.FILES")
             
             # اگر تحلیل موجود است، آن را update کن
             if store_analysis:
-                logger.info(f"🔄 Updating existing analysis {store_analysis.id}")
+                logger.info(f"🔄 Updating existing analysis {store_analysis.id}, has_actual_files={has_actual_files}, uploaded_files_count={len(uploaded_files)}")
                 
                 # به‌روزرسانی analysis_data
                 current_data = store_analysis.analysis_data or {}
@@ -9357,8 +9378,12 @@ def forms_submit(request):
                     import json
                     try:
                         current_data = json.loads(current_data)
-                    except:
+                        logger.debug(f"Parsed analysis_data from JSON string")
+                    except Exception as e:
+                        logger.warning(f"Failed to parse analysis_data: {e}")
                         current_data = {}
+                
+                logger.debug(f"Current analysis_data keys: {list(current_data.keys()) if isinstance(current_data, dict) else 'N/A'}")
                 
                 # ادغام داده‌های جدید
                 current_data.update(form_data)
@@ -9369,6 +9394,7 @@ def forms_submit(request):
                     if isinstance(existing_files, dict):
                         existing_files.update(uploaded_files)
                         uploaded_files = existing_files
+                        logger.debug(f"Merged with existing files: {len(uploaded_files)} total files")
                 current_data['uploaded_files'] = uploaded_files
                 
                 # به‌روزرسانی فیلدهای تحلیل
@@ -9379,18 +9405,27 @@ def forms_submit(request):
                 if has_actual_files:
                     # بررسی اینکه آیا تحلیل پرداخت شده است
                     is_paid = False
+                    order_status = None
                     if hasattr(store_analysis, 'order') and store_analysis.order:
-                        if store_analysis.order.status in ['paid', 'processing', 'completed']:
+                        order_status = store_analysis.order.status
+                        if order_status in ['paid', 'processing', 'completed']:
                             is_paid = True
                     elif store_analysis.status in ['paid', 'processing']:
                         is_paid = True
                     
+                    logger.info(f"📊 Analysis status check: current_status={store_analysis.status}, order_status={order_status}, is_paid={is_paid}")
+                    
                     if is_paid or store_analysis.status == 'pending':
+                        old_status = store_analysis.status
                         store_analysis.status = 'processing'
-                        logger.info(f"✅ فرم تکمیل شد و تحلیل شروع شد برای تحلیل {store_analysis.id}. فایل‌های آپلود شده: {list(uploaded_files.keys())}")
+                        logger.info(f"✅ فرم تکمیل شد و تحلیل شروع شد برای تحلیل {store_analysis.id}. Status changed: {old_status} -> processing. فایل‌های آپلود شده: {list(uploaded_files.keys())}")
+                    else:
+                        logger.warning(f"⚠️ Analysis {store_analysis.id} not paid yet, status remains {store_analysis.status}")
+                else:
+                    logger.warning(f"⚠️ No actual files uploaded, status remains {store_analysis.status}")
                 
                 store_analysis.save()
-                logger.info(f"✅ تحلیل {store_analysis.id} به‌روزرسانی شد با {len(uploaded_files)} فایل")
+                logger.info(f"✅ تحلیل {store_analysis.id} به‌روزرسانی شد با status={store_analysis.status} و {len(uploaded_files)} فایل")
                 
                 # هدایت به داشبورد
                 return JsonResponse({
