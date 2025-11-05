@@ -3672,7 +3672,12 @@ def user_dashboard(request):
                     normalized_status = 'pending'
             else:
                 # برای تحلیل رایگان، اگر فرم تکمیل شده و pending است، باید processing باشد
-                if getattr(analysis, 'package_type', None) == 'basic' and getattr(analysis, 'final_amount', None) == 0:
+                package_type = getattr(analysis, 'package_type', None)
+                final_amount = 0
+                if hasattr(analysis, 'order') and analysis.order:
+                    final_amount = getattr(analysis.order, 'final_amount', 0)
+                
+                if package_type == 'basic' and final_amount == 0:
                     normalized_status = 'processing'
                 else:
                     normalized_status = 'pending'
@@ -6753,7 +6758,11 @@ def store_analysis_form(request, analysis_id=None):
             request.session['analysis_id'] = analysis.pk
             
             # اگر تحلیل رایگان است (package_type='basic' و final_amount=0)، تحلیل واقعی را شروع کن
-            if analysis.package_type == 'basic' and analysis.final_amount == 0:
+            final_amount = 0
+            if hasattr(analysis, 'order') and analysis.order:
+                final_amount = getattr(analysis.order, 'final_amount', 0)
+            
+            if analysis.package_type == 'basic' and final_amount == 0:
                 try:
                     # شروع تحلیل واقعی با FreeAnalysisService در background
                     import threading
@@ -9340,7 +9349,10 @@ def forms_submit(request):
                         pk=analysis_id,
                         user=request.user
                     )
-                    logger.info(f"📝 تحلیل موجود پیدا شد: {store_analysis.id}, status={store_analysis.status}, package_type={getattr(store_analysis, 'package_type', None)}, final_amount={getattr(store_analysis, 'final_amount', None)}")
+                    final_amount = 0
+                    if hasattr(store_analysis, 'order') and store_analysis.order:
+                        final_amount = getattr(store_analysis.order, 'final_amount', 0)
+                    logger.info(f"📝 تحلیل موجود پیدا شد: {store_analysis.id}, status={store_analysis.status}, package_type={getattr(store_analysis, 'package_type', None)}, final_amount={final_amount}")
                 except StoreAnalysis.DoesNotExist:
                     logger.warning(f"⚠️ تحلیل با ID {analysis_id} یافت نشد")
                     store_analysis = None
@@ -9419,7 +9431,11 @@ def forms_submit(request):
                     is_free = False
                     order_status = None
                     package_type = getattr(store_analysis, 'package_type', None)
-                    final_amount = getattr(store_analysis, 'final_amount', 0)
+                    
+                    # بررسی final_amount از order (نه از StoreAnalysis)
+                    final_amount = 0
+                    if hasattr(store_analysis, 'order') and store_analysis.order:
+                        final_amount = getattr(store_analysis.order, 'final_amount', 0)
                     
                     # بررسی تحلیل رایگان
                     if package_type == 'basic' and final_amount == 0:
@@ -9466,28 +9482,36 @@ def forms_submit(request):
                 logger.info(f"🔍 Analysis {store_analysis.id}: Before save - status={store_analysis.status}, has_actual_files={has_actual_files}")
                 logger.info(f"🔍 Analysis {store_analysis.id}: uploaded_files count={len(uploaded_files)}, keys={list(uploaded_files.keys())}")
                 
-                store_analysis.save()
-                
-                # بررسی بعد از save - reload از دیتابیس
-                store_analysis.refresh_from_db()
-                logger.info(f"✅ تحلیل {store_analysis.id} به‌روزرسانی شد با status={store_analysis.status} و {len(uploaded_files)} فایل")
-                
-                # بررسی نهایی analysis_data
-                final_data = store_analysis.analysis_data
-                if isinstance(final_data, str):
+                # استفاده از update_fields برای جلوگیری از خطای فیلدهای missing
+                try:
+                    store_analysis.save(update_fields=['analysis_data', 'store_name', 'status', 'updated_at'])
+                    logger.info(f"✅ تحلیل {store_analysis.id} به‌روزرسانی شد با status={store_analysis.status} و {len(uploaded_files)} فایل")
+                except Exception as save_error:
+                    # اگر save با update_fields خطا داد، از raw SQL استفاده کن
+                    logger.warning(f"⚠️ Error saving with update_fields: {save_error}, using raw SQL")
+                    from django.db import connection
                     import json
-                    try:
-                        final_data = json.loads(final_data)
-                        logger.info(f"🔍 Analysis {store_analysis.id}: analysis_data was JSON string, parsed successfully")
-                    except Exception as e:
-                        logger.error(f"❌ Analysis {store_analysis.id}: Failed to parse analysis_data after save: {e}")
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            UPDATE store_analysis_storeanalysis 
+                            SET analysis_data = %s, store_name = %s, status = %s, updated_at = NOW()
+                            WHERE id = %s
+                        """, [
+                            json.dumps(current_data) if isinstance(current_data, dict) else current_data,
+                            store_analysis.store_name,
+                            store_analysis.status,
+                            store_analysis.id
+                        ])
+                    logger.info(f"✅ تحلیل {store_analysis.id} به‌روزرسانی شد با raw SQL")
                 
+                # بررسی نهایی analysis_data (بدون refresh_from_db)
+                final_data = current_data  # استفاده از current_data که قبلاً set شده
                 if isinstance(final_data, dict) and 'uploaded_files' in final_data:
                     final_files = final_data['uploaded_files']
-                    logger.info(f"🔍 Analysis {store_analysis.id}: Final check - uploaded_files in DB: {len(final_files) if isinstance(final_files, dict) else 'N/A'} files")
+                    logger.info(f"🔍 Analysis {store_analysis.id}: Final check - uploaded_files: {len(final_files) if isinstance(final_files, dict) else 'N/A'} files")
                     if isinstance(final_files, dict):
                         valid_count = sum(1 for v in final_files.values() if isinstance(v, dict) and v.get('path') and 'error' not in v)
-                        logger.info(f"🔍 Analysis {store_analysis.id}: Valid files in DB: {valid_count}")
+                        logger.info(f"🔍 Analysis {store_analysis.id}: Valid files: {valid_count}")
                 
                 # هدایت به داشبورد
                 return JsonResponse({

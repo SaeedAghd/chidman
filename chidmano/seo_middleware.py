@@ -202,7 +202,8 @@ class AdvancedSEOMiddleware(MiddlewareMixin):
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://connect.facebook.net; "
                 "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/; "
                 "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; "
-                "img-src 'self' data: https: https://www.google-analytics.com https://ssl.google-analytics.com https://trustseal.enamad.ir; "
+                "img-src 'self' data: blob: https: https://www.google-analytics.com https://ssl.google-analytics.com https://trustseal.enamad.ir; "
+                "media-src 'self' blob: data: https:; "  # Allow blob URLs for video preview
                 "connect-src 'self' https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://*.google-analytics.com; "
                 "frame-src 'none';"
             )
