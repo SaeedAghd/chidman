@@ -1814,9 +1814,9 @@ def download_analysis_report(request, pk):
     
     # بررسی دسترسی به گزارش مدیریتی
     try:
-    is_admin = request.user.is_staff or request.user.is_superuser
-    show_management_report = False
-    
+        is_admin = request.user.is_staff or request.user.is_superuser
+        show_management_report = False
+        
         logger.info(f"Checking access for analysis {analysis.id}. Status: {analysis.status}, Results: {bool(analysis.results)}, Is admin: {is_admin}")
         
         # برای تست: همیشه اجازه دانلود را بده
