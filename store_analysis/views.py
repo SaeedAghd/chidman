@@ -4191,12 +4191,13 @@ def view_analysis_pdf_inline(request, pk):
                 return timezone.now().strftime("%Y/%m/%d")
 
         def fix_persian_text(text):
-                if not text:
-                    return text
+            if not text:
+                return text
             text = text.replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
             if arabic_reshaper and get_display:
-                    reshaped_text = arabic_reshaper.reshape(text)
+                reshaped_text = arabic_reshaper.reshape(text)
                 return get_display(reshaped_text)
+            return text
             else:
                 return text
 
