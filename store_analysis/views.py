@@ -1920,13 +1920,13 @@ def download_analysis_report(request, pk):
                     pdf_content = b'%PDF-1.4\n1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \ntrailer\n<</Size 4/Root 1 0 R>>\nstartxref\n187\n%%EOF'
             
             # همیشه یک PDF معتبر برگردان
-                    response = HttpResponse(pdf_content, content_type='application/pdf')
-                    response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
-                    response['Content-Length'] = len(pdf_content)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
+            response['Content-Length'] = len(pdf_content)
             logger.info("Returning PDF response")
-                    return response
-        
-                else:
+            return response
+
+        else:
             # تولید گزارش HTML تفصیلی - برای HTML هم مثل PDF، از گزارش تحلیل استفاده می‌کنیم
             # اما به جای PDF، یک HTML ساده از محتوای تحلیل می‌سازیم
             try:
@@ -1952,8 +1952,8 @@ def download_analysis_report(request, pk):
             except Exception as html_error:
                 logger.error(f"HTML generation error: {html_error}")
                 # Fallback به گواهینامه
-            html_content = generate_management_report(analysis, has_ai_results)
-            return HttpResponse(html_content, content_type='text/html; charset=utf-8')
+                html_content = generate_management_report(analysis, has_ai_results)
+                return HttpResponse(html_content, content_type='text/html; charset=utf-8')
         
     except Exception as e:
         logger.error(f"Error generating report: {e}")
