@@ -576,12 +576,12 @@ def index(request):
                 WHERE user_id = %s
             """, [request.user.id])
             row = cursor.fetchone()
-            context.update({
+        context.update({
                 'total_analyses': row[0] if row else 0,
                 'completed_analyses': row[1] if row else 0,
                 'processing_analyses': row[2] if row else 0,
                 'pending_analyses': row[3] if row else 0,
-            })
+        })
     
     return render(request, 'chidmano/landing.html', context)
 
@@ -1805,7 +1805,7 @@ def download_analysis_report(request, pk):
             request.session.create()
     except Exception as e:
         logger.error(f"Error in session check: {e}")
-    
+        
     # اگر ادمین است، هر تحلیلی را دانلود کند
     if request.user.is_staff or request.user.is_superuser:
         analysis = get_object_or_404(StoreAnalysis, pk=pk)
@@ -1814,9 +1814,9 @@ def download_analysis_report(request, pk):
     
     # بررسی دسترسی به گزارش مدیریتی
     try:
-        is_admin = request.user.is_staff or request.user.is_superuser
-        show_management_report = False
-        
+    is_admin = request.user.is_staff or request.user.is_superuser
+    show_management_report = False
+    
         logger.info(f"Checking access for analysis {analysis.id}. Status: {analysis.status}, Results: {bool(analysis.results)}, Is admin: {is_admin}")
         
         # برای تست: همیشه اجازه دانلود را بده
@@ -1920,13 +1920,13 @@ def download_analysis_report(request, pk):
                     pdf_content = b'%PDF-1.4\n1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \ntrailer\n<</Size 4/Root 1 0 R>>\nstartxref\n187\n%%EOF'
             
             # همیشه یک PDF معتبر برگردان
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
-            response['Content-Length'] = len(pdf_content)
+                    response = HttpResponse(pdf_content, content_type='application/pdf')
+                    response['Content-Disposition'] = f'inline; filename="گزارش_تحلیل_{analysis.store_name}_{analysis.id}.pdf"'
+                    response['Content-Length'] = len(pdf_content)
             logger.info("Returning PDF response")
-            return response
+                    return response
         
-        else:
+                else:
             # تولید گزارش HTML تفصیلی - برای HTML هم مثل PDF، از گزارش تحلیل استفاده می‌کنیم
             # اما به جای PDF، یک HTML ساده از محتوای تحلیل می‌سازیم
             try:
@@ -1952,8 +1952,8 @@ def download_analysis_report(request, pk):
             except Exception as html_error:
                 logger.error(f"HTML generation error: {html_error}")
                 # Fallback به گواهینامه
-                html_content = generate_management_report(analysis, has_ai_results)
-                return HttpResponse(html_content, content_type='text/html; charset=utf-8')
+            html_content = generate_management_report(analysis, has_ai_results)
+            return HttpResponse(html_content, content_type='text/html; charset=utf-8')
         
     except Exception as e:
         logger.error(f"Error generating report: {e}")
@@ -4191,11 +4191,11 @@ def view_analysis_pdf_inline(request, pk):
                 return timezone.now().strftime("%Y/%m/%d")
 
         def fix_persian_text(text):
-            if not text:
-                return text
+                if not text:
+                    return text
             text = text.replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
             if arabic_reshaper and get_display:
-                reshaped_text = arabic_reshaper.reshape(text)
+                    reshaped_text = arabic_reshaper.reshape(text)
                 return get_display(reshaped_text)
             else:
                 return text
@@ -4927,12 +4927,12 @@ def payping_callback(request, order_id):
         
         if verification_result.get('status') == 'success':
             if payment is None:
-                payment = Payment.objects.create(
+            payment = Payment.objects.create(
                     user=order.user,
-                    store_analysis=store_analysis,
+                store_analysis=store_analysis,
                     order_id=order.order_number,
                     amount=order.final_amount,
-                    payment_method='payping',
+                payment_method='payping',
                     status='pending'
                 )
 
@@ -5113,7 +5113,7 @@ def payping_callback(request, order_id):
                                             'report_type': f'premium_{store_analysis.package_type}',
                                         })
                                         logger.info(f"✅ گزارش Premium برای تحلیل {store_analysis.id} تولید شد")
-                                    except Exception as e:
+    except Exception as e:
                                         logger.error(f"⚠️ خطا در تولید گزارش Premium: {e}", exc_info=True)
                                 
                                 # ذخیره نتایج
@@ -6586,12 +6586,40 @@ def accept_legal_agreement(request):
                             profile.legal_agreement_date = timezone.now()
                             profile.save()
                         except UserProfile.DoesNotExist:
-                            # ایجاد UserProfile با raw SQL برای جلوگیری از خطای address
-                            with connection.cursor() as cursor:
-                                cursor.execute(
-                                    "INSERT INTO store_analysis_userprofile (user_id, phone, legal_agreement_accepted, legal_agreement_date, newsletter_subscription, email_notifications, sms_notifications, bio, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())",
-                                    [request.user.id, '', True, timezone.now(), True, True, False, '']
+                            # ایجاد UserProfile با raw SQL - فقط فیلدهای موجود در دیتابیس
+                            try:
+                                # استفاده از get_or_create با update_fields برای جلوگیری از خطای فیلدهای ناموجود
+                                profile, created = UserProfile.objects.get_or_create(
+                                    user=request.user,
+                                    defaults={
+                                        'phone': '',
+                                        'legal_agreement_accepted': True,
+                                        'legal_agreement_date': timezone.now(),
+                                        'newsletter_subscription': True,
+                                        'email_notifications': True,
+                                        'sms_notifications': False,
+                                        'bio': ''
+                                    }
                                 )
+                                if not created:
+                                    profile.legal_agreement_accepted = True
+                                    profile.legal_agreement_date = timezone.now()
+                                    profile.save(update_fields=['legal_agreement_accepted', 'legal_agreement_date'])
+                            except Exception as create_error:
+                                # اگر get_or_create خطا داد، از raw SQL استفاده کن (بدون birth_date)
+                                logger.warning(f"get_or_create failed, using raw SQL: {create_error}")
+                                with connection.cursor() as cursor:
+                                    # فقط فیلدهای موجود را insert کن
+                                    cursor.execute("""
+                                        INSERT INTO store_analysis_userprofile 
+                                        (user_id, phone, legal_agreement_accepted, legal_agreement_date, 
+                                         newsletter_subscription, email_notifications, sms_notifications, bio, 
+                                         created_at, updated_at) 
+                                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                                    """, [
+                                        request.user.id, '', True, timezone.now(), 
+                                        True, True, False, ''
+                                    ])
 
                         logger.info(f"Legal agreement accepted for user {request.user.id}")
                         
@@ -6674,19 +6702,19 @@ def store_analysis_form(request, analysis_id=None):
             for field in file_fields:
                 if field in request.FILES:
                     try:
-                        file_obj = request.FILES[field]
+                    file_obj = request.FILES[field]
                         # بررسی اندازه فایل (حداکثر 10MB)
                         max_size = 10 * 1024 * 1024  # 10MB
                         if file_obj.size > max_size:
                             upload_errors.append(f'فایل {field} بزرگتر از 10 مگابایت است و آپلود نشد.')
                             continue
                         
-                        # ذخیره فایل
+                    # ذخیره فایل
                         from store_analysis.utils.file_storage import save_uploaded_file
                         file_info = save_uploaded_file(file_obj, base_path=f'uploads/{field}')
                         uploaded_files[field] = file_info
                         upload_success_count += 1
-                        logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
+                    logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
                     except Exception as e:
                         error_msg = f'خطا در آپلود فایل {field}: {str(e)}'
                         upload_errors.append(error_msg)
@@ -6721,13 +6749,13 @@ def store_analysis_form(request, analysis_id=None):
                     return redirect('store_analysis:forms', analysis_id=analysis.id)
                 else:
                     # اگر تحلیل وجود ندارد و فایلی هم آپلود نشده، یک تحلیل pending ایجاد کن و به فرم برگردان
-                    analysis = StoreAnalysis.objects.create(
+                analysis = StoreAnalysis.objects.create(
                         user=request.user,
-                        analysis_type='comprehensive_7step',
-                        store_name=form_data.get('store_name', 'فروشگاه جدید'),
-                        status='pending',
-                        analysis_data=form_data
-                    )
+                    analysis_type='comprehensive_7step',
+                    store_name=form_data.get('store_name', 'فروشگاه جدید'),
+                    status='pending',
+                    analysis_data=form_data
+                )
                     request.session['analysis_id'] = analysis.id
                     return redirect('store_analysis:forms', analysis_id=analysis.id)
             
@@ -7186,12 +7214,12 @@ def checkout(request, order_id):
         
         # ایجاد AnalysisRequest - با بررسی وجود مدل
         try:
-            analysis_request = AnalysisRequest.objects.create(
-                order=order,
-                store_analysis_data=form_data or {},
-                status='pending',
-                estimated_completion=timezone.now() + timedelta(hours=24)
-            )
+        analysis_request = AnalysisRequest.objects.create(
+            order=order,
+            store_analysis_data=form_data or {},
+            status='pending',
+            estimated_completion=timezone.now() + timedelta(hours=24)
+        )
         except (AttributeError, Exception) as e:
             # اگر AnalysisRequest وجود نداشت، فقط لاگ کن
             logger.warning(f"AnalysisRequest model not available: {e}")
@@ -8465,9 +8493,9 @@ def analysis_results_session(request):
 def delete_analysis(request, pk):
     """حذف تحلیل با مدیریت وابستگی‌ها"""
     try:
-        analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
-        
-        if request.method == 'POST':
+    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
             try:
                 from django.db import transaction
                 
@@ -8565,7 +8593,7 @@ def delete_analysis(request, pk):
                 except Exception as e:
                     # اگر raw SQL خطا داد، سعی می‌کنیم با ORM حذف کنیم
                     try:
-                        analysis.delete()
+        analysis.delete()
                         logger.info(f"✅ StoreAnalysis {pk} deleted successfully using ORM")
                     except Exception as orm_error:
                         logger.error(f"❌ Error deleting analysis with ORM: {orm_error}")
@@ -8578,9 +8606,9 @@ def delete_analysis(request, pk):
                 logger.error(f"❌ Error deleting analysis {pk}: {e}", exc_info=True)
                 messages.error(request, f'❌ خطا در حذف تحلیل: {str(e)}')
             
-            return redirect('store_analysis:user_dashboard')
-        
-        return render(request, 'store_analysis/delete_analysis_confirm.html', {'analysis': analysis})
+        return redirect('store_analysis:user_dashboard')
+    
+    return render(request, 'store_analysis/delete_analysis_confirm.html', {'analysis': analysis})
     
     except Exception as e:
         logger.error(f"❌ Error in delete_analysis view: {e}", exc_info=True)
@@ -10042,8 +10070,8 @@ def forms_submit(request):
             
             # هدایت به صفحه پرداخت با پیغام مناسب (یا dashboard اگر پرداخت شده)
             if order.status == 'paid' and has_actual_files:
-                return JsonResponse({
-                    'success': True,
+            return JsonResponse({
+                'success': True,
                     'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
                     'redirect_url': f'/store/dashboard/',
                     'payment_required': False
@@ -10052,9 +10080,9 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ارسال شد! پس از پرداخت، تحلیل هوشمند با استفاده از Liara AI و کتابخانه‌های تخصصی به صورت خودکار شروع خواهد شد و نتایج پس از حدود 30 دقیقه در دسترس خواهد بود.',
-                    'redirect_url': f'/store/payment/{order.order_number}/',
-                    'payment_required': True
-                })
+                'redirect_url': f'/store/payment/{order.order_number}/',
+                'payment_required': True
+            })
             
         except Exception as e:
             logger.error(f"Error in forms_submit: {e}")
@@ -10463,7 +10491,7 @@ def buy_advanced(request):
         # دریافت ServicePackage
         from .models import ServicePackage
         try:
-            service_package = ServicePackage.objects.get(package_type='enterprise')
+        service_package = ServicePackage.objects.get(package_type='enterprise')
         except ServicePackage.DoesNotExist:
             logger.error(f"❌ ServicePackage 'enterprise' not found in database")
             # ایجاد ServicePackage اگر وجود ندارد
@@ -11076,14 +11104,14 @@ def generate_professional_persian_pdf_report(analysis):
             
             # مرحله 0: حذف کاراکترهای خاص که مشکل ایجاد می‌کنند
             text = str(text).replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
-            
-            # بررسی اینکه آیا متن فارسی است یا نه
-            persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
-            has_persian = any(char in persian_chars for char in text)
-            
-            if not has_persian:
-                return text
-            
+                
+                # بررسی اینکه آیا متن فارسی است یا نه
+                persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
+                has_persian = any(char in persian_chars for char in text)
+                
+                if not has_persian:
+                    return text
+                
             # روش استاندارد جهانی برای PDF فارسی
             try:
                 import arabic_reshaper
@@ -11103,9 +11131,9 @@ def generate_professional_persian_pdf_report(analysis):
                 reshaped_text = arabic_reshaper.reshape(text_with_persian_numbers)
                 
                 # مرحله 4: RTL Processing (راست به چپ)
-                rtl_text = get_display(reshaped_text)
-                
-                return rtl_text
+                    rtl_text = get_display(reshaped_text)
+                    
+                    return rtl_text
                     
             except ImportError:
                 logger.warning("arabic_reshaper or bidi not installed, using simple text")
@@ -11231,7 +11259,7 @@ def generate_professional_persian_pdf_report(analysis):
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-            detailed_analysis_text = f"""
+        detailed_analysis_text = f"""
         {real_analysis_text}
         
         مشخصات فروشگاه:
@@ -11546,7 +11574,7 @@ def generate_professional_persian_pdf_report(analysis):
         # تقسیم متن برنامه اجرایی به پاراگراف‌های کوتاه‌تر
         implementation_paragraphs = implementation_plan_text.strip().split('\n\n')
         for paragraph in implementation_paragraphs:
-            if paragraph.strip():
+                if paragraph.strip():
                 clean_paragraph = paragraph.strip()
                 if clean_paragraph and len(clean_paragraph) > 10:
                     story.append(Paragraph(fix_persian_text(clean_paragraph), normal_style))
@@ -11758,7 +11786,7 @@ def generate_professional_persian_pdf_report_fixed(analysis):
             if not font_registered:
                 logger.warning("No suitable Persian font found, using Helvetica")
                 font_name = 'Helvetica'
-        except Exception as e:
+                except Exception as e:
             logger.error(f"Font registration error: {e}")
             font_name = 'Helvetica'
         
@@ -11981,7 +12009,7 @@ def generate_professional_persian_pdf_report_fixed(analysis):
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-            detailed_analysis_text = f"""
+        detailed_analysis_text = f"""
         {real_analysis_text}
         
         تحلیل جامع فروشگاه با استفاده از استانداردهای جهانی و روش‌های پیشرفته انجام شده است. 
