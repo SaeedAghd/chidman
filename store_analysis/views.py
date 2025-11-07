@@ -4198,8 +4198,6 @@ def view_analysis_pdf_inline(request, pk):
                 reshaped_text = arabic_reshaper.reshape(text)
                 return get_display(reshaped_text)
             return text
-            else:
-                return text
 
         # سربرگ سه‌ردیفی حرفه‌ای
         header_row1_data = [['CHIDEMANO', '', fix_persian_text(get_persian_date())]]
