@@ -10740,17 +10740,23 @@ def buy_complete(request):
             messages.error(request, f'خطا در ایجاد سفارش: {str(exc)[:100]}... لطفاً دوباره تلاش کنید.')
             return redirect('store_analysis:products')
     
-    context = {
-        'product_name': 'تحلیل کامل فروشگاه',
-        'original_price': '1500000',
-        'price': '750000',
-        'discount_percent': '50',
-        'currency': 'تومان',
-        'delivery_time': '48 ساعت',
-        'is_free': False
-    }
-    
-    return render(request, 'store_analysis/buy_form.html', context)
+    # GET request - نمایش فرم خرید
+    try:
+        context = {
+            'product_name': 'تحلیل کامل فروشگاه',
+            'original_price': '1500000',
+            'price': '750000',
+            'discount_percent': '50',
+            'currency': 'تومان',
+            'delivery_time': '48 ساعت',
+            'is_free': False
+        }
+        
+        return render(request, 'store_analysis/buy_form.html', context)
+    except Exception as e:
+        logger.error(f'❌ خطا در buy_complete (GET): {e}', exc_info=True)
+        messages.error(request, f'خطا در بارگذاری صفحه خرید: {str(e)[:100]}')
+        return redirect('store_analysis:products')
 
 
 def buy_advanced(request):
