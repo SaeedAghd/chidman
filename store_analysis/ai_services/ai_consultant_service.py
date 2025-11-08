@@ -17,7 +17,10 @@ class AIConsultantService:
     
     def __init__(self):
         self.liara_api_key = os.getenv('LIARA_AI_API_KEY', '')
-        self.api_url = "https://api.liara.ir/v1/chat/completions"
+        # Endpoint صحیح بر اساس پاسخ پشتیبانی لیارا
+        # سرویس AI از طریق دامنه ai.liara.ir ارائه می‌شود
+        workspace_id = os.getenv('LIARA_AI_PROJECT_ID', 'ai-bqteya6wz')
+        self.api_url = f"https://ai.liara.ir/api/{workspace_id}/v1/chat/completions"
     
     def chat_with_analysis(
         self,

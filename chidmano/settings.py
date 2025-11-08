@@ -436,7 +436,10 @@ except (NameError, AttributeError):
 _is_runtime = os.getenv('LIARA') == 'true' or os.getenv('PRODUCTION') == 'true'
 
 LIARA_AI_API_KEY = _liara_ai_key_raw
-LIARA_AI_BASE_URL = os.getenv('LIARA_AI_BASE_URL', 'https://api.liara.ir/v1')
+# Base URL برای سرویس AI لیارا - بر اساس پاسخ پشتیبانی
+# سرویس AI از طریق دامنه ai.liara.ir ارائه می‌شود
+LIARA_AI_BASE_URL = os.getenv('LIARA_AI_BASE_URL', 'https://ai.liara.ir/api')
+LIARA_AI_PROJECT_ID = os.getenv('LIARA_AI_PROJECT_ID', 'ai-bqteya6wz')  # Workspace ID از پنل لیارا
 LIARA_AI_TIMEOUT = int(os.getenv('LIARA_AI_TIMEOUT', '90'))  # ثانیه
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
@@ -459,8 +462,9 @@ if not _is_build_time:
     else:
         # نمایش فقط 10 کاراکتر اول و آخر برای امنیت
         key_preview = f"{LIARA_AI_API_KEY[:10]}...{LIARA_AI_API_KEY[-10:]}" if len(LIARA_AI_API_KEY) > 20 else "***"
+        project_id_status = f"project_id={LIARA_AI_PROJECT_ID}" if LIARA_AI_PROJECT_ID else "project_id=not_set"
         if _is_runtime:
-            logger.info(f"✅ Liara AI configured (base_url={LIARA_AI_BASE_URL}, timeout={LIARA_AI_TIMEOUT}s, key_preview={key_preview})")
+            logger.info(f"✅ Liara AI configured (base_url={LIARA_AI_BASE_URL}, {project_id_status}, timeout={LIARA_AI_TIMEOUT}s, key_preview={key_preview})")
         else:
             # در build time فقط debug log
             logger.debug(f"🔍 LIARA_AI_API_KEY check: exists_in_env={_liara_ai_key_exists}, value_length={len(_liara_ai_key_raw) if _liara_ai_key_raw else 0}")

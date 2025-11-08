@@ -61,7 +61,7 @@ class LiaraAIClient:
             logger.info(f"✅ URL اصلاح شد به: {base_url_raw}")
         
         self.base_url: str = base_url_raw.rstrip('/')
-        self.workspace_id: Optional[str] = os.getenv("LIARA_AI_PROJECT_ID", "ai-vmqbcxnig")
+        self.workspace_id: Optional[str] = os.getenv("LIARA_AI_PROJECT_ID", "ai-bqteya6wz")
         self.session = requests.Session()
         self.timeout: int = int(os.getenv("LIARA_AI_TIMEOUT", "90"))  # 90 ثانیه برای production
         
