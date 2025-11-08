@@ -126,6 +126,22 @@ class LiaraAIService:
                     'error': 'authentication_failed',
                     'error_message': 'خطا در احراز هویت API. لطفاً API key را بررسی کنید.'
                 }
+            elif response.status_code == 403:
+                error_detail = response.text[:500] if response.text else 'بدون جزئیات'
+                logger.error(f"❌ خطا در دسترسی به Liara AI (403): {error_detail}")
+                logger.error(f"   URL: {api_url}")
+                logger.error(f"   Workspace ID: {self.workspace_id}")
+                logger.error(f"   API Key موجود: {'✅' if self.api_key else '❌'}")
+                return {
+                    'error': 'access_denied',
+                    'error_message': 'دسترسی رد شد (403). لطفاً بررسی کنید:\n'
+                                   '1. API Key معتبر است و منقضی نشده\n'
+                                   '2. Workspace ID صحیح است\n'
+                                   '3. API Key برای این Workspace مجاز است\n'
+                                   '4. در پنل لیارا دسترسی‌های لازم فعال است',
+                    'error_detail': error_detail,
+                    'workspace_id': self.workspace_id
+                }
             elif response.status_code == 429:
                 logger.warning(f"⚠️ Rate limit در Liara AI")
                 return {
@@ -133,10 +149,12 @@ class LiaraAIService:
                     'error_message': 'درخواست بیش از حد. لطفاً کمی صبر کنید.'
                 }
             else:
-                logger.error(f"❌ خطا در API لیارا: {response.status_code} - {response.text}")
+                error_detail = response.text[:500] if response.text else 'بدون جزئیات'
+                logger.error(f"❌ خطا در API لیارا: {response.status_code} - {error_detail}")
                 return {
                     'error': f'api_error_{response.status_code}',
-                    'error_message': f'خطا در ارتباط با API: {response.status_code}'
+                    'error_message': f'خطا در ارتباط با API: {response.status_code}',
+                    'error_detail': error_detail
                 }
                 
         except requests.exceptions.Timeout:

@@ -42,11 +42,26 @@ class LiaraAIClient:
     def __init__(self) -> None:
         self.api_key: Optional[str] = os.getenv("LIARA_AI_API_KEY")
         # Liara AI endpoint - بر اساس مستندات رسمی
-        # ممکن است نیاز به تنظیم در environment variable باشد
-        self.base_url: str = os.getenv(
+        # سرویس AI از طریق دامنه ai.liara.ir ارائه می‌شود
+        # Endpoint صحیح: https://ai.liara.ir/api/{workspaceID}/v1/chat/completions
+        base_url_raw = os.getenv(
             "LIARA_AI_BASE_URL", 
-            "https://api.liara.ir/v1"  # Endpoint پیش‌فرض
+            "https://ai.liara.ir/api"  # Endpoint صحیح
         )
+        
+        # 🔧 اصلاح خودکار URL اشتباه (اگر از api.liara.ir استفاده شده باشد)
+        if 'api.liara.ir' in base_url_raw:
+            logger.warning(f"⚠️ URL قدیمی شناسایی شد: {base_url_raw} - در حال اصلاح به URL صحیح")
+            # تبدیل api.liara.ir/v1 به ai.liara.ir/api
+            base_url_raw = base_url_raw.replace('api.liara.ir/v1', 'ai.liara.ir/api')
+            base_url_raw = base_url_raw.replace('api.liara.ir', 'ai.liara.ir/api')
+            # حذف /v1 از انتها اگر وجود دارد
+            if base_url_raw.endswith('/v1'):
+                base_url_raw = base_url_raw[:-3]
+            logger.info(f"✅ URL اصلاح شد به: {base_url_raw}")
+        
+        self.base_url: str = base_url_raw.rstrip('/')
+        self.workspace_id: Optional[str] = os.getenv("LIARA_AI_PROJECT_ID", "ai-vmqbcxnig")
         self.session = requests.Session()
         self.timeout: int = int(os.getenv("LIARA_AI_TIMEOUT", "90"))  # 90 ثانیه برای production
         
@@ -58,7 +73,7 @@ class LiaraAIClient:
         if not self.api_key:
             logger.warning("⚠️ متغیر LIARA_AI_API_KEY تنظیم نشده است؛ از fallback استفاده می‌شود.")
         else:
-            logger.info(f"✅ LiaraAIClient initialized with endpoint: {self.base_url}")
+            logger.info(f"✅ LiaraAIClient initialized with endpoint: {self.base_url}, workspace_id: {self.workspace_id}")
 
     @property
     def enabled(self) -> bool:
@@ -77,7 +92,11 @@ class LiaraAIClient:
         if not self.api_key:
             raise LiaraAIError("LIARA_AI_API_KEY تعریف نشده است")
 
-        url = f"{self.base_url.rstrip('/')}/chat/completions"
+        # ساخت URL صحیح: https://ai.liara.ir/api/{workspaceID}/v1/chat/completions
+        if not self.workspace_id:
+            raise LiaraAIError("LIARA_AI_PROJECT_ID (workspaceID) تعریف نشده است")
+        
+        url = f"{self.base_url.rstrip('/')}/{self.workspace_id}/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
