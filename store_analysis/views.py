@@ -10712,17 +10712,37 @@ def buy_complete(request):
             analysis.order = order
             analysis.save(update_fields=['order'])
 
-            # ذخیره فایل‌های ضمیمه (اختیاری)
+            # ذخیره فایل‌های ضمیمه (اختیاری) - استفاده از utility برای Liara compatibility
             if request.FILES:
-                from django.core.files.storage import default_storage
+                from .utils.file_storage import save_uploaded_file
 
+                uploaded_files_dict = analysis_data.get('uploaded_files', {})
+                
                 if 'images' in request.FILES:
                     for image in request.FILES.getlist('images')[:20]:
-                        default_storage.save(f'analyses/{analysis.id}/images/{image.name}', image)
+                        try:
+                            file_info = save_uploaded_file(image, base_path=f'analyses/{analysis.id}/images')
+                            if 'images' not in uploaded_files_dict:
+                                uploaded_files_dict['images'] = []
+                            uploaded_files_dict['images'].append(file_info)
+                        except Exception as e:
+                            logger.error(f"❌ خطا در ذخیره تصویر: {e}", exc_info=True)
 
                 if 'videos' in request.FILES:
                     for video in request.FILES.getlist('videos')[:5]:
-                        default_storage.save(f'analyses/{analysis.id}/videos/{video.name}', video)
+                        try:
+                            file_info = save_uploaded_file(video, base_path=f'analyses/{analysis.id}/videos')
+                            if 'videos' not in uploaded_files_dict:
+                                uploaded_files_dict['videos'] = []
+                            uploaded_files_dict['videos'].append(file_info)
+                        except Exception as e:
+                            logger.error(f"❌ خطا در ذخیره ویدیو: {e}", exc_info=True)
+                
+                # به‌روزرسانی analysis_data با فایل‌های آپلود شده
+                if uploaded_files_dict:
+                    analysis_data['uploaded_files'] = uploaded_files_dict
+                    analysis.analysis_data = analysis_data
+                    analysis.save(update_fields=['analysis_data'])
 
             request.session['analysis_id'] = analysis.id
             request.session['service_package_id'] = service_package.id
