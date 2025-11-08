@@ -17,13 +17,31 @@ class LiaraAIService:
     """سرویس هوش مصنوعی پیشرفته لیارا"""
     
     def __init__(self):
-        # URL صحیح API لیارا بر اساس مستندات
-        # استفاده از LIARA_AI_BASE_URL از settings یا URL پیش‌فرض
-        self.base_url = getattr(settings, 'LIARA_AI_BASE_URL', 'https://api.liara.ir/v1')
+        # URL صحیح API لیارا AI - بر اساس پاسخ پشتیبانی لیارا
+        # سرویس AI از طریق دامنه ai.liara.ir ارائه می‌شود
+        # Endpoint صحیح: https://ai.liara.ir/api/{workspaceID}/v1/chat/completions
+        base_url_raw = getattr(settings, 'LIARA_AI_BASE_URL', 'https://ai.liara.ir/api')
+        
+        # 🔧 اصلاح خودکار URL اشتباه (اگر از api.liara.ir استفاده شده باشد)
+        if 'api.liara.ir' in base_url_raw:
+            logger.warning(f"⚠️ URL قدیمی شناسایی شد: {base_url_raw} - در حال اصلاح به URL صحیح")
+            # تبدیل api.liara.ir/v1 به ai.liara.ir/api
+            base_url_raw = base_url_raw.replace('api.liara.ir/v1', 'ai.liara.ir/api')
+            base_url_raw = base_url_raw.replace('api.liara.ir', 'ai.liara.ir/api')
+            # حذف /v1 از انتها اگر وجود دارد
+            if base_url_raw.endswith('/v1'):
+                base_url_raw = base_url_raw[:-3]
+            logger.info(f"✅ URL اصلاح شد به: {base_url_raw}")
+        
+        self.base_url = base_url_raw.rstrip('/')
         self.api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
+        # Workspace ID برای API لیارا AI (همان project_id)
+        self.workspace_id = getattr(settings, 'LIARA_AI_PROJECT_ID', '')
+        # نگه‌داری project_id برای سازگاری با کد قدیمی
+        self.project_id = self.workspace_id
         
         # لاگ برای ردیابی تنظیمات
-        logger.info(f"🔧 LiaraAIService initialized: base_url={self.base_url}, api_key_exists={'✅' if self.api_key else '❌'}")
+        logger.info(f"🔧 LiaraAIService initialized: base_url={self.base_url}, api_key_exists={'✅' if self.api_key else '❌'}, workspace_id={'✅' if self.workspace_id else '❌'}")
         
         if not self.api_key:
             logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - تحلیل AI غیرفعال خواهد بود")
@@ -76,9 +94,18 @@ class LiaraAIService:
                 "presence_penalty": 0.1
             }
             
-            # لاگ برای ردیابی
-            api_url = f"{self.base_url}/chat/completions"
-            logger.info(f"🚀 ارسال درخواست به Liara AI: URL={api_url}, Model={model}, API Key موجود={'✅' if self.api_key else '❌'}")
+            # ساخت URL API - بر اساس پاسخ پشتیبانی لیارا
+            # Endpoint صحیح: https://ai.liara.ir/api/{workspaceID}/v1/chat/completions
+            if not self.workspace_id:
+                logger.error("❌ LIARA_AI_PROJECT_ID (workspaceID) تنظیم نشده است")
+                return {
+                    'error': 'workspace_id_missing',
+                    'error_message': 'Workspace ID تنظیم نشده است. لطفاً LIARA_AI_PROJECT_ID را در settings تنظیم کنید.'
+                }
+            
+            api_url = f"{self.base_url.rstrip('/')}/{self.workspace_id}/v1/chat/completions"
+            
+            logger.info(f"🚀 ارسال درخواست به Liara AI: URL={api_url}, Model={model}, API Key موجود={'✅' if self.api_key else '❌'}, Workspace ID={'✅' if self.workspace_id else '❌'}")
             
             response = requests.post(
                 api_url,

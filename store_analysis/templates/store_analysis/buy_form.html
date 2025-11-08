@@ -225,8 +225,48 @@
     <!-- Free Usage Warning -->
     {% if is_used_before %}
     <div class="free-usage-warning">
-        <h3>⚠️ شما قبلاً از پلن رایگان استفاده کرده‌اید</h3>
-        <p>🚫 برای استفاده مجدد، لطفاً از پلن‌های حرفه‌ای استفاده کنید</p>
+        {% if usage_info.suggested_action == 'blocked' %}
+            <h3>🚫 شما قبلاً از پلن رایگان استفاده کرده‌اید</h3>
+            {% if usage_info.message %}
+                <p>{{ usage_info.message }}</p>
+            {% else %}
+                <p>🚫 برای استفاده مجدد، لطفاً از پلن‌های حرفه‌ای استفاده کنید</p>
+            {% endif %}
+            {% if usage_info.days_used_ago %}
+                <p>📅 شما {{ usage_info.days_used_ago }} روز پیش از این سرویس استفاده کرده‌اید</p>
+            {% endif %}
+            {% if usage_info.reason %}
+                <p style="font-size: 0.95rem; opacity: 0.9;">{{ usage_info.reason }}</p>
+            {% endif %}
+        {% elif usage_info.suggested_action == 'cooldown' %}
+            <h3>⏳ در حال انتظار برای استفاده مجدد</h3>
+            {% if usage_info.message %}
+                <p>{{ usage_info.message }}</p>
+            {% else %}
+                <p>⏳ شما قبلاً از پلن رایگان استفاده کرده‌اید</p>
+            {% endif %}
+            {% if usage_info.remaining_days %}
+                <p style="font-size: 1.2rem; font-weight: bold; margin: 15px 0;">
+                    ⏰ {{ usage_info.remaining_days }} روز دیگر می‌توانید دوباره از پلن رایگان استفاده کنید
+                </p>
+            {% endif %}
+            {% if usage_info.days_used_ago %}
+                <p style="font-size: 0.95rem; opacity: 0.9;">📅 شما {{ usage_info.days_used_ago }} روز پیش از این سرویس استفاده کرده‌اید</p>
+            {% endif %}
+        {% else %}
+            <h3>⚠️ شما قبلاً از پلن رایگان استفاده کرده‌اید</h3>
+            {% if usage_info.message %}
+                <p>{{ usage_info.message }}</p>
+            {% elif usage_info.reason %}
+                <p>{{ usage_info.reason }}</p>
+            {% else %}
+                <p>🚫 برای استفاده مجدد، لطفاً از پلن‌های حرفه‌ای استفاده کنید</p>
+            {% endif %}
+            {% if usage_info.days_used_ago %}
+                <p>📅 شما {{ usage_info.days_used_ago }} روز پیش از این سرویس استفاده کرده‌اید</p>
+            {% endif %}
+        {% endif %}
+        <p style="margin-top: 20px;">💎 برای استفاده فوری، از پلن‌های حرفه‌ای استفاده کنید</p>
         <p>💎 پلن‌های ما شامل تحلیل‌های جامع‌تر و پشتیبانی تخصصی هستند</p>
         <a href="{% url 'store_analysis:products' %}" class="btn-upgrade">مشاهده پلن‌های پولی</a>
     </div>
@@ -308,22 +348,7 @@
         </div>
         {% endif %}
 
-        {% if product_name == 'تحلیل کامل فروشگاه' or product_name == 'تحلیل پیشرفته فروشگاه' %}
-        <!-- 💎 Upload Images and Videos for Premium Plans -->
-        <div class="form-group">
-            <label for="images">📸 آپلود تصاویر فروشگاه (اختیاری)</label>
-            <p class="help-text">برای دریافت تحلیل دقیق‌تر، تصاویر مختلف از فروشگاه خود آپلود کنید (نما، فضاهای داخلی، کابینت‌ها، ویترین)</p>
-            <input type="file" id="images" name="images" multiple accept="image/*">
-            <small class="help-text">مجموعاً حداکثر 20 تصویر (JPG, PNG)</small>
-        </div>
-
-        <div class="form-group">
-            <label for="videos">🎥 آپلود ویدیو از فروشگاه (اختیاری)</label>
-            <p class="help-text">یک ویدیو کوتاه از فروشگاه و نحوه چیدمان محصولات</p>
-            <input type="file" id="videos" name="videos" multiple accept="video/*">
-            <small class="help-text">حداکثر 5 ویدیو (MP4, AVI, MOV) - حداکثر 100 مگابایت</small>
-        </div>
-        {% endif %}
+        <!-- فیلدهای آپلود تصویر و ویدیو حذف شدند - کاربر بعد از خرید و پرداخت موفق، در صفحه فرم می‌تواند تصاویر و ویدیوها را آپلود کند -->
 
         <button type="submit" class="submit-button">ادامه به پرداخت</button>
     </form>
