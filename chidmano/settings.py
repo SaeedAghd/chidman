@@ -420,7 +420,20 @@ _liara_ai_key_raw = os.getenv('LIARA_AI_API_KEY', '')
 if not _liara_ai_key_raw:
     _liara_ai_key_raw = os.environ.get('LIARA_AI_API_KEY', '')
 _liara_ai_key_exists = 'LIARA_AI_API_KEY' in os.environ
-logger.debug(f"🔍 LIARA_AI_API_KEY check: exists_in_env={_liara_ai_key_exists}, value_length={len(_liara_ai_key_raw) if _liara_ai_key_raw else 0}")
+
+# تشخیص build time (collectstatic) vs runtime
+# در build time متغیرهای محیطی موجود نیستند که طبیعی است
+_is_build_time = False
+try:
+    # بررسی اینکه آیا collectstatic در حال اجرا است
+    if len(sys.argv) > 1 and 'collectstatic' in sys.argv:
+        _is_build_time = True
+except (NameError, AttributeError):
+    # اگر sys.argv موجود نباشد، احتمالاً build time نیست
+    pass
+
+# فقط در runtime (نه build time) لاگ و warning بده
+_is_runtime = os.getenv('LIARA') == 'true' or os.getenv('PRODUCTION') == 'true'
 
 LIARA_AI_API_KEY = _liara_ai_key_raw
 LIARA_AI_BASE_URL = os.getenv('LIARA_AI_BASE_URL', 'https://api.liara.ir/v1')
@@ -428,20 +441,29 @@ LIARA_AI_TIMEOUT = int(os.getenv('LIARA_AI_TIMEOUT', '90'))  # ثانیه
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'
 
-if not LIARA_AI_API_KEY:
-    logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - AI features غیرفعال خواهند بود")
-    logger.warning(f"   Environment check: LIARA_AI_API_KEY in os.environ = {_liara_ai_key_exists}")
-    logger.warning(f"   All env vars starting with LIARA_: {[k for k in os.environ.keys() if k.startswith('LIARA_')]}")
-    # بررسی همه متغیرهای محیطی برای debug
-    all_env_vars = list(os.environ.keys())
-    logger.warning(f"   Total env vars: {len(all_env_vars)}")
-    liara_vars = [k for k in all_env_vars if 'LIARA' in k.upper()]
-    if liara_vars:
-        logger.warning(f"   Found LIARA-related vars: {liara_vars}")
-else:
-    # نمایش فقط 10 کاراکتر اول و آخر برای امنیت
-    key_preview = f"{LIARA_AI_API_KEY[:10]}...{LIARA_AI_API_KEY[-10:]}" if len(LIARA_AI_API_KEY) > 20 else "***"
-    logger.info(f"✅ Liara AI configured (base_url={LIARA_AI_BASE_URL}, timeout={LIARA_AI_TIMEOUT}s, key_preview={key_preview})")
+# فقط در runtime warning/info بده، نه در build time
+if not _is_build_time:
+    if not LIARA_AI_API_KEY:
+        if _is_runtime:
+            # فقط در runtime warning بده
+            logger.warning("⚠️ LIARA_AI_API_KEY تنظیم نشده است - AI features غیرفعال خواهند بود")
+            logger.warning(f"   Environment check: LIARA_AI_API_KEY in os.environ = {_liara_ai_key_exists}")
+            logger.warning(f"   All env vars starting with LIARA_: {[k for k in os.environ.keys() if k.startswith('LIARA_')]}")
+            # بررسی همه متغیرهای محیطی برای debug
+            all_env_vars = list(os.environ.keys())
+            logger.warning(f"   Total env vars: {len(all_env_vars)}")
+            liara_vars = [k for k in all_env_vars if 'LIARA' in k.upper()]
+            if liara_vars:
+                logger.warning(f"   Found LIARA-related vars: {liara_vars}")
+        # در build time هیچ warning نده (طبیعی است)
+    else:
+        # نمایش فقط 10 کاراکتر اول و آخر برای امنیت
+        key_preview = f"{LIARA_AI_API_KEY[:10]}...{LIARA_AI_API_KEY[-10:]}" if len(LIARA_AI_API_KEY) > 20 else "***"
+        if _is_runtime:
+            logger.info(f"✅ Liara AI configured (base_url={LIARA_AI_BASE_URL}, timeout={LIARA_AI_TIMEOUT}s, key_preview={key_preview})")
+        else:
+            # در build time فقط debug log
+            logger.debug(f"🔍 LIARA_AI_API_KEY check: exists_in_env={_liara_ai_key_exists}, value_length={len(_liara_ai_key_raw) if _liara_ai_key_raw else 0}")
 
 # Payment - PayPing
 # PayPing Settings - Token جدید برای پرداخت و کیف پول
@@ -646,9 +668,29 @@ PERFORMANCE_MONITORING = {
 # File upload optimization (defaults; Liara overrides above)
 FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE', 32 * 1024 * 1024))
 DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('DATA_UPLOAD_MAX_MEMORY_SIZE', 64 * 1024 * 1024))
-temp_dir = BASE_DIR / 'temp'
-temp_dir.mkdir(exist_ok=True)
-FILE_UPLOAD_TEMP_DIR = str(temp_dir)
+
+# تشخیص Liara و استفاده از /tmp برای فایل‌های موقت
+is_liara = (
+    os.getenv('LIARA') == 'true' or
+    bool(os.getenv('LIARA_APP_NAME')) or
+    bool(os.getenv('LIARA_PROJECT_ID')) or
+    'liara' in os.getenv('HOSTNAME', '').lower()
+)
+
+# بررسی اینکه آیا در ویندوز هستیم یا نه
+import platform
+is_windows = platform.system() == 'Windows'
+
+if is_liara and not is_windows:
+    # در Liara (غیر ویندوز)، از /tmp استفاده می‌کنیم (read-only filesystem)
+    FILE_UPLOAD_TEMP_DIR = '/tmp'
+    logger.info("✅ Using /tmp for file uploads (Liara environment detected)")
+else:
+    # در development یا ویندوز، از temp directory در BASE_DIR استفاده می‌کنیم
+    temp_dir = BASE_DIR / 'temp'
+    temp_dir.mkdir(exist_ok=True)
+    FILE_UPLOAD_TEMP_DIR = str(temp_dir)
+    logger.info(f"✅ Using {FILE_UPLOAD_TEMP_DIR} for file uploads (development/Windows)")
 
 # Security headers (disabled for development)
 if not DEBUG:

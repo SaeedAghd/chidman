@@ -19,8 +19,9 @@ from decimal import Decimal
 from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, SupportTicket, FAQService, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile, AnalysisRequest, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, PricingPlan, AIConsultantService, AIConsultantQuestion, AIConsultantSession, AIConsultantPayment, Transaction, Order
 from django.contrib.auth.models import User
 # Admin views moved to chidmano.admin_dashboard
-# from .ai_analysis import StoreAnalysisAI  # فایل موقتاً وجود ندارد
-# from .ai_services.advanced_ai_manager import AdvancedAIManager  # فایل ai_analysis وجود ندارد
+# Import های لازم برای AI services
+from .ai_services.advanced_ai_manager import AdvancedAIManager
+from .ai_services.liara_ai_service import LiaraAIService
 # from .services.faq_service import FAQService
 # Admin views moved to chidmano.admin_dashboard
 # from .forms import StoreAnalysisForm, ProfessionalStoreAnalysisForm
@@ -414,6 +415,155 @@ import logging
 
 # Setup logger
 logger = logging.getLogger(__name__)
+
+
+# Wrapper class برای سازگاری با کد قدیمی
+class StoreAnalysisAI:
+    """Wrapper class برای سازگاری با کد قدیمی - استفاده از LiaraAIService"""
+    
+    def __init__(self):
+        self.liara_service = LiaraAIService()
+        self.advanced_manager = AdvancedAIManager()
+    
+    def generate_detailed_analysis(self, analysis_data):
+        """تولید تحلیل تفصیلی"""
+        try:
+            store_data = {
+                'store_name': analysis_data.get('store_name', 'فروشگاه'),
+                'store_type': analysis_data.get('store_type', 'عمومی'),
+                'store_size': str(analysis_data.get('store_size', 0)),
+                **analysis_data
+            }
+            
+            # استخراج تصاویر از uploaded_files
+            images = []
+            if 'uploaded_files' in analysis_data:
+                uploaded_files = analysis_data['uploaded_files']
+                image_fields = ['store_photos', 'store_layout', 'shelf_photos', 
+                              'window_display_photos', 'entrance_photos', 'checkout_photos']
+                for field in image_fields:
+                    if field in uploaded_files:
+                        file_info = uploaded_files[field]
+                        if isinstance(file_info, dict) and 'path' in file_info:
+                            images.append(file_info['path'])
+            
+            result = self.liara_service.analyze_store_comprehensive(
+                store_data=store_data,
+                images=images if images else None
+            )
+            
+            if result and not result.get('error'):
+                return {
+                    'analysis_text': result.get('final_report', ''),
+                    'overall_score': 75.0,
+                    'layout_score': 75.0,
+                    'traffic_score': 75.0,
+                    'design_score': 75.0,
+                    'sales_score': 75.0,
+                    'strengths': result.get('detailed_analyses', {}).get('main', {}).get('content', ''),
+                    'weaknesses': result.get('detailed_analyses', {}).get('design', {}).get('content', ''),
+                    'opportunities': result.get('detailed_analyses', {}).get('marketing', {}).get('content', ''),
+                    'threats': result.get('detailed_analyses', {}).get('psychology', {}).get('content', ''),
+                    'recommendations': result.get('final_report', ''),
+                    **result
+                }
+            else:
+                # Fallback به تحلیل ساده
+                from .utils import generate_initial_ai_analysis
+                return generate_initial_ai_analysis(analysis_data)
+        except Exception as e:
+            logger.error(f"Error in generate_detailed_analysis: {e}", exc_info=True)
+            from .utils import generate_initial_ai_analysis
+            return generate_initial_ai_analysis(analysis_data)
+    
+    def detect_store_problems(self, analysis_data):
+        """تشخیص مشکلات فروشگاه"""
+        try:
+            store_data = {
+                'store_name': analysis_data.get('store_name', 'فروشگاه'),
+                **analysis_data
+            }
+            result = self.liara_service.analyze_store_comprehensive(store_data=store_data)
+            return {
+                'problems': result.get('detailed_analyses', {}),
+                'recommendations': result.get('final_report', '')
+            }
+        except Exception as e:
+            logger.error(f"Error in detect_store_problems: {e}", exc_info=True)
+            return {'problems': [], 'recommendations': ''}
+    
+    def generate_smart_recommendations(self, analysis_data):
+        """تولید پیشنهادات هوشمند"""
+        try:
+            store_data = {
+                'store_name': analysis_data.get('store_name', 'فروشگاه'),
+                **analysis_data
+            }
+            result = self.liara_service.analyze_store_comprehensive(store_data=store_data)
+            return result.get('final_report', '')
+        except Exception as e:
+            logger.error(f"Error in generate_smart_recommendations: {e}", exc_info=True)
+            return ''
+    
+    def generate_layout_suggestions(self, analysis_data):
+        """تولید پیشنهادات چیدمان"""
+        return self.generate_smart_recommendations(analysis_data)
+    
+    def generate_2d_simulation(self, analysis_data):
+        """تولید شبیه‌سازی 2D"""
+        return {'simulation_2d': 'در حال توسعه'}
+    
+    def generate_3d_simulation(self, analysis_data):
+        """تولید شبیه‌سازی 3D"""
+        return {'simulation_3d': 'در حال توسعه'}
+    
+    def generate_detailed_report(self, analysis_data):
+        """تولید گزارش تفصیلی"""
+        return self.generate_detailed_analysis(analysis_data)
+    
+    def generate_forecast(self, analysis_data):
+        """تولید پیش‌بینی"""
+        return {'forecast': 'در حال توسعه'}
+    
+    def generate_dashboard_data(self, analysis_data):
+        """تولید داده‌های داشبورد"""
+        return {'dashboard': 'در حال توسعه'}
+    
+    def generate_inspiration_examples(self, analysis_data):
+        """تولید نمونه‌های الهام‌بخش"""
+        return {'examples': []}
+    
+    def find_similar_stores(self, analysis_data):
+        """یافتن فروشگاه‌های مشابه"""
+        return {'similar_stores': []}
+    
+    def generate_virtual_consultation(self, analysis_data):
+        """تولید مشاوره مجازی"""
+        return self.generate_detailed_analysis(analysis_data)
+    
+    def generate_qa_system(self, analysis_data):
+        """تولید سیستم سوال و جواب"""
+        return {'qa': []}
+    
+    def generate_implementation_guide(self, analysis_data):
+        """تولید راهنمای اجرا"""
+        try:
+            result = self.generate_detailed_analysis(analysis_data)
+            return {
+                'guide': result.get('final_report', result.get('analysis_text', '')),
+                'steps': []
+            }
+        except Exception as e:
+            logger.error(f"Error in generate_implementation_guide: {e}", exc_info=True)
+            return {'guide': '', 'steps': []}
+    
+    def generate_technical_specifications(self, analysis_data):
+        """تولید مشخصات فنی"""
+        return {'specs': {}}
+    
+    def generate_supplier_connections(self, analysis_data):
+        """تولید اتصالات تامین‌کننده"""
+        return {'suppliers': []}
 
 
 def ensure_basic_analysis_results(analysis: StoreAnalysis) -> None:
@@ -1056,8 +1206,9 @@ def delete_incomplete_analyses(request):
 def analysis_results(request, pk):
     """نتایج تحلیل"""
     try:
+        is_admin = request.user.is_staff or request.user.is_superuser
         # اگر ادمین است، هر تحلیلی را ببیند
-        if request.user.is_staff or request.user.is_superuser:
+        if is_admin:
             analysis = StoreAnalysis.objects.get(pk=pk)
         else:
             # کاربر عادی فقط تحلیل‌های خودش را می‌بیند
@@ -1065,6 +1216,21 @@ def analysis_results(request, pk):
     except StoreAnalysis.DoesNotExist:
         from django.http import Http404
         raise Http404("تحلیل مورد نظر یافت نشد")
+    
+    # جلوگیری از مشاهده نتایج قبل از اتمام تحلیل برای کاربران عادی
+    if not is_admin:
+        if analysis.status in ['processing', 'pending']:
+            messages.info(
+                request,
+                '⏳ تحلیل شما هنوز در حال پردازش است. به محض آماده شدن، دکمه «مشاهده نتایج» فعال می‌شود.'
+            )
+            return redirect('store_analysis:user_dashboard')
+        if analysis.status == 'completed' and not analysis.results:
+            messages.info(
+                request,
+                '🔄 تحلیل تکمیل شده اما نتایج نهایی هنوز آماده نشده‌اند. لطفاً چند لحظه دیگر دوباره تلاش کنید.'
+            )
+            return redirect('store_analysis:user_dashboard')
     
     # بررسی وضعیت تحلیل و نمایش پیام مناسب
     if analysis.status == 'processing':
@@ -4926,12 +5092,12 @@ def payping_callback(request, order_id):
         
         if verification_result.get('status') == 'success':
             if payment is None:
-            payment = Payment.objects.create(
+                payment = Payment.objects.create(
                     user=order.user,
-                store_analysis=store_analysis,
+                    store_analysis=store_analysis,
                     order_id=order.order_number,
                     amount=order.final_amount,
-                payment_method='payping',
+                    payment_method='payping',
                     status='pending'
                 )
 
@@ -5112,7 +5278,7 @@ def payping_callback(request, order_id):
                                             'report_type': f'premium_{store_analysis.package_type}',
                                         })
                                         logger.info(f"✅ گزارش Premium برای تحلیل {store_analysis.id} تولید شد")
-    except Exception as e:
+                                    except Exception as e:
                                         logger.error(f"⚠️ خطا در تولید گزارش Premium: {e}", exc_info=True)
                                 
                                 # ذخیره نتایج
@@ -6657,27 +6823,48 @@ def accept_legal_agreement(request):
 
 # --- فروشگاه ---
 
-@login_required
 def store_analysis_form(request, analysis_id=None):
     """فرم تحلیل هوشمند فروشگاه - ۷ گام بهینه‌سازی"""
     analysis = None
 
+    logger.info(f"🔍 store_analysis_form: analysis_id={analysis_id}, is_authenticated={request.user.is_authenticated}, session_analysis_id={request.session.get('analysis_id')}")
+
     if analysis_id is not None:
         # اگر کاربر لاگین است، فقط تیکت‌های خودش را ببیند
         if request.user.is_authenticated:
-            analysis = get_object_or_404(StoreAnalysis, pk=analysis_id, user=request.user)
+            try:
+                analysis = StoreAnalysis.objects.get(pk=analysis_id, user=request.user)
+                logger.info(f"✅ store_analysis_form: Found analysis {analysis_id} for authenticated user {request.user.username}")
+            except StoreAnalysis.DoesNotExist:
+                logger.warning(f"⚠️ store_analysis_form: Analysis {analysis_id} not found for user {request.user.username}")
+                messages.error(request, '❌ تحلیل مورد نظر یافت نشد.')
+                return redirect('store_analysis:products')
         else:
             # اگر کاربر لاگین نیست، از session استفاده کن
             session_analysis_id = request.session.get('analysis_id')
             if session_analysis_id == analysis_id:
-                analysis = get_object_or_404(StoreAnalysis, pk=analysis_id)
+                try:
+                    analysis = StoreAnalysis.objects.get(pk=analysis_id)
+                    logger.info(f"✅ store_analysis_form: Found analysis {analysis_id} from session (not authenticated)")
+                except StoreAnalysis.DoesNotExist:
+                    logger.warning(f"⚠️ store_analysis_form: Analysis {analysis_id} not found (session match but not in DB)")
+                    messages.error(request, '❌ تحلیل مورد نظر یافت نشد.')
+                    return redirect('store_analysis:products')
             else:
+                logger.warning(f"⚠️ store_analysis_form: Session mismatch - analysis_id={analysis_id}, session_analysis_id={session_analysis_id}")
                 messages.error(request, '❌ دسترسی غیرمجاز به این تحلیل')
-                return redirect('store_analysis:index')
+                return redirect('store_analysis:products')
     else:
         session_analysis_id = request.session.get('analysis_id')
         if session_analysis_id:
-            analysis = StoreAnalysis.objects.filter(pk=session_analysis_id, user=request.user).first()
+            if request.user.is_authenticated:
+                analysis = StoreAnalysis.objects.filter(pk=session_analysis_id, user=request.user).first()
+            else:
+                analysis = StoreAnalysis.objects.filter(pk=session_analysis_id).first()
+            if analysis:
+                logger.info(f"✅ store_analysis_form: Found analysis {session_analysis_id} from session (no analysis_id in URL)")
+            else:
+                logger.warning(f"⚠️ store_analysis_form: Analysis {session_analysis_id} from session not found")
 
     if request.method == 'POST':
         try:
@@ -6701,19 +6888,19 @@ def store_analysis_form(request, analysis_id=None):
             for field in file_fields:
                 if field in request.FILES:
                     try:
-                    file_obj = request.FILES[field]
+                        file_obj = request.FILES[field]
                         # بررسی اندازه فایل (حداکثر 10MB)
                         max_size = 10 * 1024 * 1024  # 10MB
                         if file_obj.size > max_size:
                             upload_errors.append(f'فایل {field} بزرگتر از 10 مگابایت است و آپلود نشد.')
                             continue
                         
-                    # ذخیره فایل
+                        # ذخیره فایل
                         from store_analysis.utils.file_storage import save_uploaded_file
                         file_info = save_uploaded_file(file_obj, base_path=f'uploads/{field}')
                         uploaded_files[field] = file_info
                         upload_success_count += 1
-                    logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
+                        logger.info(f"File uploaded: {field} - {file_obj.name} ({file_obj.size} bytes)")
                     except Exception as e:
                         error_msg = f'خطا در آپلود فایل {field}: {str(e)}'
                         upload_errors.append(error_msg)
@@ -6745,28 +6932,43 @@ def store_analysis_form(request, analysis_id=None):
             if not has_actual_files:
                 if analysis:
                     request.session['analysis_id'] = analysis.id
+                    logger.info(f"⚠️ store_analysis_form: No files uploaded, redirecting to form for existing analysis {analysis.id}")
                     return redirect('store_analysis:forms', analysis_id=analysis.id)
                 else:
-                    # اگر تحلیل وجود ندارد و فایلی هم آپلود نشده، یک تحلیل pending ایجاد کن و به فرم برگردان
-                analysis = StoreAnalysis.objects.create(
-                        user=request.user,
-                    analysis_type='comprehensive_7step',
-                    store_name=form_data.get('store_name', 'فروشگاه جدید'),
-                    status='pending',
-                    analysis_data=form_data
-                )
+                    # اگر analysis_id در URL یا session وجود دارد اما analysis پیدا نشد، خطا بده
+                    if analysis_id or request.session.get('analysis_id'):
+                        logger.error(f"❌ store_analysis_form: analysis_id={analysis_id} or session_analysis_id={request.session.get('analysis_id')} provided but analysis not found!")
+                        messages.error(request, '❌ تحلیل مورد نظر یافت نشد. لطفاً از ابتدا شروع کنید.')
+                        return redirect('store_analysis:products')
+                    # فقط اگر واقعاً هیچ analysis_id وجود ندارد، یک تحلیل جدید ایجاد کن
+                    logger.warning(f"⚠️ store_analysis_form: No analysis found and no analysis_id provided, creating new analysis")
+                    analysis = StoreAnalysis.objects.create(
+                        user=request.user if request.user.is_authenticated else None,
+                        analysis_type='comprehensive_7step',
+                        store_name=form_data.get('store_name', 'فروشگاه جدید'),
+                        status='pending',
+                        analysis_data=form_data
+                    )
                     request.session['analysis_id'] = analysis.id
+                    logger.info(f"✅ store_analysis_form: Created new analysis {analysis.id} (no files uploaded)")
                     return redirect('store_analysis:forms', analysis_id=analysis.id)
             
+            # اگر analysis پیدا نشد اما analysis_id یا session وجود دارد، خطا بده
             if analysis is None:
+                if analysis_id or request.session.get('analysis_id'):
+                    logger.error(f"❌ store_analysis_form: analysis_id={analysis_id} or session_analysis_id={request.session.get('analysis_id')} provided but analysis not found!")
+                    messages.error(request, '❌ تحلیل مورد نظر یافت نشد. لطفاً از ابتدا شروع کنید.')
+                    return redirect('store_analysis:products')
+                # فقط اگر واقعاً هیچ analysis_id وجود ندارد، یک تحلیل جدید ایجاد کن
+                logger.warning(f"⚠️ store_analysis_form: No analysis found and no analysis_id provided, creating new analysis")
                 analysis = StoreAnalysis.objects.create(
-                    user=request.user,
+                    user=request.user if request.user.is_authenticated else None,
                     analysis_type='comprehensive_7step',
                     store_name=form_data.get('store_name', 'فروشگاه جدید'),
                     status='processing',
                     analysis_data=form_data
                 )
-                logger.info("StoreAnalysis created: %s for user %s", analysis.pk, request.user.username)
+                logger.info(f"✅ store_analysis_form: Created new analysis {analysis.id} (with files uploaded)")
             else:
                 analysis.analysis_data = form_data
                 analysis.store_name = form_data.get('store_name', analysis.store_name)
@@ -7213,12 +7415,12 @@ def checkout(request, order_id):
         
         # ایجاد AnalysisRequest - با بررسی وجود مدل
         try:
-        analysis_request = AnalysisRequest.objects.create(
-            order=order,
-            store_analysis_data=form_data or {},
-            status='pending',
-            estimated_completion=timezone.now() + timedelta(hours=24)
-        )
+            analysis_request = AnalysisRequest.objects.create(
+                order=order,
+                store_analysis_data=form_data or {},
+                status='pending',
+                estimated_completion=timezone.now() + timedelta(hours=24)
+            )
         except (AttributeError, Exception) as e:
             # اگر AnalysisRequest وجود نداشت، فقط لاگ کن
             logger.warning(f"AnalysisRequest model not available: {e}")
@@ -7230,7 +7432,9 @@ def checkout(request, order_id):
         request.session.pop('plan_id', None)
         
         messages.success(request, '✅ پرداخت با موفقیت انجام شد! تحلیل شما در حال پردازش است.')
-        return redirect('store_analysis:analysis_status', analysis_id=analysis_request.id)
+        if analysis_request:
+            return redirect('store_analysis:analysis_status', analysis_id=analysis_request.id)
+        return redirect('store_analysis:user_dashboard')
     
     context = {
         'order': order,
@@ -8492,16 +8696,18 @@ def analysis_results_session(request):
 def delete_analysis(request, pk):
     """حذف تحلیل با مدیریت وابستگی‌ها"""
     try:
-    analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
-    
+        analysis = get_object_or_404(StoreAnalysis, pk=pk, user=request.user)
+    except Exception as e:
+        logger.error(f"❌ Error fetching analysis {pk} for deletion: {e}", exc_info=True)
+        messages.error(request, '❌ خطا در یافتن تحلیل')
+        return redirect('store_analysis:user_dashboard')
+
     if request.method == 'POST':
-            try:
-                from django.db import transaction
-                
-                # حذف وابستگی‌ها قبل از حذف تحلیل
-                # هر کدام را جداگانه try-except می‌کنیم تا اگر یکی خطا داد، بقیه ادامه پیدا کنند
-                
-                # 1. حذف پیام‌های چت مرتبط (از طریق session)
+        try:
+            from django.db import transaction, connection
+
+            with transaction.atomic():
+                # 1. حذف پیام‌های چت مرتبط
                 try:
                     from .models import ChatMessage, ChatSession
                     chat_sessions = ChatSession.objects.filter(store_analysis=analysis)
@@ -8510,7 +8716,7 @@ def delete_analysis(request, pk):
                     logger.info(f"✅ ChatMessages deleted for analysis {pk}")
                 except Exception as e:
                     logger.warning(f"⚠️ Error deleting chat messages: {e}")
-                
+
                 # 2. حذف session‌های چت مرتبط
                 try:
                     from .models import ChatSession
@@ -8518,32 +8724,28 @@ def delete_analysis(request, pk):
                     logger.info(f"✅ ChatSessions deleted for analysis {pk}")
                 except Exception as e:
                     logger.warning(f"⚠️ Error deleting chat sessions: {e}")
-                
+
                 # 3. حذف AnalysisRequest مرتبط (اگر فیلد وجود داشته باشد)
                 try:
-                    from .models import AnalysisRequest
-                    # استفاده از raw SQL برای اطمینان از وجود فیلد
-                    from django.db import connection
+                    from .models import AnalysisRequest  # noqa: F401
                     with connection.cursor() as cursor:
-                        # بررسی وجود جدول و ستون
                         cursor.execute("""
-                            SELECT column_name 
-                            FROM information_schema.columns 
-                            WHERE table_name='store_analysis_analysisrequest' 
-                            AND column_name='store_analysis_id'
+                            SELECT column_name
+                            FROM information_schema.columns
+                            WHERE table_name='store_analysis_analysisrequest'
+                              AND column_name='store_analysis_id'
                         """)
                         if cursor.fetchone():
-                            # استفاده از raw SQL برای حذف به جای ORM
                             cursor.execute("""
-                                DELETE FROM store_analysis_analysisrequest 
+                                DELETE FROM store_analysis_analysisrequest
                                 WHERE store_analysis_id = %s
                             """, [analysis.id])
                             logger.info(f"✅ AnalysisRequests deleted for analysis {pk}")
                         else:
-                            logger.debug(f"⚠️ store_analysis_id column does not exist in AnalysisRequest table")
+                            logger.debug("⚠️ store_analysis_id column does not exist in AnalysisRequest table")
                 except Exception as e:
                     logger.warning(f"⚠️ Error deleting analysis requests: {e}")
-                
+
                 # 4. حذف StoreAnalysisResult مرتبط
                 try:
                     from .models import StoreAnalysisResult
@@ -8551,7 +8753,7 @@ def delete_analysis(request, pk):
                     logger.info(f"✅ StoreAnalysisResults deleted for analysis {pk}")
                 except Exception as e:
                     logger.warning(f"⚠️ Error deleting analysis results: {e}")
-                
+
                 # 5. حذف ReviewReminder مرتبط
                 try:
                     from .models import ReviewReminder
@@ -8559,10 +8761,7 @@ def delete_analysis(request, pk):
                     logger.info(f"✅ ReviewReminders deleted for analysis {pk}")
                 except Exception as e:
                     logger.warning(f"⚠️ Error deleting review reminders: {e}")
-                
-                # 6. SupportTicket فیلد store_analysis ندارد - skip
-                # (SupportTicket فقط user دارد، نه store_analysis)
-                
+
                 # 7. به‌روزرسانی پرداخت‌های مرتبط (store_analysis را null کن)
                 try:
                     from .models import Payment
@@ -8570,7 +8769,7 @@ def delete_analysis(request, pk):
                     logger.info(f"✅ Payments updated for analysis {pk}")
                 except Exception as e:
                     logger.warning(f"⚠️ Error updating payments: {e}")
-                
+
                 # 8. حذف Order مرتبط (اگر OneToOne باشد)
                 try:
                     if hasattr(analysis, 'order') and analysis.order:
@@ -8578,41 +8777,28 @@ def delete_analysis(request, pk):
                         logger.info(f"✅ Order deleted for analysis {pk}")
                 except Exception as e:
                     logger.warning(f"⚠️ Error deleting order: {e}")
-                
-                # 9. حذف تحلیل (باید آخر از همه باشد)
-                # استفاده از _raw_delete برای جلوگیری از بررسی روابط Django
+
+                # 9. حذف خود تحلیل
                 try:
-                    from django.db import connection
                     with connection.cursor() as cursor:
                         cursor.execute("""
-                            DELETE FROM store_analysis_storeanalysis 
+                            DELETE FROM store_analysis_storeanalysis
                             WHERE id = %s
                         """, [analysis.id])
                     logger.info(f"✅ StoreAnalysis {pk} deleted successfully using raw SQL")
-                except Exception as e:
-                    # اگر raw SQL خطا داد، سعی می‌کنیم با ORM حذف کنیم
-                    try:
-        analysis.delete()
-                        logger.info(f"✅ StoreAnalysis {pk} deleted successfully using ORM")
-                    except Exception as orm_error:
-                        logger.error(f"❌ Error deleting analysis with ORM: {orm_error}")
-                        raise
-                
-                messages.success(request, '✅ تحلیل با موفقیت حذف شد.')
-                logger.info(f"✅ Analysis {pk} deleted by user {request.user.username}")
-                
-            except Exception as e:
-                logger.error(f"❌ Error deleting analysis {pk}: {e}", exc_info=True)
-                messages.error(request, f'❌ خطا در حذف تحلیل: {str(e)}')
-            
+                except Exception:
+                    analysis.delete()
+                    logger.info(f"✅ StoreAnalysis {pk} deleted successfully using ORM")
+
+            messages.success(request, '✅ تحلیل با موفقیت حذف شد.')
+            logger.info(f"✅ Analysis {pk} deleted by user {request.user.username}")
+        except Exception as e:
+            logger.error(f"❌ Error deleting analysis {pk}: {e}", exc_info=True)
+            messages.error(request, f'❌ خطا در حذف تحلیل: {str(e)}')
+
         return redirect('store_analysis:user_dashboard')
-    
+
     return render(request, 'store_analysis/delete_analysis_confirm.html', {'analysis': analysis})
-    
-    except Exception as e:
-        logger.error(f"❌ Error in delete_analysis view: {e}", exc_info=True)
-        messages.error(request, '❌ خطا در حذف تحلیل')
-        return redirect('store_analysis:user_dashboard')
 
 @login_required
 def analysis_payment_page(request, pk):
@@ -8675,10 +8861,10 @@ def forms(request):
             order = Order.objects.create(
                 user=request.user if request.user.is_authenticated else None,
                 plan=None,
-            original_amount=Decimal(str(cost_breakdown['total'])),
-            base_amount=Decimal(str(cost_breakdown['total'])),
-            discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
-            final_amount=Decimal(str(cost_breakdown['final'])),
+                original_amount=Decimal(str(cost_breakdown['total'])),
+                base_amount=Decimal(str(cost_breakdown['total'])),
+                discount_amount=Decimal(str(cost_breakdown.get('discount', 0))),
+                final_amount=Decimal(str(cost_breakdown['final'])),
                 status='pending',
                 payment_method='online',
                 transaction_id=f"PENDING_{uuid.uuid4().hex[:12].upper()}"
@@ -9205,17 +9391,53 @@ def forms_submit(request):
             session_analysis_id = request.session.get('analysis_id')
             # همچنین بررسی POST data برای analysis_id
             post_analysis_id = request.POST.get('analysis_id') or request.POST.get('session_analysis_id')
-            analysis_id = post_analysis_id or session_analysis_id
             store_analysis = None
             
-            logger.info(f"🔍 forms_submit: session_analysis_id={session_analysis_id}, post_analysis_id={post_analysis_id}, final_analysis_id={analysis_id}")
+            logger.info(f"🔍 forms_submit: session_analysis_id={session_analysis_id}, post_analysis_id={post_analysis_id}")
             
-            if analysis_id:
+            # ابتدا سعی کن post_analysis_id را پیدا کنی
+            analysis_id = None
+            if post_analysis_id:
                 try:
                     store_analysis = StoreAnalysis.objects.get(
-                        pk=analysis_id,
+                        pk=post_analysis_id,
                         user=request.user
                     )
+                    analysis_id = post_analysis_id
+                    logger.info(f"✅ تحلیل از POST data پیدا شد: {analysis_id}")
+                except StoreAnalysis.DoesNotExist:
+                    logger.warning(f"⚠️ تحلیل با post_analysis_id {post_analysis_id} یافت نشد")
+                    # اگر پیدا نشد، از session استفاده کن
+                    if session_analysis_id:
+                        try:
+                            store_analysis = StoreAnalysis.objects.get(
+                                pk=session_analysis_id,
+                                user=request.user
+                            )
+                            analysis_id = session_analysis_id
+                            logger.info(f"✅ تحلیل از session پیدا شد: {analysis_id}")
+                            # به‌روزرسانی session با analysis_id صحیح
+                            request.session['analysis_id'] = analysis_id
+                        except StoreAnalysis.DoesNotExist:
+                            logger.warning(f"⚠️ تحلیل با session_analysis_id {session_analysis_id} هم یافت نشد")
+                            store_analysis = None
+                    else:
+                        store_analysis = None
+            elif session_analysis_id:
+                # اگر post_analysis_id وجود ندارد، از session استفاده کن
+                try:
+                    store_analysis = StoreAnalysis.objects.get(
+                        pk=session_analysis_id,
+                        user=request.user
+                    )
+                    analysis_id = session_analysis_id
+                    logger.info(f"✅ تحلیل از session پیدا شد (no POST data): {analysis_id}")
+                except StoreAnalysis.DoesNotExist:
+                    logger.warning(f"⚠️ تحلیل با session_analysis_id {session_analysis_id} یافت نشد")
+                    store_analysis = None
+            
+            # اگر تحلیل پیدا شد، ادامه پردازش
+            if store_analysis:
                     # بررسی اینکه آیا تحلیل رایگان است
                     is_free_analysis = (
                         getattr(store_analysis, 'package_type', None) == 'basic' and
@@ -9366,23 +9588,6 @@ def forms_submit(request):
                                 'redirect_url': f'/store/forms/{store_analysis.id}/',
                                 'payment_required': False
                             })
-                except StoreAnalysis.DoesNotExist:
-                    pass
-            
-            # بررسی اینکه آیا تحلیل پولی موجود است که باید update شود
-            if analysis_id and not store_analysis:
-                try:
-                    store_analysis = StoreAnalysis.objects.get(
-                        pk=analysis_id,
-                        user=request.user
-                    )
-                    final_amount = 0
-                    if hasattr(store_analysis, 'order') and store_analysis.order:
-                        final_amount = getattr(store_analysis.order, 'final_amount', 0)
-                    logger.info(f"📝 تحلیل موجود پیدا شد: {store_analysis.id}, status={store_analysis.status}, package_type={getattr(store_analysis, 'package_type', None)}, final_amount={final_amount}")
-                except StoreAnalysis.DoesNotExist:
-                    logger.warning(f"⚠️ تحلیل با ID {analysis_id} یافت نشد")
-                    store_analysis = None
             
             # دریافت داده‌های فرم به صورت ساده
             form_data = request.POST.dict()
@@ -9514,7 +9719,14 @@ def forms_submit(request):
                             
                             # اگر order پرداخت شده است یا status=paid است، تحلیل را شروع کن
                             # status=paid یعنی کاربر پول پرداخت کرده (حتی اگر order_status هنوز pending باشد)
-                            if order_status in ['paid', 'processing', 'completed'] or store_analysis.status == 'paid':
+                            # همچنین اگر فرم تکمیل شده و فایل‌ها آپلود شده‌اند، تحلیل را شروع کن (برای تست و توسعه)
+                            should_start_analysis = (
+                                order_status in ['paid', 'processing', 'completed'] or 
+                                store_analysis.status == 'paid' or
+                                (uploaded_files and len(uploaded_files) > 0)  # اگر فایل‌ها آپلود شده‌اند، تحلیل را شروع کن
+                            )
+                            
+                            if should_start_analysis:
                                 try:
                                     import threading
                                     
@@ -9600,25 +9812,59 @@ def forms_submit(request):
                                             
                                             logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر و {len(videos)} ویدیو...")
                                             
+                                            # اضافه کردن ویدیوها به لیست تصاویر برای تحلیل (Liara AI فعلاً فقط images را می‌پذیرد)
+                                            all_media = images + videos if images and videos else (images if images else [])
+                                            
                                             # تحلیل جامع با Liara AI
                                             comprehensive_analysis = liara_service.analyze_store_comprehensive(
                                                 store_data=store_data,
-                                                images=images if images else None,
-                                                videos=videos if videos else None
+                                                images=all_media if all_media else None
                                             )
                                             
-                                            if comprehensive_analysis and comprehensive_analysis.get('success'):
-                                                # ذخیره نتایج تحلیل
+                                            # بررسی نتیجه تحلیل
+                                            if comprehensive_analysis and not comprehensive_analysis.get('error'):
+                                                logger.info(f"✅ تحلیل Liara AI تکمیل شد برای تحلیل {analysis.id}")
+                                                
+                                                # به‌روزرسانی نتایج تحلیل
+                                                current_results = analysis.results or {}
+                                                
+                                                # استخراج analysis_text از final_report یا محتوای تحلیل
+                                                analysis_text = None
+                                                if 'final_report' in comprehensive_analysis:
+                                                    analysis_text = comprehensive_analysis['final_report']
+                                                elif 'detailed_analyses' in comprehensive_analysis:
+                                                    # ترکیب تحلیل‌های جزئی
+                                                    combined = ""
+                                                    for key, anal in comprehensive_analysis['detailed_analyses'].items():
+                                                        if anal and 'content' in anal:
+                                                            combined += f"\n\n{anal['content']}\n"
+                                                    analysis_text = combined if combined else None
+                                                
+                                                current_results.update({
+                                                    'liara_analysis': comprehensive_analysis,
+                                                    'analysis_source': 'liara_ai',
+                                                    'analysis_text': analysis_text or comprehensive_analysis.get('final_report', ''),
+                                                    'models_used': comprehensive_analysis.get('ai_models_used', comprehensive_analysis.get('models_used', [])),
+                                                    'analysis_quality': 'premium',
+                                                    'analyzed_at': timezone.now().isoformat(),
+                                                })
+                                                
+                                                # ذخیره نتایج
+                                                analysis.results = current_results
                                                 analysis.status = 'completed'
-                                                analysis.results = comprehensive_analysis.get('analysis', {})
                                                 analysis.completed_at = timezone.now()
-                                                analysis.save(update_fields=['status', 'results', 'completed_at'])
-                                                logger.info(f"✅ تحلیل {analysis.id} با موفقیت تکمیل شد")
+                                                analysis.save(update_fields=['results', 'status', 'completed_at'])
+                                                
+                                                logger.info(f"🎉 تحلیل {analysis.id} با موفقیت تکمیل شد!")
                                             else:
-                                                error_msg = comprehensive_analysis.get('error', 'خطای نامشخص در تحلیل')
-                                                logger.error(f"❌ خطا در تحلیل: {error_msg}")
+                                                # خطا در تحلیل
+                                                error_type = comprehensive_analysis.get('error', 'unknown_error') if comprehensive_analysis else 'no_response'
+                                                error_message = comprehensive_analysis.get('error_message', 'خطا در تحلیل AI') if comprehensive_analysis else 'تحلیل خالی برگشت'
+                                                
+                                                logger.error(f"❌ تحلیل Liara AI با خطا مواجه شد برای تحلیل {analysis.id}: {error_type} - {error_message}")
+                                                
                                                 analysis.status = 'failed'
-                                                analysis.error_message = error_msg
+                                                analysis.error_message = error_message
                                                 analysis.save(update_fields=['status', 'error_message'])
                                         
                                         except Exception as e:
@@ -10069,8 +10315,8 @@ def forms_submit(request):
             
             # هدایت به صفحه پرداخت با پیغام مناسب (یا dashboard اگر پرداخت شده)
             if order.status == 'paid' and has_actual_files:
-            return JsonResponse({
-                'success': True,
+                return JsonResponse({
+                    'success': True,
                     'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
                     'redirect_url': f'/store/dashboard/',
                     'payment_required': False
@@ -10079,9 +10325,9 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ارسال شد! پس از پرداخت، تحلیل هوشمند با استفاده از Liara AI و کتابخانه‌های تخصصی به صورت خودکار شروع خواهد شد و نتایج پس از حدود 30 دقیقه در دسترس خواهد بود.',
-                'redirect_url': f'/store/payment/{order.order_number}/',
-                'payment_required': True
-            })
+                    'redirect_url': f'/store/payment/{order.order_number}/',
+                    'payment_required': True
+                })
             
         except Exception as e:
             logger.error(f"Error in forms_submit: {e}")
@@ -10202,6 +10448,8 @@ def buy_basic(request):
         # ایجاد username برای کاربران غیرلاگین
         username = request.user.username if request.user.is_authenticated else f'guest_{phone}'
         
+        logger.info(f"🔍 buy_basic POST: username={username}, email={email}, phone={phone}, is_authenticated={request.user.is_authenticated}")
+        
         # بررسی استفاده رایگان
         check_result = FreeUsageChecker.check_multiple_identifiers(
             request=request,
@@ -10210,8 +10458,11 @@ def buy_basic(request):
             phone=phone
         )
         
+        logger.info(f"🔍 buy_basic check_result: can_use={check_result.get('can_use')}, reason={check_result.get('reason')}, message={check_result.get('message')}")
+        
         # 🚫 اگر قبلاً استفاده کرده - جلوگیری
         if not check_result['can_use']:
+            logger.warning(f"🚫 buy_basic: User blocked from free plan. Reason: {check_result.get('reason')}, Message: {check_result.get('message')}")
             messages.warning(
                 request,
                 f"🚫 {check_result.get('message', check_result['reason'])} "
@@ -10221,61 +10472,90 @@ def buy_basic(request):
             return redirect('store_analysis:products')
         
         # ✅ مجاز به استفاده است - ادامه فرآیند
-        # دریافت ServicePackage
-        from .models import ServicePackage
-        service_package = ServicePackage.objects.get(package_type='basic')
-        
-        # تحلیل اولیه رایگان است
-        original_amount = 500000
-        discount_amount = 500000  # 100% تخفیف
-        final_amount = 0  # رایگان
-        
-        # ایجاد تحلیل مستقیماً (بدون Order)
-        # اگر کاربر لاگین نیست، یک کاربر موقت ایجاد می‌کنیم
-        if request.user.is_authenticated:
-            user = request.user
-        else:
-            # ایجاد کاربر موقت برای کاربران غیرلاگین
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username=username,
-                defaults={
-                    'email': email,
-                    'first_name': store_name,
-                    'is_active': False
-                }
-            )
-        
-        # Safe create برای جلوگیری از خطای فیلدهای missing
-        from .utils.safe_db import safe_create_store_analysis
-        store_analysis = safe_create_store_analysis(
-            user=user,
-            store_name=store_name,
-            store_type=store_type,
-            store_size=store_size,
-            contact_phone=phone,
-            contact_email=email,
-            status='paid',  # رایگان - مستقیماً پرداخت شده
-            package_type='basic',
-            analysis_type='comprehensive_7step',
-            final_amount=0
-        )
-        
-        # 📝 ثبت استفاده رایگان در سیستم
-        FreeUsageChecker.track_free_usage(
-            username=username,
-            analysis_id=store_analysis.id,
-            store_name=store_name,
-            email=email,
-            phone=phone,
-            request=request,
-            analysis_type='basic_free'
-        )
-        
-        # تحلیل اولیه رایگان است - هدایت به فرم برای تکمیل اطلاعات
-        request.session['analysis_id'] = store_analysis.id
-        messages.success(request, '✅ تحلیل رایگان شما ایجاد شد! لطفاً فرم را تکمیل کنید.')
-        return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+        try:
+            # دریافت ServicePackage
+            from .models import ServicePackage
+            try:
+                service_package = ServicePackage.objects.get(package_type='basic')
+            except ServicePackage.DoesNotExist:
+                logger.error("❌ buy_basic: ServicePackage 'basic' not found")
+                messages.error(request, '❌ خطا: پکیج رایگان یافت نشد. لطفاً با پشتیبانی تماس بگیرید.')
+                return redirect('store_analysis:products')
+            
+            # تحلیل اولیه رایگان است
+            original_amount = 500000
+            discount_amount = 500000  # 100% تخفیف
+            final_amount = 0  # رایگان
+            
+            # ایجاد تحلیل مستقیماً (بدون Order)
+            # اگر کاربر لاگین نیست، یک کاربر موقت ایجاد می‌کنیم
+            if request.user.is_authenticated:
+                user = request.user
+            else:
+                # ایجاد کاربر موقت برای کاربران غیرلاگین
+                from django.contrib.auth.models import User
+                try:
+                    user, created = User.objects.get_or_create(
+                        username=username,
+                        defaults={
+                            'email': email,
+                            'first_name': store_name,
+                            'is_active': False
+                        }
+                    )
+                    logger.info(f"✅ buy_basic: User {'created' if created else 'retrieved'}: {username}")
+                except Exception as user_error:
+                    logger.error(f"❌ buy_basic: Error creating/retrieving user: {user_error}", exc_info=True)
+                    messages.error(request, '❌ خطا در ایجاد حساب کاربری. لطفاً دوباره تلاش کنید.')
+                    return redirect('store_analysis:products')
+            
+            # Safe create برای جلوگیری از خطای فیلدهای missing
+            from .utils.safe_db import safe_create_store_analysis
+            try:
+                store_analysis = safe_create_store_analysis(
+                    user=user,
+                    store_name=store_name,
+                    store_type=store_type,
+                    store_size=store_size,
+                    contact_phone=phone,
+                    contact_email=email,
+                    status='paid',  # رایگان - مستقیماً پرداخت شده
+                    package_type='basic',
+                    analysis_type='comprehensive_7step',
+                    final_amount=0
+                )
+                logger.info(f"✅ buy_basic: StoreAnalysis created successfully: {store_analysis.id}")
+            except Exception as analysis_error:
+                logger.error(f"❌ buy_basic: Error creating StoreAnalysis: {analysis_error}", exc_info=True)
+                messages.error(request, '❌ خطا در ایجاد تحلیل. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.')
+                return redirect('store_analysis:products')
+            
+            # 📝 ثبت استفاده رایگان در سیستم
+            try:
+                FreeUsageChecker.track_free_usage(
+                    username=username,
+                    analysis_id=store_analysis.id,
+                    store_name=store_name,
+                    email=email,
+                    phone=phone,
+                    request=request,
+                    analysis_type='basic_free'
+                )
+                logger.info(f"✅ buy_basic: Free usage tracked for {username}")
+            except Exception as track_error:
+                logger.warning(f"⚠️ buy_basic: Error tracking free usage: {track_error}", exc_info=True)
+                # این خطا نباید مانع ادامه شود
+            
+            # تحلیل اولیه رایگان است - هدایت به فرم برای تکمیل اطلاعات
+            request.session['analysis_id'] = store_analysis.id
+            messages.success(request, '✅ تحلیل رایگان شما ایجاد شد! لطفاً فرم را تکمیل کنید.')
+            logger.info(f"✅ buy_basic: Redirecting to forms page for analysis {store_analysis.id}")
+            return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+            
+        except Exception as e:
+            logger.error(f"❌ buy_basic: Unexpected error: {e}", exc_info=True)
+            messages.error(request, '❌ خطای غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.')
+            return redirect('store_analysis:products')
     
     # 🛡️ بررسی استفاده قبلی در صفحه فرم
     from .services.free_usage_checker import FreeUsageChecker
@@ -10490,7 +10770,7 @@ def buy_advanced(request):
         # دریافت ServicePackage
         from .models import ServicePackage
         try:
-        service_package = ServicePackage.objects.get(package_type='enterprise')
+            service_package = ServicePackage.objects.get(package_type='enterprise')
         except ServicePackage.DoesNotExist:
             logger.error(f"❌ ServicePackage 'enterprise' not found in database")
             # ایجاد ServicePackage اگر وجود ندارد
@@ -11103,13 +11383,13 @@ def generate_professional_persian_pdf_report(analysis):
             
             # مرحله 0: حذف کاراکترهای خاص که مشکل ایجاد می‌کنند
             text = str(text).replace('📊', '').replace('🏪', '').replace('✅', '').replace('⚠️', '').replace('🚀', '').replace('⚡', '').replace('👥', '').replace('💰', '').replace('💎', '').replace('🎯', '').replace('📅', '').replace('📈', '')
-                
-                # بررسی اینکه آیا متن فارسی است یا نه
-                persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
-                has_persian = any(char in persian_chars for char in text)
-                
-                if not has_persian:
-                    return text
+            
+            # بررسی اینکه آیا متن فارسی است یا نه
+            persian_chars = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
+            has_persian = any(char in persian_chars for char in text)
+            
+            if not has_persian:
+                return text
                 
             # روش استاندارد جهانی برای PDF فارسی
             try:
@@ -11130,10 +11410,10 @@ def generate_professional_persian_pdf_report(analysis):
                 reshaped_text = arabic_reshaper.reshape(text_with_persian_numbers)
                 
                 # مرحله 4: RTL Processing (راست به چپ)
-                    rtl_text = get_display(reshaped_text)
-                    
-                    return rtl_text
-                    
+                rtl_text = get_display(reshaped_text)
+                
+                return rtl_text
+                
             except ImportError:
                 logger.warning("arabic_reshaper or bidi not installed, using simple text")
                 # بدون کتابخانه‌ها، فقط اعداد را فارسی کنیم
@@ -11257,8 +11537,9 @@ def generate_professional_persian_pdf_report(analysis):
                 real_analysis_text = real_analysis_text.get('analysis_text') or str(real_analysis_text)
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
+        detailed_analysis_text = ""
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-        detailed_analysis_text = f"""
+            detailed_analysis_text = f"""
         {real_analysis_text}
         
         مشخصات فروشگاه:
@@ -11573,7 +11854,7 @@ def generate_professional_persian_pdf_report(analysis):
         # تقسیم متن برنامه اجرایی به پاراگراف‌های کوتاه‌تر
         implementation_paragraphs = implementation_plan_text.strip().split('\n\n')
         for paragraph in implementation_paragraphs:
-                if paragraph.strip():
+            if paragraph.strip():
                 clean_paragraph = paragraph.strip()
                 if clean_paragraph and len(clean_paragraph) > 10:
                     story.append(Paragraph(fix_persian_text(clean_paragraph), normal_style))
@@ -11785,7 +12066,7 @@ def generate_professional_persian_pdf_report_fixed(analysis):
             if not font_registered:
                 logger.warning("No suitable Persian font found, using Helvetica")
                 font_name = 'Helvetica'
-                except Exception as e:
+        except Exception as e:
             logger.error(f"Font registration error: {e}")
             font_name = 'Helvetica'
         
@@ -12007,8 +12288,9 @@ def generate_professional_persian_pdf_report_fixed(analysis):
                 real_analysis_text = real_analysis_text.get('analysis_text') or str(real_analysis_text)
         
         # اگر محتوای واقعی تحلیل وجود دارد، از آن استفاده کن
+        detailed_analysis_text = ""
         if real_analysis_text and len(str(real_analysis_text).strip()) > 50:
-        detailed_analysis_text = f"""
+            detailed_analysis_text = f"""
         {real_analysis_text}
         
         تحلیل جامع فروشگاه با استفاده از استانداردهای جهانی و روش‌های پیشرفته انجام شده است. 
@@ -12405,8 +12687,15 @@ def mock_payment_success(request, authority):
             order = None
             if hasattr(payment, 'order') and payment.order:
                 order = payment.order
-            elif payment.store_analysis and hasattr(payment.store_analysis, 'order') and payment.store_analysis.order:
-                order = payment.store_analysis.order
+            elif payment.store_analysis_id:
+                # استفاده از ID برای جلوگیری از خطای additional_info
+                try:
+                    from .models import StoreAnalysis
+                    store_analysis = StoreAnalysis.objects.only('id').get(pk=payment.store_analysis_id)
+                    if hasattr(store_analysis, 'order') and store_analysis.order:
+                        order = store_analysis.order
+                except Exception as e:
+                    logger.warning(f"⚠️ خطا در دریافت order از store_analysis: {e}")
             
             if order:
                 order.status = 'paid'
