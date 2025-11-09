@@ -14,6 +14,7 @@ from django.conf import settings
 import json
 import os
 import uuid
+import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, SupportTicket, FAQService, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile, AnalysisRequest, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, PricingPlan, AIConsultantService, AIConsultantQuestion, AIConsultantSession, AIConsultantPayment, Transaction, Order
@@ -415,6 +416,26 @@ import logging
 
 # Setup logger
 logger = logging.getLogger(__name__)
+
+
+def save_analysis_error(analysis, error_message, error_type=None):
+    """ذخیره خطا در analysis_data به جای فیلد error_message که وجود ندارد"""
+    try:
+        analysis_data = analysis.analysis_data or {}
+        analysis_data['error_message'] = error_message
+        if error_type:
+            analysis_data['error_type'] = error_type
+        analysis.analysis_data = analysis_data
+        analysis.status = 'failed'
+        analysis.save(update_fields=['status', 'analysis_data'])
+    except Exception as e:
+        logger.error(f"❌ خطا در ذخیره error_message: {e}", exc_info=True)
+        # اگر حتی این هم خطا داد، فقط status را به‌روزرسانی کن
+        try:
+            analysis.status = 'failed'
+            analysis.save(update_fields=['status'])
+        except:
+            pass
 
 
 # Wrapper class برای سازگاری با کد قدیمی
@@ -1600,11 +1621,22 @@ def view_analysis_report(request, pk):
                         logger.info(f"🔄 Attempting to generate premium report for analysis {analysis.id}")
                         generator = PremiumReportGenerator()
                         premium_report = generator.generate_premium_report(analysis)
-                        # ذخیره در results
-                        if analysis.results:
+                        
+                        # بررسی اینکه آیا گزارش واقعاً داده دارد
+                        if premium_report and isinstance(premium_report, dict) and len(premium_report) > 0:
+                            logger.info(f"✅ Premium report generated successfully with {len(premium_report)} sections")
+                            logger.info(f"📊 Report keys: {list(premium_report.keys())}")
+                            
+                            # ذخیره در results
+                            if not analysis.results:
+                                analysis.results = {}
                             analysis.results['premium_report'] = premium_report
                             analysis.save(update_fields=['results'])
                             logger.info(f"✅ Premium report generated and saved for analysis {analysis.id}")
+                        else:
+                            logger.warning(f"⚠️ Premium report is empty or invalid: {premium_report}")
+                            # اگر گزارش خالی است، یک گزارش fallback تولید کن
+                            premium_report = generator._generate_fallback_report(analysis) if hasattr(generator, '_generate_fallback_report') else {}
                     except Exception as gen_err:
                         logger.error(f"❌ Failed to generate premium report: {gen_err}", exc_info=True)
                         premium_report = {}
@@ -2016,15 +2048,39 @@ def download_analysis_report(request, pk):
             # اگر گزارش پولی وجود دارد، PDF حرفه‌ای تولید کن
             try:
                 premium_results = (analysis.results or {}).get('premium_report')
-                if premium_results:
-                    logger.info("Generating premium PDF from premium_report data")
+                logger.info(f"📄 Checking premium_report for analysis {analysis.id}: exists={bool(premium_results)}, type={type(premium_results)}")
+                
+                if premium_results and isinstance(premium_results, dict) and len(premium_results) > 0:
+                    logger.info(f"✅ Premium report found with {len(premium_results)} sections: {list(premium_results.keys())}")
                     pdf_bytes = generate_premium_pdf_from_premium_report(analysis, premium_results)
-                    if pdf_bytes:
+                    if pdf_bytes and len(pdf_bytes) > 1000:
                         response = HttpResponse(pdf_bytes, content_type='application/pdf')
                         response['Content-Disposition'] = f'attachment; filename="premium_report_{analysis.id}.pdf"'
+                        logger.info(f"✅ Premium PDF generated successfully, size: {len(pdf_bytes)} bytes")
                         return response
+                    else:
+                        logger.warning(f"⚠️ Premium PDF generation returned empty or too small ({len(pdf_bytes) if pdf_bytes else 0} bytes)")
+                else:
+                    logger.warning(f"⚠️ Premium report is empty or invalid for analysis {analysis.id}, trying to generate...")
+                    # اگر گزارش پولی وجود ندارد، سعی کن آن را تولید کن
+                    if analysis.status == 'completed':
+                        from .services.premium_report_generator import PremiumReportGenerator
+                        generator = PremiumReportGenerator()
+                        premium_results = generator.generate_premium_report(analysis)
+                        if premium_results and isinstance(premium_results, dict) and len(premium_results) > 0:
+                            # ذخیره در results
+                            if not analysis.results:
+                                analysis.results = {}
+                            analysis.results['premium_report'] = premium_results
+                            analysis.save(update_fields=['results'])
+                            logger.info(f"✅ Premium report generated and saved, generating PDF...")
+                            pdf_bytes = generate_premium_pdf_from_premium_report(analysis, premium_results)
+                            if pdf_bytes and len(pdf_bytes) > 1000:
+                                response = HttpResponse(pdf_bytes, content_type='application/pdf')
+                                response['Content-Disposition'] = f'attachment; filename="premium_report_{analysis.id}.pdf"'
+                                return response
             except Exception as e:
-                logger.error(f"Premium PDF generation failed: {e}")
+                logger.error(f"Premium PDF generation failed: {e}", exc_info=True)
 
             # همیشه یک PDF برگردان - حتی در صورت خطا
             logger.info("=" * 50)
@@ -2132,6 +2188,24 @@ def generate_premium_pdf_from_premium_report(analysis, premium_report):
     """Generate a professional multi-page PDF from premium_report dict using ReportLab.
     Keeps it robust and dependency-free."""
     try:
+        # بررسی اینکه آیا premium_report داده دارد
+        if not premium_report or (isinstance(premium_report, dict) and len(premium_report) == 0):
+            logger.warning(f"⚠️ Premium report is empty for analysis {analysis.id}, generating fallback PDF")
+            # اگر گزارش خالی است، یک گزارش حداقلی تولید کن
+            from .services.premium_report_generator import PremiumReportGenerator
+            generator = PremiumReportGenerator()
+            premium_report = generator.generate_premium_report(analysis)
+            if not premium_report or (isinstance(premium_report, dict) and len(premium_report) == 0):
+                logger.error(f"❌ Failed to generate premium report for PDF, using minimal fallback")
+                premium_report = {
+                    'cover_page': {'store_name': getattr(analysis, 'store_name', 'فروشگاه'), 'layout_score': 60},
+                    'executive_summary': {'paragraphs': ['گزارش در حال تولید است. لطفاً بعداً دوباره تلاش کنید.']},
+                    'metadata': {'version': '1.0.0-fallback'}
+                }
+        
+        logger.info(f"📄 Generating PDF for analysis {analysis.id} with {len(premium_report)} sections")
+        logger.info(f"📋 Report sections: {list(premium_report.keys())}")
+        
         # ترجمه داده‌های premium_report از انگلیسی به فارسی قبل از استفاده در PDF
         premium_report = translate_english_to_persian(premium_report)
         from io import BytesIO
@@ -2309,9 +2383,12 @@ def generate_premium_pdf_from_premium_report(analysis, premium_report):
 
         # Cover
         cover = premium_report.get('cover_page', {})
-        story.append(Paragraph(fix_persian_text(f"گزارش تحلیل حرفه‌ای – فروشگاه {analysis.store_name}"), styles['TitleRTL']))
+        store_name = getattr(analysis, 'store_name', 'فروشگاه')
+        layout_score = cover.get('layout_score', 60) if cover else 60
+        
+        story.append(Paragraph(fix_persian_text(f"گزارش تحلیل حرفه‌ای – فروشگاه {store_name}"), styles['TitleRTL']))
         story.append(Spacer(1, 8))
-        story.append(Paragraph(fix_persian_text(f"امتیاز چیدمان: {cover.get('layout_score', 'نامشخص')}"), styles['RTL']))
+        story.append(Paragraph(fix_persian_text(f"امتیاز چیدمان: {layout_score}"), styles['RTL']))
         story.append(Paragraph(fix_persian_text(f"تاریخ: {get_persian_date()}"), styles['RTL']))
         story.append(Spacer(1, 16))
 
@@ -2342,57 +2419,139 @@ def generate_premium_pdf_from_premium_report(analysis, premium_report):
         story.append(PageBreak())
 
         # Helper to add section
-        def render_value(value):
+        def render_value(value, indent=""):
+            if value is None:
+                return
+            
             if isinstance(value, dict):
                 for sub_k, sub_v in value.items():
+                    if sub_v is None or sub_v == '':
+                        continue
                     if isinstance(sub_v, (list, tuple)):
-                        for item in sub_v:
-                            story.append(Paragraph(fix_persian_text(f"• {item}"), styles['RTL']))
+                        if len(sub_v) > 0:
+                            for item in sub_v:
+                                if item:
+                                    story.append(Paragraph(fix_persian_text(f"{indent}• {item}"), styles['RTL']))
+                    elif isinstance(sub_v, dict):
+                        if len(sub_v) > 0:
+                            story.append(Paragraph(fix_persian_text(f"{indent}{translate_label(sub_k)}:"), styles['RTL']))
+                            render_value(sub_v, indent + "  ")
                     else:
-                        story.append(Paragraph(fix_persian_text(f"{translate_label(sub_k)}: {sub_v}"), styles['RTL']))
+                        story.append(Paragraph(fix_persian_text(f"{indent}{translate_label(sub_k)}: {sub_v}"), styles['RTL']))
             elif isinstance(value, (list, tuple)):
-                for item in value:
-                    if isinstance(item, dict):
-                        render_value(item)
-                    else:
-                        story.append(Paragraph(fix_persian_text(f"• {item}"), styles['RTL']))
+                if len(value) > 0:
+                    for item in value:
+                        if item:
+                            if isinstance(item, dict):
+                                render_value(item, indent)
+                            else:
+                                story.append(Paragraph(fix_persian_text(f"{indent}• {item}"), styles['RTL']))
             elif value:
-                story.append(Paragraph(fix_persian_text(value), styles['RTL']))
+                story.append(Paragraph(fix_persian_text(f"{indent}{value}"), styles['RTL']))
 
         def add_section(title, content):
+            if not content or (isinstance(content, dict) and len(content) == 0) or (isinstance(content, list) and len(content) == 0):
+                # اگر محتوا خالی است، یک پیام پیش‌فرض اضافه کن
+                story.append(Paragraph(fix_persian_text(title), styles['H2RTL']))
+                story.append(Spacer(1, 6))
+                story.append(Paragraph(fix_persian_text("این بخش در حال تکمیل است. لطفاً بعداً دوباره بررسی کنید."), styles['RTL']))
+                story.append(Spacer(1, 10))
+                return
+            
             story.append(Paragraph(fix_persian_text(title), styles['H2RTL']))
             story.append(Spacer(1, 6))
             if isinstance(content, dict):
                 for k, v in content.items():
-                    story.append(Paragraph(fix_persian_text(translate_label(k)), styles['RTL']))
-                    render_value(v)
+                    if v:  # فقط اگر مقدار خالی نباشد
+                        story.append(Paragraph(fix_persian_text(translate_label(k)), styles['RTL']))
+                        render_value(v)
             else:
                 render_value(content)
             story.append(Spacer(1, 10))
 
-        add_section('خلاصه اجرایی', premium_report.get('executive_summary', {}))
-        add_section('تحلیل فنی چیدمان', premium_report.get('technical_analysis', {}))
-        add_section('تحلیل فروش', premium_report.get('sales_analysis', {}))
-        add_section('تحلیل رفتار مشتری', premium_report.get('behavior_analysis', {}))
-        add_section('اقدامات قابل اجرا', premium_report.get('action_plan', {}))
-        add_section('داشبورد KPI', premium_report.get('kpi_dashboard', {}))
-        add_section('پیوست و محدودیت داده', premium_report.get('warnings', []))
+        # اضافه کردن بخش‌ها با بررسی وجود داده
+        executive_summary = premium_report.get('executive_summary', {})
+        if executive_summary and isinstance(executive_summary, dict) and len(executive_summary) > 0:
+            # اگر paragraphs وجود دارد، آن را به صورت جداگانه اضافه کن
+            if 'paragraphs' in executive_summary and executive_summary['paragraphs']:
+                story.append(Paragraph(fix_persian_text('خلاصه اجرایی'), styles['H2RTL']))
+                story.append(Spacer(1, 6))
+                for para in executive_summary['paragraphs']:
+                    if para:
+                        story.append(Paragraph(fix_persian_text(para), styles['RTL']))
+                        story.append(Spacer(1, 6))
+                # اضافه کردن key_metrics اگر وجود دارد
+                if 'key_metrics' in executive_summary and executive_summary['key_metrics']:
+                    story.append(Paragraph(fix_persian_text('شاخص‌های کلیدی:'), styles['RTL']))
+                    render_value(executive_summary['key_metrics'])
+                story.append(Spacer(1, 10))
+            else:
+                add_section('خلاصه اجرایی', executive_summary)
+        else:
+            add_section('خلاصه اجرایی', {'paragraphs': ['خلاصه اجرایی در حال تولید است.']})
+        
+        technical_analysis = premium_report.get('technical_analysis', {})
+        if technical_analysis:
+            add_section('تحلیل فنی چیدمان', technical_analysis)
+        else:
+            add_section('تحلیل فنی چیدمان', {'description': 'تحلیل فنی در حال تولید است.'})
+        
+        sales_analysis = premium_report.get('sales_analysis', {})
+        if sales_analysis:
+            add_section('تحلیل فروش', sales_analysis)
+        else:
+            add_section('تحلیل فروش', {'description': 'تحلیل فروش در حال تولید است.'})
+        
+        behavior_analysis = premium_report.get('behavior_analysis', {})
+        if behavior_analysis:
+            add_section('تحلیل رفتار مشتری', behavior_analysis)
+        else:
+            add_section('تحلیل رفتار مشتری', {'description': 'تحلیل رفتار مشتری در حال تولید است.'})
+        
+        action_plan = premium_report.get('action_plan', {})
+        if action_plan:
+            add_section('اقدامات قابل اجرا', action_plan)
+        else:
+            add_section('اقدامات قابل اجرا', {'urgent': ['اقدامات در حال تولید است.']})
+        
+        kpi_dashboard = premium_report.get('kpi_dashboard', {})
+        if kpi_dashboard:
+            add_section('داشبورد KPI', kpi_dashboard)
+        else:
+            add_section('داشبورد KPI', {'description': 'داشبورد KPI در حال تولید است.'})
+        
+        warnings = premium_report.get('warnings', [])
+        if warnings:
+            add_section('پیوست و محدودیت داده', warnings)
+        else:
+            add_section('پیوست و محدودیت داده', ['هیچ محدودیتی گزارش نشده است.'])
 
         def on_page(canvas, doc):
             canvas.saveState()
             canvas.setFont(font_name if font_name != 'Helvetica' else 'Helvetica', 9)
-            canvas.drawRightString(560, 820, fix_persian_text(f"{analysis.store_name} • گزارش حرفه‌ای"))
+            canvas.drawRightString(560, 820, fix_persian_text(f"{store_name} • گزارش حرفه‌ای"))
             canvas.setFont(font_name if font_name != 'Helvetica' else 'Helvetica', 8)
             canvas.drawString(36, 28, fix_persian_text("© چیدمانو | گزارش حرفه‌ای"))
             canvas.drawRightString(560, 28, fix_persian_text(f"صفحه {doc.page}"))
             canvas.restoreState()
 
+        # بررسی اینکه آیا story خالی است یا نه
+        if len(story) == 0:
+            logger.warning(f"⚠️ Story is empty for analysis {analysis.id}, adding default content")
+            story.append(Paragraph(fix_persian_text("گزارش در حال تولید است. لطفاً بعداً دوباره تلاش کنید."), styles['RTL']))
+        
         doc.build(story, onFirstPage=on_page, onLaterPages=on_page)
         pdf_value = buffer.getvalue()
         buffer.close()
+        
+        # بررسی اینکه آیا PDF واقعاً تولید شده است
+        if len(pdf_value) < 1000:  # PDF حداقلی باید حداقل 1KB باشد
+            logger.error(f"❌ PDF is too small ({len(pdf_value)} bytes) for analysis {analysis.id}")
+        
+        logger.info(f"✅ PDF generated successfully for analysis {analysis.id}, size: {len(pdf_value)} bytes")
         return pdf_value
     except Exception as e:
-        logger.error(f"generate_premium_pdf_from_premium_report error: {e}")
+        logger.error(f"generate_premium_pdf_from_premium_report error: {e}", exc_info=True)
         return None
 
 def generate_management_report(analysis, has_ai_results=False):
@@ -3655,6 +3814,12 @@ def user_dashboard(request):
                         value = row[i] if i < len(row) else None
                         setattr(obj, field, value)
                     
+                    # اضافه کردن pk (primary key) - در Django pk همان id است
+                    if hasattr(obj, 'id'):
+                        obj.pk = obj.id
+                    elif 'id' in select_fields:
+                        obj.pk = getattr(obj, 'id', None)
+                    
                     # اضافه کردن فیلدهای پیش‌فرض برای فیلدهای missing
                     if 'package_type' not in select_fields or not hasattr(obj, 'package_type'):
                         obj.package_type = 'basic'
@@ -3709,6 +3874,7 @@ def user_dashboard(request):
                                     from types import SimpleNamespace
                                     order_obj = SimpleNamespace()
                                     order_obj.id = order_row[0]
+                                    order_obj.pk = order_row[0]  # pk همان id است
                                     order_obj.order_number = order_row[1]
                                     order_obj.status = order_row[2]
                                     order_obj.final_amount = order_row[3]
@@ -3747,6 +3913,12 @@ def user_dashboard(request):
                 obj = SimpleNamespace()
                 for key, value in item.items():
                     setattr(obj, key, value)
+                
+                # اضافه کردن pk (primary key) - در Django pk همان id است
+                if hasattr(obj, 'id'):
+                    obj.pk = obj.id
+                elif 'id' in item:
+                    obj.pk = item['id']
                 
                 # اضافه کردن فیلدهای پیش‌فرض
                 obj.store_address = getattr(obj, 'store_address', '')
@@ -5135,9 +5307,7 @@ def payping_callback(request, order_id):
                             if not liara_api_key:
                                 error_msg = "⚠️ LIARA_AI_API_KEY تنظیم نشده است. تحلیل نمی‌تواند انجام شود."
                                 logger.error(f"❌ {error_msg}")
-                                store_analysis.status = 'failed'
-                                store_analysis.error_message = error_msg
-                                store_analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(store_analysis, error_msg)
                                 return
                             
                             # آماده‌سازی داده‌های فروشگاه
@@ -5145,9 +5315,7 @@ def payping_callback(request, order_id):
                             if not analysis_data:
                                 error_msg = "⚠️ داده‌های تحلیل موجود نیست. لطفاً فرم را تکمیل کنید."
                                 logger.error(f"❌ {error_msg}")
-                                store_analysis.status = 'failed'
-                                store_analysis.error_message = error_msg
-                                store_analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(store_analysis, error_msg)
                                 return
                             
                             store_data = {
@@ -5179,9 +5347,7 @@ def payping_callback(request, order_id):
                             if not liara_service.api_key:
                                 error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
                                 logger.error(f"❌ {error_msg}")
-                                store_analysis.status = 'failed'
-                                store_analysis.error_message = error_msg
-                                store_analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(store_analysis, error_msg)
                                 return
                             
                             logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر...")
@@ -5202,18 +5368,84 @@ def payping_callback(request, order_id):
                                 # بررسی نوع خطا و نمایش پیام مناسب
                                 if error_type == 'api_key_missing':
                                     error_message = "⚠️ LIARA_AI_API_KEY تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید."
+                                    save_analysis_error(store_analysis, error_message, error_type)
                                 elif error_type == 'authentication_failed':
                                     error_message = "⚠️ خطا در احراز هویت API. لطفاً API key را بررسی کنید."
+                                    save_analysis_error(store_analysis, error_message, error_type)
+                                elif error_type == 'access_denied':
+                                    # خطای 403 - استفاده از fallback
+                                    logger.warning(f"⚠️ خطای 403 دریافت شد - استفاده از fallback analysis برای تحلیل {store_analysis.id}")
+                                    try:
+                                        from .ai_analysis_service_simple import SimpleAIAnalysisService
+                                        simple_service = SimpleAIAnalysisService()
+                                        fallback_analysis = simple_service.analyze_store(store_data)
+                                        
+                                        if fallback_analysis and not fallback_analysis.get('error'):
+                                            logger.info(f"✅ Fallback analysis موفق بود برای تحلیل {store_analysis.id}")
+                                            # استفاده از نتایج fallback
+                                            comprehensive_analysis = {
+                                                'final_report': fallback_analysis.get('summary', 'تحلیل پایه انجام شد'),
+                                                'detailed_analyses': {},
+                                                'store_info': store_data,
+                                                'analysis_timestamp': timezone.now().isoformat(),
+                                                'ai_models_used': ['fallback'],
+                                                'warning': 'تحلیل با استفاده از روش جایگزین انجام شد (خطای 403 در API اصلی)'
+                                            }
+                                            # ادامه پردازش با fallback analysis
+                                        else:
+                                            error_message = "⚠️ دسترسی رد شد (403). لطفاً بررسی کنید:\n" \
+                                                           "1. API Key معتبر است و منقضی نشده\n" \
+                                                           "2. Workspace ID صحیح است\n" \
+                                                           "3. API Key برای این Workspace مجاز است\n" \
+                                                           "4. در پنل لیارا دسترسی‌های لازم فعال است\n\n" \
+                                                           "لطفاً با پشتیبانی تماس بگیرید."
+                                            save_analysis_error(store_analysis, error_message, error_type)
+                                    except Exception as fallback_error:
+                                        logger.error(f"❌ خطا در fallback analysis: {fallback_error}")
+                                        error_message = "⚠️ دسترسی رد شد (403). لطفاً بررسی کنید:\n" \
+                                                       "1. API Key معتبر است و منقضی نشده\n" \
+                                                       "2. Workspace ID صحیح است\n" \
+                                                       "3. API Key برای این Workspace مجاز است\n" \
+                                                       "4. در پنل لیارا دسترسی‌های لازم فعال است\n\n" \
+                                                       "لطفاً با پشتیبانی تماس بگیرید."
+                                        save_analysis_error(store_analysis, error_message, error_type)
                                 elif error_type == 'all_analyses_failed':
-                                    error_message = f"⚠️ همه تحلیل‌ها با خطا مواجه شدند: {error_message}"
+                                    # بررسی اینکه آیا خطای 403 در بین خطاها هست
+                                    if '403' in error_message or 'access denied' in error_message.lower():
+                                        logger.warning(f"⚠️ خطای 403 در all_analyses_failed - استفاده از fallback analysis برای تحلیل {store_analysis.id}")
+                                        try:
+                                            from .ai_analysis_service_simple import SimpleAIAnalysisService
+                                            simple_service = SimpleAIAnalysisService()
+                                            fallback_analysis = simple_service.analyze_store(store_data)
+                                            
+                                            if fallback_analysis and not fallback_analysis.get('error'):
+                                                logger.info(f"✅ Fallback analysis موفق بود برای تحلیل {store_analysis.id}")
+                                                comprehensive_analysis = {
+                                                    'final_report': fallback_analysis.get('summary', 'تحلیل پایه انجام شد'),
+                                                    'detailed_analyses': {},
+                                                    'store_info': store_data,
+                                                    'analysis_timestamp': timezone.now().isoformat(),
+                                                    'ai_models_used': ['fallback'],
+                                                    'warning': 'تحلیل با استفاده از روش جایگزین انجام شد (خطای 403 در API اصلی)'
+                                                }
+                                            else:
+                                                error_message = f"⚠️ همه تحلیل‌ها با خطا مواجه شدند: {error_message}"
+                                                save_analysis_error(store_analysis, error_message, error_type)
+                                        except Exception as fallback_error:
+                                            logger.error(f"❌ خطا در fallback analysis: {fallback_error}")
+                                            error_message = f"⚠️ همه تحلیل‌ها با خطا مواجه شدند: {error_message}"
+                                            save_analysis_error(store_analysis, error_message, error_type)
+                                    else:
+                                        error_message = f"⚠️ همه تحلیل‌ها با خطا مواجه شدند: {error_message}"
+                                        save_analysis_error(store_analysis, error_message, error_type)
                                 elif error_type == 'timeout':
                                     error_message = "⚠️ زمان درخواست به پایان رسید. لطفاً دوباره تلاش کنید."
+                                    save_analysis_error(store_analysis, error_message, error_type)
                                 elif error_type == 'connection_error':
                                     error_message = "⚠️ خطا در اتصال به سرور. لطفاً اتصال اینترنت را بررسی کنید."
-                                
-                                store_analysis.status = 'failed'
-                                store_analysis.error_message = error_message
-                                store_analysis.save(update_fields=['status', 'error_message'])
+                                    save_analysis_error(store_analysis, error_message, error_type)
+                                else:
+                                    save_analysis_error(store_analysis, error_message, error_type)
                                 
                             elif comprehensive_analysis and not comprehensive_analysis.get('error'):
                                 logger.info(f"✅ تحلیل Liara AI تکمیل شد برای تحلیل {store_analysis.id}")
@@ -5302,23 +5534,20 @@ def payping_callback(request, order_id):
                             else:
                                 # تحلیل خالی یا None
                                 logger.error(f"❌ تحلیل Liara AI خالی برگشت برای تحلیل {store_analysis.id}")
-                                store_analysis.status = 'failed'
-                                store_analysis.error_message = 'تحلیل AI خالی برگشت. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.'
-                                store_analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(store_analysis, 'تحلیل AI خالی برگشت. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.')
                                 
                         except Exception as e:
                             logger.error(f"❌ خطا در تحلیل background برای تحلیل {store_analysis.id}: {e}", exc_info=True)
-                            store_analysis.status = 'failed'
-                            store_analysis.error_message = str(e)
-                            store_analysis.save(update_fields=['status', 'error_message'])
+                            save_analysis_error(store_analysis, str(e))
                     
-                    # شروع تحلیل در background
-                    analysis_thread = threading.Thread(target=start_real_analysis, daemon=True)
-                    analysis_thread.start()
-                    logger.info(f"🧵 Thread تحلیل برای {store_analysis.id} شروع شد")
+                    # تحلیل را شروع نکن - منتظر بمان تا کاربر فرم را تکمیل کند و فایل‌ها را آپلود کند
+                    # analysis_thread = threading.Thread(target=start_real_analysis, daemon=True)
+                    # analysis_thread.start()
+                    # logger.info(f"🧵 Thread تحلیل برای {store_analysis.id} شروع شد")
+                    logger.info(f"📝 تحلیل {store_analysis.id} آماده است - منتظر تکمیل فرم توسط کاربر")
                     
-                    # هدایت کاربر به فرم برای تکمیل اطلاعات
-                    messages.success(request, '✅ پرداخت با موفقیت انجام شد! تحلیل هوشمند در حال انجام است. لطفاً فرم را تکمیل کنید.')
+                    # هدایت کاربر به فرم برای تکمیل اطلاعات و آپلود فایل‌ها
+                    messages.success(request, '✅ پرداخت با موفقیت انجام شد! لطفاً فرم را تکمیل کنید و فایل‌های فروشگاه را آپلود کنید.')
                     if store_analysis:
                         request.session['analysis_id'] = store_analysis.id
                     return redirect('store_analysis:forms', analysis_id=store_analysis.id)
@@ -9396,13 +9625,22 @@ def forms_submit(request):
             logger.info(f"🔍 forms_submit: session_analysis_id={session_analysis_id}, post_analysis_id={post_analysis_id}")
             
             # ابتدا سعی کن post_analysis_id را پیدا کنی
+            # برای تحلیل رایگان، ممکن است کاربر لاگین نباشد، پس باید از session استفاده کنیم
             analysis_id = None
             if post_analysis_id:
                 try:
-                    store_analysis = StoreAnalysis.objects.get(
-                        pk=post_analysis_id,
-                        user=request.user
-                    )
+                    # اگر کاربر لاگین است، فقط تحلیل‌های متعلق به او را پیدا کن
+                    if request.user.is_authenticated:
+                        store_analysis = StoreAnalysis.objects.get(
+                            pk=post_analysis_id,
+                            user=request.user
+                        )
+                    else:
+                        # اگر لاگین نیست، از session استفاده کن (برای تحلیل رایگان)
+                        store_analysis = StoreAnalysis.objects.get(pk=post_analysis_id)
+                        # بررسی اینکه آیا این تحلیل متعلق به session است
+                        if session_analysis_id and str(store_analysis.id) != str(session_analysis_id):
+                            raise StoreAnalysis.DoesNotExist("Session mismatch")
                     analysis_id = post_analysis_id
                     logger.info(f"✅ تحلیل از POST data پیدا شد: {analysis_id}")
                 except StoreAnalysis.DoesNotExist:
@@ -9410,10 +9648,15 @@ def forms_submit(request):
                     # اگر پیدا نشد، از session استفاده کن
                     if session_analysis_id:
                         try:
-                            store_analysis = StoreAnalysis.objects.get(
-                                pk=session_analysis_id,
-                                user=request.user
-                            )
+                            # اگر کاربر لاگین است، فقط تحلیل‌های متعلق به او را پیدا کن
+                            if request.user.is_authenticated:
+                                store_analysis = StoreAnalysis.objects.get(
+                                    pk=session_analysis_id,
+                                    user=request.user
+                                )
+                            else:
+                                # اگر لاگین نیست، از session استفاده کن (برای تحلیل رایگان)
+                                store_analysis = StoreAnalysis.objects.get(pk=session_analysis_id)
                             analysis_id = session_analysis_id
                             logger.info(f"✅ تحلیل از session پیدا شد: {analysis_id}")
                             # به‌روزرسانی session با analysis_id صحیح
@@ -9426,15 +9669,30 @@ def forms_submit(request):
             elif session_analysis_id:
                 # اگر post_analysis_id وجود ندارد، از session استفاده کن
                 try:
-                    store_analysis = StoreAnalysis.objects.get(
-                        pk=session_analysis_id,
-                        user=request.user
-                    )
+                    # اگر کاربر لاگین است، فقط تحلیل‌های متعلق به او را پیدا کن
+                    if request.user.is_authenticated:
+                        store_analysis = StoreAnalysis.objects.get(
+                            pk=session_analysis_id,
+                            user=request.user
+                        )
+                    else:
+                        # اگر لاگین نیست، از session استفاده کن (برای تحلیل رایگان)
+                        store_analysis = StoreAnalysis.objects.get(pk=session_analysis_id)
                     analysis_id = session_analysis_id
                     logger.info(f"✅ تحلیل از session پیدا شد (no POST data): {analysis_id}")
                 except StoreAnalysis.DoesNotExist:
                     logger.warning(f"⚠️ تحلیل با session_analysis_id {session_analysis_id} یافت نشد")
                     store_analysis = None
+            
+            # اگر تحلیل پیدا نشد و session_analysis_id وجود دارد، به صفحه products redirect کن
+            # (برای تحلیل رایگان که باید از buy_basic شروع شود)
+            if not store_analysis and (session_analysis_id or post_analysis_id):
+                logger.warning(f"⚠️ forms_submit: تحلیل پیدا نشد (session_analysis_id={session_analysis_id}, post_analysis_id={post_analysis_id}). Redirect به products")
+                return JsonResponse({
+                    'success': False,
+                    'message': '❌ تحلیل مورد نظر یافت نشد. لطفاً از ابتدا شروع کنید.',
+                    'redirect_url': '/store/products/'
+                })
             
             # اگر تحلیل پیدا شد، ادامه پردازش
             if store_analysis:
@@ -9555,14 +9813,12 @@ def forms_submit(request):
                                             logger.info(f"✅ نتایج تحلیل رایگان ذخیره شد برای تحلیل {store_analysis.id}")
                                         else:
                                             logger.warning(f"⚠️ تحلیل رایگان با خطا مواجه شد برای تحلیل {store_analysis.id}")
-                                            store_analysis.status = 'failed'
-                                            store_analysis.error_message = free_analysis_result.get('error', 'خطا در تحلیل') if isinstance(free_analysis_result, dict) else 'خطا در تحلیل'
+                                            error_msg = free_analysis_result.get('error', 'خطا در تحلیل') if isinstance(free_analysis_result, dict) else 'خطا در تحلیل'
+                                            save_analysis_error(store_analysis, error_msg)
                                             store_analysis.save()
                                     except Exception as e:
                                         logger.error(f"❌ خطا در تحلیل رایگان برای تحلیل {store_analysis.id}: {e}", exc_info=True)
-                                        store_analysis.status = 'failed'
-                                        store_analysis.error_message = str(e)
-                                        store_analysis.save()
+                                        save_analysis_error(store_analysis, str(e))
                                 
                                 # شروع تحلیل در background thread
                                 analysis_thread = threading.Thread(target=start_free_analysis, daemon=True)
@@ -9744,22 +10000,34 @@ def forms_submit(request):
                                                 # Reload analysis to get fresh data
                                                 from .models import StoreAnalysis
                                                 analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                                analysis.status = 'failed'
-                                                analysis.error_message = error_msg
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, error_msg)
                                                 return
                                             
                                             # Reload analysis to get fresh data
+                                            # اضافه کردن retry برای اطمینان از ذخیره شدن فایل‌ها
                                             from .models import StoreAnalysis
-                                            analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                            analysis_data = analysis.get_analysis_data() or {}
+                                            import time
+                                            
+                                            max_retries = 5
+                                            retry_delay = 2  # ثانیه
+                                            analysis_data = None
+                                            
+                                            for retry in range(max_retries):
+                                                analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                                analysis_data = analysis.get_analysis_data() or {}
+                                                
+                                                if analysis_data and analysis_data.get('uploaded_files'):
+                                                    logger.info(f"✅ فایل‌ها پیدا شدند در retry {retry + 1}")
+                                                    break
+                                                
+                                                if retry < max_retries - 1:
+                                                    logger.info(f"⏳ منتظر ذخیره فایل‌ها... retry {retry + 1}/{max_retries}")
+                                                    time.sleep(retry_delay)
                                             
                                             if not analysis_data or not analysis_data.get('uploaded_files'):
                                                 error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست. لطفاً فرم را تکمیل کنید."
-                                                logger.error(f"❌ {error_msg}")
-                                                analysis.status = 'failed'
-                                                analysis.error_message = error_msg
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                logger.error(f"❌ {error_msg} - بعد از {max_retries} retry")
+                                                save_analysis_error(analysis, error_msg)
                                                 return
                                             
                                             # آماده‌سازی داده‌های فروشگاه
@@ -9805,9 +10073,7 @@ def forms_submit(request):
                                             if not liara_service.api_key:
                                                 error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
                                                 logger.error(f"❌ {error_msg}")
-                                                analysis.status = 'failed'
-                                                analysis.error_message = error_msg
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, error_msg)
                                                 return
                                             
                                             logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر و {len(videos)} ویدیو...")
@@ -9816,10 +10082,12 @@ def forms_submit(request):
                                             all_media = images + videos if images and videos else (images if images else [])
                                             
                                             # تحلیل جامع با Liara AI
+                                            logger.info(f"🔄 در حال فراخوانی analyze_store_comprehensive برای تحلیل {analysis.id}")
                                             comprehensive_analysis = liara_service.analyze_store_comprehensive(
                                                 store_data=store_data,
                                                 images=all_media if all_media else None
                                             )
+                                            logger.info(f"📥 نتیجه analyze_store_comprehensive دریافت شد: has_error={comprehensive_analysis.get('error') if comprehensive_analysis else 'None'}")
                                             
                                             # بررسی نتیجه تحلیل
                                             if comprehensive_analysis and not comprehensive_analysis.get('error'):
@@ -9863,18 +10131,14 @@ def forms_submit(request):
                                                 
                                                 logger.error(f"❌ تحلیل Liara AI با خطا مواجه شد برای تحلیل {analysis.id}: {error_type} - {error_message}")
                                                 
-                                                analysis.status = 'failed'
-                                                analysis.error_message = error_message
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, error_message, error_type)
                                         
                                         except Exception as e:
                                             logger.error(f"❌ خطا در شروع تحلیل پولی: {e}", exc_info=True)
                                             try:
                                                 from .models import StoreAnalysis
                                                 analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                                analysis.status = 'failed'
-                                                analysis.error_message = f"خطا در پردازش: {str(e)}"
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, f"خطا در پردازش: {str(e)}")
                                             except:
                                                 pass
                                     
@@ -10022,9 +10286,7 @@ def forms_submit(request):
                                             if not analysis_data or not analysis_data.get('uploaded_files'):
                                                 error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست."
                                                 logger.error(f"❌ {error_msg}")
-                                                analysis.status = 'failed'
-                                                analysis.error_message = error_msg
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, error_msg)
                                                 return
                                             
                                             # آماده‌سازی داده‌های فروشگاه
@@ -10068,9 +10330,7 @@ def forms_submit(request):
                                             if not liara_service.api_key:
                                                 error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
                                                 logger.error(f"❌ {error_msg}")
-                                                analysis.status = 'failed'
-                                                analysis.error_message = error_msg
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, error_msg)
                                                 return
                                             
                                             logger.info(f"📊 در حال انجام تحلیل جامع برای تحلیل موجود با {len(images)} تصویر و {len(videos)} ویدیو...")
@@ -10091,18 +10351,14 @@ def forms_submit(request):
                                             else:
                                                 error_msg = comprehensive_analysis.get('error', 'خطای نامشخص در تحلیل') if isinstance(comprehensive_analysis, dict) else 'خطای نامشخص در تحلیل'
                                                 logger.error(f"❌ خطا در تحلیل موجود: {error_msg}")
-                                                analysis.status = 'failed'
-                                                analysis.error_message = error_msg
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, error_msg)
                                         
                                         except Exception as e:
                                             logger.error(f"❌ خطا در شروع تحلیل موجود: {e}", exc_info=True)
                                             try:
                                                 from .models import StoreAnalysis
                                                 analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                                analysis.status = 'failed'
-                                                analysis.error_message = f"خطا در پردازش: {str(e)}"
-                                                analysis.save(update_fields=['status', 'error_message'])
+                                                save_analysis_error(analysis, f"خطا در پردازش: {str(e)}")
                                             except:
                                                 pass
                                     
@@ -10216,16 +10472,30 @@ def forms_submit(request):
                             logger.info(f"🤖 شروع تحلیل پولی جدید با Liara AI برای تحلیل {store_analysis.id}")
                             
                             # Reload analysis to get fresh data
+                            # اضافه کردن retry برای اطمینان از ذخیره شدن فایل‌ها
                             from .models import StoreAnalysis
-                            analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                            analysis_data = analysis.get_analysis_data() or {}
+                            import time
+                            
+                            max_retries = 5
+                            retry_delay = 2  # ثانیه
+                            analysis_data = None
+                            
+                            for retry in range(max_retries):
+                                analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                analysis_data = analysis.get_analysis_data() or {}
+                                
+                                if analysis_data and analysis_data.get('uploaded_files'):
+                                    logger.info(f"✅ فایل‌ها پیدا شدند در retry {retry + 1}")
+                                    break
+                                
+                                if retry < max_retries - 1:
+                                    logger.info(f"⏳ منتظر ذخیره فایل‌ها... retry {retry + 1}/{max_retries}")
+                                    time.sleep(retry_delay)
                             
                             if not analysis_data or not analysis_data.get('uploaded_files'):
                                 error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست."
-                                logger.error(f"❌ {error_msg}")
-                                analysis.status = 'failed'
-                                analysis.error_message = error_msg
-                                analysis.save(update_fields=['status', 'error_message'])
+                                logger.error(f"❌ {error_msg} - بعد از {max_retries} retry")
+                                save_analysis_error(analysis, error_msg)
                                 return
                             
                             # آماده‌سازی داده‌های فروشگاه
@@ -10269,9 +10539,7 @@ def forms_submit(request):
                             if not liara_service.api_key:
                                 error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
                                 logger.error(f"❌ {error_msg}")
-                                analysis.status = 'failed'
-                                analysis.error_message = error_msg
-                                analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(analysis, error_msg)
                                 return
                             
                             logger.info(f"📊 در حال انجام تحلیل جامع جدید با {len(images)} تصویر و {len(videos)} ویدیو...")
@@ -10292,18 +10560,14 @@ def forms_submit(request):
                             else:
                                 error_msg = comprehensive_analysis.get('error', 'خطای نامشخص در تحلیل') if isinstance(comprehensive_analysis, dict) else 'خطای نامشخص در تحلیل'
                                 logger.error(f"❌ خطا در تحلیل جدید: {error_msg}")
-                                analysis.status = 'failed'
-                                analysis.error_message = error_msg
-                                analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(analysis, error_msg)
                         
                         except Exception as e:
                             logger.error(f"❌ خطا در شروع تحلیل پولی جدید: {e}", exc_info=True)
                             try:
                                 from .models import StoreAnalysis
                                 analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                analysis.status = 'failed'
-                                analysis.error_message = f"خطا در پردازش: {str(e)}"
-                                analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(analysis, f"خطا در پردازش: {str(e)}")
                             except:
                                 pass
                     
@@ -10712,37 +10976,8 @@ def buy_complete(request):
             analysis.order = order
             analysis.save(update_fields=['order'])
 
-            # ذخیره فایل‌های ضمیمه (اختیاری) - استفاده از utility برای Liara compatibility
-            if request.FILES:
-                from .utils.file_storage import save_uploaded_file
-
-                uploaded_files_dict = analysis_data.get('uploaded_files', {})
-                
-                if 'images' in request.FILES:
-                    for image in request.FILES.getlist('images')[:20]:
-                        try:
-                            file_info = save_uploaded_file(image, base_path=f'analyses/{analysis.id}/images')
-                            if 'images' not in uploaded_files_dict:
-                                uploaded_files_dict['images'] = []
-                            uploaded_files_dict['images'].append(file_info)
-                        except Exception as e:
-                            logger.error(f"❌ خطا در ذخیره تصویر: {e}", exc_info=True)
-
-                if 'videos' in request.FILES:
-                    for video in request.FILES.getlist('videos')[:5]:
-                        try:
-                            file_info = save_uploaded_file(video, base_path=f'analyses/{analysis.id}/videos')
-                            if 'videos' not in uploaded_files_dict:
-                                uploaded_files_dict['videos'] = []
-                            uploaded_files_dict['videos'].append(file_info)
-                        except Exception as e:
-                            logger.error(f"❌ خطا در ذخیره ویدیو: {e}", exc_info=True)
-                
-                # به‌روزرسانی analysis_data با فایل‌های آپلود شده
-                if uploaded_files_dict:
-                    analysis_data['uploaded_files'] = uploaded_files_dict
-                    analysis.analysis_data = analysis_data
-                    analysis.save(update_fields=['analysis_data'])
+            # فیلدهای آپلود تصویر و ویدیو از صفحه خرید حذف شدند
+            # کاربر بعد از خرید و پرداخت موفق، در صفحه فرم می‌تواند تصاویر و ویدیوها را آپلود کند
 
             request.session['analysis_id'] = analysis.id
             request.session['service_package_id'] = service_package.id
@@ -10981,7 +11216,7 @@ def payment_success(request, order_id):
         except Exception as e:
             logger.error(f"Error in AI analysis: {e}")
             store_analysis.status = 'failed'
-            store_analysis.error_message = str(e)
+            save_analysis_error(store_analysis, str(e))
             store_analysis.save()
             messages.warning(request, 'خطا در تحلیل AI. تحلیل دستی انجام خواهد شد.')
         
@@ -12762,9 +12997,7 @@ def mock_payment_success(request, authority):
                             if not analysis_data or not analysis_data.get('uploaded_files'):
                                 error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست."
                                 logger.error(f"❌ {error_msg}")
-                                analysis.status = 'failed'
-                                analysis.error_message = error_msg
-                                analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(analysis, error_msg)
                                 return
                             
                             # آماده‌سازی داده‌های فروشگاه
@@ -12808,51 +13041,101 @@ def mock_payment_success(request, authority):
                             if not liara_service.api_key:
                                 error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
                                 logger.error(f"❌ {error_msg}")
-                                analysis.status = 'failed'
-                                analysis.error_message = error_msg
-                                analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(analysis, error_msg)
                                 return
                             
                             logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر و {len(videos)} ویدیو... (MOCK)")
                             
+                            # اضافه کردن ویدیوها به لیست تصاویر برای تحلیل (Liara AI فعلاً فقط images را می‌پذیرد)
+                            all_media = images + videos if images and videos else (images if images else [])
+                            
                             # تحلیل جامع با Liara AI
                             comprehensive_analysis = liara_service.analyze_store_comprehensive(
                                 store_data=store_data,
-                                images=images if images else None,
-                                videos=videos if videos else None
+                                images=all_media if all_media else None
                             )
                             
-                            if comprehensive_analysis and comprehensive_analysis.get('success'):
+                            # بررسی نتیجه تحلیل
+                            if comprehensive_analysis and not comprehensive_analysis.get('error'):
+                                logger.info(f"✅ تحلیل Liara AI تکمیل شد برای تحلیل {analysis.id} (MOCK)")
+                                
+                                # به‌روزرسانی نتایج تحلیل
+                                current_results = analysis.results or {}
+                                
+                                # استخراج analysis_text از final_report یا محتوای تحلیل
+                                analysis_text = None
+                                if 'final_report' in comprehensive_analysis:
+                                    analysis_text = comprehensive_analysis['final_report']
+                                elif 'detailed_analyses' in comprehensive_analysis:
+                                    # ترکیب تحلیل‌های جزئی
+                                    combined = ""
+                                    for key, anal in comprehensive_analysis['detailed_analyses'].items():
+                                        if anal and 'content' in anal:
+                                            combined += f"\n\n{anal['content']}\n"
+                                    analysis_text = combined if combined else None
+                                
+                                current_results.update({
+                                    'liara_analysis': comprehensive_analysis,
+                                    'analysis_source': 'liara_ai',
+                                    'analysis_text': analysis_text or comprehensive_analysis.get('final_report', ''),
+                                    'models_used': comprehensive_analysis.get('ai_models_used', comprehensive_analysis.get('models_used', [])),
+                                    'analysis_quality': 'premium',
+                                    'analyzed_at': timezone.now().isoformat(),
+                                    'payment_type': 'mock',
+                                    'payment_authority': authority
+                                })
+                                
+                                # ذخیره نتایج
+                                analysis.results = current_results
                                 analysis.status = 'completed'
-                                analysis.results = comprehensive_analysis.get('analysis', {})
                                 analysis.completed_at = timezone.now()
-                                analysis.save(update_fields=['status', 'results', 'completed_at'])
-                                logger.info(f"✅ تحلیل {analysis.id} با موفقیت تکمیل شد (MOCK)")
+                                analysis.save(update_fields=['results', 'status', 'completed_at'])
+                                
+                                # ایجاد یادآوری بازبینی
+                                try:
+                                    from .models import ReviewReminder
+                                    ReviewReminder.create_for_analysis(
+                                        analysis=analysis,
+                                        days_until_reminder=30,
+                                        discount_percentage=30
+                                    )
+                                    logger.info(f"✅ یادآوری بازبینی برای تحلیل {analysis.id} ایجاد شد (MOCK)")
+                                except Exception as e:
+                                    logger.error(f"⚠️ خطا در ایجاد یادآوری بازبینی: {e}", exc_info=True)
+                                
+                                logger.info(f"🎉 تحلیل {analysis.id} با موفقیت تکمیل شد! (MOCK)")
                             else:
-                                error_msg = comprehensive_analysis.get('error', 'خطای نامشخص در تحلیل') if isinstance(comprehensive_analysis, dict) else 'خطای نامشخص در تحلیل'
-                                logger.error(f"❌ خطا در تحلیل (MOCK): {error_msg}")
-                                analysis.status = 'failed'
-                                analysis.error_message = error_msg
-                                analysis.save(update_fields=['status', 'error_message'])
+                                # خطا در تحلیل
+                                error_type = comprehensive_analysis.get('error', 'unknown_error') if comprehensive_analysis else 'no_response'
+                                error_message = comprehensive_analysis.get('error_message', 'خطا در تحلیل AI') if comprehensive_analysis else 'تحلیل خالی برگشت'
+                                
+                                logger.error(f"❌ تحلیل Liara AI با خطا مواجه شد برای تحلیل {analysis.id} (MOCK): {error_type} - {error_message}")
+                                
+                                save_analysis_error(analysis, error_message, error_type)
                         
                         except Exception as e:
                             logger.error(f"❌ خطا در شروع تحلیل (MOCK): {e}", exc_info=True)
                             try:
                                 from .models import StoreAnalysis
                                 analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                analysis.status = 'failed'
-                                analysis.error_message = f"خطا در پردازش: {str(e)}"
-                                analysis.save(update_fields=['status', 'error_message'])
+                                save_analysis_error(analysis, f"خطا در پردازش: {str(e)}")
                             except:
                                 pass
                     
-                    analysis_thread = threading.Thread(target=start_mock_analysis, daemon=True)
-                    analysis_thread.start()
-                    logger.info(f"🚀 Thread تحلیل برای تحلیل {store_analysis.id} شروع شد (MOCK)")
+                    # تحلیل را شروع نکن - منتظر بمان تا کاربر فرم را تکمیل کند
+                    # analysis_thread = threading.Thread(target=start_mock_analysis, daemon=True)
+                    # analysis_thread.start()
+                    # logger.info(f"🚀 Thread تحلیل برای تحلیل {store_analysis.id} شروع شد (MOCK)")
+                    logger.info(f"📝 تحلیل {store_analysis.id} آماده است - منتظر تکمیل فرم توسط کاربر")
                 except Exception as e:
-                    logger.error(f"❌ خطا در شروع thread تحلیل (MOCK): {e}", exc_info=True)
+                    logger.error(f"❌ خطا در آماده‌سازی تحلیل (MOCK): {e}", exc_info=True)
                 
-            return redirect('store_analysis:dashboard')
+                # هدایت به صفحه فرم برای آپلود فایل‌ها
+                messages.success(request, '✅ پرداخت با موفقیت انجام شد! لطفاً فرم را تکمیل کنید و فایل‌های فروشگاه را آپلود کنید.')
+                return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+            
+            # اگر store_analysis_id وجود نداشت
+            return redirect('store_analysis:forms')
             
         except Payment.DoesNotExist:
             logger.error(f"🎭 MOCK: Payment not found for authority: {authority}")

@@ -102,28 +102,60 @@ class PremiumReportGenerator:
     
     def _generate_report_locally(self, analysis, complete_data: Dict[str, Any]) -> Dict[str, Any]:
         """نسخه داخلی گزارش در صورت عدم دسترسی به AI"""
-
-        local_report = {
-            'cover_page': self._generate_cover_page(analysis, complete_data),
-            'executive_summary': self._generate_executive_summary(complete_data),
-            'technical_analysis': self._generate_technical_analysis(complete_data),
-            'sales_analysis': self._generate_sales_analysis(complete_data),
-            'behavior_analysis': self._generate_behavior_analysis(complete_data),
-            'action_plan': self._generate_action_plan(complete_data),
-            'kpi_dashboard': self._generate_kpi_dashboard(complete_data),
-            'appendix': self._generate_appendix(complete_data),
-            'subscription_hook': self._generate_subscription_hook(complete_data),
-            'warnings': self._generate_data_warnings(complete_data),
-            'metadata': {
-                'generated_at': timezone.now().isoformat(),
-                'version': '1.0.0',
-                'report_type': 'premium',
-                'ai_engine': 'rule_based_fallback',
-                'total_pages': self._calculate_total_pages(),
-            },
-        }
-
-        return local_report
+        
+        logger.info(f"📝 Generating local report for analysis {getattr(analysis, 'id', 'unknown')}")
+        logger.info(f"📊 Complete data keys: {list(complete_data.keys()) if complete_data else 'None'}")
+        
+        try:
+            cover_page = self._generate_cover_page(analysis, complete_data)
+            executive_summary = self._generate_executive_summary(complete_data)
+            technical_analysis = self._generate_technical_analysis(complete_data)
+            sales_analysis = self._generate_sales_analysis(complete_data)
+            behavior_analysis = self._generate_behavior_analysis(complete_data)
+            action_plan = self._generate_action_plan(complete_data)
+            kpi_dashboard = self._generate_kpi_dashboard(complete_data)
+            appendix = self._generate_appendix(complete_data)
+            subscription_hook = self._generate_subscription_hook(complete_data)
+            warnings = self._generate_data_warnings(complete_data)
+            
+            local_report = {
+                'cover_page': cover_page,
+                'executive_summary': executive_summary,
+                'technical_analysis': technical_analysis,
+                'sales_analysis': sales_analysis,
+                'behavior_analysis': behavior_analysis,
+                'action_plan': action_plan,
+                'kpi_dashboard': kpi_dashboard,
+                'appendix': appendix,
+                'subscription_hook': subscription_hook,
+                'warnings': warnings,
+                'metadata': {
+                    'generated_at': timezone.now().isoformat(),
+                    'version': '1.0.0',
+                    'report_type': 'premium',
+                    'ai_engine': 'rule_based_fallback',
+                    'total_pages': self._calculate_total_pages(),
+                },
+            }
+            
+            logger.info(f"✅ Local report generated with {len(local_report)} sections")
+            logger.info(f"📋 Report sections: {list(local_report.keys())}")
+            
+            return local_report
+        except Exception as e:
+            logger.error(f"❌ Error generating local report: {e}", exc_info=True)
+            # در صورت خطا، یک گزارش حداقلی برگردان
+            return {
+                'cover_page': {'store_name': getattr(analysis, 'store_name', 'فروشگاه'), 'layout_score': 60},
+                'executive_summary': {'paragraphs': ['گزارش در حال تولید است...']},
+                'metadata': {
+                    'generated_at': timezone.now().isoformat(),
+                    'version': '1.0.0-error',
+                    'report_type': 'premium',
+                    'ai_engine': 'error_fallback',
+                    'error': str(e)
+                }
+            }
 
     def _select_model(self, analysis) -> Optional[str]:
         package_type = getattr(analysis, 'package_type', 'basic') or 'basic'
@@ -237,7 +269,7 @@ class PremiumReportGenerator:
             logger.warning(f"⚠️ Prompt length reduced from {total_length} to {len(analysis_data_str) + len(base_summary_str) + len(schema_str)}")
         
         user_prompt = (
-            f"اطلاعات فروشگاه: نام={analysis.store_name}، نوع={getattr(analysis, 'store_type', 'عمومی')}، "
+            f"اطلاعات فروشگاه: نام={getattr(analysis, 'store_name', 'نامشخص')}، نوع={getattr(analysis, 'store_type', 'عمومی')}، "
             f"متراژ={getattr(analysis, 'store_size', 'نامشخص')}، "
             f"وضعیت بسته={getattr(analysis, 'package_type', 'basic')}\n"
             f"داده‌های تکمیلی: {analysis_data_str}\n"
@@ -358,15 +390,24 @@ class PremiumReportGenerator:
     def _gather_complete_data(self, analysis, images_data, video_data, sales_data) -> Dict:
         """جمع‌آوری تمام اطلاعات برای تحلیل"""
         
+        # استفاده از getattr برای فیلدهایی که ممکن است وجود نداشته باشند
+        contact_phone = getattr(analysis, 'contact_phone', None)
+        if not contact_phone and hasattr(analysis, 'safe_contact_phone'):
+            contact_phone = analysis.safe_contact_phone
+        
+        contact_email = getattr(analysis, 'contact_email', None)
+        if not contact_email and hasattr(analysis, 'safe_contact_email'):
+            contact_email = analysis.safe_contact_email
+        
         return {
             'analysis': analysis,
-            'store_name': analysis.store_name,
-            'store_type': analysis.store_type,
-            'store_size': analysis.store_size,
-            'store_address': analysis.store_address,
-            'contact_phone': analysis.contact_phone,
-            'contact_email': analysis.contact_email,
-            'additional_info': analysis.additional_info,
+            'store_name': getattr(analysis, 'store_name', 'نامشخص'),
+            'store_type': getattr(analysis, 'store_type', ''),
+            'store_size': getattr(analysis, 'store_size', ''),
+            'store_address': getattr(analysis, 'store_address', ''),
+            'contact_phone': contact_phone or '',
+            'contact_email': contact_email or '',
+            'additional_info': getattr(analysis, 'additional_info', ''),
             'images': images_data or [],
             'videos': video_data or {},
             'sales': sales_data or {},
@@ -398,9 +439,11 @@ class PremiumReportGenerator:
         
         # محاسبه Layout Score
         layout_score = self._calculate_layout_score(data)
+        store_name = getattr(analysis, 'store_name', 'فروشگاه')
+        analysis_id = getattr(analysis, 'id', getattr(analysis, 'pk', 0))
         
         return {
-            'store_name': analysis.store_name,
+            'store_name': store_name,
             'analysis_date': timezone.now().strftime('%Y/%m/%d'),
             'report_version': '1.0.0',
             'layout_score': layout_score,
@@ -414,7 +457,7 @@ class PremiumReportGenerator:
             'quick_wins_count': 12,
             'estimated_roi': self._estimate_roi(layout_score),
             'time_to_roi': '8-12 هفته',
-            'qr_code_url': f'/store/analysis/{analysis.id}/report/',
+            'qr_code_url': f'/store/analysis/{analysis_id}/report/',
             'analyst': 'سیستم تحلیل هوش مصنوعی چیدمانو',
             'human_reviewer': 'مهندسین چیدمان فروشگاه'
         }
@@ -455,8 +498,9 @@ class PremiumReportGenerator:
         analysis = data['analysis']
         current_score = self._calculate_layout_score(data)
         
+        store_name = getattr(analysis, 'store_name', 'فروشگاه')
         summary_paragraphs = [
-            f"فروشگاه {analysis.store_name} در بررسی اولیه امتیاز {current_score} از 100 را کسب کرده است. "
+            f"فروشگاه {store_name} در بررسی اولیه امتیاز {current_score} از 100 را کسب کرده است. "
             f"بر اساس تحلیل {data['completeness_score'] * 100:.0f}% تکمیل بودن داده‌ها، "
             f"پتانسیل بهبود {100 - current_score:.1f} امتیازی در چیدمان و سودآوری وجود دارد.",
             
@@ -477,7 +521,7 @@ class PremiumReportGenerator:
                 'roi_months': 3.5,
                 'customer_conversion_rate': f'{(current_score + 20) / 10:.1f}%'
             },
-            'recommendation_intro': f"فروشگاه {analysis.store_name} از نظر جریان حرکتی {current_score}% نمره دارد، "
+            'recommendation_intro': f"فروشگاه {getattr(analysis, 'store_name', 'فروشگاه')} از نظر جریان حرکتی {current_score}% نمره دارد، "
                                    f"اما {'چیدمان قفسه‌ها' if current_score < 70 else 'نورپردازی'} "
                                    f"موجب از دست رفتن حدود {15 - current_score / 7:.1f}% فروش بالقوه شده است."
         }

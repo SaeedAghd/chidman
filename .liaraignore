@@ -1,62 +1,64 @@
-# Virtual environment
+# Liara ignore file - files to exclude from deployment
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
 venv/
-.venv/
 env/
 ENV/
+.venv/
 
-# Media files
-media/
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Local SQLite database (not needed in production)
-db.sqlite3
-
-# Deployment reports and large analysis artifacts
-seo_reports/
-health_check.py
-health.py
-
-# Editor/OS artifacts
+# OS files
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# Local runtime/process helpers
-fix_*.py
-*.bak
+# Environment files
+.env
+.env.local
+.env.production
 
 # Logs
-logs/
 *.log
+logs/
+
+# Database (SQLite)
+db.sqlite3
+db.sqlite3-journal
 
 # Test files
-test_files/
 test_*.py
 *_test.py
-test_ai_analysis.py
-test_discount.py
-test_discount_simple.py
-test_html_issue.py
-test_liara_ai.py
-test_liara_connection.py
-test_payment_page.py
-test_pdf_generation.py
-test_pdf_simple.py
-test_template.py
+professional_test.py
+comprehensive_*.py
+*_test_results.json
+check_*.py
+demo*.py
+full_*.py
+create_*_report.py
+test_outputs/
 
-# SSL certificates
-ssl/
-*.pem
-*.key
+# Media files (if using external storage)
+media/
 
-# Temporary files
-temp/
-tmp/
-*.tmp
+# Static files (will be collected)
+staticfiles/
 
 # Backup files
 backup_*/
 *.zip
 *.tar.gz
+*_backup.py
+*_backup.*
 
 # Large ML/AI files
 *.pyd
@@ -66,37 +68,19 @@ backup_*/
 *.whl
 *.egg
 
-# Large data files
-*.h5
-*.hdf5
-*.pkl
-*.pickle
-*.npy
-*.npz
+# Documentation (optional - uncomment if not needed)
+# *.md
+# docs/
 
-# Do not ignore image/doc types globally; media/ directory is already excluded above.
+# Temporary files
+temp/
+tmp/
+*.tmp
 
-# Node modules
-node_modules/
+# Git
+.git/
+.gitignore
 
-# Cache files
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# Deployment scripts (optional - uncomment if not needed)
+# deploy.sh
+# *.sh

@@ -28,8 +28,10 @@
         "DEBUG": "False",
         "LIARA": "true",
         "WEB_CONCURRENCY": "1",
-        "TIMEOUT": "120",
-        "LIARA_AI_MODEL": "openai/gpt-4o-mini"
+        "TIMEOUT": "300",
+        "GUNICORN_TIMEOUT": "300",
+        "LIARA_AI_MODEL": "openai/gpt-4o-mini",
+        "AUTO_MIGRATE": "true"
       },
       "healthCheck": {
         "path": "/health",

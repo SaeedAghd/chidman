@@ -768,16 +768,23 @@
                                         </div>
                                     </div>
                                     <div style="height:0.75rem;"></div>
-                                    <a href="/store/analysis/{{ analysis.id|default:analysis.pk }}/results/" class="view-details-btn main-btn">
+                                    {% if analysis.pk %}
+                                    <a href="{% url 'store_analysis:analysis_results' analysis.pk %}" class="view-details-btn main-btn">
                                         <span>📊</span>
                                         <span>مشاهده نتایج</span>
                                     </a>
                                     
                                     <!-- دکمه PDF (فقط برای تحلیل‌های کامل) -->
-                                    <a href="/store/analysis/{{ analysis.id|default:analysis.pk }}/download/?type=pdf" target="_blank" rel="noopener" class="view-details-btn pdf-btn">
+                                    <a href="{% url 'store_analysis:download_analysis' analysis.pk %}?type=pdf" target="_blank" rel="noopener" class="view-details-btn pdf-btn">
                                         <span>📄</span>
                                         <span>دانلود PDF</span>
                                     </a>
+                                    {% else %}
+                                    <a href="#" class="view-details-btn main-btn" onclick="alert('خطا: شناسه تحلیل یافت نشد'); return false;">
+                                        <span>📊</span>
+                                        <span>مشاهده نتایج</span>
+                                    </a>
+                                    {% endif %}
                                     
                                     {% elif status == 'awaiting_form' %}
                                     <!-- فقط زمانی که فرم واقعاً تکمیل نشده نمایش داده می‌شود -->

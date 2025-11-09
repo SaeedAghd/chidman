@@ -51,10 +51,17 @@ if __name__ == "__main__":
         port = os.environ.get('PORT', '8000')
         # Respect WEB_CONCURRENCY if provided; default to 1 to reduce memory usage
         workers = os.environ.get('WEB_CONCURRENCY', '1')
-        timeout = os.environ.get('GUNICORN_TIMEOUT', os.environ.get('TIMEOUT', '120'))
+        timeout = os.environ.get('GUNICORN_TIMEOUT', os.environ.get('TIMEOUT', '300'))
         if not timeout or timeout == '':
-            timeout = '120'
+            timeout = '300'
 
-        cmd = f"gunicorn chidmano.wsgi:application --bind 0.0.0.0:{port} --workers {workers} --timeout {timeout} --access-logfile - --error-logfile -"
+        # Use gunicorn.conf.py if it exists, otherwise use command line arguments
+        config_file = os.path.join(os.path.dirname(__file__), 'gunicorn.conf.py')
+        if os.path.exists(config_file):
+            cmd = f"gunicorn chidmano.wsgi:application --config gunicorn.conf.py --bind 0.0.0.0:{port}"
+            print(f"✅ Using gunicorn.conf.py configuration")
+        else:
+            cmd = f"gunicorn chidmano.wsgi:application --bind 0.0.0.0:{port} --workers {workers} --timeout {timeout} --access-logfile - --error-logfile -"
+            print(f"⚠️ Using command line arguments (gunicorn.conf.py not found)")
 
         subprocess.run(shlex.split(cmd))

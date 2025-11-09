@@ -1,15 +1,17 @@
 # Gunicorn configuration for Chidmano Store Analysis
 import multiprocessing
+import os
 
 # Server socket
-bind = "0.0.0.0:8000"
+port = os.environ.get('PORT', '8000')
+bind = f"0.0.0.0:{port}"
 backlog = 2048
 
 # Worker processes - use 1 for Liara to avoid memory issues
-workers = 1
+workers = int(os.environ.get('WEB_CONCURRENCY', '1'))
 worker_class = "sync"
 worker_connections = 1000
-timeout = 300  # 5 minutes for AI processing
+timeout = int(os.environ.get('GUNICORN_TIMEOUT', os.environ.get('TIMEOUT', '300')))  # 5 minutes for AI processing
 keepalive = 2
 
 # Restart workers after this many requests, to prevent memory leaks
