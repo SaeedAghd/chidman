@@ -439,7 +439,9 @@ LIARA_AI_API_KEY = _liara_ai_key_raw
 # Base URL برای سرویس AI لیارا - بر اساس پاسخ پشتیبانی
 # سرویس AI از طریق دامنه ai.liara.ir ارائه می‌شود
 LIARA_AI_BASE_URL = os.getenv('LIARA_AI_BASE_URL', 'https://ai.liara.ir/api')
-LIARA_AI_PROJECT_ID = os.getenv('LIARA_AI_PROJECT_ID', 'ai-bqteya6wz')  # Workspace ID از پنل لیارا
+# 🔧 strip کردن فاصله‌های اضافی برای جلوگیری از خطای 403
+LIARA_AI_PROJECT_ID = (os.getenv('LIARA_AI_PROJECT_ID', '690f9dd94e6dbd1c22243c26') or '690f9dd94e6dbd1c22243c26').strip()  # Workspace ID از پنل لیارا
+LIARA_AI_MODEL = os.getenv('LIARA_AI_MODEL', 'openai/gpt-4o-mini')  # مدل پیش‌فرض
 LIARA_AI_TIMEOUT = int(os.getenv('LIARA_AI_TIMEOUT', '90'))  # ثانیه
 USE_LIARA_AI = os.getenv('USE_LIARA_AI', 'True').lower() == 'true'
 FALLBACK_TO_OLLAMA = os.getenv('FALLBACK_TO_OLLAMA', 'True').lower() == 'true'

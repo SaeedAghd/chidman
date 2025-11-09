@@ -16,10 +16,11 @@ class AIConsultantService:
     """سرویس مشاوره هوشمند با AI - پاسخ به سوالات کاربر بر اساس تحلیل فروشگاه"""
     
     def __init__(self):
-        self.liara_api_key = os.getenv('LIARA_AI_API_KEY', '')
+        self.liara_api_key = (os.getenv('LIARA_AI_API_KEY', '') or '').strip()
         # Endpoint صحیح بر اساس پاسخ پشتیبانی لیارا
         # سرویس AI از طریق دامنه ai.liara.ir ارائه می‌شود
-        workspace_id = os.getenv('LIARA_AI_PROJECT_ID', 'ai-bqteya6wz')
+        # 🔧 strip کردن فاصله‌های اضافی برای جلوگیری از خطای 403
+        workspace_id = (os.getenv('LIARA_AI_PROJECT_ID', 'ai-bqteya6wz') or 'ai-bqteya6wz').strip()
         self.api_url = f"https://ai.liara.ir/api/{workspace_id}/v1/chat/completions"
     
     def chat_with_analysis(

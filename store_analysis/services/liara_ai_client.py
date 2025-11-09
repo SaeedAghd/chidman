@@ -61,7 +61,9 @@ class LiaraAIClient:
             logger.info(f"✅ URL اصلاح شد به: {base_url_raw}")
         
         self.base_url: str = base_url_raw.rstrip('/')
-        self.workspace_id: Optional[str] = os.getenv("LIARA_AI_PROJECT_ID", "ai-bqteya6wz")
+        # 🔧 strip کردن فاصله‌های اضافی برای جلوگیری از خطای 403
+        workspace_id_raw = os.getenv("LIARA_AI_PROJECT_ID", "ai-bqteya6wz") or "ai-bqteya6wz"
+        self.workspace_id: Optional[str] = workspace_id_raw.strip()
         self.session = requests.Session()
         self.timeout: int = int(os.getenv("LIARA_AI_TIMEOUT", "90"))  # 90 ثانیه برای production
         
@@ -96,7 +98,9 @@ class LiaraAIClient:
         if not self.workspace_id:
             raise LiaraAIError("LIARA_AI_PROJECT_ID (workspaceID) تعریف نشده است")
         
-        url = f"{self.base_url.rstrip('/')}/{self.workspace_id}/v1/chat/completions"
+        # 🔧 اطمینان از حذف فاصله‌های اضافی در URL
+        workspace_id_clean = self.workspace_id.strip() if self.workspace_id else ''
+        url = f"{self.base_url.rstrip('/')}/{workspace_id_clean}/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",

@@ -34,9 +34,10 @@ class LiaraAIService:
             logger.info(f"✅ URL اصلاح شد به: {base_url_raw}")
         
         self.base_url = base_url_raw.rstrip('/')
-        self.api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
+        self.api_key = getattr(settings, 'LIARA_AI_API_KEY', '').strip() if getattr(settings, 'LIARA_AI_API_KEY', '') else ''
         # Workspace ID برای API لیارا AI (همان project_id)
-        self.workspace_id = getattr(settings, 'LIARA_AI_PROJECT_ID', '')
+        # 🔧 strip کردن فاصله‌های اضافی برای جلوگیری از خطای 403
+        self.workspace_id = getattr(settings, 'LIARA_AI_PROJECT_ID', '').strip() if getattr(settings, 'LIARA_AI_PROJECT_ID', '') else ''
         # نگه‌داری project_id برای سازگاری با کد قدیمی
         self.project_id = self.workspace_id
         
@@ -55,14 +56,17 @@ class LiaraAIService:
         
         # مدل‌های موجود در لیارا بر اساس مستندات
         # تمام مدل‌های لیارا سازگار با OpenAI SDK هستند
+        # خواندن مدل از تنظیمات برای امکان تغییر از طریق environment variable
+        default_model = getattr(settings, 'LIARA_AI_MODEL', 'openai/gpt-4o-mini')
         self.models = {
-            'analysis': 'openai/gpt-4.1',           # تحلیل اصلی
-            'design': 'openai/gpt-4.1',             # تحلیل طراحی
-            'marketing': 'openai/gpt-4.1',          # تحلیل بازاریابی
-            'psychology': 'openai/gpt-4.1',         # روانشناسی مشتری
-            'optimization': 'openai/gpt-4.1',       # بهینه‌سازی
-            'summary': 'openai/gpt-4.1'             # خلاصه‌سازی
+            'analysis': default_model,           # تحلیل اصلی
+            'design': default_model,             # تحلیل طراحی
+            'marketing': default_model,          # تحلیل بازاریابی
+            'psychology': default_model,         # روانشناسی مشتری
+            'optimization': default_model,       # بهینه‌سازی
+            'summary': default_model             # خلاصه‌سازی
         }
+        logger.info(f"🤖 استفاده از مدل AI: {default_model}")
     
     def _make_request(self, model: str, prompt: str, max_tokens: int = 4000, temperature: float = 0.7) -> Dict:
         """ارسال درخواست به API لیارا"""
@@ -103,22 +107,34 @@ class LiaraAIService:
                     'error_message': 'Workspace ID تنظیم نشده است. لطفاً LIARA_AI_PROJECT_ID را در settings تنظیم کنید.'
                 }
             
-            api_url = f"{self.base_url.rstrip('/')}/{self.workspace_id}/v1/chat/completions"
+            # 🔧 اطمینان از حذف فاصله‌های اضافی در URL
+            workspace_id_clean = self.workspace_id.strip() if self.workspace_id else ''
+            api_url = f"{self.base_url.rstrip('/')}/{workspace_id_clean}/v1/chat/completions"
             
             logger.info(f"🚀 ارسال درخواست به Liara AI: URL={api_url}, Model={model}, API Key موجود={'✅' if self.api_key else '❌'}, Workspace ID={'✅' if self.workspace_id else '❌'}")
+            logger.info(f"📤 Payload size: {len(str(payload))} chars, max_tokens={max_tokens}")
             
-            response = requests.post(
-                api_url,
-                headers=self.headers,
-                json=payload,
-                timeout=45  # کاهش timeout برای سرعت بیشتر
-            )
-            
-            logger.info(f"📡 پاسخ Liara AI: Status={response.status_code}, URL={api_url}")
+            try:
+                response = requests.post(
+                    api_url,
+                    headers=self.headers,
+                    json=payload,
+                    timeout=120  # افزایش timeout به 120 ثانیه برای مدل‌های بزرگتر
+                )
+                logger.info(f"📡 پاسخ Liara AI دریافت شد: Status={response.status_code}, URL={api_url}")
+            except requests.exceptions.Timeout as timeout_err:
+                logger.error(f"⏱️ Timeout در ارسال درخواست: {timeout_err}")
+                raise
+            except requests.exceptions.RequestException as req_err:
+                logger.error(f"❌ خطا در ارسال درخواست: {req_err}")
+                raise
             
             if response.status_code == 200:
                 result = response.json()
                 logger.info(f"✅ درخواست به Liara AI موفق: model={model}")
+                # بررسی وجود choices در پاسخ
+                if 'choices' not in result or not result.get('choices'):
+                    logger.warning(f"⚠️ پاسخ API فاقد choices است: {result.keys()}")
                 return result
             elif response.status_code == 401:
                 logger.error(f"❌ خطا در احراز هویت Liara AI: API key نامعتبر")
@@ -171,6 +187,8 @@ class LiaraAIService:
             }
         except Exception as e:
             logger.error(f"❌ خطا در ارتباط با لیارا AI: {e}", exc_info=True)
+            import traceback
+            logger.error(f"❌ Traceback: {traceback.format_exc()}")
             return {
                 'error': 'unexpected_error',
                 'error_message': f'خطای غیرمنتظره: {str(e)}'
@@ -199,12 +217,17 @@ class LiaraAIService:
         errors = []
         
         # 1. تحلیل اصلی با GPT-4 Turbo (شامل اطلاعات تصاویر)
+        logger.info(f"🔍 شروع تحلیل اصلی برای {store_name}")
         main_analysis = self._analyze_main_store(store_data, images)
         if main_analysis and not main_analysis.get('error'):
             analyses['main'] = main_analysis
+            logger.info(f"✅ تحلیل اصلی موفق بود")
         elif main_analysis and main_analysis.get('error'):
             errors.append(f"تحلیل اصلی: {main_analysis.get('error_message', 'خطای نامشخص')}")
             logger.error(f"❌ خطا در تحلیل اصلی: {main_analysis.get('error_message', 'خطای نامشخص')}")
+            logger.error(f"❌ جزئیات خطا: {main_analysis.get('error', 'unknown')}")
+        else:
+            logger.error(f"❌ تحلیل اصلی None برگشت")
         
         # 2. تحلیل طراحی با Claude-3 Opus (با تمرکز بر تصاویر)
         design_analysis = self._analyze_store_design(store_data, images)
