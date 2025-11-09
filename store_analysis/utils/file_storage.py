@@ -3,11 +3,43 @@ Helper functions for file storage that work with read-only filesystem (Liara)
 """
 import os
 import uuid
+import errno
 from django.core.files.storage import default_storage
 from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _save_to_tmp(file_obj, base_path):
+    """
+    Helper to persist files under /tmp when the main filesystem is read-only.
+    """
+    tmp_base = '/tmp/media'
+    tmp_dir = os.path.join(tmp_base, base_path)
+    os.makedirs(tmp_dir, exist_ok=True)
+    
+    safe_filename = f"{uuid.uuid4().hex[:8]}_{file_obj.name}"
+    file_path = os.path.join(tmp_dir, safe_filename)
+    
+    with open(file_path, 'wb+') as destination:
+        for chunk in file_obj.chunks():
+            destination.write(chunk)
+    
+    file_size = os.path.getsize(file_path)
+    relative_path = f'/tmp/media/{base_path}/{safe_filename}'
+    
+    result = {
+        'name': file_obj.name,
+        'path': relative_path,
+        'absolute_path': file_path,
+        'size': file_size,
+        'type': getattr(file_obj, 'content_type', None),
+        'storage': 'tmp'
+    }
+    
+    logger.info(f"✅ File saved to /tmp: {relative_path}, size={file_size}")
+    return result
 
 
 def save_uploaded_file(file_obj, base_path='uploads'):
@@ -30,6 +62,8 @@ def save_uploaded_file(file_obj, base_path='uploads'):
     is_liara = (
         os.getenv('LIARA') == 'true' or
         bool(os.getenv('LIARA_AI_API_KEY')) or
+        bool(os.getenv('LIARA_APP_NAME')) or
+        bool(os.getenv('LIARA_PROJECT_ID')) or
         'liara' in os.getenv('HOSTNAME', '').lower() or
         'liara' in os.getenv('ALLOWED_HOSTS', '').lower()
     )
@@ -38,34 +72,8 @@ def save_uploaded_file(file_obj, base_path='uploads'):
     
     if is_liara:
         # در Liara، از /tmp استفاده می‌کنیم
-        tmp_base = '/tmp/media'
-        tmp_dir = os.path.join(tmp_base, base_path)
-        os.makedirs(tmp_dir, exist_ok=True)
-        
-        # ایجاد نام فایل امن
-        safe_filename = f"{uuid.uuid4().hex[:8]}_{file_obj.name}"
-        file_path = os.path.join(tmp_dir, safe_filename)
-        
-        # ذخیره فایل
         try:
-            with open(file_path, 'wb+') as destination:
-                for chunk in file_obj.chunks():
-                    destination.write(chunk)
-            
-            file_size = os.path.getsize(file_path)
-            relative_path = f'/tmp/media/{base_path}/{safe_filename}'
-            
-            result = {
-                'name': file_obj.name,
-                'path': relative_path,
-                'absolute_path': file_path,
-                'size': file_size,
-                'type': file_obj.content_type,
-                'storage': 'tmp'
-            }
-            
-            logger.info(f"✅ File saved to /tmp: {relative_path}, size={file_size}")
-            return result
+            return _save_to_tmp(file_obj, base_path)
         except Exception as e:
             logger.error(f"❌ Error saving file to /tmp: {e}", exc_info=True)
             raise
@@ -86,6 +94,10 @@ def save_uploaded_file(file_obj, base_path='uploads'):
             return result
         except Exception as e:
             logger.error(f"❌ Error saving file via default_storage: {e}", exc_info=True)
+            # در صورت خطای Read-only FS، به /tmp سوییچ کن
+            if isinstance(e, OSError) and e.errno == errno.EROFS or 'Read-only file system' in str(e):
+                logger.warning("⚠️ default_storage is read-only; falling back to /tmp storage")
+                return _save_to_tmp(file_obj, base_path)
             raise
 
 

@@ -1292,7 +1292,7 @@ class PremiumReportGenerator:
             differentiation_category,
             'ارزش افزوده نسبت به گزارش رایگان',
             metadata.get('total_pages', 0) >= 100,
-            'حجم گزارش 150 صفحه و چندبرابر نسخه رایگان است.',
+            'گزارش با کیفیت و کامل و چندبرابر نسخه رایگان است.',
             'تفاوت مشخصی با نسخه رایگان دیده نمی‌شود.'
         )
         add_item(
@@ -1323,7 +1323,7 @@ class PremiumReportGenerator:
             access_category,
             'نسخه HTML و PDF بدون خطا',
             bool(metadata.get('total_pages')),
-            'گزارش HTML و PDF 150 صفحه‌ای آماده دانلود است.',
+            'گزارش HTML و PDF با کیفیت و کامل آماده دانلود است.',
             'نسخه HTML/PDF هنوز تولید نشده است.'
         )
         add_item(

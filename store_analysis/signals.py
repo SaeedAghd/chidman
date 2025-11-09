@@ -9,8 +9,10 @@ import os
 import logging
 
 from .models import Payment, PaymentLog, ServicePackage, UserSubscription
+from .utils.safe_db import check_table_exists
 
 logger = logging.getLogger(__name__)
+
 
 @receiver(post_save, sender=Payment)
 def handle_payment_save(sender, instance, created, **kwargs):
@@ -19,15 +21,20 @@ def handle_payment_save(sender, instance, created, **kwargs):
     """
     if created:
         # Log payment creation (with error handling)
-        try:
-            PaymentLog.objects.create(
-                payment=instance,
-                log_type='payment_created',
-                message=f'Payment {instance.order_id} created',
-                data={'amount': str(instance.amount), 'currency': instance.currency}
-            )
-        except Exception as e:
-            logger.warning(f"Could not create PaymentLog: {e}")
+        # بررسی وجود جدول PaymentLog قبل از ایجاد
+        table_name = 'store_analysis_paymentlog'
+        if check_table_exists(table_name):
+            try:
+                PaymentLog.objects.create(
+                    payment=instance,
+                    log_type='payment_created',
+                    message=f'Payment {instance.order_id} created',
+                    data={'amount': str(instance.amount), 'currency': instance.currency}
+                )
+            except Exception as e:
+                logger.warning(f"Could not create PaymentLog: {e}")
+        else:
+            logger.debug(f"PaymentLog table does not exist, skipping log creation")
         logger.info(f"Payment {instance.order_id} created with status: {instance.status}")
     else:
         logger.info(f"Payment {instance.order_id} updated with status: {instance.status}")

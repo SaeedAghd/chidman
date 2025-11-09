@@ -208,6 +208,12 @@ class SimpleFormManager {
         }
 
         const form = document.getElementById('storeAnalysisForm');
+        if (!form) {
+            console.error('Form not found');
+            this.showMessage('خطا: فرم پیدا نشد', 'error');
+            return;
+        }
+
         const formData = new FormData(form);
         const submitBtn = document.getElementById('submitBtn');
 
@@ -217,13 +223,63 @@ class SimpleFormManager {
             submitBtn.disabled = true;
         }
 
+        // تعریف متغیر timeoutId در scope بالاتر برای دسترسی در catch
+        let timeoutId = null;
+
         try {
+            // دریافت CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                throw new Error('CSRF token not found. Please refresh the page.');
+            }
+
+            // ساخت URL صحیح
+            let formAction = form.action;
+            if (!formAction || formAction === '' || formAction === '#') {
+                // اگر action خالی است، از URL pattern استفاده کن
+                formAction = '/store/forms/submit/';
+            }
+            
+            // اطمینان از اینکه URL کامل است
+            if (!formAction.startsWith('http') && !formAction.startsWith('/')) {
+                formAction = '/' + formAction;
+            }
+            
+            // اگر URL نسبی است و با / شروع نمی‌شود، اضافه کن
+            if (formAction.startsWith('/') && !formAction.startsWith('//')) {
+                // URL نسبی صحیح است
+            } else if (!formAction.includes(window.location.origin)) {
+                // اگر URL کامل نیست، origin را اضافه کن
+                formAction = window.location.origin + (formAction.startsWith('/') ? '' : '/') + formAction;
+            }
+
+            console.log('Submitting form to:', formAction);
+
+            // ایجاد AbortController برای timeout (fallback برای مرورگرهای قدیمی)
+            let abortController;
+            try {
+                if (AbortSignal.timeout) {
+                    // استفاده از AbortSignal.timeout اگر موجود باشد
+                    abortController = { signal: AbortSignal.timeout(60000) };
+                } else {
+                    // Fallback: استفاده از AbortController دستی
+                    abortController = new AbortController();
+                    timeoutId = setTimeout(() => {
+                        abortController.abort();
+                    }, 60000); // 60 ثانیه
+                }
+            } catch (e) {
+                // اگر AbortController پشتیبانی نمی‌شود، از timeout استفاده نکن
+                console.warn('AbortController not supported, timeout disabled');
+                abortController = null;
+            }
+
             // تنظیمات fetch برای سازگاری با مرورگرها
             const fetchOptions = {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-CSRFToken': csrfToken.value,
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
@@ -231,14 +287,23 @@ class SimpleFormManager {
                 redirect: 'manual' // برای کنترل redirect
             };
 
+            // اضافه کردن signal اگر موجود باشد
+            if (abortController && abortController.signal) {
+                fetchOptions.signal = abortController.signal;
+            }
+
             // بررسی پشتیبانی از fetch
             if (!window.fetch) {
                 // Fallback به XMLHttpRequest
                 return this.handleFormSubmissionXHR(formData);
             }
 
-            const formAction = form.action || window.location.pathname;
             const response = await fetch(formAction, fetchOptions);
+            
+            // پاک کردن timeout اگر موفق بودیم
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
 
             // بررسی نوع پاسخ
             const contentType = response.headers.get('content-type') || '';
@@ -316,6 +381,12 @@ class SimpleFormManager {
                 throw new Error(errorMessage);
             }
         } catch (error) {
+            // پاک کردن timeout در صورت خطا
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            
             console.error('Form submission error:', error);
             console.error('Error details:', {
                 name: error.name,
@@ -326,17 +397,28 @@ class SimpleFormManager {
             // بررسی نوع خطا و نمایش پیغام مناسب
             let errorMessage = 'خطایی در ارسال فرم رخ داد. لطفاً دوباره تلاش کنید.';
             
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                errorMessage = 'خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.';
-            } else if (error.message.includes('CSRF') || error.message.includes('Forbidden')) {
+            if (error.name === 'TypeError' && (error.message.includes('fetch') || error.message.includes('Failed to fetch'))) {
+                errorMessage = 'خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.';
+            } else if (error.name === 'AbortError' || error.message.includes('timeout') || error.message.includes('aborted')) {
+                errorMessage = 'زمان اتصال به سرور به پایان رسید. لطفاً دوباره تلاش کنید.';
+            } else if (error.message.includes('CSRF') || error.message.includes('Forbidden') || error.message.includes('403')) {
                 errorMessage = 'خطا در احراز هویت. لطفاً صفحه را رفرش کنید و دوباره تلاش کنید.';
-            } else if (error.message.includes('خطا در سرور')) {
-                errorMessage = error.message; // استفاده از پیغام سرور
+            } else if (error.message.includes('خطا در سرور') || error.message.includes('500')) {
+                errorMessage = 'خطا در سرور. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید.';
+            } else if (error.message.includes('ERR_CONNECTION_CLOSED') || error.message.includes('Connection closed')) {
+                errorMessage = 'اتصال به سرور قطع شد. لطفاً اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.';
             } else if (error.message) {
                 errorMessage = `خطا: ${error.message}`;
             }
             
             this.showMessage(errorMessage, 'error');
+            
+            // پیشنهاد retry
+            setTimeout(() => {
+                if (confirm('آیا می‌خواهید دوباره تلاش کنید؟')) {
+                    this.handleFormSubmission();
+                }
+            }, 2000);
         } finally {
             // بازگردانی دکمه
             if (submitBtn) {
@@ -390,7 +472,24 @@ class SimpleFormManager {
             };
             
             const form = document.getElementById('storeAnalysisForm');
-            const formAction = form.action || window.location.pathname;
+            if (!form) {
+                reject(new Error('Form not found'));
+                return;
+            }
+            
+            let formAction = form.action;
+            if (!formAction || formAction === '' || formAction === '#') {
+                formAction = '/store/forms/submit/';
+            }
+            
+            // اطمینان از اینکه URL کامل است
+            if (!formAction.startsWith('http') && !formAction.startsWith('/')) {
+                formAction = '/' + formAction;
+            }
+            
+            console.log('XHR submitting to:', formAction);
+            
+            xhr.timeout = 60000; // 60 second timeout
             xhr.open('POST', formAction);
             xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');

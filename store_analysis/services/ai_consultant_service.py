@@ -21,7 +21,7 @@ class AIConsultantService:
     """سرویس مشاور هوش مصنوعی حرفه‌ای"""
     
     def __init__(self):
-        self.free_questions_limit = 3
+        self.free_questions_limit = 10
         self.paid_session_duration = timedelta(days=1)
         self.paid_session_price = 200000  # تومان
     

@@ -17,6 +17,7 @@ import uuid
 import time
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import Dict, Any, Optional, List
 from .models import Payment, PaymentLog, ServicePackage, UserSubscription, StoreAnalysis, SupportTicket, FAQService, PageView, SiteStats, DiscountCode, StoreBasicInfo, StoreAnalysisResult, TicketMessage, UserProfile, AnalysisRequest, StoreLayout, StoreTraffic, StoreDesign, StoreSurveillance, StoreProducts, PricingPlan, AIConsultantService, AIConsultantQuestion, AIConsultantSession, AIConsultantPayment, Transaction, Order
 from django.contrib.auth.models import User
 # Admin views moved to chidmano.admin_dashboard
@@ -448,6 +449,9 @@ class StoreAnalysisAI:
     
     def generate_detailed_analysis(self, analysis_data):
         """تولید تحلیل تفصیلی"""
+        store_name = analysis_data.get('store_name', 'فروشگاه')
+        logger.info(f"🔍 شروع تولید تحلیل تفصیلی برای: {store_name}")
+        
         try:
             store_data = {
                 'store_name': analysis_data.get('store_name', 'فروشگاه'),
@@ -468,34 +472,119 @@ class StoreAnalysisAI:
                         if isinstance(file_info, dict) and 'path' in file_info:
                             images.append(file_info['path'])
             
+            logger.info(f"📸 تعداد تصاویر استخراج شده: {len(images)}")
+            
+            # تلاش برای تحلیل با Liara AI
             result = self.liara_service.analyze_store_comprehensive(
                 store_data=store_data,
                 images=images if images else None
             )
             
-            if result and not result.get('error'):
-                return {
-                    'analysis_text': result.get('final_report', ''),
-                    'overall_score': 75.0,
-                    'layout_score': 75.0,
-                    'traffic_score': 75.0,
-                    'design_score': 75.0,
-                    'sales_score': 75.0,
-                    'strengths': result.get('detailed_analyses', {}).get('main', {}).get('content', ''),
-                    'weaknesses': result.get('detailed_analyses', {}).get('design', {}).get('content', ''),
-                    'opportunities': result.get('detailed_analyses', {}).get('marketing', {}).get('content', ''),
-                    'threats': result.get('detailed_analyses', {}).get('psychology', {}).get('content', ''),
-                    'recommendations': result.get('final_report', ''),
-                    **result
-                }
+            logger.info(f"📥 نتیجه از Liara AI: has_error={result.get('error') if result else 'None'}, has_final_report={bool(result and result.get('final_report'))}")
+            
+            if result and not result.get('error') and result.get('final_report'):
+                final_report = result.get('final_report', '').strip()
+                if final_report and len(final_report) > 50:  # بررسی اینکه گزارش خالی نباشد
+                    logger.info(f"✅ تحلیل موفق از Liara AI - طول گزارش: {len(final_report)} کاراکتر")
+                    return {
+                        'analysis_text': final_report,
+                        'overall_score': 75.0,
+                        'layout_score': 75.0,
+                        'traffic_score': 75.0,
+                        'design_score': 75.0,
+                        'sales_score': 75.0,
+                        'strengths': result.get('detailed_analyses', {}).get('main', {}).get('content', ''),
+                        'weaknesses': result.get('detailed_analyses', {}).get('design', {}).get('content', ''),
+                        'opportunities': result.get('detailed_analyses', {}).get('marketing', {}).get('content', ''),
+                        'threats': result.get('detailed_analyses', {}).get('psychology', {}).get('content', ''),
+                        'recommendations': final_report,
+                        **result
+                    }
+                else:
+                    logger.warning(f"⚠️ گزارش از Liara AI خالی یا خیلی کوتاه است (length={len(final_report) if final_report else 0}) - استفاده از fallback")
             else:
-                # Fallback به تحلیل ساده
-                from .utils import generate_initial_ai_analysis
-                return generate_initial_ai_analysis(analysis_data)
+                error_msg = result.get('error_message', 'خطای نامشخص') if result else 'نتیجه None برگشت'
+                logger.warning(f"⚠️ خطا در تحلیل Liara AI: {error_msg} - استفاده از fallback")
+            
+            # Fallback به تحلیل ساده
+            logger.info(f"🔄 استفاده از fallback analysis برای: {store_name}")
+            from .utils.analysis_utils import generate_initial_ai_analysis
+            fallback_result = generate_initial_ai_analysis(analysis_data)
+            
+            # بررسی اینکه fallback هم خالی نباشد
+            if fallback_result and fallback_result.get('analysis_text'):
+                logger.info(f"✅ Fallback analysis موفق - طول گزارش: {len(fallback_result.get('analysis_text', ''))} کاراکتر")
+                return fallback_result
+            else:
+                # اگر fallback هم خالی است، یک گزارش حداقلی تولید کن
+                logger.error(f"❌ Fallback analysis هم خالی است - تولید گزارش حداقلی")
+                return self._generate_minimal_analysis(store_data)
+                
         except Exception as e:
-            logger.error(f"Error in generate_detailed_analysis: {e}", exc_info=True)
-            from .utils import generate_initial_ai_analysis
-            return generate_initial_ai_analysis(analysis_data)
+            logger.error(f"❌ خطا در generate_detailed_analysis: {e}", exc_info=True)
+            try:
+                from .utils.analysis_utils import generate_initial_ai_analysis
+                fallback_result = generate_initial_ai_analysis(analysis_data)
+                if fallback_result and fallback_result.get('analysis_text'):
+                    return fallback_result
+            except Exception as fallback_error:
+                logger.error(f"❌ خطا در fallback analysis: {fallback_error}")
+            
+            # آخرین fallback: گزارش حداقلی
+            store_data = {
+                'store_name': analysis_data.get('store_name', 'فروشگاه'),
+                'store_type': analysis_data.get('store_type', 'عمومی'),
+                'store_size': str(analysis_data.get('store_size', 0)),
+            }
+            return self._generate_minimal_analysis(store_data)
+    
+    def _generate_minimal_analysis(self, store_data: Dict[str, Any]) -> Dict[str, Any]:
+        """تولید گزارش حداقلی در صورت خطا"""
+        store_name = store_data.get('store_name', 'فروشگاه')
+        logger.info(f"📝 تولید گزارش حداقلی برای: {store_name}")
+        
+        minimal_report = f"""
+## گزارش تحلیل فروشگاه {store_name}
+
+### خلاصه اجرایی
+فروشگاه {store_name} در حال تحلیل است. بر اساس اطلاعات ارائه شده، تحلیل اولیه انجام شده است.
+
+### امتیاز کلی
+امتیاز اولیه: ۷۰ از ۱۰۰
+
+### نقاط قوت
+- موقعیت مناسب فروشگاه
+- پتانسیل رشد قابل توجه
+- امکان بهینه‌سازی چیدمان
+
+### توصیه‌های اولیه
+1. بررسی و بهینه‌سازی چیدمان محصولات
+2. بهبود نورپردازی برای جذابیت بیشتر
+3. بهینه‌سازی مسیر حرکت مشتری
+4. استفاده بهتر از فضاهای موجود
+
+### نکته مهم
+برای دریافت تحلیل کامل‌تر، لطفاً تصاویر و اطلاعات بیشتری از فروشگاه را آپلود کنید.
+
+---
+این گزارش به صورت خودکار تولید شده است. برای تحلیل دقیق‌تر، لطفاً با پشتیبانی تماس بگیرید.
+        """.strip()
+        
+        return {
+            'analysis_text': minimal_report,
+            'overall_score': 70.0,
+            'layout_score': 70.0,
+            'traffic_score': 70.0,
+            'design_score': 70.0,
+            'sales_score': 70.0,
+            'strengths': ['موقعیت مناسب', 'پتانسیل رشد'],
+            'weaknesses': ['نیاز به بهینه‌سازی'],
+            'opportunities': ['بهبود چیدمان', 'افزایش فروش'],
+            'threats': [],
+            'recommendations': minimal_report,
+            'source': 'minimal_fallback',
+            'warning': 'این گزارش به صورت حداقلی تولید شده است. برای تحلیل کامل‌تر لطفاً دوباره تلاش کنید.'
+        }
     
     def detect_store_problems(self, analysis_data):
         """تشخیص مشکلات فروشگاه"""
@@ -1284,10 +1373,67 @@ def analysis_results(request, pk):
                 process_analysis_with_liara.delay(pk)
                 return JsonResponse({'status': 'success', 'message': 'تحلیل با Chidmano1 AI شروع شد'})
             
+            elif action == 'create_free_gift_analysis':
+                # ایجاد تحلیل رایگان هدیه برای کاربران پولی
+                try:
+                    # بررسی اینکه کاربر پلن پولی دارد
+                    is_paid_plan = analysis.package_type in ['professional', 'enterprise'] or (
+                        analysis.final_amount and analysis.final_amount > 0
+                    )
+                    
+                    if not is_paid_plan:
+                        return JsonResponse({
+                            'status': 'error', 
+                            'message': 'این سرویس فقط برای کاربران پلن پولی در دسترس است.'
+                        })
+                    
+                    # ایجاد تحلیل جدید رایگان بر اساس تحلیل فعلی
+                    analysis_data = analysis.get_analysis_data() or {}
+                    
+                    # ایجاد تحلیل جدید با همان داده‌ها اما رایگان
+                    new_analysis = StoreAnalysis.objects.create(
+                        user=request.user,
+                        store_name=f"{analysis.store_name} (هدیه Chidmano2)",
+                        store_type=analysis.store_type,
+                        store_size=analysis.store_size,
+                        store_address=analysis.store_address,
+                        additional_info=analysis.additional_info,
+                        business_goals=analysis.business_goals,
+                        marketing_budget=analysis.marketing_budget,
+                        analysis_type='basic',
+                        package_type='basic',  # تحلیل رایگان
+                        final_amount=0,  # رایگان
+                        price=0,
+                        status='pending',
+                        analysis_data=analysis_data,
+                        store_images=analysis.store_images.copy() if analysis.store_images else [],
+                        analysis_files=analysis.analysis_files.copy() if analysis.analysis_files else []
+                    )
+                    
+                    logger.info(f"🎁 ایجاد تحلیل رایگان هدیه {new_analysis.id} برای کاربر {request.user.username} از تحلیل {analysis.id}")
+                    
+                    # شروع پردازش با Ollama
+                    from .tasks import process_analysis_with_ollama
+                    process_analysis_with_ollama.delay(new_analysis.id)
+                    
+                    return JsonResponse({
+                        'status': 'success', 
+                        'message': 'تحلیل رایگان هدیه شما ایجاد شد و در حال پردازش است.',
+                        'new_analysis_id': new_analysis.id
+                    })
+                    
+                except Exception as gift_error:
+                    logger.error(f"❌ خطا در ایجاد تحلیل هدیه: {gift_error}", exc_info=True)
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': f'خطا در ایجاد تحلیل هدیه: {str(gift_error)}'
+                    })
+            
             else:
                 return JsonResponse({'status': 'error', 'message': 'عملیات نامعتبر'})
                 
         except Exception as e:
+            logger.error(f"❌ خطا در پردازش درخواست POST: {e}", exc_info=True)
             return JsonResponse({'status': 'error', 'message': f'خطا: {str(e)}'})
     
     # اطمینان از وجود گزارش پایه برای تحلیل‌های قدیمی
@@ -1299,67 +1445,120 @@ def analysis_results(request, pk):
     except:
         result = None
     
-    # محاسبه امتیازات از نتایج AI
-    scores = {}
-    if analysis.results and 'executive_summary' in analysis.results:
-        # محاسبه امتیاز کلی بر اساس confidence_score
-        confidence_score = analysis.results.get('confidence_score', 0.85)
-        overall_score = int(confidence_score * 100)
-        
-        # محاسبه امتیازات جزئی بر اساس داده‌های تحلیل
+        # محاسبه امتیازات از نتایج AI - استفاده از همان منطق گزارش پرمیوم
+        scores = {}
         analysis_data = analysis.get_analysis_data() or {}
+        
+        # بررسی وجود premium_report و استفاده از scores آن برای هماهنگی
+        results_data = analysis.results or {}
+        premium_report = results_data.get('premium_report', {})
+        
+        # اگر premium_report وجود دارد، از همان منطق محاسبه premium_scores استفاده کن
+        if premium_report:
+            # استفاده از همان منطق محاسبه premium_scores (همانند view_analysis_report)
+            if analysis.results and 'executive_summary' in analysis.results:
+                def to_float(value, default):
+                    try:
+                        if value in [None, '']:
+                            return float(default)
+                        return float(value)
+                    except (ValueError, TypeError):
+                        try:
+                            mapping = {'small': 300, 'medium': 600, 'large': 1000, 'very_large': 1500}
+                            return float(mapping.get(str(value).lower(), default))
+                        except Exception:
+                            return float(default)
+                
+                conv_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
+                cust_traffic = to_float(analysis_data.get('customer_traffic'), 180)
+                store_sz = to_float(analysis_data.get('store_size'), 1200)
+                unused_sz = to_float(analysis_data.get('unused_area_size'), 150)
+                
+                layout_sc = max(60, 100 - (unused_sz / store_sz * 100) if store_sz > 0 else 80)
+                layout_sc = min(95, layout_sc + (conv_rate - 30) * 0.5)
+                traffic_sc = min(95, max(60, cust_traffic / 10))
+                design_sc = min(95, max(60, conv_rate * 1.5 + traffic_sc * 0.3))
+                sales_sc = min(95, max(60, conv_rate * 2))
+                overall_sc = (layout_sc + traffic_sc + design_sc + sales_sc) / 4
+                
+                scores = {
+                    'overall_score': int(round(overall_sc)),
+                    'layout_score': int(layout_sc),
+                    'traffic_score': int(traffic_sc),
+                    'design_score': int(design_sc),
+                    'sales_score': int(sales_sc)
+                }
+            else:
+                scores = {
+                    'overall_score': 74,
+                    'layout_score': 70,
+                    'traffic_score': 75,
+                    'design_score': 80,
+                    'sales_score': 72
+                }
+        elif analysis.results and 'executive_summary' in analysis.results:
+            # محاسبه امتیازات جزئی بر اساس داده‌های تحلیل (همان منطق گزارش پرمیوم)
 
-        def to_float(value, default):
-            try:
-                if value in [None, '']:
-                    return float(default)
-                return float(value)
-            except (ValueError, TypeError):
+            def to_float(value, default):
                 try:
-                    mapping = {
-                        'small': 300,
-                        'medium': 600,
-                        'large': 1000,
-                        'very_large': 1500
-                    }
-                    return float(mapping.get(str(value).lower(), default))
-                except Exception:
-                    return float(default)
+                    if value in [None, '']:
+                        return float(default)
+                    return float(value)
+                except (ValueError, TypeError):
+                    try:
+                        mapping = {
+                            'small': 300,
+                            'medium': 600,
+                            'large': 1000,
+                            'very_large': 1500
+                        }
+                        return float(mapping.get(str(value).lower(), default))
+                    except Exception:
+                        return float(default)
 
-        conversion_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
-        customer_traffic = to_float(analysis_data.get('customer_traffic'), 180)
-        store_size = to_float(analysis_data.get('store_size'), 1200)
-        unused_area_size = to_float(analysis_data.get('unused_area_size'), 150)
-        
-        # امتیاز چیدمان (بر اساس فضای بلااستفاده و نرخ تبدیل)
-        layout_score = max(60, 100 - (unused_area_size / store_size * 100) if store_size > 0 else 80)
-        layout_score = min(95, layout_score + (conversion_rate - 30) * 0.5)
-        
-        # امتیاز ترافیک (بر اساس تعداد مشتریان)
-        traffic_score = min(95, max(60, customer_traffic / 10))
-        
-        # امتیاز طراحی (بر اساس نرخ تبدیل و ترافیک)
-        design_score = min(95, max(60, conversion_rate * 1.5 + traffic_score * 0.3))
-        
-        # امتیاز فروش (بر اساس نرخ تبدیل)
-        sales_score = min(95, max(60, conversion_rate * 2))
-        
-        scores = {
-            'overall_score': overall_score,
-            'layout_score': int(layout_score),
-            'traffic_score': int(traffic_score),
-            'design_score': int(design_score),
-            'sales_score': int(sales_score)
-        }
-    else:
-        # امتیازات پیش‌فرض
-        scores = {
-            'overall_score': 75,
-            'layout_score': 70,
-            'traffic_score': 75,
-            'design_score': 80,
-            'sales_score': 72
-        }
+            conversion_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
+            customer_traffic = to_float(analysis_data.get('customer_traffic'), 180)
+            store_size = to_float(analysis_data.get('store_size'), 1200)
+            unused_area_size = to_float(analysis_data.get('unused_area_size'), 150)
+            
+            # امتیاز چیدمان (بر اساس فضای بلااستفاده و نرخ تبدیل) - همان منطق گزارش پرمیوم
+            layout_score = max(60, 100 - (unused_area_size / store_size * 100) if store_size > 0 else 80)
+            layout_score = min(95, layout_score + (conversion_rate - 30) * 0.5)
+            
+            # امتیاز ترافیک (بر اساس تعداد مشتریان) - همان منطق گزارش پرمیوم
+            traffic_score = min(95, max(60, customer_traffic / 10))
+            
+            # امتیاز طراحی (بر اساس نرخ تبدیل و ترافیک) - همان منطق گزارش پرمیوم
+            design_score = min(95, max(60, conversion_rate * 1.5 + traffic_score * 0.3))
+            
+            # امتیاز فروش (بر اساس نرخ تبدیل) - همان منطق گزارش پرمیوم
+            sales_score = min(95, max(60, conversion_rate * 2))
+            
+            # محاسبه امتیاز کلی به عنوان میانگین امتیازهای جزئی
+            overall_score = (layout_score + traffic_score + design_score + sales_score) / 4
+            
+            scores = {
+                'overall_score': int(round(overall_score)),
+                'layout_score': int(layout_score),
+                'traffic_score': int(traffic_score),
+                'design_score': int(design_score),
+                'sales_score': int(sales_score)
+            }
+        else:
+            # امتیازات پیش‌فرض - امتیاز کلی باید میانگین باشد
+            layout_score = 70
+            traffic_score = 75
+            design_score = 80
+            sales_score = 72
+            overall_score = (layout_score + traffic_score + design_score + sales_score) / 4
+            
+            scores = {
+                'overall_score': int(round(overall_score)),
+                'layout_score': layout_score,
+                'traffic_score': traffic_score,
+                'design_score': design_score,
+                'sales_score': sales_score
+            }
     
     # بررسی دسترسی به گزارش مدیریتی
     is_admin = request.user.is_staff or request.user.is_superuser
@@ -1394,8 +1593,38 @@ def analysis_results(request, pk):
             self.confidence_score = analysis_data.get('confidence_score', 0.85)
             self.free_plan = analysis_data.get('free_plan', True)
             self.scores = scores_data
+            # اضافه کردن امتیازهای جزئی برای دسترسی مستقیم (سازگاری با کد قدیمی)
+            self.layout_score = scores_data.get('layout_score', 70)
+            self.traffic_score = scores_data.get('traffic_score', 75)
+            self.design_score = scores_data.get('design_score', 80)
+            self.sales_score = scores_data.get('sales_score', 72)
+            self.sales_potential = scores_data.get('sales_score', 72)  # برای سازگاری
     
     results_obj = ResultsObject(analysis_results, scores)
+    
+    # تشخیص نوع تحلیل (رایگان یا پولی)
+    is_free_analysis = (
+        analysis.package_type == 'basic' and 
+        (analysis.final_amount == 0 or analysis.final_amount is None)
+    )
+    is_paid_plan = analysis.package_type in ['professional', 'enterprise'] or (
+        analysis.final_amount and analysis.final_amount > 0
+    )
+    
+    # URL صفحه پرداخت برای ارتقا به GPT
+    payment_url = None
+    if is_free_analysis:
+        # پیدا کردن بسته حرفه‌ای برای پرداخت
+        try:
+            from .models import ServicePackage
+            professional_package = ServicePackage.objects.filter(
+                package_type='professional',
+                is_active=True
+            ).first()
+            if professional_package:
+                payment_url = reverse('store_analysis:buy_complete')
+        except Exception as e:
+            logger.warning(f"Could not find professional package: {e}")
     
     context = {
         'analysis': analysis,
@@ -1408,6 +1637,9 @@ def analysis_results(request, pk):
         'show_management_report': show_management_report,
         'is_admin': is_admin,
         'order': order,
+        'is_free_analysis': is_free_analysis,  # اضافه کردن اطلاعات نوع تحلیل
+        'is_paid_plan': is_paid_plan,  # اضافه کردن اطلاعات پلن پولی
+        'payment_url': payment_url,  # URL صفحه پرداخت برای ارتقا
         'view_report_url': request.build_absolute_uri(
             reverse('store_analysis:view_analysis_report', kwargs={'pk': analysis.pk})
         ),
@@ -1643,6 +1875,57 @@ def view_analysis_report(request, pk):
             
             analysis_data = analysis.get_analysis_data() if hasattr(analysis, 'get_analysis_data') else {}
             
+            # محاسبه scores برای هماهنگی امتیازها (استفاده از همان منطق analysis_results)
+            premium_scores = {}
+            if analysis.results and 'executive_summary' in analysis.results:
+                def to_float(value, default):
+                    try:
+                        if value in [None, '']:
+                            return float(default)
+                        return float(value)
+                    except (ValueError, TypeError):
+                        try:
+                            mapping = {'small': 300, 'medium': 600, 'large': 1000, 'very_large': 1500}
+                            return float(mapping.get(str(value).lower(), default))
+                        except Exception:
+                            return float(default)
+                
+                conv_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
+                cust_traffic = to_float(analysis_data.get('customer_traffic'), 180)
+                store_sz = to_float(analysis_data.get('store_size'), 1200)
+                unused_sz = to_float(analysis_data.get('unused_area_size'), 150)
+                
+                layout_sc = max(60, 100 - (unused_sz / store_sz * 100) if store_sz > 0 else 80)
+                layout_sc = min(95, layout_sc + (conv_rate - 30) * 0.5)
+                traffic_sc = min(95, max(60, cust_traffic / 10))
+                design_sc = min(95, max(60, conv_rate * 1.5 + traffic_sc * 0.3))
+                sales_sc = min(95, max(60, conv_rate * 2))
+                overall_sc = (layout_sc + traffic_sc + design_sc + sales_sc) / 4
+                
+                premium_scores = {
+                    'overall_score': int(round(overall_sc)),
+                    'layout_score': int(layout_sc),
+                    'traffic_score': int(traffic_sc),
+                    'design_score': int(design_sc),
+                    'sales_score': int(sales_sc)
+                }
+            else:
+                premium_scores = {
+                    'overall_score': 74,
+                    'layout_score': 70,
+                    'traffic_score': 75,
+                    'design_score': 80,
+                    'sales_score': 72
+                }
+            
+            # به‌روزرسانی cover_page با layout_score صحیح
+            cover_page_data = (premium_report or {}).get('cover_page', {})
+            if not cover_page_data:
+                cover_page_data = {}
+            
+            # همیشه layout_score را تنظیم کن
+            cover_page_data['layout_score'] = premium_scores.get('layout_score', cover_page_data.get('layout_score', 70))
+            
             # ترجمه داده‌های premium_report از انگلیسی به فارسی
             translated_premium_report = translate_english_to_persian(premium_report) if premium_report else {}
             
@@ -1651,7 +1934,8 @@ def view_analysis_report(request, pk):
                 'analysis': analysis,
                 'premium_report': translated_premium_report,
                 'report_type': 'premium',
-                'cover_page': translate_english_to_persian((premium_report or {}).get('cover_page', {})) if premium_report else {},
+                'scores': premium_scores,  # اضافه کردن scores به context برای هماهنگی
+                'cover_page': translate_english_to_persian(cover_page_data),
                 'executive_summary': translate_english_to_persian((premium_report or {}).get('executive_summary', {})) if premium_report else {},
                 'technical_analysis': translate_english_to_persian((premium_report or {}).get('technical_analysis', {})) if premium_report else {},
                 'sales_analysis': translate_english_to_persian((premium_report or {}).get('sales_analysis', {})) if premium_report else {},
@@ -2555,38 +2839,61 @@ def generate_premium_pdf_from_premium_report(analysis, premium_report):
         return None
 
 def generate_management_report(analysis, has_ai_results=False):
-    """Generate Professional Certificate-Style Management Report"""
+    """Generate Professional Certificate-Style Management Report - استفاده از premium_report"""
     
-    # Get analysis data - اولویت با نتایج جدید Ollama
-    analysis_data = analysis.get_analysis_data()
+    # دریافت premium_report برای هماهنگی با گزارش اصلی
     results = analysis.results if hasattr(analysis, 'results') and analysis.results else {}
+    premium_report = results.get('premium_report', {})
     
-    # اگر نتایج جدید Ollama موجود است، از آن استفاده کن
-    if results and isinstance(results, dict) and 'analysis_text' in results:
-        # استفاده از تحلیل جدید Ollama
-        ollama_analysis = results.get('analysis_text', '')
-        if ollama_analysis:
-            # اضافه کردن تحلیل جدید به نتایج
-            results['ollama_analysis'] = ollama_analysis
+    # اگر premium_report وجود ندارد، سعی کن آن را تولید کن
+    if not premium_report or (isinstance(premium_report, dict) and len(premium_report) == 0):
+        try:
+            from .services.premium_report_generator import PremiumReportGenerator
+            generator = PremiumReportGenerator()
+            premium_report = generator.generate_premium_report(analysis)
+            if premium_report and isinstance(premium_report, dict) and len(premium_report) > 0:
+                # ذخیره در results
+                if not analysis.results:
+                    analysis.results = {}
+                analysis.results['premium_report'] = premium_report
+                analysis.save(update_fields=['results'])
+        except Exception as e:
+            logger.warning(f"⚠️ خطا در تولید premium_report برای گواهی: {e}")
+            premium_report = {}
     
-    # Check for analysis results
-    has_results = hasattr(analysis, 'analysis_result')
-    result = analysis.analysis_result if has_results else None
+    # ترجمه داده‌های premium_report از انگلیسی به فارسی
+    premium_report = translate_english_to_persian(premium_report) if premium_report else {}
+    
+    # Get analysis data
+    analysis_data = analysis.get_analysis_data()
+    
+    # دریافت داده‌های cover_page و executive_summary از premium_report
+    cover_page = premium_report.get('cover_page', {})
+    executive_summary = premium_report.get('executive_summary', {})
+    technical_analysis = premium_report.get('technical_analysis', {})
+    sales_analysis = premium_report.get('sales_analysis', {})
+    action_plan = premium_report.get('action_plan', {})
+    kpi_dashboard = premium_report.get('kpi_dashboard', {})
+    metadata = premium_report.get('metadata', {})
+    
+    # محاسبه scores از premium_report
+    layout_score = cover_page.get('layout_score', 70)
+    if 'scores' in premium_report:
+        layout_score = premium_report['scores'].get('layout_score', layout_score)
     
     # Generate unique certificate ID
     import uuid
     certificate_id = str(uuid.uuid4())[:8].upper()
     
-    # Professional International Certificate - Portrait Design
+    # Professional International Certificate - Portrait Design با UI/UX بهبود یافته
     report_content = f"""<!DOCTYPE html>
-<html>
+<html dir="rtl" lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>AI Store Analysis Certificate - {analysis.store_name}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گواهینامه AI تحلیل فروشگاه - {analysis.store_name}</title>
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.2/fonts/webfonts/Vazirmatn.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap');
-        
         * {{
             margin: 0;
             padding: 0;
@@ -2597,24 +2904,27 @@ def generate_management_report(analysis, has_ai_results=False):
             font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif; 
             margin: 0; 
             padding: 20px; 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             direction: rtl;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-weight: 400;
+            line-height: 1.8;
         }}
         
         .certificate {{ 
-            width: 800px; 
-            height: 1100px; 
+            width: 900px; 
+            max-width: 95vw;
+            min-height: 1200px; 
             margin: 0 auto; 
-            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%); 
-            border-radius: 25px; 
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 0 4px rgba(255,215,0,0.4); 
+            background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%); 
+            border-radius: 30px; 
+            box-shadow: 0 50px 120px rgba(0,0,0,0.4), 0 0 0 5px rgba(255,215,0,0.3), inset 0 0 100px rgba(255,215,0,0.05); 
             overflow: hidden;
             position: relative;
-            border: 4px solid #FFD700;
+            border: 5px solid #FFD700;
             display: flex;
             flex-direction: column;
         }}
@@ -2627,43 +2937,52 @@ def generate_management_report(analysis, has_ai_results=False):
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 20%, rgba(255,215,0,0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255,215,0,0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 60%, rgba(255,215,0,0.05) 0%, transparent 50%);
+                radial-gradient(circle at 15% 15%, rgba(102,126,234,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(118,75,162,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255,215,0,0.03) 0%, transparent 70%);
             pointer-events: none;
+            z-index: 0;
         }}
         
         .hologram {{
             position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700, #FFA500);
+            top: 25px;
+            right: 25px;
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 32px;
             color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            box-shadow: 0 0 20px rgba(255,215,0,0.6);
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+            box-shadow: 0 0 30px rgba(255,215,0,0.7), inset 0 0 20px rgba(255,255,255,0.3);
             animation: hologramGlow 3s ease-in-out infinite alternate;
+            z-index: 10;
         }}
         
         @keyframes hologramGlow {{
-            0% {{ box-shadow: 0 0 20px rgba(255,215,0,0.6); }}
-            100% {{ box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 40px rgba(255,215,0,0.3); }}
+            0% {{ 
+                box-shadow: 0 0 30px rgba(255,215,0,0.7), inset 0 0 20px rgba(255,255,255,0.3);
+                transform: scale(1);
+            }}
+            100% {{ 
+                box-shadow: 0 0 40px rgba(255,215,0,0.9), 0 0 60px rgba(255,215,0,0.4), inset 0 0 20px rgba(255,255,255,0.4);
+                transform: scale(1.05);
+            }}
         }}
         
         .header {{ 
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%); 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%); 
             color: white; 
-            padding: 40px 30px; 
+            padding: 50px 40px; 
             text-align: center; 
             position: relative;
-            border-bottom: 4px solid #FFD700;
+            border-bottom: 5px solid #FFD700;
             flex-shrink: 0;
+            z-index: 1;
         }}
         
         .header::before {{
@@ -2673,124 +2992,138 @@ def generate_management_report(analysis, has_ai_results=False):
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
+            background: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px);
+            opacity: 0.5;
         }}
         
         .title {{ 
-            font-size: 36px; 
+            font-size: 42px; 
             font-weight: 900; 
-            margin-bottom: 12px; 
+            margin-bottom: 15px; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
             position: relative;
             z-index: 1;
-            line-height: 1.2;
+            line-height: 1.3;
+            letter-spacing: -0.5px;
         }}
         
         .subtitle {{ 
-            font-size: 16px; 
-            opacity: 0.95; 
+            font-size: 18px; 
+            opacity: 0.98; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif; 
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             position: relative;
             z-index: 1;
-            line-height: 1.4;
+            line-height: 1.6;
+            font-weight: 500;
         }}
         
         .cert-id {{ 
-            background: rgba(255,215,0,0.2); 
-            padding: 12px 25px; 
-            border-radius: 30px; 
-            font-family: 'Courier New', monospace; 
-            margin-top: 20px;
-            border: 2px solid rgba(255,215,0,0.5);
+            background: rgba(255,255,255,0.25); 
+            backdrop-filter: blur(10px);
+            padding: 14px 28px; 
+            border-radius: 35px; 
+            font-family: 'Vazirmatn', 'Courier New', monospace; 
+            margin-top: 25px;
+            border: 2px solid rgba(255,255,255,0.4);
             position: relative;
             z-index: 1;
+            font-weight: 600;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }}
         
         .body {{ 
-            padding: 30px; 
+            padding: 40px; 
             position: relative; 
             z-index: 1; 
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 25px;
         }}
         
         .store-info {{ 
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
-            padding: 25px; 
-            border-radius: 15px; 
-            margin-bottom: 20px; 
-            border-left: 6px solid #FFD700;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
+            padding: 30px; 
+            border-radius: 20px; 
+            margin-bottom: 10px; 
+            border-right: 6px solid #667eea;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             position: relative;
+            overflow: hidden;
         }}
         
         .store-info::before {{
-            content: '🏪';
+            content: '';
             position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 24px;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 70%);
+            animation: rotate 15s linear infinite;
         }}
         
         .store-name {{ 
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #1e3c72; 
-            margin-bottom: 20px; 
+            font-size: 32px; 
+            font-weight: 900; 
+            color: #667eea; 
+            margin-bottom: 25px; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif;
             text-align: center;
-            padding: 12px;
-            background: linear-gradient(135deg, #FFD700, #FFA500);
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            position: relative;
+            z-index: 1;
         }}
         
-        .info-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }}
+        .info-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; position: relative; z-index: 1; }}
         .info-item {{ 
             background: white; 
-            padding: 15px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            border: 2px solid #f8f9fa;
-            transition: transform 0.3s ease;
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08); 
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
         }}
         
         .info-item:hover {{
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(102,126,234,0.2);
+            border-color: #667eea;
         }}
         
         .info-label {{ 
-            font-weight: bold; 
+            font-weight: 700; 
             color: #6c757d; 
             font-size: 13px; 
-            text-transform: uppercase; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-            letter-spacing: 1px;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
         }}
         
         .info-value {{ 
-            font-size: 18px; 
-            color: #1e3c72; 
-            margin-top: 8px; 
+            font-size: 20px; 
+            color: #667eea; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-            font-weight: 600;
+            font-weight: 700;
         }}
         
         .scores {{ 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; 
-            padding: 25px; 
-            border-radius: 15px; 
-            margin-bottom: 20px;
+            padding: 35px; 
+            border-radius: 20px; 
+            margin-bottom: 10px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 10px 40px rgba(102,126,234,0.3);
         }}
         
         .scores::before {{
@@ -2800,7 +3133,7 @@ def generate_management_report(analysis, has_ai_results=False):
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
             animation: rotate 20s linear infinite;
         }}
         
@@ -2809,67 +3142,52 @@ def generate_management_report(analysis, has_ai_results=False):
             100% {{ transform: rotate(360deg); }}
         }}
         
-        .scores-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; position: relative; z-index: 1; }}
+        .scores-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; position: relative; z-index: 1; }}
         .score-item {{ 
-            background: rgba(255,255,255,0.15); 
-            padding: 18px; 
-            border-radius: 10px; 
+            background: rgba(255,255,255,0.2); 
+            padding: 22px; 
+            border-radius: 15px; 
             text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }}
+        
+        .score-item:hover {{
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
         }}
         
         .score-value {{ 
-            font-size: 28px; 
-            font-weight: bold; 
+            font-size: 36px; 
+            font-weight: 900; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
         }}
         
         .score-label {{ 
-            font-size: 14px; 
-            opacity: 0.95; 
+            font-size: 15px; 
+            opacity: 0.98; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-            margin-top: 8px;
+            font-weight: 600;
         }}
         
-        .section {{ margin-bottom: 20px; }}
-        .section-title {{ 
-            font-size: 20px; 
-            font-weight: bold; 
-            color: #1e3c72; 
-            margin-bottom: 15px; 
-            padding-bottom: 10px; 
-            border-bottom: 3px solid #FFD700; 
-            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-            text-align: center;
-            position: relative;
-        }}
+        .section {{ margin-bottom: 25px; }}
         
-        .section-title::after {{
-            content: '';
-            position: absolute;
-            bottom: -3px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, #FFD700, #FFA500);
-        }}
-        
-        .swot-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }}
+        .swot-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }}
         .swot-card {{ 
             background: white; 
-            padding: 20px; 
-            border-radius: 12px; 
+            padding: 25px; 
+            border-radius: 15px; 
             box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
-            border-top: 4px solid;
-            transition: transform 0.3s ease;
+            border-top: 5px solid #667eea;
+            transition: all 0.3s ease;
         }}
         
         .swot-card:hover {{
             transform: translateY(-8px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 15px 40px rgba(102,126,234,0.2);
         }}
         
         .swot-strengths {{ border-top-color: #28a745; }}
@@ -2878,42 +3196,48 @@ def generate_management_report(analysis, has_ai_results=False):
         .swot-threats {{ border-top-color: #6f42c1; }}
         
         .swot-title {{ 
-            font-weight: bold; 
-            font-size: 16px; 
-            margin-bottom: 15px; 
+            font-weight: 900; 
+            font-size: 18px; 
+            margin-bottom: 18px; 
             text-align: center; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-            padding: 8px;
-            border-radius: 6px;
+            padding: 10px;
+            border-radius: 8px;
         }}
         
-        .swot-list {{ list-style: none; }}
+        .swot-list {{ list-style: none; padding: 0; }}
         .swot-list li {{ 
-            padding: 8px 0; 
-            border-bottom: 1px solid #f8f9fa; 
-            padding-left: 20px; 
+            padding: 12px 0 12px 30px; 
+            border-bottom: 1px solid #f0f0f0; 
             position: relative; 
             font-family: 'Vazirmatn', 'Tahoma', sans-serif;
-            line-height: 1.5;
-            font-size: 14px;
+            line-height: 1.8;
+            font-size: 15px;
+            color: #333;
+        }}
+        
+        .swot-list li:last-child {{
+            border-bottom: none;
         }}
         
         .swot-list li::before {{ 
-            content: '✨'; 
+            content: '✓'; 
             position: absolute; 
             left: 0; 
-            color: #FFD700; 
-            font-weight: bold;
+            color: #667eea; 
+            font-weight: 900;
+            font-size: 18px;
         }}
         
         .footer {{ 
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%); 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%); 
             color: white; 
-            padding: 25px; 
+            padding: 35px 40px; 
             text-align: center;
             position: relative;
-            border-top: 4px solid #FFD700;
+            border-top: 5px solid #FFD700;
             flex-shrink: 0;
+            z-index: 1;
         }}
         
         .footer::before {{
@@ -2923,47 +3247,86 @@ def generate_management_report(analysis, has_ai_results=False):
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain2" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain2)"/></svg>');
-            opacity: 0.3;
+            background: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px);
+            opacity: 0.5;
         }}
         
         .signature-section {{ 
             display: flex; 
-            justify-content: space-between; 
-            margin-top: 20px; 
-            padding-top: 20px; 
+            justify-content: space-around; 
+            margin-top: 25px; 
+            padding-top: 25px; 
             border-top: 2px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+            gap: 20px;
+        }}
+        
+        .signature-box {{ 
+            text-align: center; 
+            flex: 1;
+            min-width: 200px;
+        }}
+        .signature-line {{ 
+            width: 200px; 
+            height: 3px; 
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); 
+            margin: 15px auto;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(255,215,0,0.4);
+        }}
+        
+        .cert-date {{ 
+            font-family: 'Vazirmatn', monospace; 
+            font-size: 15px; 
+            opacity: 0.98;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            font-weight: 600;
             position: relative;
             z-index: 1;
         }}
         
-        .signature-box {{ text-align: center; }}
-        .signature-line {{ 
-            width: 180px; 
-            height: 2px; 
-            background: linear-gradient(90deg, #FFD700, #FFA500); 
-            margin: 12px auto;
-            border-radius: 2px;
-        }}
-        
-        .cert-date {{ 
-            font-family: monospace; 
-            font-size: 14px; 
-            opacity: 0.95;
-            background: rgba(255,215,0,0.2);
-            padding: 6px 12px;
-            border-radius: 15px;
-            display: inline-block;
-        }}
-        
         .chidmano-logo {{
             position: absolute;
-            bottom: 15px;
-            left: 15px;
-            font-size: 14px;
-            font-weight: bold;
+            bottom: 20px;
+            left: 20px;
+            font-size: 15px;
+            font-weight: 700;
             color: #FFD700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+            z-index: 1;
+        }}
+        
+        .section-title {{
+            font-size: 22px; 
+            font-weight: 900; 
+            color: #667eea; 
+            margin-bottom: 20px; 
+            padding-bottom: 12px; 
+            border-bottom: 4px solid #667eea; 
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif;
+            text-align: center;
+            position: relative;
+        }}
+        
+        .section-title::after {{
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
         }}
         
         @media print {{ 
@@ -3006,32 +3369,87 @@ def generate_management_report(analysis, has_ai_results=False):
             </div>
 """
     
-    # Add scores if available
-    if has_results and result:
-        report_content += f"""
+    # Add scores from premium_report
+    scores_data = premium_report.get('scores', {})
+    if not scores_data and 'kpi_dashboard' in premium_report:
+        kpi = premium_report.get('kpi_dashboard', {})
+        scores_data = {
+            'layout_score': kpi.get('layout_score', layout_score),
+            'traffic_score': kpi.get('traffic_score', 75),
+            'design_score': kpi.get('design_score', 80),
+            'sales_score': kpi.get('sales_score', 70),
+        }
+    
+    # محاسبه overall_score
+    if scores_data:
+        overall_score = int((scores_data.get('layout_score', layout_score) + 
+                           scores_data.get('traffic_score', 75) + 
+                           scores_data.get('design_score', 80) + 
+                           scores_data.get('sales_score', 70)) / 4)
+    else:
+        overall_score = int(layout_score)
+    
+    report_content += f"""
             <div class="scores">
-                <h2 class="section-title" style="color: white;">امتیازات عملکرد</h2>
+                <h2 class="section-title" style="color: white; font-size: 24px; margin-bottom: 25px;">📊 امتیازات عملکرد</h2>
                 <div class="scores-grid">
                     <div class="score-item">
-                        <div class="score-value">{result.overall_score}/100</div>
+                        <div class="score-value">{overall_score}</div>
                         <div class="score-label">امتیاز کلی</div>
                     </div>
                     <div class="score-item">
-                        <div class="score-value">{result.layout_score}/100</div>
+                        <div class="score-value">{scores_data.get('layout_score', layout_score) if scores_data else layout_score}</div>
                         <div class="score-label">امتیاز چیدمان</div>
                     </div>
                     <div class="score-item">
-                        <div class="score-value">{result.traffic_score}/100</div>
+                        <div class="score-value">{scores_data.get('traffic_score', 75) if scores_data else 75}</div>
                         <div class="score-label">امتیاز ترافیک</div>
                     </div>
                     <div class="score-item">
-                        <div class="score-value">{result.design_score}/100</div>
+                        <div class="score-value">{scores_data.get('design_score', 80) if scores_data else 80}</div>
                         <div class="score-label">امتیاز طراحی</div>
                     </div>
-                    <div class="score-item">
-                        <div class="score-value">{result.sales_score}/100</div>
-                        <div class="score-label">امتیاز فروش</div>
+                </div>
+            </div>
+"""
+    
+    # Add executive summary from premium_report
+    if executive_summary and isinstance(executive_summary, dict):
+        exec_paragraphs = executive_summary.get('paragraphs', [])
+        if not exec_paragraphs and executive_summary.get('summary'):
+            exec_paragraphs = [executive_summary.get('summary')]
+        
+        if exec_paragraphs:
+            report_content += f"""
+            <div class="section">
+                <h2 class="section-title">📈 خلاصه اجرایی</h2>
+                <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); border-right: 4px solid #667eea;">
+"""
+            for para in exec_paragraphs[:2]:  # فقط 2 پاراگراف اول
+                if para:
+                    report_content += f"                    <p style='font-size: 16px; line-height: 1.8; color: #333; margin-bottom: 15px; font-family: Vazirmatn, Tahoma, sans-serif;'>{para}</p>\n"
+            
+            # نمایش ROI و Payback اگر موجود باشد
+            if executive_summary.get('expected_roi') or executive_summary.get('payback_period'):
+                report_content += f"""
+                    <div style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+"""
+                if executive_summary.get('expected_roi'):
+                    report_content += f"""
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 20px; border-radius: 10px; font-weight: 700;">
+                            ROI: {executive_summary.get('expected_roi')}
+                        </div>
+"""
+                if executive_summary.get('payback_period'):
+                    report_content += f"""
+                        <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 20px; border-radius: 10px; font-weight: 700;">
+                            بازگشت سرمایه: {executive_summary.get('payback_period')}
+                        </div>
+"""
+                report_content += """
                     </div>
+"""
+            report_content += """
                 </div>
             </div>
 """
@@ -3111,51 +3529,53 @@ def generate_management_report(analysis, has_ai_results=False):
             </div>
 """
     
-    # Add recommendations if available
-    if results and 'recommendations' in results:
-        recommendations = results['recommendations']
-        report_content += f"""
+    # Add action plan from premium_report
+    if action_plan and isinstance(action_plan, dict):
+        urgent_actions = action_plan.get('urgent', [])
+        medium_term_actions = action_plan.get('medium_term', [])
+        
+        if urgent_actions or medium_term_actions:
+            report_content += f"""
             <div class="section">
-                <h2 class="section-title">توصیه‌های استراتژیک</h2>
+                <h2 class="section-title">🎯 برنامه اقدام</h2>
 """
-        
-        if 'immediate' in recommendations:
-            report_content += f"""
-                <div class="swot-card" style="margin-bottom: 20px;">
-                    <h3 class="swot-title">اقدامات فوری (1-2 ماه)</h3>
+            if urgent_actions:
+                report_content += f"""
+                <div class="swot-card" style="margin-bottom: 20px; border-top-color: #dc3545;">
+                    <h3 class="swot-title" style="color: #dc3545;">اقدامات فوری</h3>
                     <ul class="swot-list">
 """
-            for rec in recommendations['immediate']:
-                report_content += f"                        <li>{rec}</li>\n"
-            report_content += """
+                for action in urgent_actions[:3]:  # فقط 3 مورد اول
+                    if isinstance(action, dict):
+                        action_text = action.get('action', '')
+                        if action_text:
+                            report_content += f"                        <li>{action_text}</li>\n"
+                    elif isinstance(action, str):
+                        report_content += f"                        <li>{action}</li>\n"
+                report_content += """
                     </ul>
                 </div>
 """
-        
-        if 'short_term' in recommendations:
-            report_content += f"""
-                <div class="swot-card" style="margin-bottom: 20px;">
-                    <h3 class="swot-title">برنامه‌های کوتاه‌مدت (3-6 ماه)</h3>
+            
+            if medium_term_actions:
+                report_content += f"""
+                <div class="swot-card" style="margin-bottom: 20px; border-top-color: #ffc107;">
+                    <h3 class="swot-title" style="color: #ffc107;">اقدامات میان‌مدت</h3>
                     <ul class="swot-list">
 """
-            for rec in recommendations['short_term']:
-                report_content += f"                        <li>{rec}</li>\n"
-            report_content += """
+                for action in medium_term_actions[:3]:  # فقط 3 مورد اول
+                    if isinstance(action, dict):
+                        action_text = action.get('action', '')
+                        if action_text:
+                            report_content += f"                        <li>{action_text}</li>\n"
+                    elif isinstance(action, str):
+                        report_content += f"                        <li>{action}</li>\n"
+                report_content += """
                     </ul>
                 </div>
 """
-        
-        if 'long_term' in recommendations:
-            report_content += f"""
-                <div class="swot-card" style="margin-bottom: 20px;">
-                    <h3 class="swot-title">استراتژی بلندمدت (6-12 ماه)</h3>
-                    <ul class="swot-list">
-"""
-            for rec in recommendations['long_term']:
-                report_content += f"                        <li>{rec}</li>\n"
             report_content += """
-                    </ul>
-                </div>
+            </div>
 """
     
     # Certificate footer
@@ -3163,25 +3583,25 @@ def generate_management_report(analysis, has_ai_results=False):
         </div>
         
         <div class="footer">
-            <p style="font-size: 18px; margin-bottom: 30px; line-height: 1.8;">این گواهی‌نامه تأیید می‌کند که تحلیل جامع فروشگاه <strong>{analysis.store_name}</strong> با استفاده از فناوری هوش مصنوعی پیشرفته و روش‌های تحلیلی حرفه‌ای خرده‌فروشی انجام شده است.</p>
+            <p style="font-size: 19px; margin-bottom: 30px; line-height: 2; font-weight: 500; position: relative; z-index: 1;">این گواهی‌نامه تأیید می‌کند که تحلیل جامع فروشگاه <strong style="color: #FFD700;">{analysis.store_name}</strong> با استفاده از فناوری هوش مصنوعی پیشرفته و روش‌های تحلیلی حرفه‌ای خرده‌فروشی انجام شده است.</p>
             
             <div class="signature-section">
                 <div class="signature-box">
-                    <div style="font-size: 20px; margin-bottom: 10px;">🏆</div>
+                    <div style="font-size: 32px; margin-bottom: 12px;">🏆</div>
                     <div class="signature-line"></div>
-                    <div style="font-weight: bold; margin-top: 10px;">مشاور ارشد چیدمان فروشگاه</div>
-                    <div>سیستم تحلیل هوشمند چیدمانو</div>
+                    <div style="font-weight: 900; margin-top: 12px; font-size: 16px;">مشاور ارشد چیدمان فروشگاه</div>
+                    <div style="margin-top: 5px; opacity: 0.9; font-size: 14px;">سیستم تحلیل هوشمند چیدمانو</div>
                 </div>
                 <div class="signature-box">
-                    <div style="font-size: 20px; margin-bottom: 10px;">🤖</div>
+                    <div style="font-size: 32px; margin-bottom: 12px;">🤖</div>
                     <div class="signature-line"></div>
-                    <div style="font-weight: bold; margin-top: 10px;">متخصص AI و بازاریابی</div>
-                    <div>کارشناس بهینه‌سازی خرده‌فروشی</div>
+                    <div style="font-weight: 900; margin-top: 12px; font-size: 16px;">متخصص AI و بازاریابی</div>
+                    <div style="margin-top: 5px; opacity: 0.9; font-size: 14px;">کارشناس بهینه‌سازی خرده‌فروشی</div>
                 </div>
             </div>
             
             <div class="cert-date">
-                🏆 شناسه گواهی: {certificate_id} | 📅 تولید شده در: {datetime.now().strftime('%Y/%m/%d ساعت %H:%M')}
+                🏆 شناسه گواهی: <strong>{certificate_id}</strong> | 📅 تولید شده در: {datetime.now().strftime('%Y/%m/%d ساعت %H:%M')}
             </div>
             
             <div class="chidmano-logo">
@@ -3815,10 +4235,16 @@ def user_dashboard(request):
                         setattr(obj, field, value)
                     
                     # اضافه کردن pk (primary key) - در Django pk همان id است
-                    if hasattr(obj, 'id'):
+                    if hasattr(obj, 'id') and obj.id is not None:
                         obj.pk = obj.id
                     elif 'id' in select_fields:
-                        obj.pk = getattr(obj, 'id', None)
+                        obj_id = getattr(obj, 'id', None)
+                        if obj_id is not None:
+                            obj.pk = obj_id
+                        else:
+                            # اگر id وجود ندارد، از index استفاده کن
+                            obj.pk = None
+                            logger.warning(f"⚠️ Analysis object has no id, pk set to None")
                     
                     # اضافه کردن فیلدهای پیش‌فرض برای فیلدهای missing
                     if 'package_type' not in select_fields or not hasattr(obj, 'package_type'):
@@ -3915,10 +4341,13 @@ def user_dashboard(request):
                     setattr(obj, key, value)
                 
                 # اضافه کردن pk (primary key) - در Django pk همان id است
-                if hasattr(obj, 'id'):
+                if hasattr(obj, 'id') and obj.id is not None:
                     obj.pk = obj.id
-                elif 'id' in item:
+                elif 'id' in item and item['id'] is not None:
                     obj.pk = item['id']
+                else:
+                    obj.pk = None
+                    logger.warning(f"⚠️ Analysis object has no id in fallback ORM, pk set to None")
                 
                 # اضافه کردن فیلدهای پیش‌فرض
                 obj.store_address = getattr(obj, 'store_address', '')
@@ -6973,47 +7402,115 @@ def accept_legal_agreement(request):
                         from .models import UserProfile
                         from django.db import connection
                         
-                        # بررسی وجود UserProfile
+                        # بررسی وجود UserProfile - استفاده از raw SQL برای جلوگیری از خطای فیلدهای ناموجود
                         try:
-                            profile = UserProfile.objects.get(user=request.user)
-                            profile.legal_agreement_accepted = True
-                            profile.legal_agreement_date = timezone.now()
-                            profile.save()
+                            # استفاده از raw SQL برای خواندن فقط فیلدهای مورد نیاز
+                            with connection.cursor() as cursor:
+                                cursor.execute("""
+                                    SELECT id, user_id, legal_agreement_accepted, legal_agreement_date
+                                    FROM store_analysis_userprofile
+                                    WHERE user_id = %s
+                                """, [request.user.id])
+                                row = cursor.fetchone()
+                                if row:
+                                    # به‌روزرسانی با raw SQL
+                                    cursor.execute("""
+                                        UPDATE store_analysis_userprofile
+                                        SET legal_agreement_accepted = %s,
+                                            legal_agreement_date = %s
+                                        WHERE user_id = %s
+                                    """, [True, timezone.now(), request.user.id])
+                                else:
+                                    raise UserProfile.DoesNotExist
                         except UserProfile.DoesNotExist:
                             # ایجاد UserProfile با raw SQL - فقط فیلدهای موجود در دیتابیس
                             try:
-                                # استفاده از get_or_create با update_fields برای جلوگیری از خطای فیلدهای ناموجود
-                                profile, created = UserProfile.objects.get_or_create(
-                                    user=request.user,
-                                    defaults={
-                                        'phone': '',
-                                        'legal_agreement_accepted': True,
-                                        'legal_agreement_date': timezone.now(),
-                                        'newsletter_subscription': True,
-                                        'email_notifications': True,
-                                        'sms_notifications': False,
-                                        'bio': ''
-                                    }
-                                )
-                                if not created:
-                                    profile.legal_agreement_accepted = True
-                                    profile.legal_agreement_date = timezone.now()
-                                    profile.save(update_fields=['legal_agreement_accepted', 'legal_agreement_date'])
-                            except Exception as create_error:
-                                # اگر get_or_create خطا داد، از raw SQL استفاده کن (بدون birth_date)
-                                logger.warning(f"get_or_create failed, using raw SQL: {create_error}")
+                                # بررسی وجود ستون birth_date در دیتابیس
+                                with connection.cursor() as check_cursor:
+                                    check_cursor.execute("""
+                                        SELECT column_name 
+                                        FROM information_schema.columns 
+                                        WHERE table_name='store_analysis_userprofile' 
+                                        AND column_name='birth_date'
+                                    """)
+                                    has_birth_date = check_cursor.fetchone() is not None
+                                
+                                # استفاده از raw SQL برای ایجاد UserProfile (بدون birth_date اگر موجود نباشد)
                                 with connection.cursor() as cursor:
-                                    # فقط فیلدهای موجود را insert کن
-                                    cursor.execute("""
-                                        INSERT INTO store_analysis_userprofile 
-                                        (user_id, phone, legal_agreement_accepted, legal_agreement_date, 
-                                         newsletter_subscription, email_notifications, sms_notifications, bio, 
-                                         created_at, updated_at) 
-                                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
-                                    """, [
-                                        request.user.id, '', True, timezone.now(), 
-                                        True, True, False, ''
-                                    ])
+                                    if has_birth_date:
+                                        cursor.execute("""
+                                            INSERT INTO store_analysis_userprofile 
+                                            (user_id, phone, legal_agreement_accepted, legal_agreement_date, 
+                                             newsletter_subscription, email_notifications, sms_notifications, bio, 
+                                             birth_date, created_at, updated_at) 
+                                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NULL, NOW(), NOW())
+                                            ON CONFLICT (user_id) DO UPDATE SET
+                                                legal_agreement_accepted = EXCLUDED.legal_agreement_accepted,
+                                                legal_agreement_date = EXCLUDED.legal_agreement_date
+                                        """, [
+                                            request.user.id, '', True, timezone.now(), 
+                                            True, True, False, ''
+                                        ])
+                                    else:
+                                        cursor.execute("""
+                                            INSERT INTO store_analysis_userprofile 
+                                            (user_id, phone, legal_agreement_accepted, legal_agreement_date, 
+                                             newsletter_subscription, email_notifications, sms_notifications, bio, 
+                                             created_at, updated_at) 
+                                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                                            ON CONFLICT (user_id) DO UPDATE SET
+                                                legal_agreement_accepted = EXCLUDED.legal_agreement_accepted,
+                                                legal_agreement_date = EXCLUDED.legal_agreement_date
+                                        """, [
+                                            request.user.id, '', True, timezone.now(), 
+                                            True, True, False, ''
+                                        ])
+                            except Exception as create_error:
+                                # اگر کد اصلی خطا داد، از raw SQL ساده استفاده کن
+                                logger.warning(f"Raw SQL creation failed, using fallback: {create_error}")
+                                try:
+                                    with connection.cursor() as cursor:
+                                        # بررسی وجود ستون birth_date
+                                        cursor.execute("""
+                                            SELECT column_name 
+                                            FROM information_schema.columns 
+                                            WHERE table_name='store_analysis_userprofile' 
+                                            AND column_name='birth_date'
+                                        """)
+                                        has_birth_date = cursor.fetchone() is not None
+                                        
+                                        # استفاده از INSERT ... ON CONFLICT برای PostgreSQL
+                                        if has_birth_date:
+                                            cursor.execute("""
+                                                INSERT INTO store_analysis_userprofile 
+                                                (user_id, phone, legal_agreement_accepted, legal_agreement_date, 
+                                                 newsletter_subscription, email_notifications, sms_notifications, bio, 
+                                                 birth_date, created_at, updated_at) 
+                                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NULL, NOW(), NOW())
+                                                ON CONFLICT (user_id) DO UPDATE SET
+                                                    legal_agreement_accepted = EXCLUDED.legal_agreement_accepted,
+                                                    legal_agreement_date = EXCLUDED.legal_agreement_date
+                                            """, [
+                                                request.user.id, '', True, timezone.now(), 
+                                                True, True, False, ''
+                                            ])
+                                        else:
+                                            cursor.execute("""
+                                                INSERT INTO store_analysis_userprofile 
+                                                (user_id, phone, legal_agreement_accepted, legal_agreement_date, 
+                                                 newsletter_subscription, email_notifications, sms_notifications, bio, 
+                                                 created_at, updated_at) 
+                                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                                                ON CONFLICT (user_id) DO UPDATE SET
+                                                    legal_agreement_accepted = EXCLUDED.legal_agreement_accepted,
+                                                    legal_agreement_date = EXCLUDED.legal_agreement_date
+                                            """, [
+                                                request.user.id, '', True, timezone.now(), 
+                                                True, True, False, ''
+                                            ])
+                                except Exception as fallback_error:
+                                    logger.error(f"Fallback SQL also failed: {fallback_error}")
+                                    # در این حالت فقط session را حفظ می‌کنیم
 
                         logger.info(f"Legal agreement accepted for user {request.user.id}")
                         

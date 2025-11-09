@@ -11,6 +11,48 @@ from typing import Dict, Any, Optional
 logger = logging.getLogger(__name__)
 
 
+def check_table_exists(table_name: str) -> bool:
+    """بررسی وجود جدول در دیتابیس"""
+    try:
+        vendor = connection.vendor
+        with connection.cursor() as cursor:
+            if vendor == 'postgresql':
+                # در PostgreSQL، نام جدول باید بدون schema prefix بررسی شود
+                # اما اگر schema وجود دارد، باید آن را هم در نظر بگیریم
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = %s
+                        AND table_schema = 'public'
+                    )
+                """, [table_name])
+                result = cursor.fetchone()
+                if result and result[0]:
+                    return True
+                # اگر پیدا نشد، بدون schema هم بررسی کن
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = %s
+                    )
+                """, [table_name])
+                result = cursor.fetchone()
+                return result[0] if result else False
+            elif vendor == 'sqlite':
+                # برای SQLite باید از format string استفاده کنیم نه parameterized query
+                cursor.execute(f"""
+                    SELECT name FROM sqlite_master 
+                    WHERE type='table' AND name='{table_name}'
+                """)
+                return cursor.fetchone() is not None
+            else:
+                # برای سایر دیتابیس‌ها
+                return False
+    except Exception as e:
+        logger.debug(f"Error checking table existence for {table_name}: {e}")
+        return False
+
+
 def get_available_columns(table_name: str) -> set:
     """دریافت لیست ستون‌های موجود در یک جدول"""
     vendor = connection.vendor
@@ -44,7 +86,7 @@ def safe_create_store_analysis(**kwargs) -> Any:
     required_fields = ['user', 'store_name']
     
     # فیلدهای اختیاری که ممکن است missing باشند یا در model تعریف نشده باشند
-    optional_missing_fields = ['store_address', 'package_type', 'contact_phone', 'contact_email', 'priority']
+    optional_missing_fields = ['store_address', 'package_type', 'contact_phone', 'contact_email', 'priority', 'additional_info', 'business_goals', 'marketing_budget']
     
     # بررسی فیلدهای موجود
     table_name = 'store_analysis_storeanalysis'
@@ -66,12 +108,18 @@ def safe_create_store_analysis(**kwargs) -> Any:
                 # تبدیل نام فیلد به نام ستون (معمولاً یکسان است)
                 db_field = key
                 if db_field in available_columns:
+                    # اگر مقدار None است و فیلد NOT NULL است، skip کن
+                    if value is None and db_field in ['contact_email', 'contact_phone']:
+                        continue
                     safe_kwargs[key] = value
         
         return StoreAnalysis.objects.create(**safe_kwargs)
     except Exception as e:
         # اگر باز هم خطا داشت، از raw SQL استفاده کن
-        if 'UndefinedColumn' in str(e) or 'does not exist' in str(e) or 'contact_phone' in str(e) or 'priority' in str(e):
+        error_str = str(e).lower()
+        if ('undefinedcolumn' in error_str or 'does not exist' in error_str or 
+            'contact_phone' in error_str or 'contact_email' in error_str or 
+            'priority' in error_str or 'not null constraint' in error_str):
             logger.warning(f"Using raw SQL for StoreAnalysis creation due to: {e}")
             return _create_store_analysis_raw_sql(**kwargs)
         else:
@@ -122,30 +170,76 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
         fields.append('updated_at')
         values.append(timezone.now())
     
+    # اضافه کردن فیلدهای NOT NULL با مقدار پیش‌فرض (اگر موجود هستند و مقدار ندارند)
+    not_null_defaults = {
+        'contact_email': '',
+        'contact_phone': '',
+        'ai_insights': '',
+        'recommendations': '',
+        'preliminary_analysis': '',
+        'store_images': '[]',  # JSON array خالی
+        'analysis_files': '[]',  # JSON array خالی
+        'analysis_data': '{}',  # JSON object خالی
+        'marketing_budget': '',  # String
+        'price': 0,  # Decimal
+        'currency': 'IRR',  # String
+    }
+    
+    for field_name, default_value in not_null_defaults.items():
+        if field_name in available_columns and field_name not in fields:
+            # فقط اگر مقدار در kwargs نیست یا None است
+            if field_name not in kwargs or kwargs.get(field_name) is None:
+                fields.append(field_name)
+                # برای JSON fields، باید JSON string باشد
+                if field_name in ['store_images', 'analysis_files']:
+                    values.append('[]')
+                elif field_name == 'analysis_data':
+                    values.append('{}')
+                else:
+                    values.append(default_value)
+    
     # اضافه کردن فیلدهای موجود و اختیاری (فقط اگر در available_columns باشند)
     optional_mapping = {
         'store_type': 'store_type',
         'store_size': 'store_size',
         'store_address': 'store_address',
         'final_amount': 'final_amount',
-        'additional_info': 'additional_info',
-        'business_goals': 'business_goals',
-        'marketing_budget': 'marketing_budget',
     }
     
     # فیلدهای missing که نباید اضافه شوند حتی اگر در kwargs باشند
     missing_fields = ['contact_phone', 'contact_email', 'priority']
     
+    # فیلدهایی که ممکن است در دیتابیس موجود نباشند - بررسی دقیق‌تر نیاز است
+    potentially_missing_fields = ['additional_info', 'business_goals', 'marketing_budget']
+    
     # اضافه کردن فیلدهای optional که موجود هستند
     for key, db_field in optional_mapping.items():
         # فقط اگر ستون در دیتابیس موجود باشد
         if db_field in available_columns:
+            # برای فیلدهای عادی، فقط بررسی available_columns کافی است
             if key in kwargs and kwargs[key] is not None:
                 fields.append(db_field)
                 values.append(kwargs[key])
             elif db_field in ['store_type', 'store_size']:
                 # این فیلدها ممکن است در kwargs نباشند اما در available_columns باشند
                 # پس فقط اگر مقدار دارند اضافه می‌شوند
+                pass
+    
+    # اضافه کردن فیلدهای potentially missing با بررسی دقیق‌تر
+    for field_name in potentially_missing_fields:
+        # بررسی اینکه آیا ستون واقعاً وجود دارد
+        if field_name in available_columns:
+            try:
+                # بررسی نهایی: آیا ستون واقعاً وجود دارد؟
+                with connection.cursor() as test_cursor:
+                    test_cursor.execute(f"SELECT {connection.ops.quote_name(field_name)} FROM {connection.ops.quote_name(table_name)} LIMIT 0")
+                # اگر خطا نداد، ستون وجود دارد
+                if field_name in kwargs and kwargs[field_name] is not None:
+                    fields.append(field_name)
+                    values.append(kwargs[field_name])
+            except Exception as e:
+                # اگر ستون موجود نیست، skip کن
+                logger.debug(f"Skipping {field_name} - column does not exist in database: {e}")
                 pass
     
     # contact_phone و contact_email را به صورت جداگانه بررسی کن (اگر موجود باشند)
@@ -190,10 +284,26 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
     except Exception as insert_error:
         # اگر خطا در INSERT داد، ممکن است فیلدهای missing باشند
         error_str = str(insert_error).lower()
-        if 'contact_phone' in error_str or 'contact_email' in error_str or 'does not exist' in error_str:
+        if 'does not exist' in error_str or 'column' in error_str:
+            # استخراج نام ستون مشکل‌دار از خطا
+            problematic_field = None
+            if 'additional_info' in error_str:
+                problematic_field = 'additional_info'
+            elif 'business_goals' in error_str:
+                problematic_field = 'business_goals'
+            elif 'marketing_budget' in error_str:
+                problematic_field = 'marketing_budget'
+            elif 'contact_phone' in error_str:
+                problematic_field = 'contact_phone'
+            elif 'contact_email' in error_str:
+                problematic_field = 'contact_email'
+            
             # حذف فیلدهای problematic و دوباره تلاش کن
             logger.warning(f"⚠️ Error inserting fields: {insert_error}. Retrying without problematic fields...")
-            problematic_fields = ['contact_phone', 'contact_email']
+            problematic_fields = ['contact_phone', 'contact_email', 'additional_info', 'business_goals', 'marketing_budget']
+            if problematic_field:
+                problematic_fields = [problematic_field]  # فقط فیلد مشکل‌دار را حذف کن
+            
             safe_fields = []
             safe_values = []
             for i, field in enumerate(fields):

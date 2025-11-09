@@ -107,15 +107,15 @@ def ai_consultant_send(request, analysis_id):
                 title=f'مشاوره فروشگاه {store_analysis.store_name}'
             )
         
-        # بررسی محدودیت سوال (3 سوال رایگان)
+        # بررسی محدودیت سوال (10 سوال رایگان)
         if not chat_session.has_free_questions_left():
             return JsonResponse({
                 'success': False,
-                'error': 'شما از 3 سوال رایگان استفاده کرده‌اید.',
+                'error': 'شما از 10 سوال رایگان استفاده کرده‌اید.',
                 'upgrade_required': True,
                 'upgrade_message': 'برای پرسیدن سوالات بیشتر، پلن پریمیوم 3 ساعته (200,000 تومان) تهیه کنید.',
                 'questions_used': chat_session.get_user_questions_count(),
-                'free_limit': 3
+                'free_limit': 10
             }, status=403)
         
         # ذخیره پیام کاربر

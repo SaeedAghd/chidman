@@ -17,11 +17,29 @@ from decimal import Decimal
 from .models import Payment, PaymentLog, ServicePackage, UserSubscription
 from .payment_services import PaymentManager
 from .forms import PaymentForm
+from .utils.safe_db import check_table_exists
 
 logger = logging.getLogger(__name__)
 
 # Initialize payment manager
 payment_manager = PaymentManager()
+
+
+def safe_create_payment_log(payment, log_type, message, data=None):
+    """ایجاد PaymentLog با بررسی وجود جدول"""
+    table_name = 'store_analysis_paymentlog'
+    if check_table_exists(table_name):
+        try:
+            PaymentLog.objects.create(
+                payment=payment,
+                log_type=log_type,
+                message=message,
+                data=data
+            )
+        except Exception as e:
+            logger.warning(f"Could not create PaymentLog: {e}")
+    else:
+        logger.debug(f"PaymentLog table does not exist, skipping log creation")
 
 @login_required
 def payment_packages(request):
@@ -81,7 +99,7 @@ def create_payment(request, package_id):
                 )
                 
                 # Log payment creation
-                PaymentLog.objects.create(
+                safe_create_payment_log(
                     payment=payment,
                     log_type='payment_created',
                     message=f'Payment created for package {package.name}',
@@ -105,7 +123,7 @@ def create_payment(request, package_id):
                     payment.save()
                     
                     # Log payment processing
-                    PaymentLog.objects.create(
+                    safe_create_payment_log(
                         payment=payment,
                         log_type='payment_redirected',
                         message='User redirected to payment gateway',
@@ -119,7 +137,7 @@ def create_payment(request, package_id):
                     payment.status = 'failed'
                     payment.save()
                     
-                    PaymentLog.objects.create(
+                    safe_create_payment_log(
                         payment=payment,
                         log_type='error',
                         message=f'Payment creation failed: {payment_result.get("error", "Unknown error")}',
@@ -179,7 +197,7 @@ def payment_callback(request):
         callback_result = payment_manager.handle_callback(callback_data)
         
         # Log callback
-        PaymentLog.objects.create(
+        safe_create_payment_log(
             payment=payment,
             log_type='payment_callback',
             message='Payment callback received',
@@ -205,7 +223,7 @@ def payment_callback(request):
                 )
                 
                 # Log success
-                PaymentLog.objects.create(
+                safe_create_payment_log(
                     payment=payment,
                     log_type='payment_verified',
                     message='Payment verified and subscription created',
@@ -219,7 +237,7 @@ def payment_callback(request):
                 payment.callback_data = callback_data
                 payment.save()
                 
-                PaymentLog.objects.create(
+                safe_create_payment_log(
                     payment=payment,
                     log_type='payment_failed',
                     message='Payment failed',
@@ -229,7 +247,7 @@ def payment_callback(request):
                 return JsonResponse({'status': 'failed', 'message': 'Payment failed'})
         else:
             # Callback handling failed
-            PaymentLog.objects.create(
+            safe_create_payment_log(
                 payment=payment,
                 log_type='error',
                 message=f'Callback handling failed: {callback_result.get("error", "Unknown error")}',

@@ -9,6 +9,13 @@ import requests
 from typing import Dict, Any, List
 from django.conf import settings
 
+# Import Ollama برای پلن رایگان
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,33 +55,62 @@ class AIConsultantService:
         start_time = time.time()
         
         try:
+            # بررسی نوع پلن: پولی (professional/enterprise) یا رایگان (basic)
+            package_type = getattr(store_analysis, 'package_type', 'basic')
+            is_premium = package_type in ['professional', 'enterprise']
+            
             # آماده‌سازی context از تحلیل
             analysis_context = self._prepare_analysis_context(store_analysis)
             
-            # آماده‌سازی پیام‌ها
-            messages = self._prepare_messages(user_message, analysis_context, chat_history)
+            # پلن پولی: استفاده از لیارا AI (GPT)
+            if is_premium:
+                logger.info(f"💎 استفاده از لیارا AI (GPT) برای پلن {package_type}")
+                # آماده‌سازی پیام‌ها
+                messages = self._prepare_messages(user_message, analysis_context, chat_history)
+                
+                # ارسال به Liara AI
+                response = self._call_liara_ai(messages)
+                processing_time = time.time() - start_time
+                
+                if response:
+                    return {
+                        'response': response,
+                        'ai_model': 'gpt-4.1',
+                        'processing_time': processing_time,
+                        'success': True
+                    }
+                else:
+                    # Fallback: پاسخ ساده
+                    fallback_response = self._generate_fallback_response(user_message, analysis_context)
+                    return {
+                        'response': fallback_response,
+                        'ai_model': 'fallback',
+                        'processing_time': processing_time,
+                        'success': False
+                    }
             
-            # ارسال به Liara AI
-            response = self._call_liara_ai(messages)
-            
-            processing_time = time.time() - start_time
-            
-            if response:
-                return {
-                    'response': response,
-                    'ai_model': 'gpt-4.1',
-                    'processing_time': processing_time,
-                    'success': True
-                }
+            # پلن رایگان: استفاده از Ollama
             else:
-                # Fallback: پاسخ ساده
-                fallback_response = self._generate_fallback_response(user_message, analysis_context)
-                return {
-                    'response': fallback_response,
-                    'ai_model': 'fallback',
-                    'processing_time': processing_time,
-                    'success': False
-                }
+                logger.info(f"🆓 استفاده از Ollama برای پلن رایگان")
+                response = self._generate_ollama_response(user_message, analysis_context, chat_history)
+                processing_time = time.time() - start_time
+                
+                if response:
+                    return {
+                        'response': response,
+                        'ai_model': 'ollama-llama3.2',
+                        'processing_time': processing_time,
+                        'success': True
+                    }
+                else:
+                    # Fallback: پاسخ ساده
+                    fallback_response = self._generate_fallback_response(user_message, analysis_context)
+                    return {
+                        'response': fallback_response,
+                        'ai_model': 'fallback',
+                        'processing_time': processing_time,
+                        'success': False
+                    }
         
         except Exception as e:
             logger.error(f"❌ خطا در AI consultant: {e}", exc_info=True)
@@ -215,6 +251,73 @@ class AIConsultantService:
                 
         except Exception as e:
             logger.error(f"❌ خطا در فراخوانی Liara AI: {e}")
+            return None
+    
+    def _generate_ollama_response(
+        self,
+        user_message: str,
+        analysis_context: str,
+        chat_history: List[Dict[str, str]] = None
+    ) -> str:
+        """تولید پاسخ با استفاده از Ollama برای پلن رایگان"""
+        try:
+            if not OLLAMA_AVAILABLE:
+                logger.warning("⚠️ Ollama در دسترس نیست")
+                return None
+            
+            # ساخت prompt برای Ollama
+            system_prompt = f"""شما یک مشاور حرفه‌ای چیدمان فروشگاه هستید که به زبان فارسی روان و سلیس صحبت می‌کنید.
+
+**وظیفه شما:**
+- پاسخ‌های دقیق، کاربردی و عملی بدهید
+- از اطلاعات تحلیل فروشگاه استفاده کنید
+- پیشنهادات قابل اجرا ارائه دهید
+- به زبان فارسی روان و حرفه‌ای پاسخ دهید
+- از تجربه و دانش خود در زمینه چیدمان فروشگاه استفاده کنید
+
+**اطلاعات فروشگاه و تحلیل:**
+{analysis_context}
+
+**قوانین پاسخ‌دهی:**
+1. تمام پاسخ به زبان فارسی باشد
+2. از جملات کامل و واضح استفاده کنید
+3. پیشنهادات عملی و قابل اجرا ارائه دهید
+4. از تخصص خود در چیدمان استفاده کنید
+5. اگر سوال خارج از حوزه تخصص است، راهنمایی کلی بدهید
+6. هرگز از کلمات انگلیسی استفاده نکنید
+"""
+            
+            # ساخت prompt کامل
+            prompt = system_prompt + f"\n\nسوال کاربر: {user_message}\n\nپاسخ شما:"
+            
+            # اضافه کردن تاریخچه چت اگر موجود باشد
+            if chat_history:
+                history_text = "\n".join([
+                    f"{'کاربر' if msg['role'] == 'user' else 'مشاور'}: {msg['content']}"
+                    for msg in chat_history[-5:]  # آخرین 5 پیام
+                ])
+                prompt = f"{history_text}\n\n{prompt}"
+            
+            logger.info("🆓 Calling Ollama for free plan...")
+            response = ollama.generate(
+                model='llama3.2',
+                prompt=prompt,
+                options={
+                    'temperature': 0.7,
+                    'top_p': 0.9,
+                    'num_predict': 1000
+                }
+            )
+            
+            if response and 'response' in response:
+                logger.info("✅ Ollama response received")
+                return response['response']
+            else:
+                logger.warning("⚠️ Ollama response is empty")
+                return None
+                
+        except Exception as e:
+            logger.error(f"❌ خطا در Ollama: {e}")
             return None
     
     def _generate_fallback_response(self, user_message: str, analysis_context: str) -> str:

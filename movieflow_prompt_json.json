@@ -1,0 +1,152 @@
+{
+  "project_name": "ویدیو تبلیغاتی چیدمانو",
+  "brand": "چیدمانو (Chidmano)",
+  "duration": 30,
+  "style": "دوستانه، صمیمی، حرفه‌ای",
+  "tone": "مثل یک دوست که راهنمایی می‌کند",
+  "target_audience": "صاحبان فروشگاه‌های فیزیکی و آنلاین",
+  
+  "color_palette": {
+    "primary": "#2563EB",
+    "secondary": "#10B981",
+    "accent": "#FFD700",
+    "background": "#F9FAFB",
+    "text": "#1F2937"
+  },
+  
+  "core_message": "چیدمان فروشگاه فقط چیدن منظم نیست، بلکه هدایت مشتری برای خرید با رضایت است",
+  
+  "structure": [
+    {
+      "time": "0-3s",
+      "section": "Hook",
+      "scene": "فروشگاه خالی، مشتری بدون خرید می‌رود",
+      "voiceover": "فروشگاه شما خالیه؟",
+      "on_screen_text": "فروشگاه شما خالیه؟",
+      "music": "ملایم و کمی غمگین",
+      "mood": "ناامیدی"
+    },
+    {
+      "time": "3-8s",
+      "section": "Problem",
+      "scene": "صاحب فروشگاه ناراضی",
+      "voiceover": "چیدمان غلط، فروش پایین، سردرگمی...",
+      "on_screen_text": "80% فروشگاه‌ها به خاطر چیدمان غلط، فروش رو از دست میدن",
+      "music": "ادامه ملایم",
+      "mood": "مشکل"
+    },
+    {
+      "time": "8-15s",
+      "section": "Solution",
+      "scene": "نمایش رابط کاربری چیدمانو، تحلیل AI",
+      "voiceover": "چیدمانو با هوش مصنوعی، دقیقاً میگه مشکل کجاست",
+      "on_screen_text": "تحلیل هوشمند با AI - فقط با چند عکس",
+      "music": "شروع به روشن شدن",
+      "mood": "راه‌حل"
+    },
+    {
+      "time": "15-22s",
+      "section": "Benefits",
+      "scene": "فروشگاه پر از مشتری، نمودار رشد فروش",
+      "voiceover": "گزارش جامع، راهکار عملی، افزایش فروش تا 30%",
+      "on_screen_text": "گزارش جامع | راهکار عملی | افزایش فروش",
+      "music": "پرانرژی و مثبت",
+      "mood": "موفقیت"
+    },
+    {
+      "time": "22-27s",
+      "section": "Call to Action",
+      "scene": "لوگوی چیدمانو، دکمه CTA",
+      "voiceover": "همین حالا شروع کنید، تخفیف 90% افتتاحیه",
+      "on_screen_text": "www.chidmano.com | تخفیف 90% | فقط 200 هزار تومان",
+      "music": "به اوج می‌رسد",
+      "mood": "ترغیب"
+    },
+    {
+      "time": "27-30s",
+      "section": "Branding",
+      "scene": "لوگوی چیدمانو با شعار",
+      "voiceover": "چیدمانو - تحلیل هوشمند فروشگاه",
+      "on_screen_text": "چیدمانو - تحلیل هوشمند فروشگاه",
+      "music": "پایان پرانرژی",
+      "mood": "برندینگ"
+    }
+  ],
+  
+  "full_voiceover_script": "فروشگاه شما خالیه؟ چیدمان غلط، فروش پایین. چیدمانو با هوش مصنوعی، دقیقاً میگه مشکل کجاست. فقط با چند عکس، تحلیل جامع دریافت کنید. گزارش حرفه‌ای، راهکار عملی. نتیجه؟ افزایش فروش تا 30%. چیدمان فروشگاه یعنی هدایت مشتری برای خرید با رضایت. همین حالا شروع کنید. تخفیف 90% افتتاحیه. فقط 200 هزار تومان. چیدمانو - تحلیل هوشمند فروشگاه.",
+  
+  "music_specs": {
+    "style": "Modern, Upbeat, Inspirational",
+    "tempo_start": 80,
+    "tempo_middle": 100,
+    "tempo_end": 120,
+    "feeling": "امیدوارکننده، حرفه‌ای، مدرن",
+    "instruments": "Piano ملایم، Strings، Synth های مدرن"
+  },
+  
+  "visual_style": {
+    "lighting": "طبیعی و روشن، با کنتراست ملایم",
+    "camera_movement": "حرکات روان و آرام",
+    "quality": "4K، 60fps",
+    "animation": "نرم و روان، با easing",
+    "typography": "فونت فارسی خوانا (Vazir/Shabnam)",
+    "transitions": "fade و slide"
+  },
+  
+  "key_scenes": [
+    {
+      "name": "مشکل",
+      "location": "فروشگاه واقعی",
+      "characters": "صاحب فروشگاه ناراضی، مشتریان",
+      "camera": "Wide shot سپس close-up",
+      "lighting": "کمی تاریک و غمگین"
+    },
+    {
+      "name": "راه‌حل",
+      "location": "فضای دیجیتال/رابط کاربری",
+      "characters": "دست کاربر با موبایل",
+      "camera": "Close-up روی صفحه",
+      "lighting": "روشن و مدرن"
+    },
+    {
+      "name": "مزایا",
+      "location": "فروشگاه بعد از بهبود",
+      "characters": "مشتریان راضی، صاحب خوشحال",
+      "camera": "Dynamic shots",
+      "lighting": "روشن و پرانرژی"
+    }
+  ],
+  
+  "cta": {
+    "text": "همین حالا شروع کنید",
+    "website": "www.chidmano.com",
+    "discount": "تخفیف 90% افتتاحیه",
+    "price": "فقط 200 هزار تومان"
+  },
+  
+  "technical_specs": {
+    "resolution": "4K (3840x2160)",
+    "frame_rate": 60,
+    "aspect_ratio_16_9": "برای YouTube",
+    "aspect_ratio_9_16": "برای Instagram/TikTok",
+    "duration": 30
+  },
+  
+  "final_feeling": "امید، اعتماد، موفقیت، رضایت",
+  
+  "platform_optimization": {
+    "instagram": {
+      "aspect_ratio": "1:1 یا 9:16",
+      "note": "متن باید بدون صدا هم قابل فهم باشد"
+    },
+    "youtube": {
+      "aspect_ratio": "16:9",
+      "note": "5 ثانیه اول برای retention مهم است"
+    },
+    "tiktok": {
+      "aspect_ratio": "9:16",
+      "note": "سرعت کمی سریع‌تر"
+    }
+  }
+}
+

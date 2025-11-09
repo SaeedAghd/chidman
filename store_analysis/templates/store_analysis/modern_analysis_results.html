@@ -1083,28 +1083,28 @@
             <div class="stat-icon layout">
                 <i class="fas fa-th-large"></i>
             </div>
-            <div class="stat-value">{{ results.layout_score|default:70 }}%</div>
+            <div class="stat-value">{{ results.scores.layout_score|default:70 }}%</div>
             <div class="stat-label">چیدمان</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon traffic">
                 <i class="fas fa-walking"></i>
             </div>
-            <div class="stat-value">{{ results.traffic_score|default:75 }}%</div>
+            <div class="stat-value">{{ results.scores.traffic_score|default:75 }}%</div>
             <div class="stat-label">جریان مشتری</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon design">
                 <i class="fas fa-palette"></i>
             </div>
-            <div class="stat-value">{{ results.design_score|default:results.scores.overall_score|default:68 }}%</div>
+            <div class="stat-value">{{ results.scores.design_score|default:80 }}%</div>
             <div class="stat-label">طراحی</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon sales">
                 <i class="fas fa-chart-line"></i>
             </div>
-            <div class="stat-value">{{ results.sales_potential|default:results.scores.overall_score|default:68 }}%</div>
+            <div class="stat-value">{{ results.scores.sales_score|default:72 }}%</div>
             <div class="stat-label">پتانسیل فروش</div>
         </div>
     </div>
@@ -1804,92 +1804,173 @@
     }
     
     // Functions for AI analysis requests
+    // اطلاعات نوع تحلیل از Django template
+    const isFreeAnalysis = {{ is_free_analysis|yesno:"true,false" }};
+    const isPaidPlan = {{ is_paid_plan|yesno:"true,false" }};
+    const paymentUrl = '{% if payment_url %}{{ payment_url }}{% else %}{% url "store_analysis:buy_complete" %}{% endif %}';
+    const analysisId = {{ store_analysis.pk }};
+    const professionalReportUrl = '{% url "store_analysis:view_analysis_report" pk=store_analysis.pk %}';
+    
     function requestAdvancedAnalysis() {
-        if (confirm('آیا می‌خواهید تحلیل پیشرفته با GPT-4.1 انجام دهید؟\n\nزمان تقریبی: 2-4 دقیقه\n\nلطفاً صبر کنید تا تحلیل کامل شود.')) {
-            showLoadingModal('در حال درخواست تحلیل پیشرفته با Chidmano1 AI...<br><small style="color: #666;">زمان تقریبی: 2-4 دقیقه</small>');
-            
-            // Send request to reprocess with Liara AI
-            fetch(`{% url 'store_analysis:analysis_results' pk=store_analysis.pk %}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    'action': 'reprocess_liara',
-                    'analysis_id': '{{ store_analysis.pk }}'
-                }),
-                signal: AbortSignal.timeout(10000) // 10 second timeout
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoadingModal();
-                if (data.status === 'success') {
-                    showSuccessMessage('درخواست تحلیل پیشرفته ارسال شد. زمان تقریبی: 2-4 دقیقه<br>لطفاً دکمه بروزرسانی را فشار دهید.');
-                    // حذف auto-reload
-                    // setTimeout(() => {
-                    //     window.location.reload();
-                    // }, 2000);
-                } else {
-                    showErrorMessage('خطا در درخواست تحلیل پیشرفته: ' + (data.message || 'خطای نامشخص'));
-                }
-            })
-            .catch(error => {
-                hideLoadingModal();
-                if (error.name === 'AbortError') {
-                    showErrorMessage('درخواست لغو شد - زمان اتصال به پایان رسید');
-                } else if (error.name === 'TimeoutError') {
-                    showErrorMessage('خطای timeout - سرور پاسخ نمی‌دهد');
-                } else {
-                    showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
-                }
-                console.error('Error:', error);
-            });
+        // اگر تحلیل رایگان است، به صفحه پرداخت هدایت کن
+        if (isFreeAnalysis) {
+            if (confirm('برای استفاده از تحلیل پیشرفته GPT-4.1، باید به پلن حرفه‌ای ارتقا دهید.\n\nآیا می‌خواهید به صفحه پرداخت هدایت شوید؟')) {
+                window.location.href = paymentUrl;
+            }
+            return;
         }
+        
+        // اگر پلن پولی است، تحلیل پیشرفته را انجام بده و به گزارش حرفه‌ای هدایت کن
+        if (isPaidPlan) {
+            if (confirm('آیا می‌خواهید تحلیل پیشرفته با GPT-4.1 انجام دهید؟\n\nزمان تقریبی: 2-4 دقیقه\n\nپس از اتمام، به صفحه گزارش حرفه‌ای هدایت می‌شوید.')) {
+                showLoadingModal('در حال درخواست تحلیل پیشرفته با GPT-4.1...<br><small style="color: #666;">زمان تقریبی: 2-4 دقیقه</small>');
+                
+                // Send request to reprocess with Liara AI
+                fetch(`{% url 'store_analysis:analysis_results' pk=store_analysis.pk %}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        'action': 'reprocess_liara',
+                        'analysis_id': analysisId
+                    }),
+                    signal: AbortSignal.timeout(10000) // 10 second timeout
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoadingModal();
+                    if (data.status === 'success') {
+                        showSuccessMessage('درخواست تحلیل پیشرفته ارسال شد. زمان تقریبی: 2-4 دقیقه<br>پس از اتمام، به صفحه گزارش حرفه‌ای هدایت می‌شوید.');
+                        // هدایت به صفحه گزارش حرفه‌ای پس از 3 ثانیه
+                        setTimeout(() => {
+                            window.location.href = professionalReportUrl;
+                        }, 3000);
+                    } else {
+                        showErrorMessage('خطا در درخواست تحلیل پیشرفته: ' + (data.message || 'خطای نامشخص'));
+                    }
+                })
+                .catch(error => {
+                    hideLoadingModal();
+                    if (error.name === 'AbortError') {
+                        showErrorMessage('درخواست لغو شد - زمان اتصال به پایان رسید');
+                    } else if (error.name === 'TimeoutError') {
+                        showErrorMessage('خطای timeout - سرور پاسخ نمی‌دهد');
+                    } else {
+                        showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
+                    }
+                    console.error('Error:', error);
+                });
+            }
+            return;
+        }
+        
+        // حالت پیش‌فرض (برای اطمینان)
+        showErrorMessage('خطا: نوع تحلیل مشخص نیست. لطفاً صفحه را رفرش کنید.');
     }
     
     function requestOllamaAnalysis() {
-        if (confirm('آیا می‌خواهید تحلیل با Chidmano2 AI انجام دهید؟\n\nزمان تقریبی: 5-7 دقیقه\n\nلطفاً صبر کنید تا تحلیل کامل شود.')) {
-            showLoadingModal('در حال درخواست تحلیل با Chidmano2 AI...<br><small style="color: #666;">زمان تقریبی: 5-7 دقیقه</small>');
-            
-            // Send request to reprocess with Ollama
-            fetch(`{% url 'store_analysis:analysis_results' pk=store_analysis.pk %}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    'action': 'reprocess_ollama',
-                    'analysis_id': '{{ store_analysis.pk }}'
-                }),
-                signal: AbortSignal.timeout(15000) // 15 second timeout for Ollama
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoadingModal();
-                if (data.status === 'success') {
-                    showSuccessMessage('درخواست تحلیل با Chidmano2 AI ارسال شد. زمان تقریبی: 5-7 دقیقه<br>لطفاً دکمه بروزرسانی را فشار دهید.');
-                    // حذف auto-reload
-                    // setTimeout(() => {
-                    //     window.location.reload();
-                    // }, 2000);
-                } else {
-                    showErrorMessage('خطا در درخواست تحلیل: ' + (data.message || 'خطای نامشخص'));
-                }
-            })
-            .catch(error => {
-                hideLoadingModal();
-                if (error.name === 'AbortError') {
-                    showErrorMessage('درخواست لغو شد - زمان اتصال به پایان رسید');
-                } else if (error.name === 'TimeoutError') {
-                    showErrorMessage('خطای timeout - سرور پاسخ نمی‌دهد');
-                } else {
-                    showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
-                }
-                console.error('Error:', error);
-            });
+        // اگر تحلیل رایگان است، تحلیل Ollama را انجام بده و به گزارش رایگان هدایت کن
+        if (isFreeAnalysis) {
+            if (confirm('آیا می‌خواهید تحلیل با Chidmano2 AI انجام دهید؟\n\nزمان تقریبی: 5-7 دقیقه\n\nپس از اتمام، به صفحه گزارش رایگان هدایت می‌شوید.')) {
+                showLoadingModal('در حال درخواست تحلیل با Chidmano2 AI...<br><small style="color: #666;">زمان تقریبی: 5-7 دقیقه</small>');
+                
+                // Send request to reprocess with Ollama
+                fetch(`{% url 'store_analysis:analysis_results' pk=store_analysis.pk %}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        'action': 'reprocess_ollama',
+                        'analysis_id': analysisId
+                    }),
+                    signal: AbortSignal.timeout(15000) // 15 second timeout for Ollama
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoadingModal();
+                    if (data.status === 'success') {
+                        showSuccessMessage('درخواست تحلیل با Chidmano2 AI ارسال شد. زمان تقریبی: 5-7 دقیقه<br>پس از اتمام، به صفحه گزارش رایگان هدایت می‌شوید.');
+                        // هدایت به صفحه گزارش رایگان پس از 3 ثانیه
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000);
+                    } else {
+                        showErrorMessage('خطا در درخواست تحلیل: ' + (data.message || 'خطای نامشخص'));
+                    }
+                })
+                .catch(error => {
+                    hideLoadingModal();
+                    if (error.name === 'AbortError') {
+                        showErrorMessage('درخواست لغو شد - زمان اتصال به پایان رسید');
+                    } else if (error.name === 'TimeoutError') {
+                        showErrorMessage('خطای timeout - سرور پاسخ نمی‌دهد');
+                    } else {
+                        showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
+                    }
+                    console.error('Error:', error);
+                });
+            }
+            return;
         }
+        
+        // اگر پلن پولی است، یک تحلیل رایگان هدیه ایجاد کن
+        if (isPaidPlan) {
+            if (confirm('🎁 به عنوان هدیه، یک تحلیل رایگان با Chidmano2 AI برای شما انجام می‌شود!\n\nزمان تقریبی: 5-7 دقیقه\n\nآیا می‌خواهید ادامه دهید؟')) {
+                showLoadingModal('در حال ایجاد تحلیل رایگان هدیه با Chidmano2 AI...<br><small style="color: #666;">زمان تقریبی: 5-7 دقیقه</small>');
+                
+                // Send request to create free gift analysis
+                fetch(`{% url 'store_analysis:analysis_results' pk=store_analysis.pk %}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        'action': 'create_free_gift_analysis',
+                        'analysis_id': analysisId
+                    }),
+                    signal: AbortSignal.timeout(15000) // 15 second timeout
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoadingModal();
+                    if (data.status === 'success') {
+                        showSuccessMessage('🎉 تحلیل رایگان هدیه شما ایجاد شد! زمان تقریبی: 5-7 دقیقه<br>پس از اتمام، به صفحه گزارش هدایت می‌شوید.');
+                        // هدایت به صفحه گزارش جدید پس از 3 ثانیه
+                        if (data.new_analysis_id) {
+                            setTimeout(() => {
+                                window.location.href = `/store/analysis/${data.new_analysis_id}/results/`;
+                            }, 3000);
+                        } else {
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 3000);
+                        }
+                    } else {
+                        showErrorMessage('خطا در ایجاد تحلیل هدیه: ' + (data.message || 'خطای نامشخص'));
+                    }
+                })
+                .catch(error => {
+                    hideLoadingModal();
+                    if (error.name === 'AbortError') {
+                        showErrorMessage('درخواست لغو شد - زمان اتصال به پایان رسید');
+                    } else if (error.name === 'TimeoutError') {
+                        showErrorMessage('خطای timeout - سرور پاسخ نمی‌دهد');
+                    } else {
+                        showErrorMessage('خطا در ارتباط با سرور: ' + error.message);
+                    }
+                    console.error('Error:', error);
+                });
+            }
+            return;
+        }
+        
+        // حالت پیش‌فرض (برای اطمینان)
+        showErrorMessage('خطا: نوع تحلیل مشخص نیست. لطفاً صفحه را رفرش کنید.');
     }
     
     // Processing status polling
