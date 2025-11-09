@@ -1,6 +1,8 @@
 {
   "platform": "django",
-  "python": "3.11",
+  "python": {
+    "version": "3.11"
+  },
   "framework": "Django",
   "django": {
     "settingsFile": "chidmano/settings.py"
@@ -26,7 +28,8 @@
         "DEBUG": "False",
         "LIARA": "true",
         "WEB_CONCURRENCY": "1",
-        "TIMEOUT": "120"
+        "TIMEOUT": "120",
+        "LIARA_AI_MODEL": "openai/gpt-4o-mini"
       },
       "healthCheck": {
         "path": "/health",
