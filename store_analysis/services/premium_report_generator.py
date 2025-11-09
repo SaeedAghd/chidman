@@ -3,7 +3,14 @@
 
 """
 💎 Premium Report Generator Service
-تولید گزارش پولی حرفه‌ای با GPT-4o با تمام قابلیت‌ها
+تولید گزارش پولی حرفه‌ای با مدل‌های هوش مصنوعی Liara AI
+
+مدل‌های استفاده شده بر اساس نوع پکیج:
+- preliminary: openai/gpt-4o-mini (تحلیل اولیه - سریع و ارزان)
+- basic: google/gemini-2.5-flash (تحلیل محبوب - سریع و کارآمد)
+- professional: openai/gpt-5-mini (تحلیل پیشرفته - بهترین کیفیت)
+
+پلتفرم: Liara AI (https://ai.liara.ir)
 """
 
 import json
@@ -52,18 +59,26 @@ class PremiumReportGenerator:
         """تولید گزارش حرفه‌ای با اولویت استفاده از Liara AI"""
 
         try:
-            logger.info("💎 شروع تولید گزارش پولی برای تحلیل %s", analysis.id)
+            analysis_id = getattr(analysis, 'id', 'unknown')
+            package_type = getattr(analysis, 'package_type', 'basic') or 'basic'
+            
+            logger.info("💎 شروع تولید گزارش پولی برای تحلیل %s (package_type=%s)", analysis_id, package_type)
             complete_data = self._gather_complete_data(analysis, images_data, video_data, sales_data)
 
             report = self._generate_report_locally(analysis, complete_data)
             model_used: Optional[str] = None
+            ai_status = 'disabled'
 
             if self.ai_client.enabled:
+                logger.info("✅ Liara AI فعال است - آماده برای استفاده از مدل‌های AI")
                 try:
                     model_used = self._select_model(analysis)
                     if model_used:
-                        logger.info("🤖 تلاش برای غنی‌سازی گزارش با مدل %s (package_type=%s)", 
-                                  model_used, getattr(analysis, 'package_type', 'unknown'))
+                        model_display = model_used.split('/')[-1] if '/' in model_used else model_used
+                        logger.info(
+                            "🤖 در حال غنی‌سازی گزارش با مدل %s برای تحلیل %s (package_type=%s)", 
+                            model_display, analysis_id, package_type
+                        )
                         enrichment = self._generate_report_with_ai(
                             analysis=analysis,
                             complete_data=complete_data,
@@ -74,26 +89,51 @@ class PremiumReportGenerator:
                             report = self._merge_ai_enrichment(report, enrichment)
                             report.setdefault('metadata', {})['ai_engine'] = 'Liara AI'
                             report['metadata']['liara_model_used'] = model_used
-                            logger.info("✅ گزارش با موفقیت با Liara AI غنی شد")
+                            report['metadata']['model_provider'] = model_used.split('/')[0] if '/' in model_used else 'unknown'
+                            report['metadata']['model_name'] = model_used.split('/')[-1] if '/' in model_used else model_used
+                            ai_status = f'Liara AI ({model_display})'
+                            logger.info(
+                                "✅ گزارش با موفقیت با Liara AI غنی شد - مدل استفاده شده: %s (provider=%s)",
+                                model_display,
+                                model_used.split('/')[0] if '/' in model_used else 'unknown'
+                            )
                         else:
+                            ai_status = 'Liara AI (empty response)'
                             logger.warning("⚠️ Enrichment از Liara AI خالی برگشت، از گزارش rule-based استفاده می‌شود")
+                            report.setdefault('metadata', {})['ai_engine'] = 'rule_based_fallback'
+                            report['metadata']['ai_warning'] = 'Liara AI returned empty enrichment'
                     else:
-                        logger.warning("⚠️ مدل AI انتخاب نشد (package_type=%s)", getattr(analysis, 'package_type', 'unknown'))
+                        ai_status = 'model selection failed'
+                        logger.warning("⚠️ مدل AI انتخاب نشد (package_type=%s)", package_type)
+                        report.setdefault('metadata', {})['ai_engine'] = 'rule_based_fallback'
                 except LiaraAIError as exc:
+                    ai_status = f'Liara AI error: {str(exc)[:50]}'
                     logger.warning("⚠️ خطا در استفاده از Liara AI: %s - استفاده از گزارش rule-based", exc)
                     # گزارش rule-based قبلاً تولید شده است، فقط metadata را تنظیم کن
                     report.setdefault('metadata', {})['ai_error'] = str(exc)
                     report['metadata']['ai_engine'] = 'rule_based_fallback'
                 except Exception as exc:  # pragma: no cover - خطای پیش‌بینی‌نشده
+                    ai_status = f'unexpected error: {type(exc).__name__}'
                     logger.error("❌ خطای غیرمنتظره در Liara AI: %s", exc, exc_info=True)
                     report.setdefault('metadata', {})['ai_error'] = f"Unexpected error: {str(exc)}"
                     report['metadata']['ai_engine'] = 'rule_based_fallback'
+            else:
+                ai_status = 'Liara AI disabled'
+                logger.info("ℹ️ Liara AI غیرفعال است - استفاده از گزارش rule-based (LIARA_AI_API_KEY تنظیم نشده)")
 
             quality_checklist = self._generate_quality_checklist(report, complete_data)
             report['quality_checklist'] = quality_checklist
             report['quality_summary'] = quality_checklist.get('summary', {})
 
-            logger.info("✅ گزارش نهایی تولید شد (model=%s)", model_used or 'rule-based')
+            # لاگ نهایی با اطلاعات کامل
+            logger.info(
+                "✅ گزارش نهایی تولید شد برای تحلیل %s - AI Status: %s | Model: %s | Package: %s",
+                analysis_id,
+                ai_status,
+                model_used or 'rule-based (no AI)',
+                package_type
+            )
+            
             return report
 
         except Exception as exc:
@@ -158,9 +198,26 @@ class PremiumReportGenerator:
             }
 
     def _select_model(self, analysis) -> Optional[str]:
+        """انتخاب مدل AI بر اساس نوع پکیج"""
         package_type = getattr(analysis, 'package_type', 'basic') or 'basic'
         package_type = package_type.lower()
-        return self.model_map.get(package_type, self.model_map['basic'])
+        
+        # انتخاب مدل از map
+        selected_model = self.model_map.get(package_type, self.model_map['basic'])
+        
+        # لاگ واضح برای نمایش مدل انتخاب شده
+        model_name = selected_model.split('/')[-1] if '/' in selected_model else selected_model
+        provider = selected_model.split('/')[0] if '/' in selected_model else 'unknown'
+        
+        logger.info(
+            "🎯 انتخاب مدل AI: package_type=%s → model=%s (provider=%s, full_path=%s)",
+            package_type,
+            model_name,
+            provider,
+            selected_model
+        )
+        
+        return selected_model
 
     def _generate_report_with_ai(
         self,
@@ -277,6 +334,17 @@ class PremiumReportGenerator:
             f"لطفاً با توجه به schema زیر JSON دقیق تولید کن: {schema_str}"
         )
 
+        # لاگ اطلاعات مدل و درخواست
+        model_display = model.split('/')[-1] if '/' in model else model
+        provider = model.split('/')[0] if '/' in model else 'unknown'
+        logger.info(
+            "📤 ارسال درخواست به Liara AI - Model: %s (Provider: %s) | Prompt Length: %d chars | Analysis ID: %s",
+            model_display,
+            provider,
+            len(user_prompt),
+            getattr(analysis, 'id', 'unknown')
+        )
+
         try:
             response = self.ai_client.chat(
                 model=model,
@@ -284,6 +352,12 @@ class PremiumReportGenerator:
                 user_prompt=user_prompt,
                 temperature=0.35,
                 max_output_tokens=6000,
+            )
+            
+            logger.info(
+                "📥 پاسخ از Liara AI دریافت شد - Model: %s | Response Length: %d chars",
+                model_display,
+                len(response.content) if hasattr(response, 'content') else 0
             )
             
             # پارس JSON response
@@ -332,7 +406,7 @@ class PremiumReportGenerator:
 
         tech = enrichment.get('technical_analysis', {})
         if tech.get('entry_analysis'):
-            report['technical_analysis']['entry_analysis'] = tech['entry_analysis']
+            report['technical_analysis']['entry_analysis'].update(tech['entry_analysis'])
         if tech.get('hot_zones') or tech.get('cold_zones'):
             zones = report['technical_analysis'].setdefault('zones_analysis', {})
             if tech.get('hot_zones'):
@@ -341,6 +415,26 @@ class PremiumReportGenerator:
                 zones['cold_zones'] = tech['cold_zones']
         if tech.get('path_optimization'):
             report['technical_analysis'].setdefault('zones_analysis', {})['movement_path'] = tech['path_optimization']
+        # Merge کردن shelf_analysis اگر وجود دارد
+        if tech.get('shelf_analysis'):
+            if 'shelf_analysis' not in report['technical_analysis']:
+                report['technical_analysis']['shelf_analysis'] = {}
+            report['technical_analysis']['shelf_analysis'].update(tech['shelf_analysis'])
+        # Merge کردن lighting_analysis اگر وجود دارد
+        if tech.get('lighting_analysis'):
+            if 'lighting_analysis' not in report['technical_analysis']:
+                report['technical_analysis']['lighting_analysis'] = {}
+            report['technical_analysis']['lighting_analysis'].update(tech['lighting_analysis'])
+        # Merge کردن checkout_analysis اگر وجود دارد
+        if tech.get('checkout_analysis'):
+            if 'checkout_analysis' not in report['technical_analysis']:
+                report['technical_analysis']['checkout_analysis'] = {}
+            report['technical_analysis']['checkout_analysis'].update(tech['checkout_analysis'])
+        # Merge کردن unused_spaces اگر وجود دارد
+        if tech.get('unused_spaces'):
+            if 'unused_spaces' not in report['technical_analysis']:
+                report['technical_analysis']['unused_spaces'] = {}
+            report['technical_analysis']['unused_spaces'].update(tech['unused_spaces'])
 
         sales = enrichment.get('sales_analysis', {})
         if sales.get('narrative'):
@@ -390,24 +484,87 @@ class PremiumReportGenerator:
     def _gather_complete_data(self, analysis, images_data, video_data, sales_data) -> Dict:
         """جمع‌آوری تمام اطلاعات برای تحلیل"""
         
-        # استفاده از getattr برای فیلدهایی که ممکن است وجود نداشته باشند
-        contact_phone = getattr(analysis, 'contact_phone', None)
-        if not contact_phone and hasattr(analysis, 'safe_contact_phone'):
-            contact_phone = analysis.safe_contact_phone
+        # استفاده از safe methods برای فیلدهایی که ممکن است وجود نداشته باشند
+        # توجه: برای فیلدهای مشکل‌دار (additional_info, business_goals, marketing_budget)
+        # فقط از analysis_data استفاده می‌کنیم و هرگز به فیلدهای دیتابیس دسترسی پیدا نمی‌کنیم
+        contact_phone = ''
+        try:
+            if hasattr(analysis, 'safe_contact_phone'):
+                contact_phone = analysis.safe_contact_phone or ''
+            elif hasattr(analysis, 'contact_phone'):
+                contact_phone = getattr(analysis, 'contact_phone', '') or ''
+        except (AttributeError, Exception):
+            contact_phone = ''
         
-        contact_email = getattr(analysis, 'contact_email', None)
-        if not contact_email and hasattr(analysis, 'safe_contact_email'):
-            contact_email = analysis.safe_contact_email
+        contact_email = ''
+        try:
+            if hasattr(analysis, 'safe_contact_email'):
+                contact_email = analysis.safe_contact_email or ''
+            elif hasattr(analysis, 'contact_email'):
+                contact_email = getattr(analysis, 'contact_email', '') or ''
+        except (AttributeError, Exception):
+            contact_email = ''
+        
+        # استفاده از analysis_data برای فیلدهایی که ممکن است در دیتابیس موجود نباشند
+        analysis_data_dict = {}
+        try:
+            if hasattr(analysis, 'analysis_data') and analysis.analysis_data:
+                analysis_data_dict = analysis.analysis_data if isinstance(analysis.analysis_data, dict) else {}
+        except Exception:
+            pass
+        
+        # دسترسی safe به فیلدهایی که ممکن است در دیتابیس موجود نباشند
+        store_address = ''
+        try:
+            # اول از analysis_data استفاده کن
+            if 'store_address' in analysis_data_dict:
+                store_address = analysis_data_dict.get('store_address', '') or ''
+            # استفاده از defer برای جلوگیری از خواندن فیلدهای مشکل‌دار
+            elif hasattr(analysis, 'store_address'):
+                # استفاده از getattr فقط برای فیلدهایی که مطمئن هستیم وجود دارند
+                try:
+                    store_address = getattr(analysis, 'store_address', '') or ''
+                except Exception:
+                    # اگر خطا داد، از analysis_data استفاده کن
+                    store_address = ''
+        except (AttributeError, Exception):
+            store_address = ''
+        
+        additional_info = ''
+        try:
+            # فقط از analysis_data استفاده کن - هرگز به فیلد دیتابیس دسترسی پیدا نکن
+            if 'additional_info' in analysis_data_dict:
+                additional_info = analysis_data_dict.get('additional_info', '') or ''
+        except (AttributeError, Exception):
+            additional_info = ''
+        
+        business_goals = ''
+        try:
+            # فقط از analysis_data استفاده کن - هرگز به فیلد دیتابیس دسترسی پیدا نکن
+            if 'business_goals' in analysis_data_dict:
+                business_goals = analysis_data_dict.get('business_goals', '') or ''
+        except (AttributeError, Exception):
+            business_goals = ''
+        
+        marketing_budget = ''
+        try:
+            # فقط از analysis_data استفاده کن - هرگز به فیلد دیتابیس دسترسی پیدا نکن
+            if 'marketing_budget' in analysis_data_dict:
+                marketing_budget = analysis_data_dict.get('marketing_budget', '') or ''
+        except (AttributeError, Exception):
+            marketing_budget = ''
         
         return {
             'analysis': analysis,
             'store_name': getattr(analysis, 'store_name', 'نامشخص'),
             'store_type': getattr(analysis, 'store_type', ''),
             'store_size': getattr(analysis, 'store_size', ''),
-            'store_address': getattr(analysis, 'store_address', ''),
+            'store_address': store_address,
             'contact_phone': contact_phone or '',
             'contact_email': contact_email or '',
-            'additional_info': getattr(analysis, 'additional_info', ''),
+            'additional_info': additional_info,
+            'business_goals': business_goals,
+            'marketing_budget': marketing_budget,
             'images': images_data or [],
             'videos': video_data or {},
             'sales': sales_data or {},
@@ -554,11 +711,7 @@ class PremiumReportGenerator:
                 'queue_analysis': self._analyze_queues(data),
                 'wait_time_optimization': self._optimize_wait_times(data)
             },
-            'lighting_analysis': {
-                'current_lighting': self._analyze_lighting(data),
-                'color_psychology': self._apply_color_psychology(data),
-                'recommendations': self._generate_lighting_recommendations(data)
-            },
+            'lighting_analysis': self._build_lighting_analysis(data),
             'unused_spaces': {
                 'identified': self._identify_unused_spaces(data),
                 'suggestions': self._suggest_unused_space_usage(data)
@@ -659,6 +812,16 @@ class PremiumReportGenerator:
             'استفاده از LED‌های تنظیم‌پذیر برای حالت‌های مختلف روز',
             'نورپردازی accent برای محصولات ویژه'
         ]
+    
+    def _build_lighting_analysis(self, data) -> Dict:
+        """ساخت ساختار کامل lighting_analysis"""
+        lighting_data = self._analyze_lighting(data)
+        return {
+            'current_lighting': lighting_data.get('current_lighting_level', 'مناسب'),
+            'lux_measurement': lighting_data.get('lux_measurement', 'حدود 400-500 lux'),
+            'color_psychology': self._apply_color_psychology(data),
+            'recommendations': self._generate_lighting_recommendations(data)
+        }
     
     def _identify_unused_spaces(self, data) -> List[Dict]:
         """شناسایی فضاهای بلااستفاده"""
