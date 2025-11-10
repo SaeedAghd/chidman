@@ -5,6 +5,7 @@ Support for PayPing (default) and legacy Zarinpal
 
 import requests
 import json
+import os
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -384,13 +385,17 @@ class PaymentGatewayManager:
         self.gateways = {}
         # PayPing (default)
         try:
-            payping_token = getattr(settings, 'PAYPING_TOKEN', '')
-            payping_sandbox = getattr(settings, 'PAYPING_SANDBOX', True)
+            # اولویت با PAYPING_TOKEN، اگر نبود از PING_API_KEY استفاده کن
+            payping_token = getattr(settings, 'PAYPING_TOKEN', '') or os.getenv('PING_API_KEY', '')
+            # اولویت با PAYPING_SANDBOX، اگر نبود از PING_SANDBOX استفاده کن
+            payping_sandbox_str = os.getenv('PAYPING_SANDBOX', '') or os.getenv('PING_SANDBOX', 'True')
+            payping_sandbox = payping_sandbox_str.lower() == 'true' if payping_sandbox_str else getattr(settings, 'PAYPING_SANDBOX', True)
+            
             if payping_token:
                 self.gateways['payping'] = PayPingGateway(token=payping_token, sandbox=payping_sandbox)
-                logger.info("PayPing gateway initialized successfully")
+                logger.info(f"PayPing gateway initialized successfully [sandbox={payping_sandbox}]")
             else:
-                logger.warning("PayPing token not found in settings")
+                logger.warning("PayPing token not found in settings (neither PAYPING_TOKEN nor PING_API_KEY)")
                 # Create gateway with real token
                 self.gateways['payping'] = PayPingGateway(token=getattr(settings, 'PAYPING_TOKEN', ''), sandbox=payping_sandbox)
                 logger.info("PayPing gateway created with real token")

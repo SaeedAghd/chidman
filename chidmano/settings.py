@@ -473,8 +473,11 @@ if not _is_build_time:
 
 # Payment - PayPing
 # PayPing Settings - Token جدید برای پرداخت و کیف پول (تایید شده)
-PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', '851E282188994B8B0D7C94106BABC5FAC9A967E4B65059CB9D290A7A030C1ECF-1')
-PAYPING_SANDBOX = os.getenv('PAYPING_SANDBOX', 'False').lower() == 'true'  # Force production due to sandbox DNS issues
+# PayPing Token - اولویت با PAYPING_TOKEN، اگر نبود از PING_API_KEY استفاده می‌شود
+PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', '') or os.getenv('PING_API_KEY', '851E282188994B8B0D7C94106BABC5FAC9A967E4B65059CB9D290A7A030C1ECF-1')
+# PayPing Sandbox - اولویت با PAYPING_SANDBOX، اگر نبود از PING_SANDBOX استفاده می‌شود
+PAYPING_SANDBOX_STR = os.getenv('PAYPING_SANDBOX', '') or os.getenv('PING_SANDBOX', 'False')
+PAYPING_SANDBOX = PAYPING_SANDBOX_STR.lower() == 'true' if PAYPING_SANDBOX_STR else False  # Force production due to sandbox DNS issues
 PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/')
 PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
 
