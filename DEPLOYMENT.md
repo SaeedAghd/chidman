@@ -70,8 +70,12 @@ EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
 DEFAULT_FROM_EMAIL=info@chidmano.com
 
-# Payment Gateway
-PING_API_KEY=your-ping-api-key
+# Payment Gateway (PayPing)
+PAYPING_TOKEN=851E282188994B8B0D7C94106BABC5FAC9A967E4B65059CB9D290A7A030C1ECF-1
+PAYPING_SANDBOX=False
+PAYPING_CALLBACK_URL=https://chidmano.ir/store/payment/payping/callback/
+PAYPING_RETURN_URL=https://chidmano.ir/store/payment/payping/return/
+PING_API_KEY=851E282188994B8B0D7C94106BABC5FAC9A967E4B65059CB9D290A7A030C1ECF-1
 PING_CALLBACK_URL=https://chidmano.ir/store/payment/payping/callback/
 PING_RETURN_URL=https://chidmano.ir/store/payment/payping/return/
 ```

@@ -32,11 +32,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', '1-++(gh-*#+j1@5_c&ls2te#1n44iii98r%-0^2aan
 PAYMENT_GATEWAY = {
     'PING_PAYMENT': {
         'MERCHANT_ID': '7DF9DCCE0D75419789003B00D44E561EC16094F068C2E72A4AD28E3DBF4DC5E8-1',  # به‌روزرسانی طبق درخواست کاربر
-        'API_KEY': os.getenv('PING_API_KEY', 'EB28E90039CB8FCD97F3D778FC7644917A1391217F9E47046EA864EA25331445-1'),
+        'API_KEY': os.getenv('PING_API_KEY', '851E282188994B8B0D7C94106BABC5FAC9A967E4B65059CB9D290A7A030C1ECF-1'),  # توکن تایید شده
         'CALLBACK_URL': os.getenv('PING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/'),
         'RETURN_URL': os.getenv('PING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/'),
-        'SANDBOX': True,  # فعال کردن حالت تست برای کاربران تکراری
-        'API_URL': 'https://api-sandbox.pingpayment.ir',  # استفاده از sandbox برای تست
+        'SANDBOX': False,  # غیرفعال کردن sandbox برای استفاده از توکن production
+        'API_URL': 'https://api.pingpayment.ir',  # استفاده از API production
         'TRUST_BADGE': True,  # فعال‌سازی نماد اعتماد
         'VERIFY_SSL': True
     }
@@ -472,8 +472,8 @@ if not _is_build_time:
             logger.debug(f"🔍 LIARA_AI_API_KEY check: exists_in_env={_liara_ai_key_exists}, value_length={len(_liara_ai_key_raw) if _liara_ai_key_raw else 0}")
 
 # Payment - PayPing
-# PayPing Settings - Token جدید برای پرداخت و کیف پول
-PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', 'D0C2E2134B072175DAC950AAEB776938C8E024C4B1942AF6FF760A3615B67685-1')
+# PayPing Settings - Token جدید برای پرداخت و کیف پول (تایید شده)
+PAYPING_TOKEN = os.getenv('PAYPING_TOKEN', '851E282188994B8B0D7C94106BABC5FAC9A967E4B65059CB9D290A7A030C1ECF-1')
 PAYPING_SANDBOX = os.getenv('PAYPING_SANDBOX', 'False').lower() == 'true'  # Force production due to sandbox DNS issues
 PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/store/payment/payping/callback/')
 PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
