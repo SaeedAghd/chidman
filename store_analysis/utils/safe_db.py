@@ -226,21 +226,14 @@ def _create_store_analysis_raw_sql(**kwargs) -> Any:
                 pass
     
     # اضافه کردن فیلدهای potentially missing با بررسی دقیق‌تر
+    # این فیلدها را اصلاً اضافه نکن - حتی اگر در available_columns باشند
+    # چون ممکن است get_available_columns درست کار نکند
+    # اگر واقعاً نیاز است، باید migration ایجاد شود
     for field_name in potentially_missing_fields:
-        # بررسی اینکه آیا ستون واقعاً وجود دارد
-        if field_name in available_columns:
-            try:
-                # بررسی نهایی: آیا ستون واقعاً وجود دارد؟
-                with connection.cursor() as test_cursor:
-                    test_cursor.execute(f"SELECT {connection.ops.quote_name(field_name)} FROM {connection.ops.quote_name(table_name)} LIMIT 0")
-                # اگر خطا نداد، ستون وجود دارد
-                if field_name in kwargs and kwargs[field_name] is not None:
-                    fields.append(field_name)
-                    values.append(kwargs[field_name])
-            except Exception as e:
-                # اگر ستون موجود نیست، skip کن
-                logger.debug(f"Skipping {field_name} - column does not exist in database: {e}")
-                pass
+        # این فیلدها را skip کن - حتی اگر در available_columns باشند
+        # چون ممکن است در دیتابیس موجود نباشند
+        logger.debug(f"Skipping potentially missing field: {field_name}")
+        pass
     
     # contact_phone و contact_email را به صورت جداگانه بررسی کن (اگر موجود باشند)
     # فقط اگر ستون واقعاً در دیتابیس موجود باشد
@@ -422,7 +415,7 @@ def _get_store_analysis_raw_sql(**filters) -> Optional[Any]:
     # اضافه کردن فیلدهای موجود
     common_fields = [
         'user_id', 'store_name', 'store_url', 'store_type', 'store_size',
-        'store_address', 'additional_info', 'business_goals', 'marketing_budget',
+        'store_address', 'business_goals', 'marketing_budget',
         'analysis_type', 'status', 'package_type', 'final_amount',
         'analysis_data', 'results', 'order_id', 'preliminary_analysis',
         'ai_insights', 'recommendations', 'store_images', 'analysis_files',
@@ -436,13 +429,11 @@ def _get_store_analysis_raw_sql(**filters) -> Optional[Any]:
         if field in available_columns:
             select_fields.append(field)
     
-    # اضافه کردن contact_phone و contact_email فقط اگر موجود باشند
-    if 'contact_phone' in available_columns:
-        select_fields.append('contact_phone')
-    if 'contact_email' in available_columns:
-        select_fields.append('contact_email')
-    if 'priority' in available_columns:
-        select_fields.append('priority')
+    # اضافه کردن فیلدهای potentially missing فقط اگر موجود باشند
+    potentially_missing_fields = ['contact_phone', 'contact_email', 'priority', 'additional_info']
+    for field in potentially_missing_fields:
+        if field in available_columns:
+            select_fields.append(field)
     
     select_fields_str = ', '.join([connection.ops.quote_name(f) for f in select_fields])
     quoted_table = connection.ops.quote_name(table_name)

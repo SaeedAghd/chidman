@@ -138,6 +138,35 @@ def simple_login_view(request):
                         except Exception:
                             pass
                         messages.success(request, f'خوش آمدید {user.username}!')
+                        
+                        # بررسی analysis_id در session (برای redirect بعد از پرداخت)
+                        # اول pending_analysis_id را بررسی کن (backup)
+                        analysis_id = request.session.get('pending_analysis_id') or request.session.get('analysis_id')
+                        if analysis_id:
+                            # اگر analysis_id در session موجود است، به forms redirect کن
+                            from django.urls import reverse
+                            # پاک کردن از session بعد از استفاده
+                            if 'pending_analysis_id' in request.session:
+                                del request.session['pending_analysis_id']
+                            if 'analysis_id' in request.session:
+                                del request.session['analysis_id']
+                            logger.info(f"🔐 Redirecting to forms after login: analysis_id={analysis_id}")
+                            return redirect('store_analysis:forms', analysis_id=analysis_id)
+                        
+                        # استفاده از next parameter اگر موجود باشد
+                        next_url = request.GET.get('next') or request.POST.get('next')
+                        if next_url:
+                            # بررسی امنیت: مطمئن شو که URL به دامنه خودمان است
+                            from django.urls import resolve
+                            from django.http import HttpResponseRedirect
+                            try:
+                                # بررسی اینکه آیا URL به دامنه خودمان است
+                                if next_url.startswith('/') or next_url.startswith(request.build_absolute_uri('/')):
+                                    return HttpResponseRedirect(next_url)
+                            except:
+                                pass
+                        
+                        # اگر next موجود نبود یا نامعتبر بود، به dashboard برو
                         return redirect('store_analysis:user_dashboard')
                     else:
                         messages.error(request, 'حساب کاربری شما فعال نیست. لطفاً ابتدا ایمیل خود را تایید کنید.')

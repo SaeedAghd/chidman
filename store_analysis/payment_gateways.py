@@ -164,7 +164,7 @@ class PayPingGateway:
         """Create payment request on PayPing
 
         Notes:
-        - PayPing amount is in Rials. If we receive Toman, convert by x10.
+        - PayPing amount is in Tomans (not Rials). Amount should be sent as-is.
         - payer_identity is REQUIRED and must be a valid mobile number
         - payer_name is recommended for better UX
         - clientRefId must be unique for each transaction
@@ -187,8 +187,9 @@ class PayPingGateway:
                     "mock_mode": True
                 }
             
-            # تبدیل تومان به ریال (PayPing فقط ریال قبول می‌کند)
-            rial_amount = int(amount) * 10
+            # PayPing مبلغ را به تومان می‌خواهد (نه ریال)
+            # پس مبلغ را بدون تبدیل ارسال می‌کنیم
+            toman_amount = int(amount)
 
             # Validate payer_identity
             if not payer_identity:
@@ -200,7 +201,7 @@ class PayPingGateway:
                 client_ref_id = f"CHIDMANO_{int(timezone.now().timestamp())}_{uuid.uuid4().hex[:8]}"
 
             payload = {
-                "amount": rial_amount,
+                "amount": toman_amount,
                 "description": description or "پرداخت سفارش چیدمانو",
                 "returnUrl": callback_url,
                 "payerIdentity": str(payer_identity),  # شماره موبایل کاربر (الزامی)
@@ -211,7 +212,7 @@ class PayPingGateway:
             if payer_name:
                 payload["payerName"] = str(payer_name)
             
-            logger.info(f"PayPing payment request: amount={rial_amount} Rials, payer={payer_identity}, client_ref={client_ref_id}")
+            logger.info(f"PayPing payment request: amount={toman_amount} Tomans, payer={payer_identity}, client_ref={client_ref_id}")
 
             headers = {
                 "Authorization": f"Bearer {self.token}",
@@ -326,8 +327,9 @@ class PayPingGateway:
                     "message": "پرداخت با موفقیت تایید شد (تست)"
                 }
             
-            rial_amount = int(amount) * 10
-            payload = {"refId": authority, "amount": rial_amount}
+            # PayPing مبلغ را به تومان می‌خواهد (نه ریال)
+            toman_amount = int(amount)
+            payload = {"refId": authority, "amount": toman_amount}
             headers = {
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",

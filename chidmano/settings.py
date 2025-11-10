@@ -482,7 +482,8 @@ PAYPING_CALLBACK_URL = os.getenv('PAYPING_CALLBACK_URL', 'https://chidmano.ir/st
 PAYPING_RETURN_URL = os.getenv('PAYPING_RETURN_URL', 'https://chidmano.ir/store/payment/payping/return/')
 
 # Mock mode for testing when PayPing token has restrictions
-PAYPING_MOCK_MODE = os.getenv('PAYPING_MOCK_MODE', 'True').lower() == 'true'
+# در production باید False باشد تا به پی‌پینگ واقعی برود
+PAYPING_MOCK_MODE = os.getenv('PAYPING_MOCK_MODE', 'False').lower() == 'true'
 
 # AI Analysis Settings
 AI_ANALYSIS_CACHE_TIMEOUT = 3600  # 1 hour
@@ -820,6 +821,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.liara.run",
     "https://chidmano.ir",
     "https://www.chidmano.ir",
+    "https://api.payping.ir",  # برای callback از پی‌پینگ
 ]
 
 CORS_ALLOW_METHODS = [

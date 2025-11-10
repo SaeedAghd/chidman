@@ -240,78 +240,303 @@ class PremiumReportGenerator:
                 logger.warning("⚠️ خطا در دریافت داده‌های تحلیل: %s", exc)
 
         system_prompt = (
-            "تو یک تحلیلگر ارشد چیدمان فروشگاه هستی. خروجی باید فقط JSON معتبر باشد. "
-            "ساختار JSON باید شامل کلیدهای زیر باشد: executive_summary, technical_analysis, "
-            "sales_analysis, behavior_analysis, action_plan, kpi_dashboard, warnings. "
-            "هر بخش باید شامل داده‌های کاربردی و اعداد واقع‌بینانه باشد. تمام متن‌ها را به فارسی و لحن حرفه‌ای تولید کن."
+            "تو یک تحلیلگر ارشد و متخصص بین‌المللی چیدمان فروشگاه هستی با تخصص در:\n\n"
+            "🎨 **علم چیدمان و دکوراسیون:**\n"
+            "- اصول طراحی فضای تجاری (Retail Space Design)\n"
+            "- تئوری چیدمان محصولات (Product Placement Theory)\n"
+            "- بهینه‌سازی جریان مشتری (Customer Flow Optimization)\n"
+            "- تحلیل فضاهای تجاری (Commercial Space Analysis)\n"
+            "- اصول معماری داخلی فروشگاه (Store Interior Architecture)\n\n"
+            "🧠 **روانشناسی بازاریابی و رفتار مشتری:**\n"
+            "- روانشناسی مصرف‌کننده (Consumer Psychology)\n"
+            "- تئوری تصمیم‌گیری خرید (Purchase Decision Theory)\n"
+            "- تحلیل رفتار مشتری (Customer Behavior Analysis)\n"
+            "- روانشناسی محیطی (Environmental Psychology)\n"
+            "- تئوری جذابیت بصری (Visual Appeal Theory)\n"
+            "- تحلیل نقاط توقف و تعامل (Dwell Point Analysis)\n"
+            "- روانشناسی رنگ و نور (Color & Light Psychology)\n\n"
+            "🎨 **رنگ‌بندی و طراحی بصری:**\n"
+            "- تئوری رنگ در بازاریابی (Color Theory in Marketing)\n"
+            "- روانشناسی رنگ‌ها (Color Psychology)\n"
+            "- هارمونی رنگ‌ها (Color Harmony)\n"
+            "- تأثیر رنگ بر رفتار خرید (Color Impact on Purchase Behavior)\n"
+            "- طراحی هویت بصری برند (Brand Visual Identity Design)\n"
+            "- استفاده استراتژیک از رنگ در فضا (Strategic Color Usage)\n\n"
+            "🏗️ **پیکربندی و ساختار فیزیکی:**\n"
+            "- بهینه‌سازی چیدمان قفسه‌ها (Shelf Layout Optimization)\n"
+            "- تحلیل تراکم محصولات (Product Density Analysis)\n"
+            "- بهینه‌سازی مسیر حرکتی (Path Optimization)\n"
+            "- تحلیل نقاط داغ و سرد (Hot/Cold Zone Analysis)\n"
+            "- بهینه‌سازی فضای کف (Floor Space Optimization)\n"
+            "- تحلیل ارتفاع و دیدپذیری (Height & Visibility Analysis)\n\n"
+            "👁️ **دید مشتری و جذابیت:**\n"
+            "- تحلیل دیدپذیری محصولات (Product Visibility Analysis)\n"
+            "- تئوری نقطه کانونی (Focal Point Theory)\n"
+            "- تحلیل زوایای دید (Viewing Angle Analysis)\n"
+            "- بهینه‌سازی ویترین (Window Display Optimization)\n"
+            "- جذابیت بصری و هنری (Visual & Artistic Appeal)\n"
+            "- طراحی تجربه بصری (Visual Experience Design)\n\n"
+            "💡 **نورپردازی و محیط:**\n"
+            "- تئوری نورپردازی تجاری (Commercial Lighting Theory)\n"
+            "- تحلیل شدت نور (Lux Measurement Analysis)\n"
+            "- تأثیر نور بر رفتار مشتری (Light Impact on Customer Behavior)\n"
+            "- نورپردازی accent و تاکیدی (Accent Lighting)\n"
+            "- بهینه‌سازی نور طبیعی و مصنوعی (Natural & Artificial Light Optimization)\n\n"
+            "📊 **تحلیل داده‌محور:**\n"
+            "- تحلیل داده‌های فروش (Sales Data Analysis)\n"
+            "- تحلیل ترافیک مشتری (Customer Traffic Analysis)\n"
+            "- تحلیل ROI و بازگشت سرمایه (ROI Analysis)\n"
+            "- پیش‌بینی فروش (Sales Forecasting)\n"
+            "- تحلیل رقابتی (Competitive Analysis)\n\n"
+            "🎯 **استراتژی و اجرا:**\n"
+            "- برنامه‌ریزی اقدامات (Action Planning)\n"
+            "- اولویت‌بندی راهکارها (Solution Prioritization)\n"
+            "- تحلیل هزینه-فایده (Cost-Benefit Analysis)\n"
+            "- برنامه‌ریزی فصلی و رویدادها (Seasonal & Event Planning)\n\n"
+            "**دستورالعمل‌های تحلیل:**\n"
+            "1. از تمام داده‌های ورودی (ابعاد، رنگ‌ها، مواد، نور، رفتار مشتری، فروش، رقبا) استفاده کن\n"
+            "2. تحلیل باید عمیق، علمی و مبتنی بر اصول تئوریک باشد\n"
+            "3. راهکارها باید عملی، قابل اجرا و با ROI مشخص باشند\n"
+            "4. اعداد و ارقام باید واقع‌بینانه و بر اساس داده‌های ورودی محاسبه شوند\n"
+            "5. تمام متن‌ها باید به فارسی روان و حرفه‌ای نوشته شوند\n"
+            "6. خروجی باید فقط JSON معتبر باشد با ساختار مشخص شده\n"
+            "7. هر بخش باید شامل تحلیل عمیق، راهکارهای عملی و اعداد دقیق باشد\n"
+            "8. از دانش بین‌المللی و بهترین‌های صنعت (IKEA, Apple Store, Zara) الهام بگیر\n"
+            "9. تحلیل باید جامع باشد و هیچ جنبه‌ای را نادیده نگیرد\n"
+            "10. راهکارها باید با توجه به بودجه، زمان و اولویت‌های مشتری ارائه شوند"
         )
 
         schema_hint = {
             "executive_summary": {
-                "paragraphs": ["متن"],
+                "paragraphs": ["متن پاراگراف تحلیل جامع - باید شامل تحلیل عمیق از تمام جنبه‌ها باشد"],
                 "key_metrics": {
-                    "current_sales": "...",
-                    "projected_sales": "...",
-                    "customer_conversion_rate": "...",
-                    "expected_roi": "...",
-                    "payback_period": "...",
+                    "current_sales": "عدد فروش فعلی (تومان/روز)",
+                    "projected_sales": "عدد فروش پیش‌بینی شده (تومان/روز)",
+                    "customer_conversion_rate": "درصد تبدیل بازدید به خرید",
+                    "expected_roi": "درصد بازگشت سرمایه",
+                    "payback_period": "زمان بازگشت سرمایه (ماه)",
+                    "layout_score": "امتیاز چیدمان فعلی (0-100)",
+                    "target_score": "امتیاز هدف (0-100)",
+                    "improvement_potential": "پتانسیل بهبود (درصد)"
                 },
-                "expected_roi": "...",
-                "payback_period": "...",
+                "expected_roi": "توضیح ROI با جزئیات",
+                "payback_period": "زمان بازگشت سرمایه با جزئیات",
+                "store_overview": "تحلیل کلی فروشگاه بر اساس تمام داده‌های ورودی"
             },
             "technical_analysis": {
                 "entry_analysis": {
-                    "description": "...",
-                    "recommendations": ["..."],
-                    "note": "..."
+                    "description": "تحلیل عمیق ورودی بر اساس تعداد ورودی‌ها، موقعیت، و جریان مشتری",
+                    "recommendations": ["راهکارهای عملی برای بهینه‌سازی ورودی"],
+                    "note": "یادداشت‌های تکمیلی",
+                    "traffic_analysis": "تحلیل ترافیک ورودی",
+                    "visibility_score": "امتیاز دیدپذیری ورودی"
                 },
-                "hot_zones": [{"zone": "...", "importance": "...", "current_traffic": "...", "recommendation": "..."}],
-                "cold_zones": [{"zone": "...", "issue": "...", "recommendation": "..."}],
-                "path_optimization": "...",
+                "hot_zones": [{
+                    "zone": "نام منطقه داغ",
+                    "importance": "اهمیت (Very High/High/Medium)",
+                    "current_traffic": "ترافیک فعلی (High/Medium/Low)",
+                    "recommendation": "راهکار بهینه‌سازی",
+                    "potential_sales_increase": "افزایش فروش بالقوه (درصد)"
+                }],
+                "cold_zones": [{
+                    "zone": "نام منطقه سرد",
+                    "issue": "مشکل شناسایی شده",
+                    "recommendation": "راهکار بهبود",
+                    "waste_percentage": "درصد هدررفت فضا"
+                }],
+                "path_optimization": "تحلیل و بهینه‌سازی مسیر حرکتی مشتری بر اساس جریان فعلی",
+                "shelf_analysis": {
+                    "current_layout": "تحلیل چیدمان فعلی قفسه‌ها",
+                    "proposed_layout": "چیدمان پیشنهادی",
+                    "density_analysis": "تحلیل تراکم محصولات",
+                    "customer_visibility": "تحلیل دیدپذیری مشتری",
+                    "height_optimization": "بهینه‌سازی ارتفاع قفسه‌ها",
+                    "spacing_recommendations": "توصیه‌های فاصله‌گذاری"
+                },
+                "lighting_analysis": {
+                    "current_lighting": "تحلیل نورپردازی فعلی",
+                    "lux_measurement": "اندازه‌گیری شدت نور",
+                    "color_psychology": "تحلیل روانشناسی رنگ‌ها",
+                    "recommendations": ["راهکارهای نورپردازی"],
+                    "energy_efficiency": "تحلیل کارایی انرژی"
+                },
+                "checkout_analysis": {
+                    "queue_analysis": "تحلیل صف‌ها",
+                    "wait_time_optimization": "بهینه‌سازی زمان انتظار",
+                    "efficiency_score": "امتیاز کارایی صندوق"
+                },
+                "unused_spaces": {
+                    "identified": [{"space": "...", "waste": "...", "suggestion": "..."}],
+                    "suggestions": ["پیشنهادات استفاده از فضاهای بلااستفاده"]
+                },
+                "material_analysis": {
+                    "floor_impact": "تأثیر کف‌پوش بر تجربه مشتری",
+                    "wall_impact": "تأثیر دیوارها بر نور و صدا",
+                    "ceiling_impact": "تأثیر سقف بر احساس فضا",
+                    "ambiance_analysis": "تحلیل احساس کلی فضا"
+                },
+                "structural_analysis": {
+                    "dimensions_analysis": "تحلیل ابعاد فروشگاه",
+                    "floor_count_impact": "تأثیر تعداد طبقات",
+                    "warehouse_optimization": "بهینه‌سازی انبار",
+                    "space_utilization": "تحلیل استفاده از فضا"
+                }
             },
             "sales_analysis": {
-                "narrative": "...",
+                "narrative": "تحلیل روایی ارتباط چیدمان و فروش",
                 "before_after": {
-                    "current_layout_revenue": "...",
-                    "projected_layout_revenue": "...",
-                    "improvement": "..."
+                    "current_layout_revenue": "درآمد فعلی (تومان/روز)",
+                    "projected_layout_revenue": "درآمد پیش‌بینی شده (تومان/روز)",
+                    "improvement": "درصد بهبود",
+                    "monthly_increase": "افزایش ماهانه (تومان)"
                 },
-                "insights": ["..."],
-                "data_source_note": "..."
+                "insights": ["بینش‌های کلیدی از تحلیل فروش"],
+                "data_source_note": "یادداشت درباره منبع داده‌ها",
+                "product_placement_analysis": "تحلیل چیدمان محصولات پرفروش/گران/ارزان",
+                "seasonal_analysis": "تحلیل فصلی و رویدادها",
+                "competitive_positioning": "موقعیت‌یابی رقابتی"
             },
             "behavior_analysis": {
                 "video": {
-                    "status": "...",
-                    "details": ["..."]
+                    "status": "وضعیت تحلیل ویدیو",
+                    "details": ["جزئیات تحلیل ویدیو"]
                 },
                 "movement": {
-                    "primary_path_usage": "...",
-                    "secondary_path_usage": "...",
-                    "unused_areas": "...",
-                    "recommendation": "..."
+                    "primary_path_usage": "درصد استفاده از مسیر اصلی",
+                    "secondary_path_usage": "درصد استفاده از مسیر فرعی",
+                    "unused_areas": "درصد فضاهای بلااستفاده",
+                    "recommendation": "راهکار بهینه‌سازی",
+                    "flow_pattern": "الگوی جریان شناسایی شده"
                 },
-                "interaction_points": [{"point": "...", "interaction_rate": "...", "recommendation": "..."}],
+                "interaction_points": [{
+                    "point": "نقطه تعامل",
+                    "interaction_rate": "نرخ تعامل (درصد)",
+                    "recommendation": "راهکار بهبود",
+                    "dwell_time": "زمان ماندگاری (دقیقه)"
+                }],
                 "ux": {
-                    "overall_score": "...",
-                    "navigation": "...",
-                    "findability": "...",
-                    "recommendations": ["..."]
+                    "overall_score": "امتیاز کلی UX (0-10)",
+                    "navigation": "امتیاز ناوبری",
+                    "findability": "امتیاز پیدا کردن محصولات",
+                    "recommendations": ["راهکارهای بهبود UX"]
                 },
-                "note": "..."
+                "customer_psychology": {
+                    "decision_making_points": "نقاط تصمیم‌گیری",
+                    "emotional_triggers": "محرک‌های احساسی",
+                    "attention_points": "نقاط جلب توجه"
+                },
+                "experience_zones": {
+                    "test_zone_impact": "تأثیر منطقه آزمایش",
+                    "rest_area_impact": "تأثیر منطقه استراحت",
+                    "kids_zone_impact": "تأثیر منطقه کودکان",
+                    "wifi_impact": "تأثیر Wi-Fi",
+                    "charging_impact": "تأثیر شارژر",
+                    "restroom_impact": "تأثیر سرویس بهداشتی"
+                },
+                "note": "یادداشت‌های تکمیلی"
+            },
+            "design_analysis": {
+                "brand_identity": {
+                    "color_scheme_analysis": "تحلیل پالت رنگ برند",
+                    "visual_consistency": "تحلیل یکپارچگی بصری",
+                    "brand_recognition": "تحلیل شناخت برند"
+                },
+                "window_display": {
+                    "current_analysis": "تحلیل ویترین فعلی",
+                    "optimization": "راهکارهای بهینه‌سازی",
+                    "seasonal_recommendations": "توصیه‌های فصلی"
+                },
+                "aesthetic_appeal": {
+                    "visual_score": "امتیاز جذابیت بصری",
+                    "artistic_elements": "عناصر هنری",
+                    "recommendations": ["راهکارهای بهبود زیبایی"]
+                }
             },
             "action_plan": {
-                "urgent": [{"action": "...", "effect_on_sales": "...", "time_to_execute": "...", "cost_display": "...", "roi_months": "..."}],
-                "medium_term": [{"action": "...", "effect_on_sales": "...", "time_to_execute": "...", "cost_display": "...", "roi_months": "..."}],
-                "long_term": [{"action": "...", "effect_on_sales": "...", "time_to_execute": "...", "cost_display": "...", "roi_months": "..."}]
+                "urgent": [{
+                    "action": "اقدام فوری",
+                    "effect_on_sales": "تأثیر بر فروش (درصد)",
+                    "time_to_execute": "زمان اجرا (روز)",
+                    "cost_display": "هزینه (تومان)",
+                    "roi_months": "بازگشت سرمایه (ماه)",
+                    "priority": "اولویت",
+                    "category": "دسته‌بندی (layout/lighting/color/etc)"
+                }],
+                "medium_term": [{
+                    "action": "اقدام میان‌مدت",
+                    "effect_on_sales": "تأثیر بر فروش (درصد)",
+                    "time_to_execute": "زمان اجرا (هفته)",
+                    "cost_display": "هزینه (تومان)",
+                    "roi_months": "بازگشت سرمایه (ماه)",
+                    "priority": "اولویت",
+                    "category": "دسته‌بندی"
+                }],
+                "long_term": [{
+                    "action": "اقدام بلندمدت",
+                    "effect_on_sales": "تأثیر بر فروش (درصد)",
+                    "time_to_execute": "زمان اجرا (ماه)",
+                    "cost_display": "هزینه (تومان)",
+                    "roi_months": "بازگشت سرمایه (ماه)",
+                    "priority": "اولویت",
+                    "category": "دسته‌بندی"
+                }],
+                "seasonal_actions": [{
+                    "event": "رویداد/فصل",
+                    "actions": ["اقدامات مربوطه"],
+                    "timing": "زمان اجرا"
+                }]
             },
             "kpi_dashboard": {
-                "conversion_rate": {"current": "...", "target": "...", "improvement": "..."},
-                "visit_to_purchase": {"current": "...", "target": "...", "improvement": "..."},
-                "average_stop_per_section": {"current": "...", "target": "...", "improvement": "..."},
-                "space_productivity": {"current": "...", "target": "...", "improvement": "..."},
-                "visual_satisfaction": {"current": "...", "target": "...", "improvement": "..."}
+                "conversion_rate": {
+                    "current": "نرخ تبدیل فعلی (درصد)",
+                    "target": "هدف (درصد)",
+                    "improvement": "بهبود (درصد)"
+                },
+                "visit_to_purchase": {
+                    "current": "نرخ خرید از بازدید (درصد)",
+                    "target": "هدف (درصد)",
+                    "improvement": "بهبود (درصد)"
+                },
+                "average_stop_per_section": {
+                    "current": "متوسط توقف در هر بخش",
+                    "target": "هدف",
+                    "improvement": "بهبود (درصد)"
+                },
+                "space_productivity": {
+                    "current": "بازدهی فضا (تومان/مترمربع)",
+                    "target": "هدف",
+                    "improvement": "بهبود (درصد)"
+                },
+                "visual_satisfaction": {
+                    "current": "رضایت بصری (0-10)",
+                    "target": "هدف",
+                    "improvement": "بهبود (درصد)"
+                },
+                "customer_dwell_time": {
+                    "current": "زمان ماندگاری فعلی (دقیقه)",
+                    "target": "هدف",
+                    "improvement": "بهبود (درصد)"
+                },
+                "basket_size": {
+                    "current": "میانگین سبد خرید فعلی (تومان)",
+                    "target": "هدف",
+                    "improvement": "بهبود (درصد)"
+                }
             },
-            "warnings": ["..."]
+            "competitive_analysis": {
+                "market_position": "موقعیت در بازار",
+                "strengths": ["نقاط قوت نسبت به رقبا"],
+                "weaknesses": ["نقاط ضعف نسبت به رقبا"],
+                "opportunities": ["فرصت‌ها"],
+                "threats": ["تهدیدها"],
+                "differentiation_strategy": "استراتژی تمایز"
+            },
+            "warnings": ["هشدارها و محدودیت‌های تحلیل"],
+            "data_completeness": {
+                "missing_data": ["داده‌های کم"],
+                "completeness_score": "امتیاز تکمیل بودن (0-100)",
+                "recommendations": ["توصیه‌های تکمیل داده"]
+            }
         }
 
         # محدود کردن طول prompt برای جلوگیری از خطاهای API
@@ -330,13 +555,183 @@ class PremiumReportGenerator:
             base_summary_str = base_summary_str[:int(len(base_summary_str) * reduction_factor)]
             logger.warning(f"⚠️ Prompt length reduced from {total_length} to {len(analysis_data_str) + len(base_summary_str) + len(schema_str)}")
         
+        # استخراج داده‌های کلیدی از analysis_data برای استفاده در prompt
+        store_name = getattr(analysis, 'store_name', 'نامشخص')
+        store_type = analysis_data.get('store_type', getattr(analysis, 'store_type', 'عمومی'))
+        store_size = analysis_data.get('store_size', getattr(analysis, 'store_size', 'نامشخص'))
+        city = analysis_data.get('city', '')
+        area = analysis_data.get('area', '')
+        location_type = analysis_data.get('location_type', '')
+        establishment_year = analysis_data.get('establishment_year', '')
+        workforce_count = analysis_data.get('workforce_count', '')
+        
+        # ابعاد و ساختار
+        store_length = analysis_data.get('store_length', '')
+        store_width = analysis_data.get('store_width', '')
+        store_height = analysis_data.get('store_height', '')
+        floor_count = analysis_data.get('floor_count', '')
+        warehouse_location = analysis_data.get('warehouse_location', '')
+        entrance_count = analysis_data.get('entrance_count', '')
+        checkout_count = analysis_data.get('checkout_count', '')
+        shelf_count = analysis_data.get('shelf_count', '')
+        shelf_dimensions = analysis_data.get('shelf_dimensions', '')
+        shelf_layout = analysis_data.get('shelf_layout', '')
+        
+        # طراحی و برند
+        design_style = analysis_data.get('design_style', '')
+        primary_brand_color = analysis_data.get('primary_brand_color', '')
+        secondary_brand_color = analysis_data.get('secondary_brand_color', '')
+        accent_brand_color = analysis_data.get('accent_brand_color', '')
+        lighting_type = analysis_data.get('lighting_type', '')
+        lighting_intensity = analysis_data.get('lighting_intensity', '')
+        window_display_type = analysis_data.get('window_display_type', '')
+        window_display_size = analysis_data.get('window_display_size', '')
+        window_display_theme = analysis_data.get('window_display_theme', '')
+        
+        # مواد و بافت
+        floor_material = analysis_data.get('floor_material', '')
+        wall_material = analysis_data.get('wall_material', '')
+        ceiling_type = analysis_data.get('ceiling_type', '')
+        floor_color = analysis_data.get('floor_color', '')
+        wall_color = analysis_data.get('wall_color', '')
+        ceiling_color = analysis_data.get('ceiling_color', '')
+        overall_ambiance = analysis_data.get('overall_ambiance', '')
+        
+        # رفتار مشتری
+        daily_customers = analysis_data.get('daily_customers', '')
+        customer_time = analysis_data.get('customer_time', '')
+        customer_flow = analysis_data.get('customer_flow', '')
+        stopping_points = analysis_data.get('stopping_points', [])
+        high_traffic_areas = analysis_data.get('high_traffic_areas', [])
+        
+        # امنیت و نظارت
+        has_cameras = analysis_data.get('has_cameras', '')
+        camera_count = analysis_data.get('camera_count', '')
+        camera_locations = analysis_data.get('camera_locations', '')
+        
+        # Experience Zones
+        has_test_zone = analysis_data.get('has_test_zone', '')
+        has_rest_area = analysis_data.get('has_rest_area', '')
+        has_kids_zone = analysis_data.get('has_kids_zone', '')
+        has_wifi = analysis_data.get('has_wifi', '')
+        has_charging = analysis_data.get('has_charging', '')
+        has_restroom = analysis_data.get('has_restroom', '')
+        
+        # فروش و محصولات
+        daily_sales = analysis_data.get('daily_sales', '')
+        monthly_sales = analysis_data.get('monthly_sales', '')
+        product_count = analysis_data.get('product_count', '')
+        top_products = analysis_data.get('top_products', '')
+        expensive_products = analysis_data.get('expensive_products', '')
+        cheap_products = analysis_data.get('cheap_products', '')
+        
+        # رقابتی و فصلی
+        direct_competitors_count = analysis_data.get('direct_competitors_count', '')
+        main_competitors = analysis_data.get('main_competitors', '')
+        competitors_strength = analysis_data.get('competitors_strength', '')
+        your_strength = analysis_data.get('your_strength', '')
+        peak_season = analysis_data.get('peak_season', '')
+        important_events = analysis_data.get('important_events', [])
+        seasonal_changes = analysis_data.get('seasonal_changes', '')
+        seasonal_products = analysis_data.get('seasonal_products', '')
+        
+        # اهداف
+        optimization_goals = analysis_data.get('optimization_goals', [])
+        priority_goal = analysis_data.get('priority_goal', '')
+        improvement_timeline = analysis_data.get('improvement_timeline', '')
+        
+        # اطلاعات تماس
+        contact_name = analysis_data.get('contact_name', '')
+        contact_email = analysis_data.get('contact_email', '')
+        contact_phone = analysis_data.get('contact_phone', '')
+        additional_notes = analysis_data.get('additional_notes', '')
+        
         user_prompt = (
-            f"اطلاعات فروشگاه: نام={getattr(analysis, 'store_name', 'نامشخص')}، نوع={getattr(analysis, 'store_type', 'عمومی')}، "
-            f"متراژ={getattr(analysis, 'store_size', 'نامشخص')}، "
-            f"وضعیت بسته={getattr(analysis, 'package_type', 'basic')}\n"
-            f"داده‌های تکمیلی: {analysis_data_str}\n"
-            f"خلاصه قبلی: {base_summary_str}\n"
-            f"لطفاً با توجه به schema زیر JSON دقیق تولید کن: {schema_str}"
+            f"**تحلیل جامع فروشگاه {store_name}**\n\n"
+            f"**اطلاعات پایه:**\n"
+            f"- نوع فروشگاه: {store_type}\n"
+            f"- اندازه: {store_size}\n"
+            f"- موقعیت: {city}، {area}، {location_type}\n"
+            f"- سال تأسیس: {establishment_year}\n"
+            f"- تعداد کارکنان: {workforce_count}\n\n"
+            f"**ساختار فیزیکی:**\n"
+            f"- ابعاد: {store_length}×{store_width}×{store_height} متر\n"
+            f"- تعداد طبقات: {floor_count}\n"
+            f"- محل انبار: {warehouse_location}\n"
+            f"- تعداد ورودی: {entrance_count}\n"
+            f"- تعداد صندوق: {checkout_count}\n"
+            f"- تعداد قفسه: {shelf_count}\n"
+            f"- ابعاد قفسه‌ها: {shelf_dimensions}\n"
+            f"- چیدمان قفسه‌ها: {shelf_layout}\n\n"
+            f"**طراحی و برند:**\n"
+            f"- سبک طراحی: {design_style}\n"
+            f"- رنگ اصلی: {primary_brand_color}\n"
+            f"- رنگ ثانویه: {secondary_brand_color}\n"
+            f"- رنگ تاکیدی: {accent_brand_color}\n"
+            f"- نوع نورپردازی: {lighting_type} ({lighting_intensity})\n"
+            f"- ویترین: {window_display_type} ({window_display_size})\n"
+            f"- تم ویترین: {window_display_theme}\n\n"
+            f"**مواد و بافت:**\n"
+            f"- کف: {floor_material} ({floor_color})\n"
+            f"- دیوار: {wall_material} ({wall_color})\n"
+            f"- سقف: {ceiling_type} ({ceiling_color})\n"
+            f"- احساس کلی فضا: {overall_ambiance}\n\n"
+            f"**رفتار مشتری:**\n"
+            f"- مشتری روزانه: {daily_customers}\n"
+            f"- زمان حضور: {customer_time}\n"
+            f"- جریان: {customer_flow}\n"
+            f"- نقاط توقف: {stopping_points}\n"
+            f"- مناطق پرترافیک: {high_traffic_areas}\n\n"
+            f"**امنیت و نظارت:**\n"
+            f"- دوربین نظارتی: {has_cameras}\n"
+            f"- تعداد دوربین: {camera_count}\n"
+            f"- مکان‌های نصب: {camera_locations}\n\n"
+            f"**نواحی تجربه:**\n"
+            f"- منطقه آزمایش: {has_test_zone}\n"
+            f"- منطقه استراحت: {has_rest_area}\n"
+            f"- منطقه کودکان: {has_kids_zone}\n"
+            f"- Wi-Fi: {has_wifi}\n"
+            f"- شارژر: {has_charging}\n"
+            f"- سرویس بهداشتی: {has_restroom}\n\n"
+            f"**فروش و محصولات:**\n"
+            f"- فروش روزانه: {daily_sales} تومان\n"
+            f"- فروش ماهانه: {monthly_sales} تومان\n"
+            f"- تعداد محصولات: {product_count}\n"
+            f"- محصولات پرفروش: {top_products[:200] if top_products else 'ندارد'}\n"
+            f"- محصولات گران: {expensive_products[:200] if expensive_products else 'ندارد'}\n"
+            f"- محصولات ارزان: {cheap_products[:200] if cheap_products else 'ندارد'}\n\n"
+            f"**تحلیل رقابتی:**\n"
+            f"- تعداد رقبا: {direct_competitors_count}\n"
+            f"- رقبای اصلی: {main_competitors}\n"
+            f"- نقطه قوت رقبا: {competitors_strength}\n"
+            f"- نقطه قوت شما: {your_strength}\n\n"
+            f"**برنامه‌ریزی فصلی:**\n"
+            f"- فصل پرفروش: {peak_season}\n"
+            f"- رویدادهای مهم: {important_events}\n"
+            f"- تغییرات فصلی: {seasonal_changes}\n"
+            f"- محصولات فصلی: {seasonal_products}\n\n"
+            f"**اهداف بهینه‌سازی:**\n"
+            f"- اهداف انتخاب شده: {optimization_goals}\n"
+            f"- هدف اولویت: {priority_goal}\n"
+            f"- بازه زمانی: {improvement_timeline}\n\n"
+            f"**اطلاعات تماس:**\n"
+            f"- نام مسئول: {contact_name}\n"
+            f"- ایمیل: {contact_email}\n"
+            f"- تلفن: {contact_phone}\n"
+            f"- توضیحات اضافی: {additional_notes[:200] if additional_notes else 'ندارد'}\n\n"
+            f"**داده‌های تکمیلی کامل:**\n{analysis_data_str[:3000]}\n\n"
+            f"**خلاصه قبلی:**\n{base_summary_str[:1000]}\n\n"
+            f"**دستورالعمل:**\n"
+            f"با استفاده از تمام داده‌های فوق، یک تحلیل جامع و عمیق تولید کن که شامل:\n"
+            f"1. تحلیل علمی چیدمان بر اساس ابعاد، ساختار و مواد\n"
+            f"2. تحلیل روانشناسی رنگ‌ها و نورپردازی\n"
+            f"3. تحلیل رفتار مشتری و جریان حرکتی\n"
+            f"4. تحلیل رقابتی و موقعیت‌یابی\n"
+            f"5. راهکارهای عملی با ROI مشخص\n"
+            f"6. برنامه‌ریزی فصلی و رویدادها\n"
+            f"7. بهینه‌سازی Experience Zones\n"
+            f"8. تحلیل مواد و بافت و تأثیر آن‌ها بر تجربه مشتری\n\n"
+            f"لطفاً با توجه به schema زیر JSON دقیق و کامل تولید کن:\n{schema_str}"
         )
 
         # لاگ اطلاعات مدل و درخواست
@@ -408,6 +803,8 @@ class PremiumReportGenerator:
             report['executive_summary']['payback_period'] = executive.get('payback_period')
         if executive.get('key_metrics'):
             report['executive_summary']['key_metrics'].update(executive['key_metrics'])
+        if executive.get('store_overview'):
+            report['executive_summary']['store_overview'] = executive.get('store_overview')
 
         tech = enrichment.get('technical_analysis', {})
         if tech.get('entry_analysis'):
@@ -440,6 +837,16 @@ class PremiumReportGenerator:
             if 'unused_spaces' not in report['technical_analysis']:
                 report['technical_analysis']['unused_spaces'] = {}
             report['technical_analysis']['unused_spaces'].update(tech['unused_spaces'])
+        # Merge کردن material_analysis اگر وجود دارد
+        if tech.get('material_analysis'):
+            if 'material_analysis' not in report['technical_analysis']:
+                report['technical_analysis']['material_analysis'] = {}
+            report['technical_analysis']['material_analysis'].update(tech['material_analysis'])
+        # Merge کردن structural_analysis اگر وجود دارد
+        if tech.get('structural_analysis'):
+            if 'structural_analysis' not in report['technical_analysis']:
+                report['technical_analysis']['structural_analysis'] = {}
+            report['technical_analysis']['structural_analysis'].update(tech['structural_analysis'])
 
         sales = enrichment.get('sales_analysis', {})
         if sales.get('narrative'):
@@ -454,6 +861,12 @@ class PremiumReportGenerator:
                 report['sales_analysis']['insights'] = insights
         if sales.get('data_source_note'):
             report['sales_analysis']['data_source_note'] = sales['data_source_note']
+        if sales.get('product_placement_analysis'):
+            report['sales_analysis']['product_placement_analysis'] = sales['product_placement_analysis']
+        if sales.get('seasonal_analysis'):
+            report['sales_analysis']['seasonal_analysis'] = sales['seasonal_analysis']
+        if sales.get('competitive_positioning'):
+            report['sales_analysis']['competitive_positioning'] = sales['competitive_positioning']
 
         behavior = enrichment.get('behavior_analysis', {})
         if behavior.get('video'):
@@ -466,11 +879,29 @@ class PremiumReportGenerator:
             report['behavior_analysis']['ux_analysis'] = behavior['ux']
         if behavior.get('note'):
             report['behavior_analysis']['note'] = behavior['note']
+        if behavior.get('customer_psychology'):
+            report['behavior_analysis']['customer_psychology'] = behavior['customer_psychology']
+        if behavior.get('experience_zones'):
+            report['behavior_analysis']['experience_zones'] = behavior['experience_zones']
+
+        # Merge design_analysis اگر وجود دارد
+        design = enrichment.get('design_analysis', {})
+        if design:
+            if 'design_analysis' not in report:
+                report['design_analysis'] = {}
+            if design.get('brand_identity'):
+                report['design_analysis']['brand_identity'] = design['brand_identity']
+            if design.get('window_display'):
+                report['design_analysis']['window_display'] = design['window_display']
+            if design.get('aesthetic_appeal'):
+                report['design_analysis']['aesthetic_appeal'] = design['aesthetic_appeal']
 
         action_plan = enrichment.get('action_plan', {})
         for key in ('urgent', 'medium_term', 'long_term'):
             if action_plan.get(key):
                 report['action_plan'][key] = action_plan[key]
+        if action_plan.get('seasonal_actions'):
+            report['action_plan']['seasonal_actions'] = action_plan['seasonal_actions']
 
         kpi = enrichment.get('kpi_dashboard', {})
         if kpi:
@@ -480,9 +911,23 @@ class PremiumReportGenerator:
                 else:
                     report['kpi_dashboard'][key] = value
 
+        # Merge competitive_analysis اگر وجود دارد
+        competitive = enrichment.get('competitive_analysis', {})
+        if competitive:
+            if 'competitive_analysis' not in report:
+                report['competitive_analysis'] = {}
+            report['competitive_analysis'].update(competitive)
+
         warnings = enrichment.get('warnings')
         if warnings:
             report['warnings'] = warnings
+
+        # Merge data_completeness اگر وجود دارد
+        data_completeness = enrichment.get('data_completeness', {})
+        if data_completeness:
+            if 'data_completeness' not in report:
+                report['data_completeness'] = {}
+            report['data_completeness'].update(data_completeness)
 
         return report
 
