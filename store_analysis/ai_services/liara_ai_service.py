@@ -230,7 +230,9 @@ class LiaraAIService:
             logger.error(f"❌ تحلیل اصلی None برگشت")
         
         # 2. تحلیل طراحی با Claude-3 Opus (با تمرکز بر تصاویر و ویدیو)
-        design_analysis = self._analyze_store_design(store_data, images, videos)
+        # ترکیب images و videos برای تحلیل طراحی
+        all_media_for_design = images + (videos if videos else [])
+        design_analysis = self._analyze_store_design(store_data, all_media_for_design)
         if design_analysis and not design_analysis.get('error'):
             analyses['design'] = design_analysis
         elif design_analysis and design_analysis.get('error'):

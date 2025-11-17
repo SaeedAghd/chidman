@@ -999,8 +999,8 @@
                 </div>
             </div>
             <div class="overall-score">
-                <div class="score-circle" style="--score: {{ results.scores.overall_score|default:75 }}">
-                    <div class="score-value">{{ results.scores.overall_score|default:75|floatformat:0 }}</div>
+                <div class="score-circle" style="--score: {{ scores.overall_score|default:results.scores.overall_score|default:75 }}">
+                    <div class="score-value">{{ scores.overall_score|default:results.scores.overall_score|default:75|floatformat:0 }}</div>
                 </div>
                 <div class="score-label">امتیاز کلی</div>
             </div>

@@ -43,6 +43,93 @@ from .utils import generate_initial_ai_analysis, color_name_to_hex
 from decimal import Decimal
 from .ai_analysis_service_simple import SimpleAIAnalysisService
 
+def calculate_analysis_scores(analysis):
+    """
+    تابع مشترک برای محاسبه امتیازات از یک منبع واحد
+    این تابع ابتدا بررسی می‌کند که آیا امتیازات در premium_report.scores ذخیره شده‌اند
+    اگر وجود نداشتند، از analysis_data محاسبه می‌کند
+    """
+    # بررسی وجود premium_report و scores آن
+    results_data = analysis.results or {}
+    premium_report = results_data.get('premium_report', {})
+    
+    # اگر scores در premium_report وجود دارد، از آن استفاده کن
+    if premium_report and 'scores' in premium_report and premium_report['scores']:
+        scores = premium_report['scores']
+        # اطمینان از وجود همه فیلدهای لازم
+        if all(key in scores for key in ['overall_score', 'layout_score', 'traffic_score', 'design_score', 'sales_score']):
+            return {
+                'overall_score': int(scores.get('overall_score', 60)),
+                'layout_score': int(scores.get('layout_score', 60)),
+                'traffic_score': int(scores.get('traffic_score', 60)),
+                'design_score': int(scores.get('design_score', 60)),
+                'sales_score': int(scores.get('sales_score', 60))
+            }
+    
+    # اگر scores در results وجود دارد، از آن استفاده کن
+    if 'scores' in results_data and results_data['scores']:
+        scores = results_data['scores']
+        if all(key in scores for key in ['overall_score', 'layout_score', 'traffic_score', 'design_score', 'sales_score']):
+            return {
+                'overall_score': int(scores.get('overall_score', 60)),
+                'layout_score': int(scores.get('layout_score', 60)),
+                'traffic_score': int(scores.get('traffic_score', 60)),
+                'design_score': int(scores.get('design_score', 60)),
+                'sales_score': int(scores.get('sales_score', 60))
+            }
+    
+    # محاسبه امتیازات از analysis_data
+    analysis_data = analysis.get_analysis_data() or {}
+    
+    def to_float(value, default):
+        """تبدیل مقدار به float با پشتیبانی از مقادیر رشته‌ای"""
+        try:
+            if value in [None, '']:
+                return float(default)
+            return float(value)
+        except (ValueError, TypeError):
+            try:
+                mapping = {
+                    'small': 300,
+                    'medium': 600,
+                    'large': 1000,
+                    'very_large': 1500
+                }
+                return float(mapping.get(str(value).lower(), default))
+            except Exception:
+                return float(default)
+    
+    # دریافت داده‌های لازم
+    conversion_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
+    customer_traffic = to_float(analysis_data.get('customer_traffic'), 180)
+    store_size = to_float(analysis_data.get('store_size'), 1200)
+    unused_area_size = to_float(analysis_data.get('unused_area_size'), 150)
+    
+    # محاسبه امتیازات جزئی
+    # امتیاز چیدمان (بر اساس فضای بلااستفاده و نرخ تبدیل)
+    layout_score = max(60, 100 - (unused_area_size / store_size * 100) if store_size > 0 else 80)
+    layout_score = min(95, layout_score + (conversion_rate - 30) * 0.5)
+    
+    # امتیاز ترافیک (بر اساس تعداد مشتریان)
+    traffic_score = min(95, max(60, customer_traffic / 10))
+    
+    # امتیاز طراحی (بر اساس نرخ تبدیل و ترافیک)
+    design_score = min(95, max(60, conversion_rate * 1.5 + traffic_score * 0.3))
+    
+    # امتیاز فروش (بر اساس نرخ تبدیل)
+    sales_score = min(95, max(60, conversion_rate * 2))
+    
+    # محاسبه امتیاز کلی به عنوان میانگین امتیازهای جزئی
+    overall_score = (layout_score + traffic_score + design_score + sales_score) / 4
+    
+    return {
+        'overall_score': int(round(overall_score)),
+        'layout_score': int(layout_score),
+        'traffic_score': int(traffic_score),
+        'design_score': int(design_score),
+        'sales_score': int(sales_score)
+    }
+
 def calculate_analysis_cost(form_data):
     """
     محاسبه هزینه تحلیل بر اساس داده‌های فرم
@@ -53,15 +140,15 @@ def calculate_analysis_cost(form_data):
     - قیمت نهایی: 200,000 تومان
     """
     try:
-        # 💰 قیمت پایه: 2 میلیون تومان
-        base_cost = Decimal('2000000')
+        # 💰 قیمت پایه: 1.5 میلیون تومان
+        base_cost = Decimal('1500000')
         
         # فعلاً بدون هزینه اضافی - همه چیز flat rate
         additional_cost = Decimal('0')
         
         total = base_cost + additional_cost
         
-        # 🎉 تخفیف افتتاحیه: 90%
+        # 🎉 تخفیف افتتاحیه: 80%
         from datetime import datetime
         current_date = datetime.now()
         launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
@@ -70,20 +157,20 @@ def calculate_analysis_cost(form_data):
         discount_percentage = 0
         
         if current_date <= launch_end_date:
-            # تخفیف 90% افتتاحیه
-            discount_percentage = 90
-            discount = total * Decimal('0.90')  # 1,800,000 تومان تخفیف
+            # تخفیف 80% افتتاحیه
+            discount_percentage = 80
+            discount = total * Decimal('0.80')  # 1,200,000 تومان تخفیف
         
         # محاسبه قیمت نهایی
-        final = total - discount  # 200,000 تومان
+        final = total - discount  # 300,000 تومان
         
         return {
-            'base': float(base_cost),  # 2,000,000
+            'base': float(base_cost),  # 1,500,000
             'additional': float(additional_cost),  # 0
-            'total': float(total),  # 2,000,000
-            'discount': float(discount),  # 1,800,000
-            'discount_percentage': discount_percentage,  # 90
-            'final': float(final),  # 200,000
+            'total': float(total),  # 1,500,000
+            'discount': float(discount),  # 1,200,000
+            'discount_percentage': discount_percentage,  # 80
+            'final': float(final),  # 300,000
             'breakdown': [
                 {
                     'item': '💎 تحلیل حرفه‌ای با AI',
@@ -97,16 +184,16 @@ def calculate_analysis_cost(form_data):
         logger.error(f"Error calculating analysis cost: {str(e)}")
         # Fallback به قیمت پایه
         return {
-            'base': 2000000.0,
+            'base': 1500000.0,
             'additional': 0.0,
-            'total': 2000000.0,
-            'discount': 1800000.0,
-            'discount_percentage': 90,
-            'final': 200000.0,
+            'total': 1500000.0,
+            'discount': 1200000.0,
+            'discount_percentage': 80,
+            'final': 300000.0,
             'breakdown': [
                 {
                     'item': '💎 تحلیل حرفه‌ای با AI',
-                    'amount': 2000000.0,
+                    'amount': 1500000.0,
                     'description': 'تحلیل جامع با هوش مصنوعی'
                 }
             ]
@@ -1445,120 +1532,8 @@ def analysis_results(request, pk):
     except:
         result = None
     
-        # محاسبه امتیازات از نتایج AI - استفاده از همان منطق گزارش پرمیوم
-        scores = {}
-        analysis_data = analysis.get_analysis_data() or {}
-        
-        # بررسی وجود premium_report و استفاده از scores آن برای هماهنگی
-        results_data = analysis.results or {}
-        premium_report = results_data.get('premium_report', {})
-        
-        # اگر premium_report وجود دارد، از همان منطق محاسبه premium_scores استفاده کن
-        if premium_report:
-            # استفاده از همان منطق محاسبه premium_scores (همانند view_analysis_report)
-            if analysis.results and 'executive_summary' in analysis.results:
-                def to_float(value, default):
-                    try:
-                        if value in [None, '']:
-                            return float(default)
-                        return float(value)
-                    except (ValueError, TypeError):
-                        try:
-                            mapping = {'small': 300, 'medium': 600, 'large': 1000, 'very_large': 1500}
-                            return float(mapping.get(str(value).lower(), default))
-                        except Exception:
-                            return float(default)
-                
-                conv_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
-                cust_traffic = to_float(analysis_data.get('customer_traffic'), 180)
-                store_sz = to_float(analysis_data.get('store_size'), 1200)
-                unused_sz = to_float(analysis_data.get('unused_area_size'), 150)
-                
-                layout_sc = max(60, 100 - (unused_sz / store_sz * 100) if store_sz > 0 else 80)
-                layout_sc = min(95, layout_sc + (conv_rate - 30) * 0.5)
-                traffic_sc = min(95, max(60, cust_traffic / 10))
-                design_sc = min(95, max(60, conv_rate * 1.5 + traffic_sc * 0.3))
-                sales_sc = min(95, max(60, conv_rate * 2))
-                overall_sc = (layout_sc + traffic_sc + design_sc + sales_sc) / 4
-                
-                scores = {
-                    'overall_score': int(round(overall_sc)),
-                    'layout_score': int(layout_sc),
-                    'traffic_score': int(traffic_sc),
-                    'design_score': int(design_sc),
-                    'sales_score': int(sales_sc)
-                }
-            else:
-                scores = {
-                    'overall_score': 74,
-                    'layout_score': 70,
-                    'traffic_score': 75,
-                    'design_score': 80,
-                    'sales_score': 72
-                }
-        elif analysis.results and 'executive_summary' in analysis.results:
-            # محاسبه امتیازات جزئی بر اساس داده‌های تحلیل (همان منطق گزارش پرمیوم)
-
-            def to_float(value, default):
-                try:
-                    if value in [None, '']:
-                        return float(default)
-                    return float(value)
-                except (ValueError, TypeError):
-                    try:
-                        mapping = {
-                            'small': 300,
-                            'medium': 600,
-                            'large': 1000,
-                            'very_large': 1500
-                        }
-                        return float(mapping.get(str(value).lower(), default))
-                    except Exception:
-                        return float(default)
-
-            conversion_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
-            customer_traffic = to_float(analysis_data.get('customer_traffic'), 180)
-            store_size = to_float(analysis_data.get('store_size'), 1200)
-            unused_area_size = to_float(analysis_data.get('unused_area_size'), 150)
-            
-            # امتیاز چیدمان (بر اساس فضای بلااستفاده و نرخ تبدیل) - همان منطق گزارش پرمیوم
-            layout_score = max(60, 100 - (unused_area_size / store_size * 100) if store_size > 0 else 80)
-            layout_score = min(95, layout_score + (conversion_rate - 30) * 0.5)
-            
-            # امتیاز ترافیک (بر اساس تعداد مشتریان) - همان منطق گزارش پرمیوم
-            traffic_score = min(95, max(60, customer_traffic / 10))
-            
-            # امتیاز طراحی (بر اساس نرخ تبدیل و ترافیک) - همان منطق گزارش پرمیوم
-            design_score = min(95, max(60, conversion_rate * 1.5 + traffic_score * 0.3))
-            
-            # امتیاز فروش (بر اساس نرخ تبدیل) - همان منطق گزارش پرمیوم
-            sales_score = min(95, max(60, conversion_rate * 2))
-            
-            # محاسبه امتیاز کلی به عنوان میانگین امتیازهای جزئی
-            overall_score = (layout_score + traffic_score + design_score + sales_score) / 4
-            
-            scores = {
-                'overall_score': int(round(overall_score)),
-                'layout_score': int(layout_score),
-                'traffic_score': int(traffic_score),
-                'design_score': int(design_score),
-                'sales_score': int(sales_score)
-            }
-        else:
-            # امتیازات پیش‌فرض - امتیاز کلی باید میانگین باشد
-            layout_score = 70
-            traffic_score = 75
-            design_score = 80
-            sales_score = 72
-            overall_score = (layout_score + traffic_score + design_score + sales_score) / 4
-            
-            scores = {
-                'overall_score': int(round(overall_score)),
-                'layout_score': layout_score,
-                'traffic_score': traffic_score,
-                'design_score': design_score,
-                'sales_score': sales_score
-            }
+    # محاسبه امتیازات از یک منبع واحد با استفاده از تابع مشترک
+    scores = calculate_analysis_scores(analysis)
     
     # بررسی دسترسی به گزارش مدیریتی
     is_admin = request.user.is_staff or request.user.is_superuser
@@ -1875,56 +1850,34 @@ def view_analysis_report(request, pk):
             
             analysis_data = analysis.get_analysis_data() if hasattr(analysis, 'get_analysis_data') else {}
             
-            # محاسبه scores برای هماهنگی امتیازها (استفاده از همان منطق analysis_results)
-            premium_scores = {}
-            if analysis.results and 'executive_summary' in analysis.results:
-                def to_float(value, default):
-                    try:
-                        if value in [None, '']:
-                            return float(default)
-                        return float(value)
-                    except (ValueError, TypeError):
-                        try:
-                            mapping = {'small': 300, 'medium': 600, 'large': 1000, 'very_large': 1500}
-                            return float(mapping.get(str(value).lower(), default))
-                        except Exception:
-                            return float(default)
-                
-                conv_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
-                cust_traffic = to_float(analysis_data.get('customer_traffic'), 180)
-                store_sz = to_float(analysis_data.get('store_size'), 1200)
-                unused_sz = to_float(analysis_data.get('unused_area_size'), 150)
-                
-                layout_sc = max(60, 100 - (unused_sz / store_sz * 100) if store_sz > 0 else 80)
-                layout_sc = min(95, layout_sc + (conv_rate - 30) * 0.5)
-                traffic_sc = min(95, max(60, cust_traffic / 10))
-                design_sc = min(95, max(60, conv_rate * 1.5 + traffic_sc * 0.3))
-                sales_sc = min(95, max(60, conv_rate * 2))
-                overall_sc = (layout_sc + traffic_sc + design_sc + sales_sc) / 4
-                
-                premium_scores = {
-                    'overall_score': int(round(overall_sc)),
-                    'layout_score': int(layout_sc),
-                    'traffic_score': int(traffic_sc),
-                    'design_score': int(design_sc),
-                    'sales_score': int(sales_sc)
-                }
-            else:
-                premium_scores = {
-                    'overall_score': 74,
-                    'layout_score': 70,
-                    'traffic_score': 75,
-                    'design_score': 80,
-                    'sales_score': 72
-                }
+            # محاسبه scores برای هماهنگی امتیازها با استفاده از تابع مشترک
+            premium_scores = calculate_analysis_scores(analysis)
             
             # به‌روزرسانی cover_page با layout_score صحیح
             cover_page_data = (premium_report or {}).get('cover_page', {})
             if not cover_page_data:
                 cover_page_data = {}
             
-            # همیشه layout_score را تنظیم کن
+            # همیشه layout_score و overall_score را تنظیم کن
             cover_page_data['layout_score'] = premium_scores.get('layout_score', cover_page_data.get('layout_score', 70))
+            cover_page_data['overall_score'] = premium_scores.get('overall_score', cover_page_data.get('overall_score', 70))
+            
+            # ذخیره scores در premium_report برای استفاده بعدی
+            if not premium_report:
+                premium_report = {}
+            premium_report['scores'] = premium_scores
+            premium_report['cover_page'] = cover_page_data
+            
+            # ذخیره scores در analysis.results برای استفاده بعدی
+            if not analysis.results:
+                analysis.results = {}
+            if 'premium_report' not in analysis.results:
+                analysis.results['premium_report'] = {}
+            analysis.results['premium_report']['scores'] = premium_scores
+            analysis.results['premium_report']['cover_page'] = cover_page_data
+            # همچنین scores را در results هم ذخیره کن برای دسترسی سریع‌تر
+            analysis.results['scores'] = premium_scores
+            analysis.save(update_fields=['results'])
             
             # ترجمه داده‌های premium_report از انگلیسی به فارسی
             translated_premium_report = translate_english_to_persian(premium_report) if premium_report else {}
@@ -6727,11 +6680,11 @@ def order_analysis_results(request, order_id):
                     'order': order,
                     'store_analysis': store_analysis,
                     'is_processing': True,
-                    'processing_message': 'تحلیل جامع در حال انجام است. تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد. برای دیدن نتیجه، حدود 1 ساعت دیگر به کارتابل مراجعه کنید.',
+                    'processing_message': 'تحلیل جامع در حال انجام است. تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد. برای دیدن نتیجه، چند دقیقه دیگر به کارتابل مراجعه کنید.',
                     'polling_url': f'/store/order/{order_id}/status/'
                 }
                 
-                messages.info(request, 'تحلیل جامع شروع شد. تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد. برای دیدن نتیجه، حدود 1 ساعت دیگر به کارتابل مراجعه کنید.')
+                messages.info(request, 'تحلیل جامع شروع شد. تحلیل کامل حدود 10 تا 30 دقیقه طول می‌کشد. برای دیدن نتیجه، چند دقیقه دیگر به کارتابل مراجعه کنید.')
                 
                 # رندر صفحه در حال پردازش
                 return render(request, 'store_analysis/modern_analysis_results.html', context)
@@ -8596,7 +8549,7 @@ def checkout(request, order_id):
                 order=order,
                 store_analysis_data=form_data or {},
                 status='pending',
-                estimated_completion=timezone.now() + timedelta(hours=24)
+                estimated_completion=timezone.now() + timedelta(minutes=30)
             )
         except (AttributeError, Exception) as e:
             # اگر AnalysisRequest وجود نداشت، فقط لاگ کن
@@ -10931,145 +10884,145 @@ def forms_submit(request):
                             )
                             
                             if should_start_analysis:
-                                import threading
-                                
-                                def start_paid_analysis():
-                                    """شروع تحلیل پولی با Liara AI در background"""
-                                    try:
-                                        logger.info(f"🤖 شروع تحلیل پولی با Liara AI برای تحلیل {store_analysis.id}")
-                                        
-                                        # بررسی وجود API Key
-                                        from django.conf import settings
-                                        liara_api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
-                                        if not liara_api_key:
-                                            error_msg = "⚠️ LIARA_AI_API_KEY تنظیم نشده است. تحلیل نمی‌تواند انجام شود."
-                                            logger.error(f"❌ {error_msg}")
+                                    import threading
+                                    
+                                    def start_paid_analysis():
+                                        """شروع تحلیل پولی با Liara AI در background"""
+                                        try:
+                                            logger.info(f"🤖 شروع تحلیل پولی با Liara AI برای تحلیل {store_analysis.id}")
+                                            
+                                            # بررسی وجود API Key
+                                            from django.conf import settings
+                                            liara_api_key = getattr(settings, 'LIARA_AI_API_KEY', '')
+                                            if not liara_api_key:
+                                                error_msg = "⚠️ LIARA_AI_API_KEY تنظیم نشده است. تحلیل نمی‌تواند انجام شود."
+                                                logger.error(f"❌ {error_msg}")
+                                                # Reload analysis to get fresh data
+                                                from .models import StoreAnalysis
+                                                analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                                save_analysis_error(analysis, error_msg)
+                                                return
+                                            
                                             # Reload analysis to get fresh data
+                                            # اضافه کردن retry برای اطمینان از ذخیره شدن فایل‌ها
                                             from .models import StoreAnalysis
-                                            analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                            save_analysis_error(analysis, error_msg)
-                                            return
-                                        
-                                        # Reload analysis to get fresh data
-                                        # اضافه کردن retry برای اطمینان از ذخیره شدن فایل‌ها
-                                        from .models import StoreAnalysis
-                                        import time
-                                        
-                                        max_retries = 5
-                                        retry_delay = 2  # ثانیه
-                                        analysis_data = None
-                                        
-                                        for retry in range(max_retries):
-                                            analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                            analysis_data = analysis.get_analysis_data() or {}
+                                            import time
                                             
-                                            if analysis_data and analysis_data.get('uploaded_files'):
-                                                logger.info(f"✅ فایل‌ها پیدا شدند در retry {retry + 1}")
-                                                break
+                                            max_retries = 5
+                                            retry_delay = 2  # ثانیه
+                                            analysis_data = None
                                             
-                                            if retry < max_retries - 1:
-                                                logger.info(f"⏳ منتظر ذخیره فایل‌ها... retry {retry + 1}/{max_retries}")
-                                                time.sleep(retry_delay)
-                                        
-                                        if not analysis_data or not analysis_data.get('uploaded_files'):
-                                            error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست. لطفاً فرم را تکمیل کنید."
-                                            logger.error(f"❌ {error_msg} - بعد از {max_retries} retry")
-                                            save_analysis_error(analysis, error_msg)
-                                            return
-                                        
-                                        # آماده‌سازی داده‌های فروشگاه
-                                        store_data = {
-                                            'store_name': analysis.store_name or 'فروشگاه',
-                                            'store_type': analysis_data.get('store_type', 'عمومی'),
-                                            'store_size': str(analysis_data.get('store_size', 0)),
-                                            'store_address': analysis_data.get('store_address', ''),
-                                            'description': analysis_data.get('description', ''),
-                                            **analysis_data
-                                        }
-                                        
-                                        # استخراج فایل‌ها از uploaded_files
-                                        images = []
-                                        videos = []
-                                        uploaded_files = analysis_data.get('uploaded_files', {})
-                                        
-                                        # لیست فیلدهای تصویری
-                                        image_fields = ['store_plan', 'structure_photos', 'design_photos', 
-                                                      'product_photos', 'store_photos', 'store_layout', 
-                                                      'shelf_photos', 'window_display_photos', 
-                                                      'entrance_photos', 'checkout_photos']
-                                        
-                                        # لیست فیلدهای ویدیویی
-                                        video_fields = ['store_video', 'surveillance_footage', 'customer_flow_video']
-                                        
-                                        for field in image_fields:
-                                            if field in uploaded_files:
-                                                file_info = uploaded_files[field]
-                                                if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
-                                                    images.append(file_info['path'])
-                                        
-                                        for field in video_fields:
-                                            if field in uploaded_files:
-                                                file_info = uploaded_files[field]
-                                                if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
-                                                    videos.append(file_info['path'])
-                                        
-                                        # استفاده از LiaraAIService برای تحلیل جامع
-                                        from .ai_services.liara_ai_service import LiaraAIService
-                                        liara_service = LiaraAIService()
-                                        
-                                        if not liara_service.api_key:
-                                            error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
-                                            logger.error(f"❌ {error_msg}")
-                                            save_analysis_error(analysis, error_msg)
-                                            return
-                                        
-                                        logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر و {len(videos)} ویدیو...")
-                                        
-                                        # اضافه کردن ویدیوها به لیست تصاویر برای تحلیل (Liara AI فعلاً فقط images را می‌پذیرد)
-                                        all_media = images + videos if images and videos else (images if images else [])
-                                        
-                                        # تحلیل جامع با Liara AI
-                                        logger.info(f"🔄 در حال فراخوانی analyze_store_comprehensive برای تحلیل {analysis.id}")
-                                        comprehensive_analysis = liara_service.analyze_store_comprehensive(
-                                            store_data=store_data,
-                                            images=all_media if all_media else None
-                                        )
-                                        logger.info(f"📥 نتیجه analyze_store_comprehensive دریافت شد: has_error={comprehensive_analysis.get('error') if comprehensive_analysis else 'None'}")
-                                        
-                                        # بررسی نتیجه تحلیل
-                                        if comprehensive_analysis and not comprehensive_analysis.get('error'):
-                                            logger.info(f"✅ تحلیل Liara AI تکمیل شد برای تحلیل {analysis.id}")
+                                            for retry in range(max_retries):
+                                                analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                                analysis_data = analysis.get_analysis_data() or {}
+                                                
+                                                if analysis_data and analysis_data.get('uploaded_files'):
+                                                    logger.info(f"✅ فایل‌ها پیدا شدند در retry {retry + 1}")
+                                                    break
+                                                
+                                                if retry < max_retries - 1:
+                                                    logger.info(f"⏳ منتظر ذخیره فایل‌ها... retry {retry + 1}/{max_retries}")
+                                                    time.sleep(retry_delay)
                                             
-                                            # به‌روزرسانی نتایج تحلیل
-                                            current_results = analysis.results or {}
+                                            if not analysis_data or not analysis_data.get('uploaded_files'):
+                                                error_msg = "⚠️ داده‌های تحلیل یا فایل‌ها موجود نیست. لطفاً فرم را تکمیل کنید."
+                                                logger.error(f"❌ {error_msg} - بعد از {max_retries} retry")
+                                                save_analysis_error(analysis, error_msg)
+                                                return
                                             
-                                            # استخراج analysis_text از final_report یا محتوای تحلیل
-                                            analysis_text = None
-                                            if 'final_report' in comprehensive_analysis:
-                                                analysis_text = comprehensive_analysis['final_report']
-                                            elif 'detailed_analyses' in comprehensive_analysis:
-                                                # ترکیب تحلیل‌های جزئی
-                                                combined = ""
-                                                for key, anal in comprehensive_analysis['detailed_analyses'].items():
-                                                    if anal and 'content' in anal:
-                                                        combined += f"\n\n{anal['content']}\n"
-                                                analysis_text = combined if combined else None
+                                            # آماده‌سازی داده‌های فروشگاه
+                                            store_data = {
+                                                'store_name': analysis.store_name or 'فروشگاه',
+                                                'store_type': analysis_data.get('store_type', 'عمومی'),
+                                                'store_size': str(analysis_data.get('store_size', 0)),
+                                                'store_address': analysis_data.get('store_address', ''),
+                                                'description': analysis_data.get('description', ''),
+                                                **analysis_data
+                                            }
                                             
-                                            current_results.update({
-                                                'liara_analysis': comprehensive_analysis,
-                                                'analysis_source': 'liara_ai',
-                                                'analysis_text': analysis_text or comprehensive_analysis.get('final_report', ''),
-                                                'models_used': comprehensive_analysis.get('ai_models_used', comprehensive_analysis.get('models_used', [])),
-                                                'analysis_quality': 'premium',
-                                                'analyzed_at': timezone.now().isoformat(),
-                                            })
+                                            # استخراج فایل‌ها از uploaded_files
+                                            images = []
+                                            videos = []
+                                            uploaded_files = analysis_data.get('uploaded_files', {})
                                             
-                                            # ذخیره نتایج
-                                            analysis.results = current_results
-                                            analysis.status = 'completed'
-                                            analysis.completed_at = timezone.now()
-                                            analysis.save(update_fields=['results', 'status', 'completed_at'])
+                                            # لیست فیلدهای تصویری
+                                            image_fields = ['store_plan', 'structure_photos', 'design_photos', 
+                                                          'product_photos', 'store_photos', 'store_layout', 
+                                                          'shelf_photos', 'window_display_photos', 
+                                                          'entrance_photos', 'checkout_photos']
                                             
+                                            # لیست فیلدهای ویدیویی
+                                            video_fields = ['store_video', 'surveillance_footage', 'customer_flow_video']
+                                            
+                                            for field in image_fields:
+                                                if field in uploaded_files:
+                                                    file_info = uploaded_files[field]
+                                                    if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
+                                                        images.append(file_info['path'])
+                                            
+                                            for field in video_fields:
+                                                if field in uploaded_files:
+                                                    file_info = uploaded_files[field]
+                                                    if isinstance(file_info, dict) and 'path' in file_info and not file_info.get('error'):
+                                                        videos.append(file_info['path'])
+                                            
+                                            # استفاده از LiaraAIService برای تحلیل جامع
+                                            from .ai_services.liara_ai_service import LiaraAIService
+                                            liara_service = LiaraAIService()
+                                            
+                                            if not liara_service.api_key:
+                                                error_msg = "⚠️ LIARA_AI_API_KEY در سرویس موجود نیست."
+                                                logger.error(f"❌ {error_msg}")
+                                                save_analysis_error(analysis, error_msg)
+                                                return
+                                            
+                                            logger.info(f"📊 در حال انجام تحلیل جامع با {len(images)} تصویر و {len(videos)} ویدیو...")
+                                            
+                                            # اضافه کردن ویدیوها به لیست تصاویر برای تحلیل (Liara AI فعلاً فقط images را می‌پذیرد)
+                                            all_media = images + videos if images and videos else (images if images else [])
+                                            
+                                            # تحلیل جامع با Liara AI
+                                            logger.info(f"🔄 در حال فراخوانی analyze_store_comprehensive برای تحلیل {analysis.id}")
+                                            comprehensive_analysis = liara_service.analyze_store_comprehensive(
+                                                store_data=store_data,
+                                                images=all_media if all_media else None
+                                            )
+                                            logger.info(f"📥 نتیجه analyze_store_comprehensive دریافت شد: has_error={comprehensive_analysis.get('error') if comprehensive_analysis else 'None'}")
+                                            
+                                            # بررسی نتیجه تحلیل
+                                            if comprehensive_analysis and not comprehensive_analysis.get('error'):
+                                                logger.info(f"✅ تحلیل Liara AI تکمیل شد برای تحلیل {analysis.id}")
+                                                
+                                                # به‌روزرسانی نتایج تحلیل
+                                                current_results = analysis.results or {}
+                                                
+                                                # استخراج analysis_text از final_report یا محتوای تحلیل
+                                                analysis_text = None
+                                                if 'final_report' in comprehensive_analysis:
+                                                    analysis_text = comprehensive_analysis['final_report']
+                                                elif 'detailed_analyses' in comprehensive_analysis:
+                                                    # ترکیب تحلیل‌های جزئی
+                                                    combined = ""
+                                                    for key, anal in comprehensive_analysis['detailed_analyses'].items():
+                                                        if anal and 'content' in anal:
+                                                            combined += f"\n\n{anal['content']}\n"
+                                                    analysis_text = combined if combined else None
+                                                
+                                                current_results.update({
+                                                    'liara_analysis': comprehensive_analysis,
+                                                    'analysis_source': 'liara_ai',
+                                                    'analysis_text': analysis_text or comprehensive_analysis.get('final_report', ''),
+                                                    'models_used': comprehensive_analysis.get('ai_models_used', comprehensive_analysis.get('models_used', [])),
+                                                    'analysis_quality': 'premium',
+                                                    'analyzed_at': timezone.now().isoformat(),
+                                                })
+                                                
+                                                # ذخیره نتایج
+                                                analysis.results = current_results
+                                                analysis.status = 'completed'
+                                                analysis.completed_at = timezone.now()
+                                                analysis.save(update_fields=['results', 'status', 'completed_at'])
+                                                
                                             # اطمینان از اینکه پرداخت به درستی ثبت شده و از بازگشت پول جلوگیری می‌شود
                                             try:
                                                 from .models import Payment, Order
@@ -11093,31 +11046,31 @@ def forms_submit(request):
                                             except Exception as e:
                                                 logger.error(f"⚠️ خطا در به‌روزرسانی وضعیت پرداخت: {e}", exc_info=True)
                                             
-                                            logger.info(f"🎉 تحلیل {analysis.id} با موفقیت تکمیل شد!")
-                                        else:
-                                            # خطا در تحلیل
-                                            error_type = comprehensive_analysis.get('error', 'unknown_error') if comprehensive_analysis else 'no_response'
-                                            error_message = comprehensive_analysis.get('error_message', 'خطا در تحلیل AI') if comprehensive_analysis else 'تحلیل خالی برگشت'
-                                            
-                                            logger.error(f"❌ تحلیل Liara AI با خطا مواجه شد برای تحلیل {analysis.id}: {error_type} - {error_message}")
-                                            
-                                            save_analysis_error(analysis, error_message, error_type)
+                                                logger.info(f"🎉 تحلیل {analysis.id} با موفقیت تکمیل شد!")
+                                            else:
+                                                # خطا در تحلیل
+                                                error_type = comprehensive_analysis.get('error', 'unknown_error') if comprehensive_analysis else 'no_response'
+                                                error_message = comprehensive_analysis.get('error_message', 'خطا در تحلیل AI') if comprehensive_analysis else 'تحلیل خالی برگشت'
+                                                
+                                                logger.error(f"❌ تحلیل Liara AI با خطا مواجه شد برای تحلیل {analysis.id}: {error_type} - {error_message}")
+                                                
+                                                save_analysis_error(analysis, error_message, error_type)
+                                        
+                                        except Exception as e:
+                                            logger.error(f"❌ خطا در شروع تحلیل پولی: {e}", exc_info=True)
+                                            try:
+                                                from .models import StoreAnalysis
+                                                analysis = StoreAnalysis.objects.get(id=store_analysis.id)
+                                                save_analysis_error(analysis, f"خطا در پردازش: {str(e)}")
+                                            except:
+                                                pass
                                     
+                                    try:
+                                        analysis_thread = threading.Thread(target=start_paid_analysis, daemon=True)
+                                        analysis_thread.start()
+                                        logger.info(f"🚀 Thread تحلیل پولی برای تحلیل {store_analysis.id} شروع شد")
                                     except Exception as e:
-                                        logger.error(f"❌ خطا در شروع تحلیل پولی: {e}", exc_info=True)
-                                        try:
-                                            from .models import StoreAnalysis
-                                            analysis = StoreAnalysis.objects.get(id=store_analysis.id)
-                                            save_analysis_error(analysis, f"خطا در پردازش: {str(e)}")
-                                        except:
-                                            pass
-                                
-                                try:
-                                    analysis_thread = threading.Thread(target=start_paid_analysis, daemon=True)
-                                    analysis_thread.start()
-                                    logger.info(f"🚀 Thread تحلیل پولی برای تحلیل {store_analysis.id} شروع شد")
-                                except Exception as e:
-                                    logger.error(f"❌ خطا در شروع thread تحلیل پولی: {e}", exc_info=True)
+                                        logger.error(f"❌ خطا در شروع thread تحلیل پولی: {e}", exc_info=True)
                     else:
                         logger.warning(f"⚠️ Analysis {store_analysis.id} not paid yet and not free, status remains {store_analysis.status}")
                 else:
@@ -11624,7 +11577,7 @@ def products_page(request):
             'price': 'رایگان',
             'discount_percent': '100',
             'currency': 'تومان',
-            'delivery_time': '24 ساعت',
+            'delivery_time': '10-30 دقیقه',
             'features': [
                 'تحلیل کلی فروشگاه',
                 'شناسایی نقاط ضعف',
@@ -11642,7 +11595,7 @@ def products_page(request):
             'price': '10000',
             'discount_percent': '0',
             'currency': 'تومان',
-            'delivery_time': '48 ساعت',
+            'delivery_time': '15-45 دقیقه',
             'features': [
                 'تحلیل جامع فروشگاه',
                 'شناسایی نقاط ضعف و قوت',
@@ -11661,7 +11614,7 @@ def products_page(request):
             'price': '1500000',
             'discount_percent': '50',
             'currency': 'تومان',
-            'delivery_time': '72 ساعت',
+            'delivery_time': '20-60 دقیقه',
             'features': [
                 'تحلیل کامل + پیگیری',
                 'شناسایی کامل مشکلات',
@@ -12013,7 +11966,7 @@ def buy_complete(request):
             'price': '10000',
             'discount_percent': '0',
             'currency': 'تومان',
-            'delivery_time': '48 ساعت',
+            'delivery_time': '15-45 دقیقه',
             'is_free': False
         }
         

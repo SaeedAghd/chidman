@@ -1,0 +1,569 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#9b59b6">
+    
+    <!-- SEO Meta Tags -->
+    <title>راهنمای چیدمان فروشگاه آرایشی و بهداشتی - افزایش فروش و جذب مشتری | چیدمانو</title>
+    <meta name="description" content="راهنمای تخصصی چیدمان فروشگاه آرایشی و بهداشتی برای افزایش فروش. شامل اصول نمایش محصولات، نورپردازی، و بهینه‌سازی فضای فروش">
+    <meta name="keywords" content="راهنمای چیدمان آرایشی بهداشتی, طراحی فروشگاه آرایشی, نمایش محصولات آرایشی, افزایش فروش آرایشی, بهینه‌سازی فضای فروش">
+    <meta name="author" content="چیدمانو - تیم تحلیل فروشگاه">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="راهنمای چیدمان فروشگاه آرایشی و بهداشتی - افزایش فروش و جذب مشتری">
+    <meta property="og:description" content="راهنمای تخصصی چیدمان فروشگاه آرایشی و بهداشتی برای افزایش فروش">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/guide/cosmetics-store/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/logo_optimized.png' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    <meta property="og:locale" content="fa_IR">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://chidmano.ir/guide/cosmetics-store/">
+    
+    <!-- Favicons -->
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'images/logo_optimized.png' %}">
+    
+    <!-- Vazirmatn from CDN -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "راهنمای چیدمان فروشگاه آرایشی و بهداشتی - افزایش فروش و جذب مشتری",
+        "description": "راهنمای تخصصی چیدمان فروشگاه آرایشی و بهداشتی برای افزایش فروش",
+        "image": "https://chidmano.ir{% static 'images/logo_optimized.png' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-01-26",
+        "dateModified": "2025-10-12",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://chidmano.ir/guide/cosmetics-store/"
+        },
+        "articleSection": "راهنمای چیدمان فروشگاه آرایشی و بهداشتی",
+        "keywords": ["راهنمای چیدمان آرایشی بهداشتی", "طراحی فروشگاه آرایشی", "نمایش محصولات آرایشی", "افزایش فروش آرایشی"]
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #9b59b6;
+            --primary-dark: #8e44ad;
+            --secondary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --white: #ffffff;
+            --gray-700: #495057;
+            --shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0,0,0,0.175);
+            --transition: 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif !important;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .logo img {
+            height: 40px;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+        
+        .btn-cta {
+            background: white;
+            color: var(--primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .hero .highlight {
+            color: #f1c40f;
+        }
+        
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .content-card h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .content-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin: 2rem 0 1rem;
+        }
+        
+        .content-card p {
+            font-size: 1.125rem;
+            line-height: 1.9;
+            color: var(--gray-700);
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .content-card li {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: var(--gray-700);
+            padding: 0.75rem 0 0.75rem 2rem;
+            position: relative;
+        }
+        
+        .content-card li::before {
+            content: '💄';
+            position: absolute;
+            right: 0;
+            font-size: 1.25rem;
+        }
+        
+        .tip-box {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+        
+        .tip-box h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .tip-box p {
+            color: white;
+            margin: 0;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            border-radius: 16px;
+            margin: 3rem 0;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .cta-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-section p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: var(--primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+        
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .content-card { padding: 2rem 1.5rem; }
+            .hero-stats { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'landing' %}" class="logo">
+                <img src="{% static 'images/logo_optimized.png' %}" alt="چیدمانو">
+                <span>چیدمانو</span>
+            </a>
+            <nav class="header-nav">
+                <a href="{% url 'landing' %}" class="nav-link">خانه</a>
+                <a href="{% url 'store_analysis:education_library' %}" class="nav-link">آموزش‌ها</a>
+                <a href="{% url 'store_analysis:support_center' %}" class="nav-link">پشتیبانی</a>
+                <a href="{% url 'store_analysis:products' %}" class="nav-link btn-cta">تحلیل رایگان</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div>
+            <h1>راهنمای چیدمان فروشگاه <span class="highlight">آرایشی و بهداشتی</span></h1>
+            <p>افزایش فروش و جذب مشتری با نمایش حرفه‌ای محصولات زیبایی</p>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">28+</span>
+                    <span class="stat-label">دقیقه مطالعه</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">✅</span>
+                    <span class="stat-label">فروشندگان آرایشی</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">🚀</span>
+                    <span class="stat-label">افزایش فروش</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="content-card">
+            <h2>💄 چیدمان فروشگاه آرایشی و بهداشتی چیست؟</h2>
+            <p>
+                چیدمان فروشگاه آرایشی و بهداشتی هنر نمایش صحیح محصولات برای:
+            </p>
+            <ul>
+                <li>ایجاد تجربه خرید لذت‌بخش و لوکس</li>
+                <li>جلب توجه به محصولات جدید و پرفروش</li>
+                <li>افزایش فروش محصولات مکمل</li>
+                <li>ایجاد حس اعتماد و کیفیت</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2>📐 اصول چیدمان فروشگاه آرایشی</h2>
+            
+            <h3>1️⃣ دسته‌بندی بر اساس عملکرد</h3>
+            <p>
+                محصولات را بر اساس عملکرد و کاربرد دسته‌بندی کنید:
+            </p>
+            <ul>
+                <li><strong>بخش مراقبت پوست:</strong> کرم‌ها، سرم‌ها، ماسک‌ها</li>
+                <li><strong>بخش آرایش:</strong> رژ لب، پودر، کانسیلر، ریمل</li>
+                <li><strong>بخش مو:</strong> شامپو، نرم‌کننده، رنگ مو</li>
+                <li><strong>بخش عطر:</strong> عطر، ادکلن، اسپری</li>
+                <li><strong>بخش بهداشتی:</strong> صابون، شامپو بدن، لوسیون</li>
+            </ul>
+            <div class="tip-box">
+                <h4>💡 نکته کلیدی</h4>
+                <p>محصولات مرتبط را کنار هم قرار دهید تا مشتری بتواند یک روتین کامل را ببیند و خرید کند.</p>
+            </div>
+                
+            <h3>2️⃣ نمایش محصولات در ارتفاع مناسب</h3>
+            <p>
+                محصولات پرفروش را در ارتفاع چشم (120-160 سانتی‌متر) قرار دهید:
+            </p>
+            <ul>
+                <li>محصولات لوکس و گران‌قیمت در سطح چشم</li>
+                <li>محصولات اقتصادی در قفسه‌های پایین</li>
+                <li>محصولات جدید و تبلیغاتی در ورودی</li>
+                <li>محصولات کوچک در ویترین‌های شیشه‌ای</li>
+            </ul>
+
+            <h3>3️⃣ ایجاد فضای تست و تجربه</h3>
+            <p>
+                فضای تست برای محصولات آرایشی ایجاد کنید:
+            </p>
+            <ul>
+                <li>آینه‌های بزرگ برای تست رژ لب و آرایش</li>
+                <li>محصولات تست برای مشتریان</li>
+                <li>فضای راحت برای نشستن و تست</li>
+                <li>نورپردازی مناسب برای تست رنگ‌ها</li>
+            </ul>
+
+            <h3>4️⃣ چیدمان بر اساس برند</h3>
+            <p>
+                محصولات هر برند را در یک بخش قرار دهید:
+            </p>
+            <ul>
+                <li>برندهای لوکس در بخش جداگانه</li>
+                <li>برندهای محلی و اقتصادی در بخش دیگر</li>
+                <li>برندهای بین‌المللی در بخش مرکزی</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2>💡 نورپردازی حرفه‌ای</h2>
+            
+            <h3>✅ نورپردازی برای نمایش محصولات</h3>
+            <ul>
+                <li><strong>نور سفید سرد:</strong> برای نمایش رنگ‌های واقعی محصولات</li>
+                <li><strong>نور زرد گرم:</strong> برای ایجاد حس لوکس و گرم</li>
+                <li><strong>نور نقطه‌ای:</strong> برای تاکید روی محصولات خاص</li>
+                <li><strong>نورپردازی یکنواخت:</strong> برای کل فضای فروشگاه</li>
+            </ul>
+
+            <h3>✅ نورپردازی بخش تست</h3>
+            <p>
+                بخش تست باید نور طبیعی یا نور سفید سرد داشته باشد تا رنگ‌های واقعی دیده شوند.
+            </p>
+        </div>
+                
+        <div class="content-card">
+            <h2>🎯 تکنیک‌های افزایش فروش</h2>
+            
+            <h3>✅ Cross-Selling (فروش متقاطع)</h3>
+            <p>
+                محصولات مرتبط را کنار هم قرار دهید:
+            </p>
+            <ul>
+                <li>رژ لب + ریمل + پودر</li>
+                <li>شامپو + نرم‌کننده + ماسک مو</li>
+                <li>کرم صورت + سرم + ماسک</li>
+                <li>عطر + لوسیون بدن + صابون</li>
+            </ul>
+
+            <h3>✅ نمایش محصولات جدید</h3>
+            <p>
+                محصولات جدید را در ورودی و در ویترین‌های ویژه قرار دهید:
+            </p>
+            <ul>
+                <li>ویترین محصولات جدید در ورودی</li>
+                <li>برچسب "جدید" روی محصولات</li>
+                <li>نمایش محصولات فصلی</li>
+            </ul>
+
+            <h3>✅ ایجاد بسته‌های هدیه</h3>
+            <p>
+                بسته‌های هدیه برای مناسبت‌های خاص ایجاد کنید:
+            </p>
+            <ul>
+                <li>بسته عروس: رژ لب + ریمل + پودر</li>
+                <li>بسته مراقبت پوست: کرم + سرم + ماسک</li>
+                <li>بسته مراقبت مو: شامپو + نرم‌کننده + ماسک</li>
+            </ul>
+        </div>
+                
+        <div class="content-card">
+            <h2>📏 ابعاد و فاصله‌ها</h2>
+            <ul>
+                <li><strong>فاصله بین قفسه‌ها:</strong> حداقل 140 سانتی‌متر</li>
+                <li><strong>ارتفاع قفسه‌ها:</strong> حداکثر 200 سانتی‌متر</li>
+                <li><strong>عمق قفسه‌ها:</strong> حداکثر 50 سانتی‌متر</li>
+                <li><strong>راهروهای اصلی:</strong> حداقل 160 سانتی‌متر</li>
+                <li><strong>فضای تست:</strong> حداقل 2×2 متر</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2>🔒 امنیت و نگهداری</h2>
+            <ul>
+                <li>محصولات گران‌قیمت در ویترین‌های قفل‌دار</li>
+                <li>دوربین مداربسته در نقاط حساس</li>
+                <li>محافظ امنیتی برای محصولات کوچک</li>
+                <li>نگهداری صحیح محصولات در دمای مناسب</li>
+                <li>جلوگیری از نور مستقیم خورشید</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2>🎨 رنگ‌بندی و طراحی</h2>
+            <ul>
+                <li><strong>رنگ‌های روشن:</strong> برای ایجاد حس تمیزی و تازگی</li>
+                <li><strong>رنگ‌های گرم:</strong> برای ایجاد حس لوکس و گرما</li>
+                <li><strong>رنگ‌های خنثی:</strong> برای تاکید روی محصولات</li>
+                <li><strong>استفاده از آینه:</strong> برای بزرگتر نشان دادن فضا</li>
+            </ul>
+        </div>
+
+        <div class="cta-section">
+            <h2>🚀 فروشگاه آرایشی شما را تحلیل کنید</h2>
+            <p>
+                با تحلیل رایگان چیدمانو، فروشگاه آرایشی و بهداشتی خود را توسط هوش مصنوعی بررسی کنید و پیشنهادات تخصصی برای افزایش فروش و بهبود چیدمان دریافت کنید.
+            </p>
+            <a href="{% url 'store_analysis:products' %}" class="cta-button">تحلیل رایگان فروشگاه من 💄</a>
+        </div>
+                
+        <div class="content-card">
+            <h2>❓ سوالات متداول</h2>
+            
+            <h3>چطور محصولات را بهتر نمایش دهم؟</h3>
+            <p>
+                از نورپردازی مناسب، ویترین‌های شیشه‌ای، و چیدمان منطقی استفاده کنید. محصولات را بر اساس عملکرد و برند دسته‌بندی کنید.
+            </p>
+
+            <h3>چطور فروش محصولات گران‌قیمت را افزایش دهم؟</h3>
+            <p>
+                محصولات گران‌قیمت را در ویترین‌های ویژه و در سطح چشم قرار دهید. از نورپردازی مناسب و فضای تست استفاده کنید.
+            </p>
+
+            <h3>چطور فضای تست را طراحی کنم؟</h3>
+            <p>
+                فضای تست باید نور کافی، آینه‌های بزرگ، و فضای راحت داشته باشد. محصولات تست را در دسترس قرار دهید.
+            </p>
+        </div>
+    </div>
+                
+    <footer class="footer">
+        <p>
+            © 2025 <a href="{% url 'landing' %}">چیدمانو</a> - تمامی حقوق محفوظ است | 
+            <a href="{% url 'store_analysis:support_center' %}">پشتیبانی</a> | 
+            <a href="{% url 'store_analysis:education_library' %}">آموزش‌ها</a>
+        </p>
+    </footer>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-85C9F4Q707"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-85C9F4Q707');
+    </script>
+</body>
+</html>
+

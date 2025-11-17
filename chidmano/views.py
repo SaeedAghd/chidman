@@ -391,6 +391,18 @@ def lighting_design_guide(request):
     """Lighting design guide page"""
     return render(request, 'chidmano/lighting_design_guide.html')
 
+def home_appliances_guide(request):
+    """Home appliances store layout guide page"""
+    return render(request, 'chidmano/home_appliances_guide.html')
+
+def fruit_store_guide(request):
+    """Fruit store layout guide page"""
+    return render(request, 'chidmano/fruit_store_guide.html')
+
+def cosmetics_store_guide(request):
+    """Cosmetics and beauty store layout guide page"""
+    return render(request, 'chidmano/cosmetics_store_guide.html')
+
 def case_studies(request):
     """Case studies page"""
     return render(request, 'chidmano/case_studies.html')

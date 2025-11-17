@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.innerHTML = `
             <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
             <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">فرم با موفقیت ارسال شد!</h2>
-            <p style="font-size: 1.2rem; opacity: 0.9;">گزارش تحلیل فروشگاه شما در کمتر از 24 ساعت آماده خواهد شد.</p>
+            <p style="font-size: 1.2rem; opacity: 0.9;">گزارش تحلیل فروشگاه شما در کمتر از 30 دقیقه آماده خواهد شد.</p>
         `;
         
         document.body.appendChild(messageDiv);

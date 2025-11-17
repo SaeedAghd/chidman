@@ -1788,7 +1788,7 @@
                 </div>
                 <div class="timer-price">
                     <div class="price-old">1,500,000 تومان</div>
-                    <div class="price-new">750,000 تومان</div>
+                    <div class="price-new">300,000 تومان</div>
                 </div>
             </div>
         </div>
@@ -2002,30 +2002,41 @@
     <section class="modern-hero">
         <div class="hero-background">
             <div class="hero-bg-image"></div>
+            <div class="hero-eye-image"></div>
             <div class="hero-overlay"></div>
         </div>
         <div class="container">
             <div class="hero-content-modern">
                 <div class="hero-card">
-                    <!-- Pain Point Headline -->
-                    <div class="hero-pain-point">😢</div>
+                    <!-- Main Headline -->
+                    <div class="hero-icon">👁️</div>
                     <h1 class="hero-title-modern">
-                        <span class="hero-question">چرا فروشگاهتون خلوته؟</span>
-                        <span class="hero-fact">80% فروشگاه‌ها به خاطر چیدمان غلط،<br>60% فروش بالقوه رو از دست میدن!</span>
+                        <span class="hero-main-message">چیدمان هدایت مشتری برای خرید است</span>
                     </h1>
                     
-                    <!-- Pain Points List -->
-                    <div class="hero-problems">
-                        <div class="problem-item">❌ مشتری میاد، نگاه می‌کنه، میره؟!</div>
-                        <div class="problem-item">❌ کالاها خوبه ولی فروش کمه؟</div>
-                        <div class="problem-item">❌ نمیدونید کدوم قفسه رو کجا بذارید؟</div>
-                    </div>
-                    
-                    <!-- Solution -->
-                    <p class="hero-solution">
-                        ✅ <strong>ما دقیقاً میگیم مشکل کجاست و چیکار کنید!</strong><br>
-                        با هوش مصنوعی، بدون نیاز به متخصص، فقط با چند تا عکس!
+                    <!-- Subheadline -->
+                    <p class="hero-subheadline-modern">
+                        چیدمانو با هوش مصنوعی، مسیر دید و حرکت مشتری‌هاتو تحلیل می‌کنه تا بفهمی چرا بعضی قفسه‌ها فقط قشنگن و نمی‌فروشن.
                     </p>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="hero-buttons-modern">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'store_analysis:products' %}" class="btn-primary-modern pulse-animation">
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn-primary-modern pulse-animation">
+                        {% endif %}
+                            <span>👁️</span>
+                            <span>تحلیل رایگان مسیر خرید مشتری</span>
+                        </a>
+                        <a href="#features" class="btn-secondary-modern">
+                            <span>📊</span>
+                            <span>نمونه واقعی ببین</span>
+                        </a>
+                        <div class="hero-guarantee">
+                            ✅ بدون نیاز به کارت بانکی | ✅ تحلیل اولیه رایگان | ✅ فقط 5 دقیقه!
+                        </div>
+                    </div>
                     
                     <!-- Social Proof -->
                     <div class="hero-social-proof">
@@ -2041,30 +2052,6 @@
                             <span class="proof-number">+2.3M</span>
                             <span class="proof-label">میانگین افزایش فروش/ماه</span>
                         </div>
-                    </div>
-                    
-                    <!-- CTA Buttons -->
-                    <div class="hero-buttons-modern">
-                        <a href="{% url 'store_analysis:products' %}" class="btn-secondary-modern">
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            مشاهده محصولات و قیمت‌ها
-                        </a>
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'store_analysis:products' %}" class="btn-primary-modern pulse-animation">
-                        {% else %}
-                            <a href="{% url 'login' %}" class="btn-primary-modern pulse-animation">
-                        {% endif %}
-                            <i class="fas fa-rocket me-2"></i>
-                            می‌خوام بفهمم مشکل فروشگاهم چیه - رایگان!
-                        </a>
-                        <div class="hero-guarantee">
-                            ✅ بدون نیاز به کارت بانکی | ✅ تحلیل اولیه رایگان | ✅ فقط 5 دقیقه!
-                        </div>
-                    </div>
-                    
-                    <!-- Live Activity -->
-                    <div class="hero-live-activity">
-                        🔴 <strong>الان 18 نفر دارن فرم رو پر می‌کنن!</strong>
                     </div>
                 </div>
             </div>
@@ -2102,6 +2089,34 @@
                 transform: none;
             }
 
+            .hero-eye-image {
+                position: absolute;
+                top: 50%;
+                right: 5%;
+                transform: translateY(-50%);
+                width: 500px;
+                height: 500px;
+                background-image: url('{% static "images/eay.png" %}');
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
+                opacity: 0.3;
+                z-index: 1;
+                animation: floatEye 20s ease-in-out infinite;
+                filter: drop-shadow(0 0 30px rgba(255, 107, 53, 0.3));
+            }
+
+            @keyframes floatEye {
+                0%, 100% { 
+                    transform: translateY(-50%) translateX(0) scale(1);
+                    opacity: 0.3;
+                }
+                50% { 
+                    transform: translateY(-50%) translateX(-20px) scale(1.05);
+                    opacity: 0.4;
+                }
+            }
+
             .hero-overlay {
                 position: absolute;
                 top: 0;
@@ -2109,11 +2124,12 @@
                 width: 100%;
                 height: 100%;
                 background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%);
+                z-index: 2;
             }
 
             .hero-content-modern {
                 position: relative;
-                z-index: 2;
+                z-index: 3;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -2140,60 +2156,33 @@
                 line-height: 1.3;
             }
 
-            .hero-pain-point {
+            .hero-icon {
                 font-size: 4rem;
                 margin-bottom: 1rem;
-                animation: bounce 2s infinite;
+                animation: fadeInDown 0.6s ease-out;
             }
 
-            .hero-question {
+            .hero-main-message {
                 display: block;
                 font-size: 2.8rem;
                 font-weight: 800;
-                color: #ff6b35;
-                margin-bottom: 1rem;
-                text-shadow: 0 2px 10px rgba(255, 107, 53, 0.5);
-                animation: fadeInDown 0.8s ease-out;
-            }
-
-            .hero-fact {
-                display: block;
-                font-size: 1.4rem;
-                font-weight: 600;
-                color: rgba(255, 255, 255, 0.95);
-                line-height: 1.6;
-                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-                animation: fadeInUp 1s ease-out;
-            }
-
-            .hero-problems {
-                background: rgba(255, 107, 53, 0.1);
-                border: 2px solid rgba(255, 107, 53, 0.3);
-                border-radius: 16px;
-                padding: 1.5rem;
-                margin: 2rem 0;
-                animation: fadeIn 1.2s ease-out;
-            }
-
-            .problem-item {
-                font-size: 1.1rem;
-                color: rgba(255, 255, 255, 0.9);
-                margin: 0.8rem 0;
-                text-align: right;
-                font-weight: 500;
-            }
-
-            .hero-solution {
-                font-size: 1.3rem;
                 color: #ffffff;
+                margin-bottom: 1.5rem;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                animation: fadeInDown 0.8s ease-out;
+                line-height: 1.3;
+            }
+
+            .hero-subheadline-modern {
+                font-size: 1.3rem;
+                color: rgba(255, 255, 255, 0.95);
                 line-height: 1.7;
-                margin: 2rem 0;
-                padding: 1.5rem;
-                background: rgba(102, 234, 126, 0.15);
-                border-radius: 12px;
-                border: 2px solid rgba(102, 234, 126, 0.3);
+                margin-bottom: 2.5rem;
                 text-shadow: 0 1px 5px rgba(0,0,0,0.3);
-                animation: fadeIn 1.4s ease-out;
+                animation: fadeInUp 1s ease-out;
+                max-width: 700px;
+                margin-left: auto;
+                margin-right: auto;
             }
 
             .hero-social-proof {
@@ -2339,6 +2328,7 @@
                 border: none;
                 display: inline-flex;
                 align-items: center;
+                gap: 0.5rem;
             }
 
             .btn-primary-modern:hover {
@@ -2361,6 +2351,7 @@
                 display: inline-flex;
                 align-items: center;
                 backdrop-filter: blur(10px);
+                gap: 0.5rem;
             }
 
             .btn-secondary-modern:hover {
@@ -2377,25 +2368,24 @@
                     margin: 1rem;
                 }
 
-                .hero-pain-point {
+                .hero-eye-image {
+                    width: 300px;
+                    height: 300px;
+                    right: -10%;
+                    opacity: 0.2;
+                }
+
+                .hero-icon {
                     font-size: 3rem;
                 }
 
-                .hero-question {
-                    font-size: 2rem;
+                .hero-main-message {
+                    font-size: 1.8rem;
                 }
 
-                .hero-fact {
+                .hero-subheadline-modern {
                     font-size: 1.1rem;
-                }
-
-                .problem-item {
-                    font-size: 1rem;
-                }
-
-                .hero-solution {
-                    font-size: 1.1rem;
-                    padding: 1rem;
+                    margin-bottom: 2rem;
                 }
 
                 .hero-social-proof {
@@ -2405,18 +2395,6 @@
 
                 .proof-number {
                     font-size: 1.6rem;
-                }
-
-                .hero-main-text {
-                    font-size: 2.2rem;
-                }
-
-                .hero-sub-text {
-                    font-size: 1.8rem;
-                }
-
-                .hero-description-modern {
-                    font-size: 1.1rem;
                 }
 
                 .hero-buttons-modern {
@@ -2431,23 +2409,136 @@
                     font-size: 1rem;
                     padding: 1.2rem 1.5rem;
                 }
-
-                .hero-live-activity {
-                    font-size: 1rem;
-                }
             }
 
             @media (max-width: 480px) {
-                .hero-main-text {
-                    font-size: 1.8rem;
+                .hero-eye-image {
+                    width: 200px;
+                    height: 200px;
+                    right: -15%;
+                    opacity: 0.15;
                 }
 
-                .hero-sub-text {
+                .hero-main-message {
                     font-size: 1.5rem;
+                }
+
+                .hero-subheadline-modern {
+                    font-size: 1rem;
                 }
 
                 .hero-card {
                     padding: 2rem 1.5rem;
+                }
+            }
+        </style>
+    </section>
+
+    <!-- Pain Points Section - 3 Cards -->
+    <section class="pain-points-section">
+        <div class="container">
+            <h2 class="pain-points-title">فروشگاهت قشنگه؟ اما قشنگی همیشه نمی‌فروشه.</h2>
+            <div class="pain-points-grid">
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">🔦</div>
+                    <h3 class="pain-point-heading">نور اشتباه، مشتری رد می‌شه</h3>
+                </div>
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">🧭</div>
+                    <h3 class="pain-point-heading">مسیر غلط، کالاهای پرفروش گم می‌شن</h3>
+                </div>
+                <div class="pain-point-card">
+                    <div class="pain-point-icon">👁️</div>
+                    <h3 class="pain-point-heading">نگاه مشتری، همون‌جایی نیست که فکر می‌کنی</h3>
+                </div>
+            </div>
+            <p class="pain-points-footer">ما علم رفتار مشتری رو آوردیم وسط مغازه‌ت.</p>
+        </div>
+        
+        <style>
+            .pain-points-section {
+                padding: 4rem 0;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            }
+            
+            .pain-points-title {
+                text-align: center;
+                font-size: 2rem;
+                font-weight: 700;
+                color: #333;
+                margin-bottom: 3rem;
+                line-height: 1.4;
+            }
+            
+            .pain-points-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 2rem;
+                max-width: 1000px;
+                margin: 0 auto 2rem;
+            }
+            
+            .pain-point-card {
+                background: white;
+                padding: 2rem;
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                text-align: center;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            .pain-point-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            }
+            
+            .pain-point-icon {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+            }
+            
+            .pain-point-heading {
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #333;
+                line-height: 1.5;
+                margin: 0;
+                }
+
+            .pain-points-footer {
+                text-align: center;
+                font-size: 1.1rem;
+                color: #666;
+                font-weight: 500;
+                margin-top: 2rem;
+                font-style: italic;
+            }
+            
+            @media (max-width: 768px) {
+                .pain-points-section {
+                    padding: 3rem 0;
+                }
+                
+                .pain-points-title {
+                    font-size: 1.5rem;
+                    margin-bottom: 2rem;
+                }
+
+                .pain-points-grid {
+                    grid-template-columns: 1fr;
+                    gap: 1.5rem;
+                }
+                
+                .pain-point-card {
+                    padding: 1.5rem;
+                }
+                
+                .pain-point-icon {
+                    font-size: 2.5rem;
+                }
+                
+                .pain-point-heading {
+                    font-size: 1.1rem;
                 }
             }
         </style>
@@ -2867,6 +2958,90 @@
                             </div>
                             <div class="text-center">
                                 <a href="{% url 'lighting_design_guide' %}" class="btn btn-outline-warning">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- New Guide Cards Row -->
+            <div class="row mt-4">
+                <!-- Home Appliances Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-home text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">راهنمای چیدمان لوازم خانگی</h4>
+                            <p class="card-text">افزایش فروش و جذب مشتری با نمایش حرفه‌ای محصولات. شامل اصول نمایش، نورپردازی، و بهینه‌سازی فضای فروش</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>25 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>فروشندگان لوازم خانگی
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'home_appliances_guide' %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fruit Store Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-apple-alt text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">راهنمای چیدمان میوه فروشی</h4>
+                            <p class="card-text">افزایش فروش و جذب مشتری با نمایش حرفه‌ای میوه‌های تازه. شامل اصول نمایش، دما و نگهداری، و کاهش ضایعات</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>22 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>میوه فروشان
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'fruit_store_guide' %}" class="btn btn-outline-warning">
+                                    <i class="fas fa-book-open me-2"></i>
+                                    مطالعه راهنما
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cosmetics Store Guide -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <div class="guide-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-palette text-white" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title text-center mb-3">راهنمای چیدمان آرایشی و بهداشتی</h4>
+                            <p class="card-text">افزایش فروش و جذب مشتری با نمایش حرفه‌ای محصولات زیبایی. شامل اصول نمایش، نورپردازی، و فضای تست</p>
+                            <div class="guide-meta mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>28 دقیقه مطالعه
+                                    <i class="fas fa-users ms-3 me-1"></i>فروشندگان آرایشی
+                                </small>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'cosmetics_store_guide' %}" class="btn btn-outline-secondary">
                                     <i class="fas fa-book-open me-2"></i>
                                     مطالعه راهنما
                                 </a>

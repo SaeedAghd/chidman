@@ -1,0 +1,571 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f39c12">
+    
+    <!-- SEO Meta Tags -->
+    <title>راهنمای چیدمان میوه فروشی - افزایش فروش و جذب مشتری | چیدمانو</title>
+    <meta name="description" content="راهنمای تخصصی چیدمان میوه فروشی برای افزایش فروش. شامل اصول نمایش میوه‌ها، نورپردازی، و بهینه‌سازی فضای فروش">
+    <meta name="keywords" content="راهنمای چیدمان میوه فروشی, طراحی میوه فروشی, نمایش میوه, افزایش فروش میوه فروشی, بهینه‌سازی فضای فروش">
+    <meta name="author" content="چیدمانو - تیم تحلیل فروشگاه">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="راهنمای چیدمان میوه فروشی - افزایش فروش و جذب مشتری">
+    <meta property="og:description" content="راهنمای تخصصی چیدمان میوه فروشی برای افزایش فروش">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://chidmano.ir/guide/fruit-store/">
+    <meta property="og:image" content="https://chidmano.ir{% static 'images/logo_optimized.png' %}">
+    <meta property="og:site_name" content="چیدمانو">
+    <meta property="og:locale" content="fa_IR">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://chidmano.ir/guide/fruit-store/">
+    
+    <!-- Favicons -->
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'images/logo_optimized.png' %}">
+    
+    <!-- Vazirmatn from CDN -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "راهنمای چیدمان میوه فروشی - افزایش فروش و جذب مشتری",
+        "description": "راهنمای تخصصی چیدمان میوه فروشی برای افزایش فروش",
+        "image": "https://chidmano.ir{% static 'images/logo_optimized.png' %}",
+        "author": {
+            "@type": "Organization",
+            "name": "چیدمانو"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "چیدمانو",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://chidmano.ir{% static 'images/logo.png' %}"
+            }
+        },
+        "datePublished": "2025-01-26",
+        "dateModified": "2025-10-12",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://chidmano.ir/guide/fruit-store/"
+        },
+        "articleSection": "راهنمای چیدمان میوه فروشی",
+        "keywords": ["راهنمای چیدمان میوه فروشی", "طراحی میوه فروشی", "نمایش میوه", "افزایش فروش میوه فروشی"]
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #f39c12;
+            --primary-dark: #e67e22;
+            --secondary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --white: #ffffff;
+            --gray-700: #495057;
+            --shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0,0,0,0.175);
+            --transition: 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', 'Tahoma', sans-serif !important;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .logo img {
+            height: 40px;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+        
+        .btn-cta {
+            background: white;
+            color: var(--primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .hero .highlight {
+            color: #27ae60;
+        }
+        
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .content-card h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .content-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin: 2rem 0 1rem;
+        }
+        
+        .content-card p {
+            font-size: 1.125rem;
+            line-height: 1.9;
+            color: var(--gray-700);
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .content-card li {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: var(--gray-700);
+            padding: 0.75rem 0 0.75rem 2rem;
+            position: relative;
+        }
+        
+        .content-card li::before {
+            content: '🍎';
+            position: absolute;
+            right: 0;
+            font-size: 1.25rem;
+        }
+        
+        .tip-box {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+        
+        .tip-box h4 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .tip-box p {
+            color: white;
+            margin: 0;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            border-radius: 16px;
+            margin: 3rem 0;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .cta-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-section p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: var(--primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+        
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .content-card { padding: 2rem 1.5rem; }
+            .hero-stats { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'landing' %}" class="logo">
+                <img src="{% static 'images/logo_optimized.png' %}" alt="چیدمانو">
+                <span>چیدمانو</span>
+            </a>
+            <nav class="header-nav">
+                <a href="{% url 'landing' %}" class="nav-link">خانه</a>
+                <a href="{% url 'store_analysis:education_library' %}" class="nav-link">آموزش‌ها</a>
+                <a href="{% url 'store_analysis:support_center' %}" class="nav-link">پشتیبانی</a>
+                <a href="{% url 'store_analysis:products' %}" class="nav-link btn-cta">تحلیل رایگان</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div>
+            <h1>راهنمای چیدمان <span class="highlight">میوه فروشی</span></h1>
+            <p>افزایش فروش و جذب مشتری با نمایش حرفه‌ای میوه‌های تازه</p>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">22+</span>
+                    <span class="stat-label">دقیقه مطالعه</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">✅</span>
+                    <span class="stat-label">میوه فروشان</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">🚀</span>
+                    <span class="stat-label">افزایش فروش</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="content-card">
+            <h2>🍎 چیدمان میوه فروشی چیست؟</h2>
+            <p>
+                چیدمان میوه فروشی هنر نمایش صحیح میوه‌ها برای:
+            </p>
+            <ul>
+                <li>جلب توجه به میوه‌های تازه و باکیفیت</li>
+                <li>ایجاد حس تازگی و سلامت</li>
+                <li>افزایش فروش میوه‌های پرسود</li>
+                <li>کاهش ضایعات و هدررفت</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2>📐 اصول چیدمان میوه فروشی</h2>
+            
+            <h3>1️⃣ نمایش میوه‌های تازه در ورودی</h3>
+            <p>
+                میوه‌های تازه و رنگارنگ را در ورودی و جلوی ویترین قرار دهید:
+            </p>
+            <ul>
+                <li>میوه‌های قرمز: گوجه، توت فرنگی، گیلاس</li>
+                <li>میوه‌های نارنجی: پرتقال، نارنگی، هلو</li>
+                <li>میوه‌های سبز: سیب سبز، انگور، کیوی</li>
+                <li>میوه‌های زرد: موز، لیمو، آناناس</li>
+            </ul>
+            <div class="tip-box">
+                <h4>💡 نکته کلیدی</h4>
+                <p>رنگ‌های متنوع میوه‌ها احساس شادی و خرید بیشتر را تحریک می‌کنند. از ترکیب رنگ‌های متضاد استفاده کنید.</p>
+            </div>
+                
+            <h3>2️⃣ چیدمان بر اساس ارتفاع</h3>
+            <p>
+                میوه‌ها را به صورت هرمی و از بزرگ به کوچک چیدمان کنید:
+            </p>
+            <ul>
+                <li>میوه‌های بزرگ در پایین: هندوانه، خربزه، کدو</li>
+                <li>میوه‌های متوسط در وسط: سیب، پرتقال، موز</li>
+                <li>میوه‌های کوچک در بالا: توت، گیلاس، انگور</li>
+            </ul>
+
+            <h3>3️⃣ دسته‌بندی منطقی</h3>
+            <p>
+                میوه‌ها را بر اساس نوع و فصل دسته‌بندی کنید:
+            </p>
+            <ul>
+                <li><strong>میوه‌های تابستانی:</strong> هندوانه، خربزه، طالبی</li>
+                <li><strong>میوه‌های زمستانی:</strong> پرتقال، نارنگی، سیب</li>
+                <li><strong>میوه‌های استوایی:</strong> موز، آناناس، نارگیل</li>
+                <li><strong>میوه‌های خشک:</strong> کشمش، خرما، انجیر</li>
+            </ul>
+
+            <h3>4️⃣ استفاده از سبد و ظروف مناسب</h3>
+            <p>
+                از سبدهای چوبی، پلاستیکی یا فلزی استفاده کنید:
+            </p>
+            <ul>
+                <li>سبدهای چوبی برای میوه‌های محلی</li>
+                <li>سبدهای پلاستیکی برای میوه‌های شسته شده</li>
+                <li>ظروف شیشه‌ای برای میوه‌های خشک</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2>🌡️ دما و نگهداری</h2>
+            
+            <h3>✅ دمای مناسب برای هر میوه</h3>
+            <ul>
+                <li><strong>میوه‌های گرمسیری:</strong> 12-15 درجه (موز، آناناس)</li>
+                <li><strong>میوه‌های معتدل:</strong> 5-8 درجه (سیب، گلابی)</li>
+                <li><strong>میوه‌های حساس:</strong> 0-4 درجه (توت، گیلاس)</li>
+                <li><strong>میوه‌های خشک:</strong> دمای اتاق با رطوبت کم</li>
+            </ul>
+
+            <h3>✅ رطوبت مناسب</h3>
+            <p>
+                میوه‌های تازه نیاز به رطوبت 85-95% دارند. از اسپری آب برای حفظ تازگی استفاده کنید.
+            </p>
+        </div>
+                
+        <div class="content-card">
+            <h2>💡 نورپردازی حرفه‌ای</h2>
+            
+            <h3>✅ نور مناسب برای میوه‌ها</h3>
+            <ul>
+                <li><strong>نور سفید سرد:</strong> برای میوه‌های سبز و زرد</li>
+                <li><strong>نور زرد گرم:</strong> برای میوه‌های نارنجی و قرمز</li>
+                <li><strong>نور LED:</strong> برای نمایش بهتر رنگ‌ها</li>
+                <li><strong>نور طبیعی:</strong> در صورت امکان از نور روز استفاده کنید</li>
+            </ul>
+
+            <h3>✅ جلوگیری از نور مستقیم خورشید</h3>
+            <p>
+                نور مستقیم خورشید باعث خرابی و پژمردگی میوه‌ها می‌شود. از پرده یا سایه‌بان استفاده کنید.
+            </p>
+        </div>
+                
+        <div class="content-card">
+            <h2>🎯 تکنیک‌های افزایش فروش</h2>
+            
+            <h3>✅ نمایش میوه‌های پرفروش</h3>
+            <p>
+                میوه‌های پرفروش را در سطح چشم و در مسیر اصلی قرار دهید:
+            </p>
+            <ul>
+                <li>سیب و پرتقال در ارتفاع 120-150 سانتی‌متر</li>
+                <li>موز در ارتفاع 100-130 سانتی‌متر</li>
+                <li>میوه‌های گران‌قیمت در ویترین‌های شیشه‌ای</li>
+            </ul>
+
+            <h3>✅ ایجاد بسته‌های ترکیبی</h3>
+            <p>
+                میوه‌های مرتبط را در بسته‌های ترکیبی قرار دهید:
+            </p>
+            <ul>
+                <li>بسته صبحانه: موز + سیب + پرتقال</li>
+                <li>بسته سالاد: گوجه + خیار + فلفل</li>
+                <li>بسته میوه‌های خشک: خرما + کشمش + انجیر</li>
+            </ul>
+
+            <h3>✅ برچسب‌های قیمت واضح</h3>
+            <p>
+                برچسب‌های قیمت باید واضح و خوانا باشند:
+            </p>
+            <ul>
+                <li>قیمت به ازای کیلوگرم</li>
+                <li>قیمت به ازای عدد (برای میوه‌های بزرگ)</li>
+                <li>تخفیف‌های ویژه را برجسته کنید</li>
+            </ul>
+        </div>
+                
+        <div class="content-card">
+            <h2>📏 ابعاد و فاصله‌ها</h2>
+            <ul>
+                <li><strong>فاصله بین قفسه‌ها:</strong> حداقل 120 سانتی‌متر</li>
+                <li><strong>ارتفاع قفسه‌ها:</strong> حداکثر 180 سانتی‌متر</li>
+                <li><strong>عمق قفسه‌ها:</strong> حداکثر 60 سانتی‌متر</li>
+                <li><strong>راهروهای اصلی:</strong> حداقل 150 سانتی‌متر</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2>🔄 مدیریت موجودی و کاهش ضایعات</h2>
+            <ul>
+                <li><strong>سیستم FIFO:</strong> میوه‌های قدیمی‌تر را جلوتر قرار دهید</li>
+                <li><strong>بررسی روزانه:</strong> میوه‌های خراب را جدا کنید</li>
+                <li><strong>تخفیف برای میوه‌های نزدیک به انقضا:</strong> میوه‌های رسیده را با تخفیف بفروشید</li>
+                <li><strong>استفاده از میوه‌های نرم:</strong> برای آبمیوه یا سالاد</li>
+            </ul>
+        </div>
+
+        <div class="cta-section">
+            <h2>🚀 میوه فروشی شما را تحلیل کنید</h2>
+            <p>
+                با تحلیل رایگان چیدمانو، میوه فروشی خود را توسط هوش مصنوعی بررسی کنید و پیشنهادات تخصصی برای افزایش فروش و بهبود چیدمان دریافت کنید.
+            </p>
+            <a href="{% url 'store_analysis:products' %}" class="cta-button">تحلیل رایگان میوه فروشی من 🍎</a>
+        </div>
+                
+        <div class="content-card">
+            <h2>❓ سوالات متداول</h2>
+            
+            <h3>چطور میوه‌ها را تازه نگه دارم؟</h3>
+            <p>
+                از دمای مناسب، رطوبت کافی، و سیستم FIFO استفاده کنید. میوه‌های خراب را سریع جدا کنید.
+            </p>
+
+            <h3>چطور فروش میوه‌های گران‌قیمت را افزایش دهم؟</h3>
+            <p>
+                میوه‌های گران‌قیمت را در ویترین‌های شیشه‌ای و در سطح چشم قرار دهید. از نورپردازی مناسب استفاده کنید.
+            </p>
+
+            <h3>چطور از ضایعات جلوگیری کنم؟</h3>
+            <p>
+                با مدیریت صحیح موجودی، سیستم FIFO، و تخفیف برای میوه‌های نزدیک به انقضا، ضایعات را کاهش دهید.
+            </p>
+        </div>
+    </div>
+                
+    <footer class="footer">
+        <p>
+            © 2025 <a href="{% url 'landing' %}">چیدمانو</a> - تمامی حقوق محفوظ است | 
+            <a href="{% url 'store_analysis:support_center' %}">پشتیبانی</a> | 
+            <a href="{% url 'store_analysis:education_library' %}">آموزش‌ها</a>
+        </p>
+    </footer>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-85C9F4Q707"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-85C9F4Q707');
+    </script>
+</body>
+</html>
+

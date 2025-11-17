@@ -67,6 +67,9 @@ urlpatterns = [
         path('color-psychology/', views.color_psychology_guide, name='color_psychology_guide'),
         path('customer-journey/', views.customer_journey_guide, name='customer_journey_guide'),
         path('lighting-design/', views.lighting_design_guide, name='lighting_design_guide'),
+        path('home-appliances/', views.home_appliances_guide, name='home_appliances_guide'),
+        path('fruit-store/', views.fruit_store_guide, name='fruit_store_guide'),
+        path('cosmetics-store/', views.cosmetics_store_guide, name='cosmetics_store_guide'),
     ])),
     
     # صفحات محتوا

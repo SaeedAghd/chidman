@@ -9,6 +9,13 @@
   },
   "build": {
     "buildCommand": "python manage.py collectstatic --noinput",
+    "env": {
+      "DJANGO_SETTINGS_MODULE": "chidmano.settings",
+      "PYTHONPATH": "/app",
+      "PRODUCTION": "True",
+      "DEBUG": "False",
+      "LIARA": "true"
+    },
     "files": [
       {
         "source": "staticfiles/",
