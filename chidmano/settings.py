@@ -247,8 +247,6 @@ LOCALE_PATHS = [
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    BASE_DIR / "store_analysis" / "static",
-    BASE_DIR / "chidmano" / "static",
 ]
 
 # Always define STATIC_ROOT so staticfiles alias can initialize
@@ -256,12 +254,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Choose static backend per environment
 if os.getenv('LIARA') == 'true':
-    STATIC_BACKEND = 'whitenoise.storage.CompressedStaticFilesStorage'
+    STATIC_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
 elif not DEBUG:
-    STATIC_BACKEND = 'whitenoise.storage.CompressedStaticFilesStorage'  # تغییر از ManifestStaticFilesStorage
+    STATIC_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # use Manifest storage in non-debug (staging/prod)
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
@@ -289,6 +287,16 @@ if os.getenv('LIARA') == 'true':
     os.makedirs(MEDIA_ROOT, exist_ok=True)
 else:
     MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
+
+# --- GeoIP (optional) ---
+# مسیر پیش‌فرض برای قرار دادن فایل GeoLite2 City DB.
+# اگر می‌خواهید دیتابیس محلی GeoIP را خودکار دانلود کنید، متغیر محیطی MAXMIND_LICENSE_KEY را تنظیم کنید.
+GEOIP_PATH = BASE_DIR / 'geoip'
+try:
+    import os
+    os.makedirs(GEOIP_PATH, exist_ok=True)
+except Exception:
+    pass
 
 # SEO Settings
 BASE_DOMAIN = 'chidmano.ir'
