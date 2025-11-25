@@ -252,6 +252,12 @@ STATICFILES_DIRS = [
 # Always define STATIC_ROOT so staticfiles alias can initialize
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# In Liara (container) we map build static dir to '/static' so align STATIC_ROOT there
+if os.getenv('LIARA') == 'true':
+    STATIC_ROOT = '/static'
+    # ensure WhiteNoise uses the same root when serving static files
+    WHITENOISE_ROOT = STATIC_ROOT
+
 # Choose static backend per environment
 if os.getenv('LIARA') == 'true':
     STATIC_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
