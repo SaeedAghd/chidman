@@ -260,13 +260,13 @@ if os.getenv('LIARA') == 'true':
 
 # Choose static backend per environment
 if os.getenv('LIARA') == 'true':
-    # Quick recovery: use non-manifest static storage in Liara runtime to avoid
-    # Missing manifest entry errors during emergency rollback. This returns
-    # direct /static/... URLs so the site can serve immediately. Revert to
-    # Manifest storage after verification.
-    STATIC_BACKEND = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    # Use a safe manifest-backed storage in Liara runtime:
+    # - collectstatic (build) will create hashed files and manifest
+    # - at runtime SafeCompressedManifestStaticFilesStorage falls back to unhashed names
+    #   if manifest entries are missing, preventing 500 errors while still using hashed assets.
+    STATIC_BACKEND = 'chidmano.storage.SafeCompressedManifestStaticFilesStorage'
     WHITENOISE_USE_FINDERS = True
-    WHITENOISE_AUTOREFRESH = True
+    WHITENOISE_AUTOREFRESH = False
     WHITENOISE_MAX_AGE = 31536000
 elif not DEBUG:
     STATIC_BACKEND = 'chidmano.storage.SafeCompressedManifestStaticFilesStorage'  # use Manifest storage in non-debug (staging/prod)
