@@ -42,6 +42,9 @@ from io import BytesIO
 from .utils import generate_initial_ai_analysis, color_name_to_hex
 from decimal import Decimal
 from .ai_analysis_service_simple import SimpleAIAnalysisService
+from django.views.decorators.http import require_http_methods
+from .models import FreeUsageTracking
+import hashlib
 
 def calculate_analysis_scores(analysis):
     """
@@ -88,16 +91,135 @@ def calculate_analysis_scores(analysis):
                 return float(default)
             return float(value)
         except (ValueError, TypeError):
+            mapping = {
+                'small': 300,
+                'medium': 600,
+                'large': 1000,
+                'very_large': 1500
+            }
             try:
-                mapping = {
-                    'small': 300,
-                    'medium': 600,
-                    'large': 1000,
-                    'very_large': 1500
-                }
                 return float(mapping.get(str(value).lower(), default))
             except Exception:
                 return float(default)
+    
+    # دریافت داده‌های لازم
+    conversion_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
+    customer_traffic = to_float(analysis_data.get('customer_traffic'), 180)
+    store_size = to_float(analysis_data.get('store_size'), 1200)
+    unused_area_size = to_float(analysis_data.get('unused_area_size'), 150)
+    
+    # محاسبه امتیازات جزئی
+    # امتیاز چیدمان (بر اساس فضای بلااستفاده و نرخ تبدیل)
+    layout_score = 80
+    try:
+        layout_score = max(60, 100 - (unused_area_size / store_size * 100) if store_size > 0 else 80)
+        layout_score = min(95, layout_score + (conversion_rate - 30) * 0.5)
+    except Exception:
+        layout_score = 80
+    
+    # امتیاز ترافیک (بر اساس تعداد مشتریان)
+    try:
+        traffic_score = min(95, max(60, customer_traffic / 10))
+    except Exception:
+        traffic_score = 70
+    
+    # امتیاز طراحی (بر اساس نرخ تبدیل و ترافیک)
+    try:
+        design_score = min(95, max(60, conversion_rate * 1.5 + traffic_score * 0.3))
+    except Exception:
+        design_score = 70
+    
+    # امتیاز فروش (بر اساس نرخ تبدیل)
+    try:
+        sales_score = min(95, max(60, conversion_rate * 2))
+    except Exception:
+        sales_score = 65
+    
+    return {
+        'overall_score': int((layout_score + traffic_score + design_score + sales_score) / 4),
+        'layout_score': int(layout_score),
+        'traffic_score': int(traffic_score),
+        'design_score': int(design_score),
+        'sales_score': int(sales_score)
+    }
+@require_http_methods(["GET", "POST"])
+def free_register(request):
+    """
+    Simple email-only registration for free-plan usage monitoring.
+    Stores email + IP + user agent into FreeUsageTracking and shows admin-monitorable record.
+    """
+    try:
+        if request.method == 'POST':
+            email = (request.POST.get('email') or '').strip().lower()
+            user_agent = request.META.get('HTTP_USER_AGENT', '')[:1000]
+            xff = request.META.get('HTTP_X_FORWARDED_FOR')
+            if xff:
+                ip = xff.split(',')[0].strip()
+            else:
+                ip = request.META.get('REMOTE_ADDR') or ''
+
+            if not email:
+                from django.contrib import messages
+                messages.error(request, 'لطفاً ایمیل خود را وارد کنید.')
+                return render(request, 'store_analysis/free_register.html', {})
+
+            # Hash IP for privacy (store hashed value)
+            try:
+                ip_hash = hashlib.sha256(ip.encode('utf-8')).hexdigest()
+            except Exception:
+                ip_hash = ip
+
+            from django.contrib import messages
+            # Check existing record
+            existing = FreeUsageTracking.objects.filter(email__iexact=email).first()
+            if existing:
+                # If blocked, deny
+                if existing.is_blocked:
+                    messages.error(request, 'حساب شما مسدود شده است. برای توضیحات با پشتیبانی تماس بگیرید.')
+                    return redirect('store_analysis:products')
+
+                # If not allowed to use free again (30 days window), inform user
+                if not existing.can_use_free_again():
+                    days_used = existing.get_usage_age_days()
+                    days_left = max(0, 30 - days_used)
+                    messages.warning(request, f'شما در 30 روز گذشته از پلن رایگان استفاده کرده‌اید. لطفاً {days_left} روز دیگر تلاش کنید.')
+                    return redirect('store_analysis:products')
+
+                # Allowed to use again — update first_usage to now (start new window) and other metadata
+                existing.username = email.split('@')[0]
+                existing.ip_address = ip_hash
+                existing.user_agent = user_agent
+                # reset first_usage to now to mark new usage window
+                try:
+                    from django.utils import timezone as _tz
+                    existing.first_usage = _tz.now()
+                except Exception:
+                    pass
+                existing.save()
+                messages.success(request, 'ایمیل شما به‌روزرسانی شد و می‌توانید از پلن رایگان استفاده کنید.')
+                return redirect('store_analysis:products')
+
+            # Create new tracking record
+            fut = FreeUsageTracking.objects.create(
+                username=email.split('@')[0],
+                email=email,
+                phone=None,
+                ip_address=ip_hash,
+                analysis_id=None,
+                store_name='',
+                is_blocked=False,
+                user_agent=user_agent
+            )
+            messages.success(request, 'ایمیل شما برای ثبت استفاده رایگان ثبت شد. ممنون!')
+            return redirect('store_analysis:products')
+
+        # GET
+        return render(request, 'store_analysis/free_register.html', {})
+    except Exception as e:
+        logger.error(f"Error in free_register: {e}", exc_info=True)
+        from django.contrib import messages
+        messages.error(request, 'خطا در ثبت ایمیل. لطفاً دوباره تلاش کنید.')
+        return redirect('store_analysis:products')
     
     # دریافت داده‌های لازم
     conversion_rate = to_float(analysis_data.get('conversion_rate'), 42.5)
@@ -5702,7 +5824,28 @@ def test_advanced_analysis(request):
 def payping_callback(request, order_id):
     """بازگشت از PayPing - Callback Handler کامل و حرفه‌ای"""
     try:
-        order = get_object_or_404(Order, order_number=order_id)
+        try:
+            order = Order.objects.get(order_number=order_id)
+        except Order.DoesNotExist:
+            # Order might not exist but a Payment was created (legacy or race condition).
+            # Try to find a Payment with this order_id and create a placeholder Order linked to it.
+            payment = Payment.objects.filter(order_id=order_id).first()
+            if payment:
+                order = Order.objects.create(
+                    order_number=order_id,
+                    user=payment.user,
+                    status='pending',
+                    original_amount=payment.amount or Decimal('0.00'),
+                    base_amount=payment.amount or Decimal('0.00'),
+                    final_amount=payment.amount or Decimal('0.00'),
+                    currency=payment.currency or 'IRR',
+                    payment=payment,
+                    payment_method=payment.payment_method or 'payping'
+                )
+                logger.info(f"Created placeholder Order {order.order_number} for existing payment {payment.id} during PayPing callback")
+            else:
+                # If neither Order nor Payment exists, raise 404
+                raise
         
         # بررسی اینکه آیا کاربر لاگین است و سفارش متعلق به اوست (برای امنیت)
         # اما اگر لاگین نباشد هم ادامه می‌دهیم چون callback از درگاه خارجی می‌آید
@@ -5821,6 +5964,114 @@ def payping_callback(request, order_id):
         
         logger.info("✅ Final verification result for order %s: %s", order.order_number, verification_result)
         
+        # محافظه‌کارانه: اگر verify ناموفق بود اما callback از درگاه دریافت شد،
+        # ابتدا بررسی کن آیا فرم تکمیل شده است؛ اگر تکمیل شده باشد پرداخت را علامت‌گذاری کن
+        # و تیکت بساز (برای جلوگیری از ریفاند خودکار). در غیر این صورت، پرداخت را pending نگه دار
+        # و callback_data را ذخیره و تیکت ایجاد کن، سپس کاربر را به صفحه پرداخت هدایت کن.
+        if verification_result.get('status') != 'success':
+            has_callback_local = bool(refid or code or (payment and getattr(payment, 'authority', None)))
+            logger.info("🔍 Verification failed and has_callback=%s for order %s", has_callback_local, order.order_number)
+            if has_callback_local:
+                # check if form was completed (processing/completed or uploaded_files present)
+                form_completed = False
+                try:
+                    if store_analysis:
+                        sa_status = getattr(store_analysis, 'status', None)
+                        if sa_status in ('processing', 'completed'):
+                            form_completed = True
+                        else:
+                            analysis_data = store_analysis.analysis_data or {}
+                            if isinstance(analysis_data, dict) and analysis_data.get('uploaded_files'):
+                                form_completed = True
+                except Exception as e:
+                    logger.error("⚠️ Error checking store_analysis completion: %s", e, exc_info=True)
+
+                if form_completed:
+                    # mark payment/order completed to avoid refund, save callback_data and create support ticket
+                    transaction_id = refid or code or (payment.authority if payment and hasattr(payment, 'authority') else None)
+                    if payment:
+                        payment.status = 'completed'
+                        payment.transaction_id = transaction_id or payment.transaction_id or getattr(payment, 'authority', None)
+                        payment.store_analysis = store_analysis
+                        payment.completed_at = timezone.now()
+                        try:
+                            payment.callback_data = {
+                                'refid': refid, 'code': code, 'clientrefid': clientrefid,
+                                'raw_get': dict(request.GET), 'raw_post': dict(request.POST)
+                            }
+                        except Exception:
+                            pass
+                        payment.save(update_fields=['status', 'transaction_id', 'store_analysis', 'completed_at', 'callback_data'])
+                    else:
+                        payment = Payment.objects.create(
+                            user=order.user,
+                            store_analysis=store_analysis,
+                            order_id=order.order_number,
+                            amount=order.final_amount,
+                            payment_method='payping',
+                            status='completed',
+                            transaction_id=transaction_id,
+                            completed_at=timezone.now()
+                        )
+                    order.status = 'paid'
+                    order.payment = payment
+                    order.transaction_id = payment.transaction_id
+                    order.payment_method = 'payping'
+                    order.save(update_fields=['status', 'payment', 'transaction_id', 'payment_method'])
+
+                    # create support ticket
+                    try:
+                        from django.contrib.auth import get_user_model
+                        User = get_user_model()
+                        ticket_user = order.user or (request.user if request.user.is_authenticated else None)
+                        if not ticket_user:
+                            ticket_user = User.objects.filter(is_superuser=True).first()
+                        from .models import SupportTicket
+                        ticket_subject = f"[پرداخت نامعلوم] سفارش {order.order_number}"
+                        ticket_desc = f"Callback received but PayPing verification failed for order {order.order_number}.\\nRefid={refid}\\nCode={code}\\nPlease review payment {payment.id}.\\nCallback GET={dict(request.GET)} POST={dict(request.POST)}"
+                        if ticket_user:
+                            SupportTicket.objects.create(user=ticket_user, subject=ticket_subject, description=ticket_desc, category='billing', priority='urgent')
+                    except Exception as e:
+                        logger.error("⚠️ Failed to create support ticket: %s", e, exc_info=True)
+
+                    messages.success(request, '✅ پرداخت شما ثبت شد و تیم پشتیبانی در صورت نیاز بررسی خواهد کرد.')
+                    if store_analysis:
+                        try:
+                            request.session['analysis_id'] = store_analysis.id
+                            request.session['pending_analysis_id'] = store_analysis.id
+                            request.session.modified = True
+                            request.session.save()
+                        except Exception:
+                            pass
+                        return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+                    return redirect('store_analysis:user_dashboard')
+                else:
+                    # save callback data, create ticket, leave payment pending
+                    if payment:
+                        try:
+                            payment.callback_data = {
+                                'refid': refid, 'code': code, 'clientrefid': clientrefid,
+                                'raw_get': dict(request.GET), 'raw_post': dict(request.POST)
+                            }
+                            payment.save(update_fields=['callback_data'])
+                        except Exception as e:
+                            logger.error("⚠️ Failed to save callback_data: %s", e, exc_info=True)
+                    try:
+                        from django.contrib.auth import get_user_model
+                        User = get_user_model()
+                        ticket_user = order.user or (request.user if request.user.is_authenticated else None)
+                        if not ticket_user:
+                            ticket_user = User.objects.filter(is_superuser=True).first()
+                        from .models import SupportTicket
+                        ticket_subject = f"[پرداخت ناموفق] سفارش {order.order_number}"
+                        ticket_desc = f"PayPing verification failed for order {order.order_number}. Callback data saved for manual review.\\nRefid={refid}\\nCode={code}\\nGET={dict(request.GET)} POST={dict(request.POST)}"
+                        if ticket_user:
+                            SupportTicket.objects.create(user=ticket_user, subject=ticket_subject, description=ticket_desc, category='billing', priority='urgent')
+                    except Exception as e:
+                        logger.error("⚠️ Failed to create support ticket: %s", e, exc_info=True)
+                    messages.error(request, '❌ تایید پرداخت ناموفق بود. پرداخت در وضعیت معلق قرار گرفت و تیم پشتیبانی بررسی خواهد کرد.')
+                    return redirect('store_analysis:payment_page', order_id=order.order_number)
+
         if verification_result.get('status') == 'success':
             if payment is None:
                 payment = Payment.objects.create(
@@ -7529,8 +7780,8 @@ def _convert_ollama_results_to_text(results):
             
             # حذف JSON syntax اگر هست
             import re
-            # حذف ' و " اضافی در ابتدا و انتهای متن
-            report = report.strip("'\"")
+            # حذف ' و \" اضافی در ابتدا و انتهای متن
+            report = report.strip('\'\"')
             
             # اگر متن شامل store_info و... است، فقط final_report را استخراج کن
             if 'final_report' in report or 'store_info' in report:
@@ -8072,6 +8323,15 @@ def store_analysis_form(request, analysis_id=None):
                         return redirect('store_analysis:products')
                     # فقط اگر واقعاً هیچ analysis_id وجود ندارد، یک تحلیل جدید ایجاد کن
                     logger.warning(f"⚠️ store_analysis_form: No analysis found and no analysis_id provided, creating new analysis")
+                    # Prevent users with unpaid pending orders from creating a new free analysis
+                    if request.user.is_authenticated:
+                        pending_order = Order.objects.filter(user=request.user, status__in=['pending','processing']).exclude(final_amount=0).first()
+                        if pending_order:
+                            logger.info(f"User {request.user.username} has pending order {pending_order.order_number}; redirecting to payment page")
+                            messages.warning(request, '🔔 شما سفارش معلقی دارید که هنوز پرداخت نشده است. برای ثبت تحلیل جدید ابتدا سفارش قبلی را پرداخت یا لغو کنید.')
+                            request.session['pending_order_id'] = pending_order.order_number
+                            return redirect('store_analysis:payment_page', order_id=pending_order.order_number)
+
                     analysis = StoreAnalysis.objects.create(
                         user=request.user if request.user.is_authenticated else None,
                         analysis_type='comprehensive_7step',
@@ -8091,6 +8351,15 @@ def store_analysis_form(request, analysis_id=None):
                     return redirect('store_analysis:products')
                 # فقط اگر واقعاً هیچ analysis_id وجود ندارد، یک تحلیل جدید ایجاد کن
                 logger.warning(f"⚠️ store_analysis_form: No analysis found and no analysis_id provided, creating new analysis")
+                # Prevent users with unpaid pending orders from creating a new free analysis
+                if request.user.is_authenticated:
+                    pending_order = Order.objects.filter(user=request.user, status__in=['pending','processing']).exclude(final_amount=0).first()
+                    if pending_order:
+                        logger.info(f"User {request.user.username} has pending order {pending_order.order_number}; redirecting to payment page")
+                        messages.warning(request, '🔔 شما سفارش معلقی دارید که هنوز پرداخت نشده است. برای ثبت تحلیل جدید ابتدا سفارش قبلی را پرداخت یا لغو کنید.')
+                        request.session['pending_order_id'] = pending_order.order_number
+                        return redirect('store_analysis:payment_page', order_id=pending_order.order_number)
+
                 analysis = StoreAnalysis.objects.create(
                     user=request.user if request.user.is_authenticated else None,
                     analysis_type='comprehensive_7step',
@@ -8389,6 +8658,15 @@ def start_analysis(request, pk):
     
     if request.method == 'POST':
         try:
+            # Prevent starting analysis if there's an associated unpaid order
+            if hasattr(analysis, 'order') and analysis.order:
+                ord_obj = analysis.order
+                if getattr(ord_obj, 'final_amount', 0) and ord_obj.status not in ['paid', 'processing', 'completed']:
+                    logger.warning(f"Attempt to start analysis {pk} while order {ord_obj.order_number} is unpaid (status={ord_obj.status})")
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'این تحلیل سفارش پرداخت‌نشده دارد. لطفاً ابتدا پرداخت را انجام دهید.'
+                    }, status=403)
             # تبدیل داده‌های تحلیل به فرمت مناسب
             store_data = {
                 'store_name': analysis.store_name,
