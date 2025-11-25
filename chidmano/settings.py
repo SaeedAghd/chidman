@@ -260,12 +260,13 @@ if os.getenv('LIARA') == 'true':
 
 # Choose static backend per environment
 if os.getenv('LIARA') == 'true':
-    STATIC_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # Use a safe storage that falls back when manifest entries are missing
+    STATIC_BACKEND = 'chidmano.storage.SafeCompressedManifestStaticFilesStorage'
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
 elif not DEBUG:
-    STATIC_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # use Manifest storage in non-debug (staging/prod)
+    STATIC_BACKEND = 'chidmano.storage.SafeCompressedManifestStaticFilesStorage'  # use Manifest storage in non-debug (staging/prod)
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
     WHITENOISE_MAX_AGE = 31536000
