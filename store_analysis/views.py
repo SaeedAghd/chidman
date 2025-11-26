@@ -11853,65 +11853,43 @@ def forms_submit(request):
 
 def products_page(request):
     """صفحه محصولات و خدمات تحلیل فروشگاه - بدون نیاز به لاگین"""
-    products = [
-        {
-            'name': 'تحلیل اولیه فروشگاه',
-            'original_price': '500000',
-            'price': 'رایگان',
-            'discount_percent': '100',
-            'currency': 'تومان',
-            'delivery_time': '10-30 دقیقه',
-            'features': [
-                'تحلیل کلی فروشگاه',
-                'شناسایی نقاط ضعف',
-                '5 پیشنهاد عملی',
-                'گزارش 10 صفحه‌ای',
-                'پشتیبانی ایمیل'
-            ],
-            'buy_url': '/store/buy/basic/',
-            'popular': False,
-            'is_free': True
-        },
-        {
-            'name': 'تحلیل کامل فروشگاه',
-            'original_price': '10000',
-            'price': '10000',
-            'discount_percent': '0',
-            'currency': 'تومان',
-            'delivery_time': '15-45 دقیقه',
-            'features': [
-                'تحلیل جامع فروشگاه',
-                'شناسایی نقاط ضعف و قوت',
-                '15 پیشنهاد عملی',
-                'گزارش 25 صفحه‌ای',
-                'مشاوره تلفنی 30 دقیقه‌ای',
-                'پشتیبانی تلفنی'
-            ],
-            'buy_url': '/store/buy/complete/',
-            'popular': True,
-            'is_free': False
-        },
-        {
-            'name': 'تحلیل پیشرفته فروشگاه',
-            'original_price': '3000000',
-            'price': '1500000',
-            'discount_percent': '50',
-            'currency': 'تومان',
-            'delivery_time': '20-60 دقیقه',
-            'features': [
-                'تحلیل کامل + پیگیری',
-                'شناسایی کامل مشکلات',
-                '25 پیشنهاد عملی',
-                'گزارش 50 صفحه‌ای',
-                'مشاوره تلفنی 60 دقیقه‌ای',
-                'پیگیری 30 روزه',
-                'پشتیبانی اختصاصی'
-            ],
-            'buy_url': '/store/buy/advanced/',
-            'popular': False,
-            'is_free': False
+    # Build products dynamically from ServicePackage records
+    products = []
+    try:
+        from store_analysis.models import ServicePackage
+        from django.core.cache import cache
+        admin_settings = cache.get('admin_settings', {}) or {}
+        discount_pct = admin_settings.get('discount_percentage', 80)
+        mapping_urls = {
+            'basic': '/store/buy/basic/',
+            'professional': '/store/buy/complete/',
+            'enterprise': '/store/buy/advanced/',
         }
-    ]
+        # Query active packages and construct product entries
+        pkgs = ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price')
+        for pkg in pkgs:
+            try:
+                discounted = int(float(pkg.price) * (1 - float(discount_pct) / 100.0))
+            except Exception:
+                discounted = int(pkg.price)
+            products.append({
+                'name': pkg.name,
+                'original_price': int(pkg.price),
+                'price': discounted,
+                'discount_percent': discount_pct,
+                'currency': pkg.currency or 'تومان',
+                'delivery_time': f"{15}-{45} دقیقه" if pkg.package_type == 'professional' else "10-60 دقیقه",
+                'features': pkg.features or [],
+                'buy_url': mapping_urls.get(pkg.package_type, '/store/buy/basic/'),
+                'popular': getattr(pkg, 'is_popular', False),
+                'is_free': False if int(pkg.price) > 0 else True
+            })
+    except Exception as e:
+        # fallback to original static definitions if DB access fails
+        logger = globals().get('logger')
+        if logger:
+            logger.warning(f"Failed to build products from ServicePackage: {e}")
+        products = []
     
     payment_methods = [
         {
