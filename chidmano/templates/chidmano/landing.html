@@ -1787,8 +1787,19 @@
                     </div>
                 </div>
                 <div class="timer-price">
-                    <div class="price-old">1,500,000 تومان</div>
-                    <div class="price-new">300,000 تومان</div>
+                    {% if featured_package %}
+                        <div class="price-old">{{ featured_package.price|floatformat:0 }} تومان</div>
+                        <div class="price-new">
+                            {% if featured_package_discounted_price %}
+                                {{ featured_package_discounted_price|floatformat:0 }} تومان
+                            {% else %}
+                                {{ featured_package.price|floatformat:0 }} تومان
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="price-old">—</div>
+                        <div class="price-new">تماس بگیرید</div>
+                    {% endif %}
                 </div>
             </div>
         </div>

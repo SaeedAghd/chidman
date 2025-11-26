@@ -318,6 +318,25 @@ def simple_home(request):
             }
         ]
     }
+    # attach active service packages so templates use dynamic prices instead of hardcoded ones
+    try:
+        from store_analysis.models import ServicePackage
+        packages = list(ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price'))
+        context['packages'] = packages
+        context['featured_package'] = packages[0] if packages else None
+        if context.get('featured_package'):
+            pkg = context['featured_package']
+            discount_pct = context.get('discount_info', {}).get('discount_percentage', 0)
+            try:
+                discounted = float(pkg.price) * (1 - float(discount_pct) / 100.0)
+            except Exception:
+                discounted = float(pkg.price)
+            context['featured_package_discounted_price'] = int(discounted)
+    except Exception:
+        context.setdefault('packages', [])
+        context.setdefault('featured_package', None)
+        context.setdefault('featured_package_discounted_price', None)
+
     return render(request, 'chidmano/landing.html', context)
 
 def store_analysis_home(request):
