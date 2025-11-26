@@ -60,6 +60,8 @@ urlpatterns = [
     path('features/', views.features_view, name='features'),
     
     # راهنماهای SEO
+    # Redirect base /guide/ to a default guide page to avoid 404s from crawlers
+    path('guide/', RedirectView.as_view(url='/guide/store-layout/', permanent=False), name='guide_index'),
     path('guide/', include([
         path('store-layout/', views.store_layout_guide, name='store_layout_guide'),
         path('supermarket-layout/', views.supermarket_layout_guide, name='supermarket_layout_guide'),

@@ -11,9 +11,13 @@ from django.contrib.admin import SimpleListFilter
 from django.http import HttpResponse
 import csv
 from datetime import datetime, timedelta
+from django.conf import settings
+from django.urls import path
+from django.utils.html import escape
 from .models import (
     Payment, PaymentLog, ServicePackage, UserSubscription,
-    ChatSession, ChatMessage, FreeUsageTracking
+    ChatSession, ChatMessage, FreeUsageTracking, StoreAnalysis,
+    SupportTicket
 )
 
 # --- Custom Filters ---
@@ -101,8 +105,8 @@ class TestModeFilter(SimpleListFilter):
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = [
-        'order_id', 'user', 'amount_display', 'status_display', 
-        'payment_method_display', 'is_test_display', 'created_at'
+        'order_id', 'user', 'amount_display', 'status_display',
+        'payment_method_display', 'is_test_display', 'client_ip', 'client_location', 'created_at'
     ]
     list_filter = [
         PaymentStatusFilter, PaymentMethodFilter, TestModeFilter, 
@@ -180,7 +184,126 @@ class PaymentAdmin(admin.ModelAdmin):
     is_test_display.short_description = 'حالت'
     is_test_display.admin_order_field = 'is_test'
     
+    def client_ip(self, obj):
+        """
+        نمایش IP کلاینت در پنل ادمین.
+        تلاش می‌کنیم IP را از callback_data یا gateway_response استخراج کنیم.
+        """
+        try:
+            # اگر فیلد مدل client_ip وجود داشته باشد، از آن استفاده کن
+            if hasattr(obj, 'client_ip') and obj.client_ip:
+                return obj.client_ip
+
+            # callback_data معمولاً از نوع dict است
+            data_sources = [obj.callback_data or {}, obj.gateway_response or {}]
+            for ds in data_sources:
+                if isinstance(ds, dict):
+                    # چند کلید متداول برای IP
+                    for key in ('client_ip', 'ip', 'remote_addr', 'request_ip', 'user_ip'):
+                        ip = ds.get(key)
+                        if ip:
+                            return ip
+                    # بعضی پاسخ‌ها تو در تو هستند
+                    nested = ds.get('request') or ds.get('meta') or {}
+                    if isinstance(nested, dict):
+                        for key in ('client_ip', 'ip', 'remote_addr'):
+                            ip = nested.get(key)
+                            if ip:
+                                return ip
+            return '-'
+        except Exception:
+            return '-'
+    client_ip.short_description = 'IP کاربر'
+    client_ip.admin_order_field = 'created_at'
+
+    def client_location(self, obj):
+        """
+        تلاش برای یافتن موقعیت تقریبی براساس IP با استفاده از GeoIP2 در صورت موجود بودن،
+        وگرنه لینک به سرویس‌های lookup عمومی مانند ipinfo.io را نمایش می‌دهد.
+        """
+        try:
+            ip = self.client_ip(obj)
+            if not ip or ip == '-':
+                return '-'
+
+            # اگر GeoIP2 نصب و پیکربندی شده باشد آن را استفاده کن
+            try:
+                from django.contrib.gis.geoip2 import GeoIP2
+                g = GeoIP2()
+                info = g.city(ip)
+                city = info.get('city')
+                country = info.get('country_name')
+                if city or country:
+                    parts = [p for p in (city, country) if p]
+                    return ', '.join(parts)
+            except Exception:
+                # GeoIP2 در دسترس نیست یا خطا رخ داده — ادامه می‌دهیم به لینک خارجی
+                pass
+
+            # لینک به ipinfo.io برای بررسی دستی
+            lookup_url = f"https://ipinfo.io/{ip}"
+            return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">مشاهده موقعیت</a>', lookup_url)
+        except Exception:
+            return '-'
+    client_location.short_description = 'موقعیت تقریبی'
+    
     actions = ['export_payments_csv', 'mark_as_completed', 'mark_as_failed']
+
+    def get_urls(self):
+        """Add custom admin view to list recent payments with resolved locations"""
+        urls = super().get_urls()
+        custom_urls = [
+            path('locations/', self.admin_site.admin_view(self.recent_payments_locations_view), name='payment_locations'),
+        ]
+        return custom_urls + urls
+
+    def recent_payments_locations_view(self, request):
+        """Admin view: show recent payments with IP and approximate location (GeoIP2 or ipinfo link)"""
+        # permission check
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied()
+
+        payments = Payment.objects.order_by('-created_at')[:200]
+
+        rows = []
+        for p in payments:
+            ip = p.client_ip or ''
+            location_display = '-'
+            if ip:
+                # try GeoIP2
+                try:
+                    from django.contrib.gis.geoip2 import GeoIP2
+                    g = GeoIP2(settings.GEOIP_PATH)
+                    info = g.city(ip)
+                    city = info.get('city') or ''
+                    country = info.get('country_name') or ''
+                    if city or country:
+                        location_display = f"{escape(city)} {escape(country)}".strip()
+                    else:
+                        location_display = f'<a href="https://ipinfo.io/{escape(ip)}" target="_blank" rel="noopener noreferrer">مشاهده</a>'
+                except Exception:
+                    location_display = f'<a href="https://ipinfo.io/{escape(ip)}" target="_blank" rel="noopener noreferrer">مشاهده</a>'
+            rows.append({
+                'order_id': escape(p.order_id or ''),
+                'user': escape(p.user.username if p.user else ''),
+                'amount': f"{p.amount:,} {p.currency}",
+                'status': escape(p.get_status_display_fa()),
+                'ip': escape(ip),
+                'location': location_display,
+                'created_at': p.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
+
+        # Build simple HTML
+        html = ['<div style="padding:20px">']
+        html.append('<h2>آخرین پرداخت‌ها و موقعیت تقریبی</h2>')
+        html.append('<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;">')
+        html.append('<thead><tr><th>Order</th><th>User</th><th>Amount</th><th>Status</th><th>IP</th><th>Location</th><th>Created</th></tr></thead>')
+        html.append('<tbody>')
+        for r in rows:
+            html.append(f"<tr><td>{r['order_id']}</td><td>{r['user']}</td><td>{r['amount']}</td><td>{r['status']}</td><td>{r['ip']}</td><td>{r['location']}</td><td>{r['created_at']}</td></tr>")
+        html.append('</tbody></table></div>')
+        return HttpResponse(''.join(html))
     
     def export_payments_csv(self, request, queryset):
         response = HttpResponse(content_type='text/csv')
@@ -433,6 +556,69 @@ class FreeUsageTrackingAdmin(admin.ModelAdmin):
         }),
     )
 
+
+# --- StoreAnalysis Admin (show store address/location for admins) ---
+@admin.register(StoreAnalysis)
+class StoreAnalysisAdmin(admin.ModelAdmin):
+    list_display = ('id', 'store_name', 'user', 'get_location', 'status', 'final_amount', 'created_at')
+    list_filter = ('status', 'analysis_type', 'package_type', 'created_at')
+    search_fields = ('store_name', 'user__username', 'store_address')
+    readonly_fields = ('created_at', 'updated_at', 'completed_at')
+    ordering = ['-created_at']
+    list_per_page = 25
+
+    fieldsets = (
+        ('اطلاعات فروشگاه', {
+            'fields': ('store_name', 'store_url', 'store_type', 'store_address')
+        }),
+        ('وضعیت تحلیل', {
+            'fields': ('analysis_type', 'status', 'final_amount', 'order')
+        }),
+        ('داده‌ها و فایل‌ها', {
+            'fields': ('analysis_data', 'store_images', 'analysis_files'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def get_location(self, obj):
+        """سعی می‌کنیم موقعیت (شهر/منطقه/آدرس) را از فیلدهای مختلف استخراج کنیم."""
+        try:
+            if obj.store_address:
+                return obj.store_address
+            # نگاه به داده‌های فرم (analysis_data) برای فیلدهای رایج
+            data = obj.analysis_data or {}
+            for key in ('city', 'area', 'region', 'province', 'location'):
+                val = data.get(key)
+                if val:
+                    return val
+            return '-'
+        except Exception:
+            return '-'
+    get_location.short_description = 'مکان / آدرس'
+
+
+# --- SupportTicket Admin ---
+@admin.register(SupportTicket)
+class SupportTicketAdmin(admin.ModelAdmin):
+    list_display = ('ticket_id', 'user', 'subject', 'category', 'priority', 'status', 'created_at')
+    list_filter = ('status', 'category', 'priority', 'created_at')
+    search_fields = ('ticket_id', 'subject', 'user__username', 'tags')
+    readonly_fields = ('created_at', 'updated_at', 'resolved_at')
+    ordering = ['-created_at']
+    list_per_page = 50
+
+    fieldsets = (
+        ('اطلاعات پایه', {
+            'fields': ('ticket_id', 'user', 'subject', 'description')
+        }),
+        ('دسته‌بندی و اولویت', {
+            'fields': ('category', 'priority', 'status', 'assigned_to')
+        }),
+        ('پیوندها و متادیتا', {
+            'fields': ('attachments', 'tags'),
+            'classes': ('collapse',)
+        }),
+    )
 
 # --- Admin Site Configuration ---
 admin.site.site_header = "مدیریت چیدمانو"

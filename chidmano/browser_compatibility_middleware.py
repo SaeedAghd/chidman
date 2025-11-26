@@ -14,20 +14,40 @@ class BrowserCompatibilityMiddleware(MiddlewareMixin):
     
     def process_request(self, request):
         """پردازش درخواست برای سازگاری با مرورگرها"""
-        # تنظیم headers برای سازگاری
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
-        
-        # تشخیص مرورگر
-        if 'Edge' in user_agent or 'Edg/' in user_agent:
-            request.browser = 'edge'
-        elif 'Chrome' in user_agent and 'Edg' not in user_agent:
-            request.browser = 'chrome'
-        elif 'Firefox' in user_agent:
-            request.browser = 'firefox'
-        elif 'Safari' in user_agent and 'Chrome' not in user_agent:
-            request.browser = 'safari'
-        else:
-            request.browser = 'unknown'
+        # تنظیم headers برای سازگاری — از request.headers استفاده کن اگر موجود باشد
+        user_agent = request.headers.get('User-Agent') if hasattr(request, 'headers') else request.META.get('HTTP_USER_AGENT', '')
+
+        # تلاش برای استفاده از کتابخانه user-agents برای تشخیص دقیق‌تر
+        browser_detected = 'unknown'
+        try:
+            from user_agents import parse as ua_parse
+            ua = ua_parse(user_agent or '')
+            family = (ua.browser.family or '').lower()
+            if 'edge' in family or 'microsoft edge' in family:
+                browser_detected = 'edge'
+            elif 'chrome' in family and 'edge' not in family:
+                browser_detected = 'chrome'
+            elif 'firefox' in family:
+                browser_detected = 'firefox'
+            elif 'safari' in family and 'chrome' not in family:
+                browser_detected = 'safari'
+            else:
+                browser_detected = family or 'unknown'
+        except Exception:
+            # fallback ساده بر اساس substring اگر کتابخانه نصب نبود یا خطا داشت
+            ua = (user_agent or '').lower()
+            if 'edg/' in ua or 'edge' in ua:
+                browser_detected = 'edge'
+            elif 'chrome' in ua and 'edg' not in ua:
+                browser_detected = 'chrome'
+            elif 'firefox' in ua:
+                browser_detected = 'firefox'
+            elif 'safari' in ua and 'chrome' not in ua:
+                browser_detected = 'safari'
+            else:
+                browser_detected = 'unknown'
+
+        request.browser = browser_detected
         
         # تنظیمات خاص برای هر مرورگر
         if request.browser == 'edge':

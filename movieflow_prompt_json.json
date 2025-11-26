@@ -58,7 +58,7 @@
       "section": "Call to Action",
       "scene": "لوگوی چیدمانو، دکمه CTA",
       "voiceover": "همین حالا شروع کنید، تخفیف 90% افتتاحیه",
-      "on_screen_text": "www.chidmano.com | تخفیف 90% | فقط 200 هزار تومان",
+      "on_screen_text": "www.chidmano.ir | تخفیف 90% | فقط 200 هزار تومان",
       "music": "به اوج می‌رسد",
       "mood": "ترغیب"
     },
@@ -97,7 +97,7 @@
     {
       "name": "مشکل",
       "location": "فروشگاه واقعی",
-      "characters": "صاحب فروشگاه ناراضی، مشتریان",
+      "characters": "صاحب فروشگاه ناراضی، مشتریان با حجاب ایرانی",
       "camera": "Wide shot سپس close-up",
       "lighting": "کمی تاریک و غمگین"
     },
@@ -111,7 +111,7 @@
     {
       "name": "مزایا",
       "location": "فروشگاه بعد از بهبود",
-      "characters": "مشتریان راضی، صاحب خوشحال",
+      "characters": "مشتریان راضی با حجاب اسلامی، صاحب خوشحال",
       "camera": "Dynamic shots",
       "lighting": "روشن و پرانرژی"
     }
@@ -119,7 +119,7 @@
   
   "cta": {
     "text": "همین حالا شروع کنید",
-    "website": "www.chidmano.com",
+    "website": "www.chidmano.ir",
     "discount": "تخفیف 50% افتتاحیه",
     "price": "فقط 75000 هزار تومان"
   },

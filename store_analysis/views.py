@@ -8566,15 +8566,20 @@ def submit_analysis(request):
             # محاسبه هزینه
             cost_breakdown = calculate_analysis_cost(form_data)
 
+            # Prepare model fields from form_data where applicable
+            allowed_fields = ['store_type', 'store_size', 'store_address', 'additional_info', 'business_goals', 'marketing_budget']
+            model_kwargs = {k: form_data.get(k, '') for k in allowed_fields}
+            model_kwargs.update({
+                'user': request.user,
+                'store_name': store_name,
+                'store_url': store_url,
+                'analysis_type': 'comprehensive',
+                'status': 'pending',
+                'analysis_data': form_data
+            })
+
             # ایجاد تحلیل جدید
-            analysis = StoreAnalysis.objects.create(
-                user=request.user,
-                store_name=store_name,
-                store_url=store_url,
-                analysis_type='comprehensive',
-                status='pending',
-                analysis_data=form_data
-            )
+            analysis = StoreAnalysis.objects.create(**model_kwargs)
 
             # ایجاد سفارش
             # ساخت شماره سفارش یکتا و ایجاد سفارش سازگار با مدل فعلی

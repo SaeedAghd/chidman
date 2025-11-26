@@ -44,6 +44,18 @@ class CustomerBehaviorAnalyzer:
                 'recommendations': self._generate_recommendations(path_analysis, stopping_analysis, purchase_analysis, environmental_analysis)
             }
             
+            # If any sub-analysis returned an error, surface a top-level error key
+            sub_errors = []
+            for sub in [path_analysis, stopping_analysis, purchase_analysis, environmental_analysis]:
+                if isinstance(sub, dict) and 'error' in sub:
+                    sub_errors.append(sub.get('error'))
+
+            if sub_errors:
+                results['error'] = ' | '.join([str(e) for e in sub_errors if e])
+                results['overall_score'] = 0.0
+                # Match previous behavior: when sub-analyses failed, surface a generic recommendation
+                results['recommendations'] = ['خطا در تحلیل رفتار مشتری']
+
             self.logger.info("Customer behavior analysis completed successfully")
             return results
             

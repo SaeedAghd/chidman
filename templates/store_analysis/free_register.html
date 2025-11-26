@@ -1,0 +1,21 @@
+{% extends "store_analysis/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width:700px; margin:40px auto;">
+    <h2>ثبت ایمیل برای استفاده از پلن رایگان</h2>
+    <p>برای استفاده از تحلیل رایگان لطفاً ایمیل خود را وارد کنید. ایمیل برای مانیتورینگ و محدودیت یک‌بار/ماه نگهداری می‌شود.</p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="email" class="form-label">ایمیل</label>
+            <input id="email" name="email" type="email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <button class="btn btn-primary" type="submit">ثبت ایمیل و ادامه</button>
+        <a class="btn btn-link" href="{% url 'store_analysis:products' %}">انصراف</a>
+    </form>
+</div>
+{% endblock %}
+
+

@@ -10,24 +10,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # اضافه کردن فیلد authority به Payment
-        migrations.AddField(
-            model_name='payment',
-            name='authority',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='کد مرجع درگاه'),
-        ),
+        # authority field already added in an earlier migration (0076); skip here.
         
-        # اضافه کردن فیلد employee_count به StoreBasicInfo
-        migrations.AddField(
-            model_name='storebasicinfo',
-            name='employee_count',
-            field=models.PositiveIntegerField(default=1, verbose_name='تعداد کارکنان'),
-        ),
-        
-        # اضافه کردن فیلد lighting_score به StoreAnalysisResult
-        migrations.AddField(
-            model_name='storeanalysisresult',
-            name='lighting_score',
-            field=models.FloatField(default=0, verbose_name='امتیاز نورپردازی'),
-        ),
+        # employee_count and lighting_score already exist in earlier migration (0004); skip here.
     ]

@@ -34,7 +34,10 @@ urlpatterns = [
     path('analysis/', include([
         path('create/', views.analysis_create, name='analysis_create'),
         path('list/', views.analysis_list, name='analysis_list'),
+        path('submit/', views.submit_analysis, name='submit_analysis'),
         path('<int:pk>/results/', views.analysis_results, name='analysis_results'),
+        # Backwards-compatible alias for previous URL name used in tests/clients
+        path('<int:pk>/results/', views.analysis_results, name='analysis_detail'),
         path('<int:pk>/download/', views.download_analysis_report, name='download_analysis'),
         path('<int:pk>/view-report/', views.view_analysis_report, name='view_analysis_report'),
         path('<int:pk>/progress/', views.analysis_progress, name='analysis_progress'),
@@ -106,6 +109,8 @@ urlpatterns = [
     
     # PayPing Callback URLs
     path('payment/<str:order_id>/payping/callback/', views.payping_callback, name='payping_callback'),
+    # Free plan simple registration (email only) for monitoring
+    path('free/register/', views.free_register, name='free_register'),
     
     # Wallet redirect (wallet functionality removed)
     path('wallet/', RedirectView.as_view(url='/store/dashboard/', permanent=True), name='wallet_redirect'),

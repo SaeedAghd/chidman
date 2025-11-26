@@ -77,6 +77,9 @@ class Payment(models.Model):
     # Additional fields
     is_test = models.BooleanField(default=True, verbose_name='تست')
     notes = models.TextField(blank=True, verbose_name='یادداشت‌ها')
+    # ذخیره آی‌پی کلاینت و موقعیت تقریبی برای دسترسی سریع در ادمین
+    client_ip = models.GenericIPAddressField(blank=True, null=True, verbose_name='IP کلاینت')
+    client_location = models.CharField(max_length=200, blank=True, null=True, verbose_name='موقعیت کلاینت')
     
     class Meta:
         verbose_name = 'پرداخت'
@@ -434,6 +437,11 @@ class StoreAnalysis(models.Model):
     store_images = models.JSONField(default=list, verbose_name='تصاویر فروشگاه')
     analysis_files = models.JSONField(default=list, verbose_name='فایل‌های تحلیل')
     
+    @property
+    def is_processing(self) -> bool:
+        """Compatibility helper used in tests: whether the analysis is in processing state"""
+        return self.status == 'processing'
+
     # Pricing
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='قیمت')
     currency = models.CharField(max_length=3, default='IRR', verbose_name='واحد پول')
@@ -506,7 +514,7 @@ class StoreAnalysis(models.Model):
         if self.status == 'completed':
             return 100
         elif self.status == 'processing':
-            return 75
+            return 50
         elif self.status == 'pending':
             return 25
         else:

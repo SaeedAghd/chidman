@@ -120,8 +120,8 @@ def analyze_store_task(self, analysis_id):
             analysis.status = 'completed'
             analysis.results = results
             analysis.actual_duration = int((timezone.now() - start_time).total_seconds() / 60)
-        analysis.save()
-        
+            analysis.save()
+
             # ایجاد نتیجه تحلیل
             StoreAnalysisResult.objects.create(
                 store_analysis=analysis,
@@ -189,11 +189,11 @@ def perform_layout_analysis(analysis, task_instance):
             total_size = layout.store_info.store_size
             unused_size = layout.unused_area_size
             used_size = total_size - unused_size
-            
+
             # محاسبه کارایی فضایی
             space_utilization = (used_size / total_size) * 100
             results['space_utilization'] = round(space_utilization, 2)
-            
+
             # امتیاز کارایی
             if space_utilization >= 80:
                 efficiency_score = 90
@@ -201,11 +201,11 @@ def perform_layout_analysis(analysis, task_instance):
                 efficiency_score = 70
             elif space_utilization >= 40:
                 efficiency_score = 50
-        else:
+            else:
                 efficiency_score = 30
-            
+
             results['efficiency_score'] = efficiency_score
-            
+
             # توصیه‌ها
             if space_utilization < 60:
                 results['recommendations'].append({
@@ -303,8 +303,8 @@ def perform_customer_behavior_analysis(analysis, task_instance):
         
         log_memory_usage("Customer Behavior Analysis")
         return results
-            
-        except Exception as e:
+
+    except Exception as e:
         logger.error(f"Customer behavior analysis error: {e}")
         return {'error': str(e)}
 
@@ -446,8 +446,8 @@ def perform_optimization_analysis(analysis, task_instance):
         
         log_memory_usage("Optimization Analysis")
         return results
-            
-        except Exception as e:
+
+    except Exception as e:
         logger.error(f"Optimization analysis error: {e}")
         return {'error': str(e)}
 

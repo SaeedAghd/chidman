@@ -92,13 +92,20 @@ class ReportGenerator:
         elements.append(Spacer(1, 10))
         
         # جدول اطلاعات
+        # Use safe getters in case model field helpers are not available
+        store_type_display = getattr(analysis, 'get_store_type_display', None)
+        if callable(store_type_display):
+            store_type = store_type_display()
+        else:
+            store_type = getattr(analysis, 'store_type', 'نامشخص')
+
         data = [
-            ['نام فروشگاه', analysis.store_name],
-            ['نوع فروشگاه', analysis.get_store_type_display()],
-            ['شهر', analysis.city or 'نامشخص'],
-            ['منطقه', analysis.area or 'نامشخص'],
-            ['متراژ', f"{analysis.store_size} متر مربع" if analysis.store_size else 'نامشخص'],
-            ['تاریخ تحلیل', analysis.created_at.strftime('%Y/%m/%d')],
+            ['نام فروشگاه', getattr(analysis, 'store_name', 'نامشخص')],
+            ['نوع فروشگاه', store_type],
+            ['شهر', getattr(analysis, 'city', None) or 'نامشخص'],
+            ['منطقه', getattr(analysis, 'area', None) or 'نامشخص'],
+            ['متراژ', f"{getattr(analysis, 'store_size', None)} متر مربع" if getattr(analysis, 'store_size', None) else 'نامشخص'],
+            ['تاریخ تحلیل', getattr(analysis, 'created_at', None).strftime('%Y/%m/%d') if getattr(analysis, 'created_at', None) else 'نامشخص'],
         ]
         
         table = Table(data, colWidths=[2*inch, 4*inch])

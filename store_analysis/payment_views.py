@@ -18,6 +18,8 @@ from .models import Payment, PaymentLog, ServicePackage, UserSubscription
 from .payment_services import PaymentManager
 from .forms import PaymentForm
 from .utils.safe_db import check_table_exists
+from django.db import transaction
+from .models import Order
 
 logger = logging.getLogger(__name__)
 
@@ -83,20 +85,37 @@ def create_payment(request, package_id):
                 # Generate unique order ID
                 order_id = f"CHD_{package.id}_{int(timezone.now().timestamp())}"
                 
-                # Create payment record
-                payment = Payment.objects.create(
-                    user=request.user,
-                    order_id=order_id,
-                    amount=package.price,
-                    currency=package.currency,
-                    description=f"خرید بسته {package.name}",
-                    customer_name=customer_info.get('name', ''),
-                    customer_email=customer_info.get('email', ''),
-                    customer_phone=customer_info.get('phone', ''),
-                    payment_method='ping_payment',
-                    status='pending',
-                    is_test=settings.PAYMENT_GATEWAY['PING_PAYMENT']['SANDBOX']
-                )
+                # Create payment record and corresponding Order atomically
+                with transaction.atomic():
+                    payment = Payment.objects.create(
+                        user=request.user,
+                        order_id=order_id,
+                        amount=package.price,
+                        currency=package.currency,
+                        description=f"خرید بسته {package.name}",
+                        customer_name=customer_info.get('name', ''),
+                        customer_email=customer_info.get('email', ''),
+                        customer_phone=customer_info.get('phone', ''),
+                        payment_method='ping_payment',
+                        status='pending',
+                        is_test=settings.PAYMENT_GATEWAY['PING_PAYMENT']['SANDBOX']
+                    )
+
+                    # Create a corresponding Order so callbacks can reliably find it
+                    order = Order.objects.create(
+                        order_number=order_id,
+                        user=request.user,
+                        plan=None,
+                        status='pending',
+                        original_amount=package.price,
+                        base_amount=package.price,
+                        final_amount=package.price,
+                        currency=package.currency,
+                        payment=payment,
+                        payment_method='ping_payment'
+                    )
+                    # Link payment -> order (store as order_id is already set)
+                    payment.save()
                 
                 # Log payment creation
                 safe_create_payment_log(
@@ -205,45 +224,109 @@ def payment_callback(request):
         )
         
         if callback_result['success']:
-            if callback_result['status'] == 'completed':
-                # Payment successful
+            # Ensure there is an Order linked to this payment
+            order = Order.objects.filter(payment=payment).first()
+            if not order:
+                order = Order.objects.filter(order_number=payment.order_id).first()
+
+            # If we still don't have an order, create a minimal one for reconciliation
+            if not order:
+                order = Order.objects.create(
+                    order_number=payment.order_id or f"ORD-UNLINKED-{int(timezone.now().timestamp())}",
+                    user=payment.user,
+                    status='pending',
+                    original_amount=payment.amount or Decimal('0.00'),
+                    base_amount=payment.amount or Decimal('0.00'),
+                    final_amount=payment.amount or Decimal('0.00'),
+                    currency=payment.currency or 'IRR',
+                    payment=payment,
+                    payment_method=payment.payment_method or 'ping_payment'
+                )
+                logger.info(f"Created placeholder Order {order.order_number} for payment {payment.id} during callback handling")
+
+            # Handle completed vs failed status from gateway
+            if callback_result.get('status') == 'completed':
+                # Mark payment and order as completed/paid
                 payment.status = 'completed'
                 payment.completed_at = timezone.now()
                 payment.callback_data = callback_data
                 payment.save()
-                
-                # Create user subscription
-                package = ServicePackage.objects.get(id=payment.description.split()[-1])
-                subscription = UserSubscription.objects.create(
-                    user=payment.user,
-                    package=package,
-                    payment=payment,
-                    end_date=timezone.now() + timezone.timedelta(days=package.validity_days),
-                    max_analyses=package.max_analyses
-                )
-                
-                # Log success
+
+                order.status = 'paid'
+                order.payment = payment
+                order.transaction_id = callback_result.get('transaction_id') or payment.transaction_id
+                order.save()
+
+                # Try to create subscription only if we can determine a ServicePackage
+                created_subscription = False
+                try:
+                    # If Order.plan references a PricingPlan which maps to ServicePackage by name, attempt mapping
+                    if order.plan:
+                        pkg = ServicePackage.objects.filter(price=order.final_amount).first()
+                    else:
+                        # fallback: try to parse package id from payment.description (legacy)
+                        parts = (payment.description or '').split()
+                        pkg = None
+                        if parts:
+                            try:
+                                candidate_id = int(parts[-1])
+                                pkg = ServicePackage.objects.filter(id=candidate_id).first()
+                            except Exception:
+                                pkg = None
+
+                    if pkg:
+                        UserSubscription.objects.create(
+                            user=payment.user,
+                            package=pkg,
+                            payment=payment,
+                            end_date=timezone.now() + timezone.timedelta(days=pkg.validity_days),
+                            max_analyses=pkg.max_analyses
+                        )
+                        created_subscription = True
+
+                except Exception as e:
+                    logger.warning(f"Could not auto-create subscription for payment {payment.id}: {e}")
+
                 safe_create_payment_log(
                     payment=payment,
                     log_type='payment_verified',
-                    message='Payment verified and subscription created',
+                    message='Payment verified and order marked as paid' + (', subscription created' if created_subscription else ', subscription NOT created'),
                     data=callback_result
                 )
-                
+
+                # If subscription could not be auto-created, create a support ticket for manual reconciliation
+                if not created_subscription:
+                    try:
+                        from .models import SupportTicket
+                        SupportTicket.objects.create(
+                            user=payment.user,
+                            subject=f"Manual reconciliation for payment {payment.order_id}",
+                            description=f"Payment {payment.id} completed but subscription not auto-created. Order: {order.order_number}, amount: {payment.amount}",
+                            category='billing',
+                            priority='high',
+                            attachments=[],
+                            tags=['auto-reconcile', 'payment-callback']
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to create support ticket for payment {payment.id}: {e}")
+
                 return JsonResponse({'status': 'success', 'message': 'Payment completed'})
             else:
-                # Payment failed
+                # Payment failed according to gateway
                 payment.status = 'failed'
                 payment.callback_data = callback_data
                 payment.save()
-                
+
+                order.status = 'refunded' if callback_result.get('status') == 'refunded' else 'cancelled'
+                order.save()
+
                 safe_create_payment_log(
                     payment=payment,
                     log_type='payment_failed',
-                    message='Payment failed',
+                    message='Payment failed according to gateway',
                     data=callback_result
                 )
-                
+
                 return JsonResponse({'status': 'failed', 'message': 'Payment failed'})
         else:
             # Callback handling failed

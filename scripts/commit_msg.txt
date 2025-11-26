@@ -1,0 +1,5 @@
+Prepared squashed migration and fixes
+- add squashed migration 0001_initial_squashed_0115
+- cleanup duplicate/conflicting migrations and patched RunPython refs
+- updated tests and analyzer fallback behavior
+
