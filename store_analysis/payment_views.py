@@ -49,14 +49,23 @@ def payment_packages(request):
     Display available payment packages
     """
     try:
-        packages = ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price')
-        
+        from django.core.cache import cache
+        packages = list(ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price'))
+        # Determine discount percentage from admin settings cache if set; default to 80
+        admin_settings = cache.get('admin_settings', {}) or {}
+        discount_pct = admin_settings.get('discount_percentage', 80)
+        # Attach discounted price to each package for template
+        for pkg in packages:
+            try:
+                pkg.discounted_price = int(float(pkg.price) * (1 - float(discount_pct) / 100.0))
+            except Exception:
+                pkg.discounted_price = pkg.price
         context = {
             'packages': packages,
             'title': 'بسته‌های خدمات',
-            'description': 'انتخاب بسته مناسب برای تحلیل فروشگاه شما'
+            'description': 'انتخاب بسته مناسب برای تحلیل فروشگاه شما',
+            'discount_pct': discount_pct,
         }
-        
         return render(request, 'store_analysis/payment_packages.html', context)
         
     except Exception as e:

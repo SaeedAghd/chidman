@@ -105,7 +105,12 @@
                             </div>
                             <div class="col-md-4 text-md-end">
                                 <div class="h4 mb-0 text-primary">
-                                    {{ package.price|floatformat:0|add:0|floatformat:0 }} {{ package.currency }}
+                                    {% if package.discounted_price %}
+                                        <div style="text-decoration: line-through; opacity:0.8;">{{ package.price|floatformat:0 }} {{ package.currency }}</div>
+                                        <div style="font-weight:700;">{{ package.discounted_price|floatformat:0 }} {{ package.currency }}</div>
+                                    {% else %}
+                                        {{ package.price|floatformat:0 }} {{ package.currency }}
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

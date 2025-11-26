@@ -134,8 +134,12 @@
                 <div class="package-header">
                     <h3 class="h4 mb-3">{{ package.name }}</h3>
                     <div class="package-price">
-                        {{ package.price|floatformat:0|add:0|floatformat:0 }}
-                        <span class="package-currency">{{ package.currency }}</span>
+                        {% if discount_pct %}
+                            <div style="text-decoration: line-through; opacity: 0.8;">{{ package.price|floatformat:0 }} <span class="package-currency">{{ package.currency }}</span></div>
+                            <div style="font-size:1.6rem; font-weight:700;">{{ package.discounted_price|default:package.price|floatformat:0 }} <span class="package-currency">{{ package.currency }}</span></div>
+                        {% else %}
+                            {{ package.price|floatformat:0 }} <span class="package-currency">{{ package.currency }}</span>
+                        {% endif %}
                     </div>
                     <p class="mb-0">{{ package.description }}</p>
                 </div>

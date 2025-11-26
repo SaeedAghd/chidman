@@ -241,9 +241,9 @@ def simple_home(request):
     if current_date <= launch_end_date:
         discount_info = {
             'has_discount': True,
-            'discount_percentage': 90,
-            'discount_title': 'تخفیف ویژه افتتاحیه 90%',
-            'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۹۰٪ افتتاحیه. همین حالا سفارش دهید!',
+            'discount_percentage': 80,
+            'discount_title': 'تخفیف ویژه افتتاحیه 80%',
+            'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۸۰٪ افتتاحیه. همین حالا سفارش دهید!',
             'discount_type': 'opening',
             'discount_end_date': launch_end_date
         }
