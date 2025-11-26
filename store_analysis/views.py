@@ -5614,27 +5614,45 @@ def payping_payment(request, order_id):
         logger.info(f"💳 PayPing payment request result: {payment_request}")
         
         if payment_request.get('status') == 'success':
-            # ذخیره اطلاعات پرداخت
+            # ذخیره اطلاعات پرداخت (با fallback برای missing columns)
             store_analysis = StoreAnalysis.objects.filter(order=order).first()
-            payment = Payment.objects.create(
-                user=request.user,
-                store_analysis=store_analysis,
-                order_id=order.order_number,
-                amount=order.final_amount,
-                payment_method='payping',
-                status='pending',
-                authority=payment_request['authority'],  # اضافه کردن authority برای mock payment
-                transaction_id=payment_request['authority']
-            )
-
-            order.payment = payment
-            order.transaction_id = payment.transaction_id
-            order.save(update_fields=['payment', 'transaction_id'])
+            payment = None
+            try:
+                payment = Payment.objects.create(
+                    user=request.user,
+                    store_analysis=store_analysis,
+                    order_id=order.order_number,
+                    amount=order.final_amount,
+                    payment_method='payping',
+                    status='pending',
+                    authority=payment_request['authority'],
+                    transaction_id=payment_request['authority']
+                )
+                order.payment = payment
+                logger.info(f"✅ Payment record created: {payment.id}")
+            except Exception as payment_create_err:
+                # Fallback: اگر Payment ساخته نشد (مثلاً missing client_ip column)، باز هم ادامه بده
+                logger.warning(f"⚠️ Could not create Payment record (possible missing migration): {payment_create_err}")
+                logger.info("Continuing with payment redirect despite Payment record creation failure.")
             
-            logger.info(f"✅ Payment record created: {payment.id}, redirecting to PayPing...")
+            # Update Order transaction_id regardless of Payment creation
+            try:
+                order.transaction_id = payment_request['authority']
+                if payment:
+                    order.payment = payment
+                order.save(update_fields=['transaction_id', 'payment'])
+            except Exception as order_update_err:
+                logger.warning(f"Could not update Order: {order_update_err}")
             
-            # هدایت به صفحه پرداخت PayPing
-            return redirect(payment_request['payment_url'])
+            payment_url = payment_request.get('payment_url')
+            if not payment_url:
+                logger.error(f"Payment request missing payment_url: {payment_request}")
+                messages.error(request, 'خطا: آدرس درگاه پرداخت دریافت نشد.')
+                return redirect('store_analysis:payment_page', order_id=order_id)
+            
+            logger.info(f"✅ Redirecting to PayPing: {payment_url}")
+            # هدایت به صفحه پرداخت PayPing - CRITICAL: این باید همیشه انجام شود
+            return redirect(payment_url)
         else:
             # مدیریت خطاها
             error_msg = payment_request.get('message', 'خطای نامشخص در ایجاد درخواست پرداخت')
@@ -11867,11 +11885,18 @@ def products_page(request):
         }
         # Query active packages and construct product entries
         pkgs = ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price')
+        from decimal import Decimal, ROUND_HALF_UP
+        from django.urls import reverse
         for pkg in pkgs:
             try:
-                discounted = int(float(pkg.price) * (1 - float(discount_pct) / 100.0))
+                price_dec = Decimal(str(pkg.price))
+                disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                discounted = int(disc)
             except Exception:
-                discounted = int(pkg.price)
+                try:
+                    discounted = int(Decimal(str(pkg.price)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                except Exception:
+                    discounted = int(pkg.price)
             products.append({
                 'name': pkg.name,
                 'original_price': int(pkg.price),
@@ -11880,7 +11905,8 @@ def products_page(request):
                 'currency': pkg.currency or 'تومان',
                 'delivery_time': f"{15}-{45} دقیقه" if pkg.package_type == 'professional' else "10-60 دقیقه",
                 'features': pkg.features or [],
-                'buy_url': mapping_urls.get(pkg.package_type, '/store/buy/basic/'),
+                # Use canonical create_payment view with package id to avoid package_type mismatches
+                'buy_url': reverse('store_analysis:create_payment', args=[pkg.id]),
                 'popular': getattr(pkg, 'is_popular', False),
                 'is_free': False if int(pkg.price) > 0 else True
             })

@@ -103,6 +103,18 @@ def create_payment(request, package_id):
                 # Generate unique order ID
                 order_id = f"CHD_{package.id}_{int(timezone.now().timestamp())}"
                 
+                # Calculate discounted amount for payment (80% discount)
+                from django.core.cache import cache
+                from decimal import Decimal, ROUND_HALF_UP
+                admin_settings = cache.get('admin_settings', {}) or {}
+                discount_pct = admin_settings.get('discount_percentage', 80)
+                try:
+                    price_dec = Decimal(str(package.price))
+                    discounted_amount = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                    payment_amount = Decimal(discounted_amount)
+                except Exception:
+                    payment_amount = Decimal(str(package.price))
+                
                 # Create payment record and corresponding Order atomically
                 from django.db import DatabaseError
                 try:
@@ -110,7 +122,7 @@ def create_payment(request, package_id):
                         payment = Payment.objects.create(
                             user=request.user,
                             order_id=order_id,
-                            amount=package.price,
+                            amount=payment_amount,  # Use discounted amount
                             currency=package.currency,
                             description=f"خرید بسته {package.name}",
                             customer_name=customer_info.get('name', ''),
@@ -129,7 +141,7 @@ def create_payment(request, package_id):
                             status='pending',
                             original_amount=package.price,
                             base_amount=package.price,
-                            final_amount=package.price,
+                            final_amount=payment_amount,  # Use discounted amount
                             currency=package.currency,
                             payment=payment,
                             payment_method='ping_payment'
@@ -141,6 +153,9 @@ def create_payment(request, package_id):
                     logger.error(f"DatabaseError creating Payment (possible missing migration): {db_err}")
                     # Fallback: create Order without Payment and continue to initiate payment request.
                     try:
+                        # Generate temporary transaction_id to satisfy NOT NULL constraint if exists
+                        import uuid
+                        temp_transaction_id = f"TEMP_{uuid.uuid4().hex[:12].upper()}"
                         order = Order.objects.create(
                             order_number=order_id,
                             user=request.user,
@@ -148,12 +163,13 @@ def create_payment(request, package_id):
                             status='pending',
                             original_amount=package.price,
                             base_amount=package.price,
-                            final_amount=package.price,
+                            final_amount=payment_amount,  # Use discounted amount
                             currency=package.currency,
-                            payment_method='ping_payment'
+                            payment_method='ping_payment',
+                            transaction_id=temp_transaction_id  # Set temporary transaction_id
                         )
                         payment = None
-                        logger.info("Fallback: Order created without Payment due to DB schema mismatch. Continuing to payment initiation.")
+                        logger.info(f"Fallback: Order created without Payment (transaction_id={temp_transaction_id}) due to DB schema mismatch. Continuing to payment initiation.")
                     except Exception as create_order_exc:
                         logger.error(f"Failed fallback Order creation: {create_order_exc}", exc_info=True)
                         messages.error(request, 'خطا در ایجاد سفارش. لطفاً دوباره تلاش کنید.')
@@ -196,9 +212,9 @@ def create_payment(request, package_id):
                 
                 logger.info(f"🔹 PayPing payment initiated for order {order_id} by user {request.user.username} (mobile: {payer_identity})")
                 
-                # Create payment request with PayPing
+                # Create payment request with PayPing (using discounted amount calculated above)
                 payment_request = payping.create_payment_request(
-                    amount=int(package.price),  # PayPing expects Tomans as integer
+                    amount=int(payment_amount),  # PayPing expects Tomans as integer (discounted price)
                     description=f'پرداخت بابت بسته {package.name} - سفارش {order_id}',
                     callback_url=callback_url,
                     payer_identity=str(payer_identity),
@@ -294,11 +310,24 @@ def create_payment(request, package_id):
                 'customer_email': request.user.email,
             })
         
+        # Calculate discounted price for display
+        from django.core.cache import cache
+        from decimal import Decimal, ROUND_HALF_UP
+        admin_settings = cache.get('admin_settings', {}) or {}
+        discount_pct = admin_settings.get('discount_percentage', 80)
+        try:
+            price_dec = Decimal(str(package.price))
+            disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+            package.discounted_price = int(disc)
+        except Exception:
+            package.discounted_price = int(package.price)
+        
         context = {
             'package': package,
             'form': form,
             'title': f'پرداخت بسته {package.name}',
-            'description': f'پرداخت مبلغ {package.price:,} {package.currency} برای بسته {package.name}'
+            'description': f'پرداخت مبلغ {package.discounted_price:,} {package.currency} برای بسته {package.name}',
+            'discount_pct': discount_pct
         }
         
         return render(request, 'store_analysis/create_payment.html', context)
