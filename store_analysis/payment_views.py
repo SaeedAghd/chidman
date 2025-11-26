@@ -16,15 +16,18 @@ from django.conf import settings
 from decimal import Decimal
 from .models import Payment, PaymentLog, ServicePackage, UserSubscription
 from .payment_services import PaymentManager
+from .payment_gateways import PaymentGatewayManager
 from .forms import PaymentForm
 from .utils.safe_db import check_table_exists
 from django.db import transaction
+from django.urls import reverse
 from .models import Order
 
 logger = logging.getLogger(__name__)
 
-# Initialize payment manager
-payment_manager = PaymentManager()
+# Initialize payment managers
+payment_manager = PaymentManager()  # Legacy - kept for backward compatibility
+gateway_manager = PaymentGatewayManager()  # Use this for PayPing
 
 
 def safe_create_payment_log(payment, log_type, message, data=None):
@@ -55,11 +58,17 @@ def payment_packages(request):
         admin_settings = cache.get('admin_settings', {}) or {}
         discount_pct = admin_settings.get('discount_percentage', 80)
         # Attach discounted price to each package for template
+        from decimal import Decimal, ROUND_HALF_UP
         for pkg in packages:
             try:
-                pkg.discounted_price = int(float(pkg.price) * (1 - float(discount_pct) / 100.0))
+                price_dec = Decimal(str(pkg.price))
+                disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                pkg.discounted_price = int(disc)
             except Exception:
-                pkg.discounted_price = pkg.price
+                try:
+                    pkg.discounted_price = int(Decimal(str(pkg.price)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                except Exception:
+                    pkg.discounted_price = int(pkg.price)
         context = {
             'packages': packages,
             'title': 'بسته‌های خدمات',
@@ -95,36 +104,60 @@ def create_payment(request, package_id):
                 order_id = f"CHD_{package.id}_{int(timezone.now().timestamp())}"
                 
                 # Create payment record and corresponding Order atomically
-                with transaction.atomic():
-                    payment = Payment.objects.create(
-                        user=request.user,
-                        order_id=order_id,
-                        amount=package.price,
-                        currency=package.currency,
-                        description=f"خرید بسته {package.name}",
-                        customer_name=customer_info.get('name', ''),
-                        customer_email=customer_info.get('email', ''),
-                        customer_phone=customer_info.get('phone', ''),
-                        payment_method='ping_payment',
-                        status='pending',
-                        is_test=settings.PAYMENT_GATEWAY['PING_PAYMENT']['SANDBOX']
-                    )
-
-                    # Create a corresponding Order so callbacks can reliably find it
-                    order = Order.objects.create(
-                        order_number=order_id,
-                        user=request.user,
-                        plan=None,
-                        status='pending',
-                        original_amount=package.price,
-                        base_amount=package.price,
-                        final_amount=package.price,
-                        currency=package.currency,
-                        payment=payment,
-                        payment_method='ping_payment'
-                    )
-                    # Link payment -> order (store as order_id is already set)
-                    payment.save()
+                from django.db import DatabaseError
+                try:
+                    with transaction.atomic():
+                        payment = Payment.objects.create(
+                            user=request.user,
+                            order_id=order_id,
+                            amount=package.price,
+                            currency=package.currency,
+                            description=f"خرید بسته {package.name}",
+                            customer_name=customer_info.get('name', ''),
+                            customer_email=customer_info.get('email', ''),
+                            customer_phone=customer_info.get('phone', ''),
+                            payment_method='ping_payment',
+                            status='pending',
+                            is_test=settings.PAYMENT_GATEWAY['PING_PAYMENT']['SANDBOX']
+                        )
+                        
+                        # Create a corresponding Order so callbacks can reliably find it
+                        order = Order.objects.create(
+                            order_number=order_id,
+                            user=request.user,
+                            plan=None,
+                            status='pending',
+                            original_amount=package.price,
+                            base_amount=package.price,
+                            final_amount=package.price,
+                            currency=package.currency,
+                            payment=payment,
+                            payment_method='ping_payment'
+                        )
+                        # Link payment -> order (store as order_id is already set)
+                        payment.save()
+                except DatabaseError as db_err:
+                    # Missing column (e.g., client_ip) or migration not applied on production.
+                    logger.error(f"DatabaseError creating Payment (possible missing migration): {db_err}")
+                    # Fallback: create Order without Payment and continue to initiate payment request.
+                    try:
+                        order = Order.objects.create(
+                            order_number=order_id,
+                            user=request.user,
+                            plan=None,
+                            status='pending',
+                            original_amount=package.price,
+                            base_amount=package.price,
+                            final_amount=package.price,
+                            currency=package.currency,
+                            payment_method='ping_payment'
+                        )
+                        payment = None
+                        logger.info("Fallback: Order created without Payment due to DB schema mismatch. Continuing to payment initiation.")
+                    except Exception as create_order_exc:
+                        logger.error(f"Failed fallback Order creation: {create_order_exc}", exc_info=True)
+                        messages.error(request, 'خطا در ایجاد سفارش. لطفاً دوباره تلاش کنید.')
+                        return redirect('store_analysis:payment_packages')
                 
                 # Log payment creation
                 safe_create_payment_log(
@@ -134,21 +167,85 @@ def create_payment(request, package_id):
                     data={'package_id': package.id, 'amount': str(package.price)}
                 )
                 
-                # Process payment with Ping Payment
-                payment_result = payment_manager.process_payment(
-                    amount=package.price,
-                    order_id=order_id,
-                    description=f"خرید بسته {package.name}",
-                    customer_info=customer_info
+                # Process payment with PayPing Gateway (using PaymentGatewayManager)
+                # Build callback URL for PayPing
+                callback_url = request.build_absolute_uri(
+                    reverse('store_analysis:payment_callback')
                 )
                 
-                if payment_result['success']:
-                    # Update payment with gateway response
-                    payment.payment_id = payment_result.get('payment_id')
-                    payment.transaction_id = payment_result.get('transaction_id')
-                    payment.gateway_response = payment_result
-                    payment.status = 'processing'
-                    payment.save()
+                # Get user phone for PayPing (required)
+                payer_identity = None
+                try:
+                    user_profile = request.user.userprofile
+                    payer_identity = user_profile.phone
+                except:
+                    pass
+                
+                if not payer_identity or len(str(payer_identity)) < 10:
+                    logger.warning(f"User {request.user.username} has no valid phone. Using test number for PayPing.")
+                    payer_identity = '09121234567'  # Test number for PayPing
+                
+                payer_name = request.user.get_full_name() or request.user.username
+                
+                # Use PayPing gateway directly
+                payping = gateway_manager.get_gateway('payping')
+                if not payping:
+                    logger.error("PayPing gateway not available in PaymentGatewayManager")
+                    messages.error(request, 'درگاه پرداخت در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید.')
+                    return redirect('store_analysis:payment_packages')
+                
+                logger.info(f"🔹 PayPing payment initiated for order {order_id} by user {request.user.username} (mobile: {payer_identity})")
+                
+                # Create payment request with PayPing
+                payment_request = payping.create_payment_request(
+                    amount=int(package.price),  # PayPing expects Tomans as integer
+                    description=f'پرداخت بابت بسته {package.name} - سفارش {order_id}',
+                    callback_url=callback_url,
+                    payer_identity=str(payer_identity),
+                    payer_name=str(payer_name),
+                    client_ref_id=f"CHD_{order_id}"
+                )
+                
+                logger.info(f"💳 PayPing payment request result: {payment_request}")
+                
+                # Convert PayPing response format to expected format
+                if payment_request.get('status') == 'success':
+                    payment_result = {
+                        'success': True,
+                        'payment_id': payment_request.get('authority'),
+                        'payment_url': payment_request.get('payment_url'),
+                        'transaction_id': payment_request.get('authority'),
+                        'amount': package.price,
+                        'order_id': order_id,
+                        'message': 'Payment request created successfully'
+                    }
+                else:
+                    error_msg = payment_request.get('message', 'خطا در ارتباط با درگاه پرداخت')
+                    payment_result = {
+                        'success': False,
+                        'error': error_msg,
+                        'error_code': payment_request.get('code', 'PAYMENT_CREATE_FAILED')
+                    }
+                
+                if payment_result.get('success'):
+                    # Update payment with gateway response (if payment exists)
+                    if payment:
+                        try:
+                            payment.payment_id = payment_result.get('payment_id')
+                            payment.transaction_id = payment_result.get('transaction_id')
+                            payment.gateway_response = payment_result
+                            payment.status = 'processing'
+                            payment.save()
+                        except Exception as payment_update_err:
+                            logger.warning(f"Could not update Payment record: {payment_update_err}")
+                    
+                    # Update Order with transaction info
+                    if order:
+                        try:
+                            order.transaction_id = payment_result.get('transaction_id') or payment_result.get('payment_id', '')
+                            order.save(update_fields=['transaction_id'])
+                        except Exception as order_update_err:
+                            logger.warning(f"Could not update Order transaction_id: {order_update_err}")
                     
                     # Log payment processing
                     safe_create_payment_log(
@@ -158,21 +255,36 @@ def create_payment(request, package_id):
                         data=payment_result
                     )
                     
-                    # Redirect to payment gateway
-                    return redirect(payment_result['payment_url'])
+                    # Get payment URL - critical: must redirect to PayPing
+                    payment_url = payment_result.get('payment_url')
+                    if not payment_url:
+                        logger.error(f"Payment result missing payment_url: {payment_result}")
+                        messages.error(request, 'خطا: آدرس درگاه پرداخت دریافت نشد. لطفاً با پشتیبانی تماس بگیرید.')
+                        return redirect('store_analysis:payment_packages')
+                    
+                    logger.info(f"✅ Redirecting to PayPing: {payment_url}")
+                    # Redirect to payment gateway - THIS IS THE CRITICAL STEP
+                    return redirect(payment_url)
                 else:
                     # Payment creation failed
-                    payment.status = 'failed'
-                    payment.save()
+                    error_msg = payment_result.get('error', 'خطای نامشخص')
+                    logger.error(f"❌ Payment creation failed: {error_msg}, Result: {payment_result}")
+                    
+                    if payment:
+                        try:
+                            payment.status = 'failed'
+                            payment.save()
+                        except Exception:
+                            pass
                     
                     safe_create_payment_log(
                         payment=payment,
                         log_type='error',
-                        message=f'Payment creation failed: {payment_result.get("error", "Unknown error")}',
+                        message=f'Payment creation failed: {error_msg}',
                         data=payment_result
                     )
                     
-                    messages.error(request, f'خطا در ایجاد پرداخت: {payment_result.get("error", "خطای نامشخص")}')
+                    messages.error(request, f'خطا در ایجاد پرداخت: {error_msg}')
                     return redirect('store_analysis:payment_packages')
             else:
                 messages.error(request, 'لطفاً اطلاعات را به درستی وارد کنید')
