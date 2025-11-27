@@ -5892,6 +5892,30 @@ def payping_callback(request, order_id):
         store_analysis = order.analyses.first()
         payment = Payment.objects.filter(order_id=order.order_number).first()
         
+        # اگر StoreAnalysis وجود ندارد، یک StoreAnalysis ایجاد کن
+        if not store_analysis and order.user:
+            try:
+                from .models import StoreAnalysis
+                # تعیین package_type بر اساس order
+                package_type = 'basic'
+                if order.final_amount and order.final_amount >= Decimal('1000000'):
+                    package_type = 'enterprise'
+                elif order.final_amount and order.final_amount >= Decimal('100000'):
+                    package_type = 'professional'
+                
+                store_analysis = StoreAnalysis.objects.create(
+                    user=order.user,
+                    order=order,
+                    package_type=package_type,
+                    status='pending',
+                    analysis_data={},
+                    final_amount=order.final_amount or Decimal('0.00')
+                )
+                logger.info(f"✅ Created StoreAnalysis {store_analysis.id} for order {order.order_number} in callback")
+            except Exception as create_analysis_err:
+                logger.error(f"❌ Failed to create StoreAnalysis in callback: {create_analysis_err}", exc_info=True)
+                # Continue without store_analysis - will redirect to dashboard
+        
         # PayPing ممکن است داده‌ها را در GET یا POST ارسال کند
         # همچنین ممکن است در body به صورت JSON یا form-data باشد
         refid = None
@@ -6471,7 +6495,46 @@ def payping_callback(request, order_id):
                         # حالا کاربر لاگین است، به فرم redirect کن
                         return redirect('store_analysis:forms', analysis_id=store_analysis.id)
                     else:
-                        # اگر store_analysis وجود ندارد
+                        # اگر store_analysis وجود ندارد، سعی کن یک StoreAnalysis ایجاد کن
+                        logger.warning(f"⚠️ StoreAnalysis not found for order {order.order_number} after successful payment, attempting to create...")
+                        if order.user:
+                            try:
+                                from .models import StoreAnalysis
+                                # تعیین package_type بر اساس order
+                                package_type = 'basic'
+                                if order.final_amount and order.final_amount >= Decimal('1000000'):
+                                    package_type = 'enterprise'
+                                elif order.final_amount and order.final_amount >= Decimal('100000'):
+                                    package_type = 'professional'
+                                
+                                store_analysis = StoreAnalysis.objects.create(
+                                    user=order.user,
+                                    order=order,
+                                    package_type=package_type,
+                                    status='pending',
+                                    analysis_data={},
+                                    final_amount=order.final_amount or Decimal('0.00')
+                                )
+                                logger.info(f"✅ Created StoreAnalysis {store_analysis.id} for order {order.order_number} after successful payment")
+                                
+                                # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
+                                if not request.user.is_authenticated and order.user:
+                                    from django.contrib.auth import login
+                                    login(request, order.user, backend='django.contrib.auth.backends.ModelBackend')
+                                    logger.info(f"🔐 Auto-login user {order.user.username} from order {order.order_number} (created store_analysis)")
+                                
+                                # ذخیره analysis_id در session
+                                request.session['analysis_id'] = store_analysis.id
+                                request.session['pending_analysis_id'] = store_analysis.id
+                                request.session.modified = True
+                                request.session.save()
+                                
+                                # حالا کاربر لاگین است و store_analysis وجود دارد، به فرم redirect کن
+                                return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+                            except Exception as create_analysis_err:
+                                logger.error(f"❌ Failed to create StoreAnalysis after successful payment: {create_analysis_err}", exc_info=True)
+                        
+                        # اگر نتوانستیم StoreAnalysis ایجاد کنیم، به dashboard redirect کن
                         # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
                         if not request.user.is_authenticated and order.user:
                             from django.contrib.auth import login
@@ -6488,15 +6551,15 @@ def payping_callback(request, order_id):
             # در صورت عدم شروع تحلیل، هدایت به فرم
             messages.success(request, '✅ پرداخت با موفقیت انجام شد! لطفاً فرم تحلیل را تکمیل کنید.')
             if store_analysis:
-                # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
+                # CRITICAL: اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
                 # این امن است چون کاربر قبلاً لاگین بوده و پرداخت انجام داده
                 if not request.user.is_authenticated and order.user:
                     from django.contrib.auth import login
-                    # لاگین کردن کاربر از order.user
+                    # لاگین کردن کاربر از order.user - CRITICAL برای redirect مستقیم به فرم
                     login(request, order.user, backend='django.contrib.auth.backends.ModelBackend')
                     logger.info(f"🔐 Auto-login user {order.user.username} from order {order.order_number} after successful payment")
                 
-                # ذخیره analysis_id در session
+                # ذخیره analysis_id در session - CRITICAL برای دسترسی به فرم
                 request.session['analysis_id'] = store_analysis.id
                 request.session['pending_analysis_id'] = store_analysis.id  # backup
                 request.session.modified = True
@@ -6504,10 +6567,50 @@ def payping_callback(request, order_id):
                 
                 logger.info(f"💾 Session saved: analysis_id={store_analysis.id}, order={order.order_number}, user={request.user.username if request.user.is_authenticated else 'anonymous'}")
                 
-                # حالا کاربر لاگین است، به فرم redirect کن
+                # CRITICAL: حالا کاربر لاگین است، به فرم redirect کن - مستقیم به فرم، نه login
+                logger.info(f"✅ Redirecting to forms page: /store/forms/{store_analysis.id}/")
                 return redirect('store_analysis:forms', analysis_id=store_analysis.id)
             else:
-                # اگر store_analysis وجود ندارد
+                # اگر store_analysis وجود ندارد، سعی کن یک StoreAnalysis ایجاد کن
+                logger.warning(f"⚠️ StoreAnalysis not found for order {order.order_number} after successful payment (fallback), attempting to create...")
+                if order.user:
+                    try:
+                        from .models import StoreAnalysis
+                        # تعیین package_type بر اساس order
+                        package_type = 'basic'
+                        if order.final_amount and order.final_amount >= Decimal('1000000'):
+                            package_type = 'enterprise'
+                        elif order.final_amount and order.final_amount >= Decimal('100000'):
+                            package_type = 'professional'
+                        
+                        store_analysis = StoreAnalysis.objects.create(
+                            user=order.user,
+                            order=order,
+                            package_type=package_type,
+                            status='pending',
+                            analysis_data={},
+                            final_amount=order.final_amount or Decimal('0.00')
+                        )
+                        logger.info(f"✅ Created StoreAnalysis {store_analysis.id} for order {order.order_number} after successful payment (fallback)")
+                        
+                        # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
+                        if not request.user.is_authenticated and order.user:
+                            from django.contrib.auth import login
+                            login(request, order.user, backend='django.contrib.auth.backends.ModelBackend')
+                            logger.info(f"🔐 Auto-login user {order.user.username} from order {order.order_number} (created store_analysis)")
+                        
+                        # ذخیره analysis_id در session
+                        request.session['analysis_id'] = store_analysis.id
+                        request.session['pending_analysis_id'] = store_analysis.id
+                        request.session.modified = True
+                        request.session.save()
+                        
+                        # حالا کاربر لاگین است و store_analysis وجود دارد، به فرم redirect کن
+                        return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+                    except Exception as create_analysis_err:
+                        logger.error(f"❌ Failed to create StoreAnalysis after successful payment (fallback): {create_analysis_err}", exc_info=True)
+                
+                # اگر نتوانستیم StoreAnalysis ایجاد کنیم، به dashboard redirect کن
                 # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
                 if not request.user.is_authenticated and order.user:
                     from django.contrib.auth import login
@@ -6574,15 +6677,15 @@ def payping_callback(request, order_id):
             # هدایت به فرم حتی اگر verify fail شده باشد
             messages.warning(request, '⚠️ تایید پرداخت با مشکل مواجه شد، اما پرداخت شما ثبت شده است. لطفاً فرم را تکمیل کنید.')
             if store_analysis:
-                # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
+                # CRITICAL: اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
                 # این امن است چون کاربر قبلاً لاگین بوده و پرداخت انجام داده
                 if not request.user.is_authenticated and order.user:
                     from django.contrib.auth import login
-                    # لاگین کردن کاربر از order.user
+                    # لاگین کردن کاربر از order.user - CRITICAL برای redirect مستقیم به فرم
                     login(request, order.user, backend='django.contrib.auth.backends.ModelBackend')
                     logger.info(f"🔐 Auto-login user {order.user.username} from order {order.order_number} after payment callback")
                 
-                # ذخیره analysis_id در session
+                # ذخیره analysis_id در session - CRITICAL برای دسترسی به فرم
                 request.session['analysis_id'] = store_analysis.id
                 request.session['pending_analysis_id'] = store_analysis.id  # backup
                 request.session.modified = True
@@ -6590,11 +6693,50 @@ def payping_callback(request, order_id):
                 
                 logger.info(f"💾 Session saved: analysis_id={store_analysis.id}, order={order.order_number}, user={request.user.username if request.user.is_authenticated else 'anonymous'}")
                 
-                # حالا کاربر لاگین است، به فرم redirect کن
+                # CRITICAL: حالا کاربر لاگین است، به فرم redirect کن - مستقیم به فرم، نه login
+                logger.info(f"✅ Redirecting to forms page: /store/forms/{store_analysis.id}/")
                 return redirect('store_analysis:forms', analysis_id=store_analysis.id)
             else:
-                # اگر store_analysis وجود ندارد، به dashboard redirect کن
-                logger.warning(f"⚠️ StoreAnalysis not found for order {order.order_number}")
+                # اگر store_analysis وجود ندارد، سعی کن یک StoreAnalysis ایجاد کن
+                logger.warning(f"⚠️ StoreAnalysis not found for order {order.order_number}, attempting to create...")
+                if order.user:
+                    try:
+                        from .models import StoreAnalysis
+                        # تعیین package_type بر اساس order
+                        package_type = 'basic'
+                        if order.final_amount and order.final_amount >= Decimal('1000000'):
+                            package_type = 'enterprise'
+                        elif order.final_amount and order.final_amount >= Decimal('100000'):
+                            package_type = 'professional'
+                        
+                        store_analysis = StoreAnalysis.objects.create(
+                            user=order.user,
+                            order=order,
+                            package_type=package_type,
+                            status='pending',
+                            analysis_data={},
+                            final_amount=order.final_amount or Decimal('0.00')
+                        )
+                        logger.info(f"✅ Created StoreAnalysis {store_analysis.id} for order {order.order_number} in callback (fallback)")
+                        
+                        # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
+                        if not request.user.is_authenticated and order.user:
+                            from django.contrib.auth import login
+                            login(request, order.user, backend='django.contrib.auth.backends.ModelBackend')
+                            logger.info(f"🔐 Auto-login user {order.user.username} from order {order.order_number} (created store_analysis)")
+                        
+                        # ذخیره analysis_id در session
+                        request.session['analysis_id'] = store_analysis.id
+                        request.session['pending_analysis_id'] = store_analysis.id
+                        request.session.modified = True
+                        request.session.save()
+                        
+                        # حالا کاربر لاگین است و store_analysis وجود دارد، به فرم redirect کن
+                        return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+                    except Exception as create_analysis_err:
+                        logger.error(f"❌ Failed to create StoreAnalysis in callback fallback: {create_analysis_err}", exc_info=True)
+                
+                # اگر نتوانستیم StoreAnalysis ایجاد کنیم، به dashboard redirect کن
                 # اگر کاربر لاگین نیست اما order.user موجود است، کاربر را لاگین کن
                 if not request.user.is_authenticated and order.user:
                     from django.contrib.auth import login
