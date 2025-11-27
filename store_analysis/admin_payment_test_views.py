@@ -123,9 +123,9 @@ def admin_create_test_payment(request, package_id):
         
         logger.info(f"🔧 Admin test payment initiated for package {package.name} (original: {package.price:,}, test: {test_amount:,})")
         
-        # Create payment request with test amount
+        # Create payment request with test amount (PayPing expects Tomans as integer)
         payment_request = payping.create_payment_request(
-            amount=int(test_amount),
+            amount=int(test_amount),  # 1,000 Toman = 10,000 Rials
             description=f'تست پرداخت - بسته {package.name} (ادمین)',
             callback_url=callback_url,
             payer_identity=str(payer_identity),
