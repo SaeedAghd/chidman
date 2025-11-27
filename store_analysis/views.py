@@ -12057,18 +12057,23 @@ def products_page(request):
                     discounted = int(Decimal(str(pkg.price)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
                 except Exception:
                     discounted = int(pkg.price)
+            # Convert price from Rials to Tomans for display (if currency is IRR)
+            # PayPing and display use Tomans, but DB stores in Rials
+            original_price_toman = int(pkg.price)  # Price is already in Tomans in DB
+            discounted_price_toman = discounted  # Already calculated in Tomans
+            
             products.append({
                 'name': pkg.name,
-                'original_price': int(pkg.price),
-                'price': discounted,
+                'original_price': original_price_toman,  # In Tomans
+                'price': discounted_price_toman,  # In Tomans with discount
                 'discount_percent': discount_pct,
-                'currency': pkg.currency or 'تومان',
+                'currency': 'تومان',  # Always use Toman for display
                 'delivery_time': f"{15}-{45} دقیقه" if pkg.package_type == 'professional' else "10-60 دقیقه",
                 'features': pkg.features or [],
                 # Use canonical create_payment view with package id to avoid package_type mismatches
                 'buy_url': reverse('store_analysis:create_payment', args=[pkg.id]),
                 'popular': getattr(pkg, 'is_popular', False),
-                'is_free': False if int(pkg.price) > 0 else True
+                'is_free': False if original_price_toman > 0 else True
             })
     except Exception as e:
         # fallback to original static definitions if DB access fails

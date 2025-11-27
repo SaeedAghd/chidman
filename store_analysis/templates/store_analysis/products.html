@@ -243,16 +243,16 @@
             <h3 class="product-name">{{ product.name }}</h3>
             {% if product.is_free %}
             <div class="product-price" style="color: #27ae60; font-weight: bold; font-size: 2rem;">🎁 رایگان</div>
-            <div style="text-decoration: line-through; color: #999; font-size: 0.9rem;">قیمت اصلی: {{ product.original_price }} {{ product.currency }}</div>
+            <div style="text-decoration: line-through; color: #999; font-size: 0.9rem;">قیمت اصلی: {{ product.original_price|floatformat:0 }} {{ product.currency }}</div>
             {% else %}
             <div class="product-price">
-                {{ product.price }} {{ product.currency }}
+                {{ product.price|floatformat:0 }} {{ product.currency }}
                 {% if product.discount_percent %}
                 <span style="background: #e74c3c; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; margin-right: 10px;">{{ product.discount_percent }}% تخفیف</span>
                 {% endif %}
             </div>
             {% if product.original_price %}
-            <div style="text-decoration: line-through; color: #999; font-size: 0.9rem;">قیمت اصلی: {{ product.original_price }} {{ product.currency }}</div>
+            <div style="text-decoration: line-through; color: #999; font-size: 0.9rem;">قیمت اصلی: {{ product.original_price|floatformat:0 }} {{ product.currency }}</div>
             {% endif %}
             {% endif %}
             <div class="product-delivery">تحویل در {{ product.delivery_time }}</div>

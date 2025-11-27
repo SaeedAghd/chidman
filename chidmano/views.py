@@ -240,19 +240,34 @@ def simple_home(request):
     launch_end_date = launch_start_date + timedelta(days=14)  # 2 هفته بعد
     
     # محاسبه تخفیف افتتاحیه - فقط تا 2 هفته بعد از شروع
-    if current_date <= launch_end_date:
-        # محاسبه زمان باقی‌مانده به ثانیه
-        time_remaining = (launch_end_date - current_date).total_seconds()
-        discount_info = {
-            'has_discount': True,
-            'discount_percentage': 80,
-            'discount_title': 'تخفیف ویژه افتتاحیه 80%',
-            'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۸۰٪ افتتاحیه. همین حالا سفارش دهید!',
-            'discount_type': 'opening',
-            'discount_end_date': launch_end_date,
-            'time_remaining_seconds': int(time_remaining)  # زمان باقی‌مانده به ثانیه
-        }
-    else:
+    try:
+        if current_date <= launch_end_date:
+            # محاسبه زمان باقی‌مانده به ثانیه
+            time_remaining = (launch_end_date - current_date).total_seconds()
+            discount_info = {
+                'has_discount': True,
+                'discount_percentage': 80,
+                'discount_title': 'تخفیف ویژه افتتاحیه 80%',
+                'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۸۰٪ افتتاحیه. همین حالا سفارش دهید!',
+                'discount_type': 'opening',
+                'discount_end_date': launch_end_date,
+                'time_remaining_seconds': max(0, int(time_remaining))  # زمان باقی‌مانده به ثانیه (حداقل 0)
+            }
+        else:
+            discount_info = {
+                'has_discount': False,
+                'discount_percentage': 0,
+                'discount_title': '',
+                'discount_message': '',
+                'discount_type': 'none',
+                'discount_end_date': None,
+                'time_remaining_seconds': 0
+            }
+    except Exception as e:
+        # Fallback در صورت خطا
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error calculating discount info: {e}")
         discount_info = {
             'has_discount': False,
             'discount_percentage': 0,
