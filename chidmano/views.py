@@ -344,17 +344,45 @@ def simple_home(request):
         from store_analysis.models import ServicePackage
         packages = list(ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price'))
         context['packages'] = packages
-        context['featured_package'] = packages[0] if packages else None
+        
+        # Use popular package (professional) as featured, or first package if no popular
+        featured_package = None
+        for pkg in packages:
+            if getattr(pkg, 'is_popular', False):
+                featured_package = pkg
+                break
+        
+        # If no popular package, use first package (but skip if price is 0)
+        if not featured_package:
+            for pkg in packages:
+                if float(pkg.price) > 0:
+                    featured_package = pkg
+                    break
+        
+        context['featured_package'] = featured_package
+        
         if context.get('featured_package'):
             pkg = context['featured_package']
-            discount_pct = context.get('discount_info', {}).get('discount_percentage', 0)
+            discount_pct = context.get('discount_info', {}).get('discount_percentage', 80)  # Default to 80% if not set
             # Standard 80% discount calculation
             try:
-                discounted = float(pkg.price) * (1 - float(discount_pct) / 100.0)
-            except Exception:
-                discounted = float(pkg.price)
-            context['featured_package_discounted_price'] = int(discounted)
-    except Exception:
+                price_float = float(pkg.price)
+                if price_float > 0:
+                    discounted = price_float * (1 - float(discount_pct) / 100.0)
+                    context['featured_package_discounted_price'] = int(discounted)
+                else:
+                    context['featured_package_discounted_price'] = 0
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error calculating featured package discounted price: {e}")
+                context['featured_package_discounted_price'] = int(float(pkg.price)) if pkg.price else 0
+        else:
+            context['featured_package_discounted_price'] = None
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error loading packages for landing page: {e}", exc_info=True)
         context.setdefault('packages', [])
         context.setdefault('featured_package', None)
         context.setdefault('featured_package_discounted_price', None)
