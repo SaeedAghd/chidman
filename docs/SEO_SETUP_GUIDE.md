@@ -46,7 +46,7 @@
 
 کد تایید در template موجود است:
 ```html
-<meta name="google-site-verification" content="3Wemu5dBmbflr4MsYwW840qSZh2y2zIuf7L0QgS4FrY" />
+<meta name="google-site-verification" content="nwfSSELzJ7fTRF7eeoXPZBq7K1OUnMTVOBZIK-FsYGY" />
 ```
 
 1. در Google Search Console، **"HTML tag"** را انتخاب کنید

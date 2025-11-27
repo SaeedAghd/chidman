@@ -51,11 +51,11 @@
 
 1. **"HTML tag"** را انتخاب کنید
 
-2. کد verification را کپی کنید (مثلاً: `3Wemu5dBmbflr4MsYwW840qSZh2y2zIuf7L0QgS4FrY`)
+2. کد verification را کپی کنید (مثلاً: `nwfSSELzJ7fTRF7eeoXPZBq7K1OUnMTVOBZIK-FsYGY`)
 
 3. بررسی کنید که این کد در `chidmano/templates/chidmano/landing.html` موجود است:
    ```html
-   <meta name="google-site-verification" content="3Wemu5dBmbflr4MsYwW840qSZh2y2zIuf7L0QgS4FrY" />
+   <meta name="google-site-verification" content="nwfSSELzJ7fTRF7eeoXPZBq7K1OUnMTVOBZIK-FsYGY" />
    ```
 
 4. اگر کد موجود است، روی **"Verify"** کلیک کنید
