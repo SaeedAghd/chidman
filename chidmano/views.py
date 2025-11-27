@@ -233,19 +233,24 @@ def simple_home(request):
     from django.core.cache import cache
     from datetime import datetime
     
-    # تخفیف افتتاحیه - هاردکد شده (بدون نیاز به دیتابیس)
+    # تخفیف افتتاحیه - 2 هفته از تاریخ شروع (2025-11-27)
+    from datetime import timedelta
     current_date = datetime.now()
-    launch_end_date = datetime(2025, 12, 31)  # تا پایان سال 2025
+    launch_start_date = datetime(2025, 11, 27)  # تاریخ شروع تخفیف
+    launch_end_date = launch_start_date + timedelta(days=14)  # 2 هفته بعد
     
-    # محاسبه تخفیف افتتاحیه
+    # محاسبه تخفیف افتتاحیه - فقط تا 2 هفته بعد از شروع
     if current_date <= launch_end_date:
+        # محاسبه زمان باقی‌مانده به ثانیه
+        time_remaining = (launch_end_date - current_date).total_seconds()
         discount_info = {
             'has_discount': True,
             'discount_percentage': 80,
             'discount_title': 'تخفیف ویژه افتتاحیه 80%',
             'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۸۰٪ افتتاحیه. همین حالا سفارش دهید!',
             'discount_type': 'opening',
-            'discount_end_date': launch_end_date
+            'discount_end_date': launch_end_date,
+            'time_remaining_seconds': int(time_remaining)  # زمان باقی‌مانده به ثانیه
         }
     else:
         discount_info = {
@@ -254,7 +259,8 @@ def simple_home(request):
             'discount_title': '',
             'discount_message': '',
             'discount_type': 'none',
-            'discount_end_date': None
+            'discount_end_date': None,
+            'time_remaining_seconds': 0
         }
     
     # دریافت تنظیمات سیستم از cache

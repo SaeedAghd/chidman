@@ -1759,6 +1759,7 @@
     </nav>
 
     <!-- Countdown Timer Banner -->
+    {% if discount_info.has_discount %}
     <div class="countdown-timer-banner">
         <div class="container">
             <div class="timer-content">
@@ -1771,23 +1772,28 @@
                     <div class="timer-label">زمان باقی‌مانده:</div>
                     <div class="timer-digits">
                         <div class="timer-unit">
-                            <span id="hours">23</span>
+                            <span id="days">0</span>
+                            <span class="timer-unit-label" id="days-label">روز</span>
+                        </div>
+                        <div class="timer-separator">:</div>
+                        <div class="timer-unit">
+                            <span id="hours">0</span>
                             <span class="timer-unit-label">ساعت</span>
                         </div>
                         <div class="timer-separator">:</div>
                         <div class="timer-unit">
-                            <span id="minutes">45</span>
+                            <span id="minutes">0</span>
                             <span class="timer-unit-label">دقیقه</span>
                         </div>
                         <div class="timer-separator">:</div>
                         <div class="timer-unit">
-                            <span id="seconds">30</span>
+                            <span id="seconds">0</span>
                             <span class="timer-unit-label">ثانیه</span>
                         </div>
                     </div>
                 </div>
                 <div class="timer-price">
-                    {% if featured_package %}
+                        {% if featured_package %}
                         <div class="price-old">{{ featured_package.price|floatformat:0 }} تومان</div>
                         <div class="price-new">
                             {% if featured_package_discounted_price %}
@@ -1973,32 +1979,62 @@
     </style>
 
     <script>
-        // Countdown Timer
+        // Countdown Timer - 2 weeks from launch date
         function startCountdown() {
+            {% if discount_info.has_discount and discount_info.time_remaining_seconds %}
+            // Calculate end date from server-side time remaining (2 weeks = 14 days)
+            const timeRemainingSeconds = {{ discount_info.time_remaining_seconds|safe }};
             const endDate = new Date();
-            endDate.setHours(endDate.getHours() + 24); // 24 hours from now
+            endDate.setTime(endDate.getTime() + (timeRemainingSeconds * 1000)); // Add remaining seconds
             
             function updateTimer() {
                 const now = new Date().getTime();
                 const distance = endDate.getTime() - now;
                 
                 if (distance < 0) {
-                    // Reset timer
-                    endDate.setHours(endDate.getHours() + 24);
+                    // Discount expired - hide banner
+                    const banner = document.querySelector('.countdown-timer-banner');
+                    if (banner) {
+                        banner.style.display = 'none';
+                    }
                     return;
                 }
                 
+                // Calculate days, hours, minutes, seconds
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                 
-                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+                // Update display
+                const daysElement = document.getElementById('days');
+                const hoursElement = document.getElementById('hours');
+                const minutesElement = document.getElementById('minutes');
+                const secondsElement = document.getElementById('seconds');
+                
+                if (daysElement) {
+                    daysElement.textContent = String(days).padStart(2, '0');
+                }
+                if (hoursElement) {
+                    hoursElement.textContent = String(hours).padStart(2, '0');
+                }
+                if (minutesElement) {
+                    minutesElement.textContent = String(minutes).padStart(2, '0');
+                }
+                if (secondsElement) {
+                    secondsElement.textContent = String(seconds).padStart(2, '0');
+                }
             }
             
             updateTimer();
             setInterval(updateTimer, 1000);
+            {% else %}
+            // No discount active - hide banner
+            const banner = document.querySelector('.countdown-timer-banner');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            {% endif %}
         }
         
         // Start countdown when page loads
