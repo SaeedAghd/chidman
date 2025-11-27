@@ -2229,33 +2229,34 @@
             <div class="hero-content-modern">
                 <div class="hero-card">
                     <!-- Main Headline -->
-                    <div class="hero-icon">👁️</div>
                     <h1 class="hero-title-modern">
-                        <span class="hero-main-message">چیدمان فروشگاه با هوش مصنوعی | چیدمان مغازه | چیدمان فروشگاه</span>
+                        <span class="hero-main-message">چیدمان فروشگاه با هوش مصنوعی</span>
                     </h1>
                     
                     <!-- Subheadline -->
                     <p class="hero-subheadline-modern">
-                        <strong>چیدمان فروشگاه با هوش مصنوعی</strong> و <strong>چیدمان مغازه با هوش مصنوعی</strong> - چیدمانو با هوش مصنوعی پیشرفته، مسیر دید و حرکت مشتری‌های شما را تحلیل می‌کند. راهکار جامع <strong>چیدمان فروشگاه</strong> و <strong>چیدمان مغازه</strong> برای افزایش فروش تا 30%.
+                        راهکار جامع <strong>چیدمان فروشگاه</strong> و <strong>چیدمان مغازه</strong> با هوش مصنوعی پیشرفته. تحلیل مسیر دید و حرکت مشتری‌های شما برای افزایش فروش تا 30%.
                     </p>
                     
                     <!-- CTA Buttons -->
                     <div class="hero-buttons-modern">
                         {% if user.is_authenticated %}
-                            <a href="{% url 'store_analysis:products' %}" class="btn-primary-modern pulse-animation">
+                            <a href="{% url 'store_analysis:products' %}" class="btn-primary-modern">
                         {% else %}
-                            <a href="{% url 'login' %}" class="btn-primary-modern pulse-animation">
+                            <a href="{% url 'login' %}" class="btn-primary-modern">
                         {% endif %}
-                            <span>👁️</span>
-                            <span>تحلیل رایگان مسیر خرید مشتری</span>
+                            <span>شروع تحلیل رایگان</span>
                         </a>
                         <a href="#features" class="btn-secondary-modern">
-                            <span>📊</span>
-                            <span>نمونه واقعی ببین</span>
+                            <span>مشاهده نمونه</span>
                         </a>
-                        <div class="hero-guarantee">
-                            ✅ بدون نیاز به کارت بانکی | ✅ تحلیل اولیه رایگان | ✅ فقط 5 دقیقه!
-                        </div>
+                    </div>
+                    
+                    <!-- Guarantee Badges -->
+                    <div class="hero-guarantee">
+                        <span class="guarantee-badge">✅ بدون نیاز به کارت بانکی</span>
+                        <span class="guarantee-badge">✅ تحلیل اولیه رایگان</span>
+                        <span class="guarantee-badge">✅ فقط 5 دقیقه</span>
                     </div>
                     
                     <!-- Social Proof -->
@@ -2265,12 +2266,12 @@
                             <span class="proof-label">فروشگاه تحلیل شده</span>
                         </div>
                         <div class="proof-item">
-                            <span class="proof-number">⭐ 4.8</span>
+                            <span class="proof-number">4.8</span>
                             <span class="proof-label">از 5 امتیاز</span>
                         </div>
                         <div class="proof-item">
-                            <span class="proof-number">+2.3M</span>
-                            <span class="proof-label">میانگین افزایش فروش/ماه</span>
+                            <span class="proof-number">+30%</span>
+                            <span class="proof-label">افزایش فروش</span>
                         </div>
                     </div>
                 </div>
@@ -2310,13 +2311,7 @@
             }
 
             .hero-eye-image {
-                position: absolute;
-                top: 50%;
-                right: 5%;
-                transform: translateY(-50%);
-                width: 500px;
-                height: 500px;
-                background-image: url('{% static "images/eay.png" %}');
+                display: none;
                 background-size: contain;
                 background-position: center;
                 background-repeat: no-repeat;
@@ -2358,62 +2353,56 @@
             }
 
             .hero-card {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 24px;
-                padding: 4rem 3rem;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 32px;
+                padding: 3.5rem 2.5rem;
                 text-align: center;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                max-width: 800px;
+                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
+                max-width: 900px;
                 width: 100%;
                 margin: 0 auto;
             }
 
             .hero-title-modern {
-                margin-bottom: 2rem;
-                line-height: 1.3;
-            }
-
-            .hero-icon {
-                font-size: 4rem;
-                margin-bottom: 1rem;
-                animation: fadeInDown 0.6s ease-out;
+                margin-bottom: 1.5rem;
+                line-height: 1.2;
             }
 
             .hero-main-message {
                 display: block;
-                font-size: 2.8rem;
+                font-size: 2.5rem;
                 font-weight: 800;
-                color: #ffffff;
-                margin-bottom: 1.5rem;
-                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                color: #1a1a1a;
+                margin-bottom: 1.25rem;
                 animation: fadeInDown 0.8s ease-out;
                 line-height: 1.3;
+                letter-spacing: -0.02em;
             }
 
             .hero-subheadline-modern {
-                font-size: 1.3rem;
-                color: rgba(255, 255, 255, 0.95);
-                line-height: 1.7;
+                font-size: 1.15rem;
+                color: #4a5568;
+                line-height: 1.8;
                 margin-bottom: 2.5rem;
-                text-shadow: 0 1px 5px rgba(0,0,0,0.3);
                 animation: fadeInUp 1s ease-out;
-                max-width: 700px;
+                max-width: 750px;
                 margin-left: auto;
                 margin-right: auto;
+                font-weight: 400;
             }
 
             .hero-social-proof {
                 display: flex;
                 justify-content: space-around;
-                gap: 1.5rem;
-                margin: 2rem 0;
-                padding: 1.5rem;
-                background: rgba(255, 255, 255, 0.08);
-                border-radius: 16px;
-                backdrop-filter: blur(10px);
+                gap: 2rem;
+                margin: 2.5rem 0 0;
+                padding: 2rem 1.5rem;
+                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+                border-radius: 20px;
+                border: 1px solid #e2e8f0;
                 animation: fadeInUp 1.6s ease-out;
             }
 
@@ -2422,26 +2411,40 @@
                 flex-direction: column;
                 align-items: center;
                 text-align: center;
+                flex: 1;
             }
 
             .proof-number {
-                font-size: 2rem;
+                font-size: 2.25rem;
                 font-weight: 800;
-                color: #ff6b35;
-                margin-bottom: 0.3rem;
-                text-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+                color: #667eea;
+                margin-bottom: 0.5rem;
+                line-height: 1;
             }
 
             .proof-label {
-                font-size: 0.9rem;
-                color: rgba(255, 255, 255, 0.8);
+                font-size: 0.875rem;
+                color: #718096;
+                font-weight: 500;
             }
 
             .hero-guarantee {
-                font-size: 0.95rem;
-                color: rgba(255, 255, 255, 0.9);
-                margin-top: 1rem;
-                text-align: center;
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+                margin: 2rem 0 1.5rem;
+                padding: 0;
+            }
+
+            .guarantee-badge {
+                font-size: 0.9rem;
+                color: #4a5568;
+                background: #f7fafc;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                border: 1px solid #e2e8f0;
+                white-space: nowrap;
             }
 
             .hero-live-activity {
