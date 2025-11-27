@@ -288,8 +288,8 @@ def simple_home(request):
     address = saved_settings.get('address', 'البرز - کرج - بلوار موذن')
     
     context = {
-        'hero_title': 'تحلیل هوشمند فروشگاه شما',
-        'hero_subtitle': 'با هوش مصنوعی پیشرفته، فروشگاه خود را به سطح جهانی برسانید',
+        'hero_title': 'چیدمان فروشگاه با هوش مصنوعی - تحلیل هوشمند فروشگاه',
+        'hero_subtitle': 'با هوش مصنوعی پیشرفته، مسیر خرید مشتری را تحلیل کنید و فروش خود را تا 30% افزایش دهید. بهینه‌سازی چیدمان فروشگاه با تحلیل هوشمند.',
         'discount_info': discount_info,
         'site_name': site_name,
         'contact_phone': contact_phone,
