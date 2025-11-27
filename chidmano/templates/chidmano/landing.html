@@ -1760,7 +1760,9 @@
 
     <!-- Countdown Timer Banner -->
     {% if discount_info.has_discount %}
-    <div class="countdown-timer-banner">
+    <div class="countdown-timer-banner" 
+         data-has-discount="{% if discount_info.has_discount %}true{% else %}false{% endif %}"
+         data-time-remaining="{% if discount_info.has_discount and discount_info.time_remaining_seconds %}{{ discount_info.time_remaining_seconds|safe }}{% else %}0{% endif %}">
         <div class="container">
             <div class="timer-content">
                 <div class="timer-icon">🔥</div>
@@ -1982,60 +1984,68 @@
     <script>
         // Countdown Timer - 2 weeks from launch date
         function startCountdown() {
-            {% if discount_info.has_discount and discount_info.time_remaining_seconds %}
-            // Calculate end date from server-side time remaining (2 weeks = 14 days)
-            const timeRemainingSeconds = {{ discount_info.time_remaining_seconds|safe }};
-            const endDate = new Date();
-            endDate.setTime(endDate.getTime() + (timeRemainingSeconds * 1000)); // Add remaining seconds
-            
-            function updateTimer() {
-                const now = new Date().getTime();
-                const distance = endDate.getTime() - now;
-                
-                if (distance < 0) {
-                    // Discount expired - hide banner
-                    const banner = document.querySelector('.countdown-timer-banner');
-                    if (banner) {
-                        banner.style.display = 'none';
-                    }
-                    return;
-                }
-                
-                // Calculate days, hours, minutes, seconds
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                
-                // Update display
-                const daysElement = document.getElementById('days');
-                const hoursElement = document.getElementById('hours');
-                const minutesElement = document.getElementById('minutes');
-                const secondsElement = document.getElementById('seconds');
-                
-                if (daysElement) {
-                    daysElement.textContent = String(days).padStart(2, '0');
-                }
-                if (hoursElement) {
-                    hoursElement.textContent = String(hours).padStart(2, '0');
-                }
-                if (minutesElement) {
-                    minutesElement.textContent = String(minutes).padStart(2, '0');
-                }
-                if (secondsElement) {
-                    secondsElement.textContent = String(seconds).padStart(2, '0');
-                }
-            }
-            
-            updateTimer();
-            setInterval(updateTimer, 1000);
-            {% else %}
-            // No discount active - hide banner
+            // Get discount data from data attributes
             const banner = document.querySelector('.countdown-timer-banner');
-            if (banner) {
-                banner.style.display = 'none';
+            if (!banner) {
+                return;
             }
-            {% endif %}
+            
+            const hasDiscount = banner.getAttribute('data-has-discount') === 'true';
+            const timeRemainingSeconds = parseInt(banner.getAttribute('data-time-remaining') || '0', 10);
+            
+            if (hasDiscount && timeRemainingSeconds > 0) {
+                // Calculate end date from server-side time remaining (2 weeks = 14 days)
+                const timeRemainingSeconds = discountData.timeRemainingSeconds;
+                const endDate = new Date();
+                endDate.setTime(endDate.getTime() + (timeRemainingSeconds * 1000)); // Add remaining seconds
+                
+                function updateTimer() {
+                    const now = new Date().getTime();
+                    const distance = endDate.getTime() - now;
+                    
+                    if (distance < 0) {
+                        // Discount expired - hide banner
+                        const banner = document.querySelector('.countdown-timer-banner');
+                        if (banner) {
+                            banner.style.display = 'none';
+                        }
+                        return;
+                    }
+                    
+                    // Calculate days, hours, minutes, seconds
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    // Update display
+                    const daysElement = document.getElementById('days');
+                    const hoursElement = document.getElementById('hours');
+                    const minutesElement = document.getElementById('minutes');
+                    const secondsElement = document.getElementById('seconds');
+                    
+                    if (daysElement) {
+                        daysElement.textContent = String(days).padStart(2, '0');
+                    }
+                    if (hoursElement) {
+                        hoursElement.textContent = String(hours).padStart(2, '0');
+                    }
+                    if (minutesElement) {
+                        minutesElement.textContent = String(minutes).padStart(2, '0');
+                    }
+                    if (secondsElement) {
+                        secondsElement.textContent = String(seconds).padStart(2, '0');
+                    }
+                }
+                
+                updateTimer();
+                setInterval(updateTimer, 1000);
+            } else {
+                // No discount active - hide banner
+                if (banner) {
+                    banner.style.display = 'none';
+                }
+            }
         }
         
         // Start countdown when page loads
