@@ -8,7 +8,7 @@
     "settingsFile": "chidmano/settings.py"
   },
   "build": {
-    "buildCommand": "python manage.py collectstatic --noinput",
+    "buildCommand": "python manage.py migrate --noinput || echo 'Migration skipped (DB may not be available at build time)' && python manage.py collectstatic --noinput",
     "env": {
       "DJANGO_SETTINGS_MODULE": "chidmano.settings",
       "PYTHONPATH": "/app",

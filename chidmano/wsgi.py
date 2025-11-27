@@ -18,16 +18,28 @@ try:
     if os.environ.get('AUTO_MIGRATE', 'true').lower() == 'true':
         lock_path = '/tmp/chidmano_migrated.lock'
         if not os.path.exists(lock_path):
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info("🔄 Auto-migration: Starting migrations...")
             from django.core.management import call_command
-            call_command('migrate', interactive=False, verbosity=1)
-            # create lock file to avoid repeated migrations per container lifecycle
             try:
-                with open(lock_path, 'w') as f:
-                    f.write('ok')
-            except Exception:
-                pass
-except Exception:
+                call_command('migrate', interactive=False, verbosity=1)
+                logger.info("✅ Auto-migration: Migrations completed successfully")
+                # create lock file to avoid repeated migrations per container lifecycle
+                try:
+                    with open(lock_path, 'w') as f:
+                        f.write('ok')
+                except Exception as lock_err:
+                    logger.warning(f"⚠️ Could not create migration lock file: {lock_err}")
+            except Exception as migrate_err:
+                # Log migration errors but don't block startup
+                # Safe migrations (like 0118) will handle existing columns gracefully
+                logger.warning(f"⚠️ Auto-migration warning: {migrate_err}")
+                logger.info("ℹ️ Continuing startup - safe migrations will handle existing columns")
+except Exception as e:
     # Never block startup on migration issues here; errors will surface in logs
+    import logging
+    logging.getLogger(__name__).warning(f"⚠️ Auto-migration setup error: {e}")
     pass
 
 # Create a simple health check wrapper
