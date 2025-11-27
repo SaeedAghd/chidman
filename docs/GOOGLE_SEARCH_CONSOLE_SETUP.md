@@ -47,7 +47,7 @@
 
 بعد از کلیک روی CONTINUE، صفحه تایید مالکیت نمایش داده می‌شود.
 
-#### روش توصیه شده: HTML tag
+#### روش 1: HTML tag (توصیه می‌شود - سریع‌تر)
 
 1. **"HTML tag"** را انتخاب کنید
 
@@ -62,6 +62,29 @@
 
 5. اگر کد موجود نیست یا متفاوت است:
    - کد جدید را در template اضافه کنید
+   - تغییرات را commit و push کنید
+   - در سرور `git pull` کنید
+   - سپس روی **"Verify"** کلیک کنید
+
+#### روش 2: HTML file (اگر HTML tag کار نکرد)
+
+1. **"HTML file"** را انتخاب کنید
+
+2. فایل verification را دانلود کنید (مثلاً: `google7135fded285059c2.html`)
+
+3. فایل در پروژه قرار گرفته است:
+   - `chidmano/templates/verification/google7135fded285059c2.html`
+   - URL: `https://chidmano.ir/google7135fded285059c2.html`
+
+4. بررسی کنید که فایل در دسترس است:
+   - باز کردن: `https://chidmano.ir/google7135fded285059c2.html`
+   - باید محتوای `google-site-verification: google7135fded285059c2.html` را نمایش دهد
+
+5. اگر فایل در دسترس است، روی **"Verify"** کلیک کنید
+
+6. اگر فایل در دسترس نیست:
+   - مطمئن شوید که فایل در `chidmano/templates/verification/` قرار دارد
+   - مطمئن شوید که URL در `chidmano/urls.py` اضافه شده است
    - تغییرات را commit و push کنید
    - در سرور `git pull` کنید
    - سپس روی **"Verify"** کلیک کنید

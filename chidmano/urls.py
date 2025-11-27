@@ -104,6 +104,12 @@ urlpatterns = [
     path('seo/analytics/', seo_analytics_dashboard, name='seo_analytics'),
     path('seo/submit-google/', seo_submit_to_google, name='seo_submit_google'),
     path('37797489.txt', TemplateView.as_view(template_name='verification/37797489.txt', content_type='text/plain'), name='enamad_37797489'),
+    
+    # Google Search Console Verification Files
+    path('google7135fded285059c2.html', TemplateView.as_view(
+        template_name='verification/google7135fded285059c2.html',
+        content_type='text/html'
+    ), name='google_verification'),
     re_path(r'^favicon\.ico$', RedirectView.as_view(url='/static/images/favicon.ico', permanent=True)),
     # Serve service worker at root to avoid 404 in some browsers
     re_path(r'^sw\.js$', RedirectView.as_view(url='/static/sw.js', permanent=True)),
