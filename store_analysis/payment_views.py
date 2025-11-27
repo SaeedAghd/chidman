@@ -60,15 +60,21 @@ def payment_packages(request):
         # Attach discounted price to each package for template
         from decimal import Decimal, ROUND_HALF_UP
         for pkg in packages:
-            try:
-                price_dec = Decimal(str(pkg.price))
-                disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
-                pkg.discounted_price = int(disc)
-            except Exception:
+            # Special promotional pricing for professional package (1,500,000 -> 10,000)
+            if pkg.package_type == 'professional' and pkg.price == Decimal('1500000'):
+                # Promotional price: 10,000 Toman (special launch offer)
+                pkg.discounted_price = 10000
+            else:
+                # Standard 80% discount calculation
                 try:
-                    pkg.discounted_price = int(Decimal(str(pkg.price)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                    price_dec = Decimal(str(pkg.price))
+                    disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                    pkg.discounted_price = int(disc)
                 except Exception:
-                    pkg.discounted_price = int(pkg.price)
+                    try:
+                        pkg.discounted_price = int(Decimal(str(pkg.price)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                    except Exception:
+                        pkg.discounted_price = int(pkg.price)
         context = {
             'packages': packages,
             'title': 'بسته‌های خدمات',
@@ -103,17 +109,25 @@ def create_payment(request, package_id):
                 # Generate unique order ID
                 order_id = f"CHD_{package.id}_{int(timezone.now().timestamp())}"
                 
-                # Calculate discounted amount for payment (80% discount)
+                # Calculate discounted amount for payment
                 from django.core.cache import cache
                 from decimal import Decimal, ROUND_HALF_UP
                 admin_settings = cache.get('admin_settings', {}) or {}
                 discount_pct = admin_settings.get('discount_percentage', 80)
-                try:
-                    price_dec = Decimal(str(package.price))
-                    discounted_amount = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
-                    payment_amount = Decimal(discounted_amount)
-                except Exception:
-                    payment_amount = Decimal(str(package.price))
+                
+                # Special promotional pricing for professional package (1,500,000 -> 10,000)
+                if package.package_type == 'professional' and package.price == Decimal('1500000'):
+                    # Promotional price: 10,000 Toman (special launch offer)
+                    payment_amount = Decimal('10000')
+                    logger.info(f"🎉 Applying promotional price for professional package: 1,500,000 -> 10,000")
+                else:
+                    # Standard 80% discount calculation
+                    try:
+                        price_dec = Decimal(str(package.price))
+                        discounted_amount = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                        payment_amount = Decimal(discounted_amount)
+                    except Exception:
+                        payment_amount = Decimal(str(package.price))
                 
                 # Create payment record and corresponding Order atomically
                 from django.db import DatabaseError
@@ -325,12 +339,19 @@ def create_payment(request, package_id):
         from decimal import Decimal, ROUND_HALF_UP
         admin_settings = cache.get('admin_settings', {}) or {}
         discount_pct = admin_settings.get('discount_percentage', 80)
-        try:
-            price_dec = Decimal(str(package.price))
-            disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
-            package.discounted_price = int(disc)
-        except Exception:
-            package.discounted_price = int(package.price)
+        
+        # Special promotional pricing for professional package (1,500,000 -> 10,000)
+        if package.package_type == 'professional' and package.price == Decimal('1500000'):
+            # Promotional price: 10,000 Toman (special launch offer)
+            package.discounted_price = 10000
+        else:
+            # Standard 80% discount calculation
+            try:
+                price_dec = Decimal(str(package.price))
+                disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+                package.discounted_price = int(disc)
+            except Exception:
+                package.discounted_price = int(package.price)
         
         context = {
             'package': package,
