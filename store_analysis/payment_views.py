@@ -212,6 +212,16 @@ def create_payment(request, package_id):
                 
                 logger.info(f"🔹 PayPing payment initiated for order {order_id} by user {request.user.username} (mobile: {payer_identity})")
                 
+                # Validate payment amount - PayPing requires minimum 1,000 Tomans
+                if payment_amount <= 0:
+                    logger.error(f"❌ Invalid payment amount: {payment_amount} for package {package.name} (id={package.id}, price={package.price})")
+                    messages.error(request, f'خطا: مبلغ پرداخت نامعتبر است (مبلغ: {payment_amount} تومان). لطفاً با پشتیبانی تماس بگیرید.')
+                    return redirect('store_analysis:payment_packages')
+                
+                if payment_amount < 1000:
+                    logger.warning(f"⚠️ Payment amount {payment_amount} is less than PayPing minimum (1000), using 1000")
+                    payment_amount = Decimal('1000')
+                
                 # Create payment request with PayPing (using discounted amount calculated above)
                 payment_request = payping.create_payment_request(
                     amount=int(payment_amount),  # PayPing expects Tomans as integer (discounted price)

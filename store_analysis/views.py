@@ -5602,8 +5602,19 @@ def payping_payment(request, order_id):
         
         logger.info(f"📞 PayPing callback URL: {callback_url}")
         
+        # Validate payment amount - PayPing requires minimum 1,000 Tomans
+        payment_amount = int(order.final_amount) if order.final_amount else 0
+        if payment_amount <= 0:
+            logger.error(f"❌ Invalid payment amount: {payment_amount} for order {order.order_number} (final_amount={order.final_amount})")
+            messages.error(request, f'خطا: مبلغ پرداخت نامعتبر است (مبلغ: {payment_amount} تومان). لطفاً با پشتیبانی تماس بگیرید.')
+            return redirect('store_analysis:payment_page', order_id=order_id)
+        
+        if payment_amount < 1000:
+            logger.warning(f"⚠️ Payment amount {payment_amount} is less than PayPing minimum (1000), using 1000")
+            payment_amount = 1000
+        
         payment_request = payping.create_payment_request(
-            amount=int(order.final_amount),
+            amount=payment_amount,
             description=f'پرداخت بابت تحلیل حرفه‌ای فروشگاه - سفارش {order.order_number}',
             callback_url=callback_url,
             payer_identity=str(payer_identity),  # شماره موبایل کاربر (الزامی)
@@ -5652,6 +5663,7 @@ def payping_payment(request, order_id):
             
             logger.info(f"✅ Redirecting to PayPing: {payment_url}")
             # هدایت به صفحه پرداخت PayPing - CRITICAL: این باید همیشه انجام شود
+            # حتی اگر Payment record ساخته نشد، باز هم باید redirect شود
             return redirect(payment_url)
         else:
             # مدیریت خطاها
@@ -5672,6 +5684,12 @@ def payping_payment(request, order_id):
             
     except Exception as e:
         logger.error(f"💥 PayPing payment exception: {e}", exc_info=True)
+        # اگر exception در try block رخ داد اما payment_request موفق بود، باز هم redirect کن
+        if 'payment_request' in locals() and payment_request.get('status') == 'success':
+            payment_url = payment_request.get('payment_url')
+            if payment_url:
+                logger.warning(f"⚠️ Exception occurred but payment was successful, redirecting to: {payment_url}")
+                return redirect(payment_url)
         messages.error(request, '❌ خطای غیرمنتظره در پردازش پرداخت. لطفاً دوباره تلاش کنید.')
         return redirect('store_analysis:payment_page', order_id=order_id)
 
