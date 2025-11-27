@@ -1995,7 +1995,6 @@
             
             if (hasDiscount && timeRemainingSeconds > 0) {
                 // Calculate end date from server-side time remaining (2 weeks = 14 days)
-                const timeRemainingSeconds = discountData.timeRemainingSeconds;
                 const endDate = new Date();
                 endDate.setTime(endDate.getTime() + (timeRemainingSeconds * 1000)); // Add remaining seconds
                 
