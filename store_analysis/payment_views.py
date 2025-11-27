@@ -60,21 +60,23 @@ def payment_packages(request):
         # Attach discounted price to each package for template
         from decimal import Decimal, ROUND_HALF_UP
         for pkg in packages:
-            # Special promotional pricing for professional package (1,500,000 -> 10,000)
-            if pkg.package_type == 'professional' and pkg.price == Decimal('1500000'):
-                # Promotional price: 10,000 Toman (special launch offer)
-                pkg.discounted_price = 10000
+            # Admin test mode: All packages show 1,000 Toman for testing
+            if request.user.is_staff:
+                pkg.discounted_price = 1000  # 1,000 Toman = 10,000 Rials for admin testing
+                pkg.is_admin_test = True
             else:
-                # Standard 80% discount calculation
+                # Standard 80% discount calculation for regular users
                 try:
                     price_dec = Decimal(str(pkg.price))
                     disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
                     pkg.discounted_price = int(disc)
+                    pkg.is_admin_test = False
                 except Exception:
                     try:
                         pkg.discounted_price = int(Decimal(str(pkg.price)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
                     except Exception:
                         pkg.discounted_price = int(pkg.price)
+                    pkg.is_admin_test = False
         context = {
             'packages': packages,
             'title': 'بسته‌های خدمات',
@@ -115,17 +117,17 @@ def create_payment(request, package_id):
                 admin_settings = cache.get('admin_settings', {}) or {}
                 discount_pct = admin_settings.get('discount_percentage', 80)
                 
-                # Special promotional pricing for professional package (1,500,000 -> 10,000)
-                if package.package_type == 'professional' and package.price == Decimal('1500000'):
-                    # Promotional price: 10,000 Toman (special launch offer)
-                    payment_amount = Decimal('10000')
-                    logger.info(f"🎉 Applying promotional price for professional package: 1,500,000 -> 10,000")
+                # Admin test mode: All packages cost 1,000 Toman (10,000 Rials) for testing
+                if request.user.is_staff:
+                    payment_amount = Decimal('1000')  # 1,000 Toman = 10,000 Rials for admin testing
+                    logger.info(f"🔧 Admin test mode: Using 1,000 Toman for package {package.name} (original: {package.price})")
                 else:
-                    # Standard 80% discount calculation
+                    # Standard 80% discount calculation for regular users
                     try:
                         price_dec = Decimal(str(package.price))
                         discounted_amount = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
                         payment_amount = Decimal(discounted_amount)
+                        logger.info(f"💰 Calculated discounted price: {package.price} -> {payment_amount} (80% discount)")
                     except Exception:
                         payment_amount = Decimal(str(package.price))
                 
@@ -340,18 +342,20 @@ def create_payment(request, package_id):
         admin_settings = cache.get('admin_settings', {}) or {}
         discount_pct = admin_settings.get('discount_percentage', 80)
         
-        # Special promotional pricing for professional package (1,500,000 -> 10,000)
-        if package.package_type == 'professional' and package.price == Decimal('1500000'):
-            # Promotional price: 10,000 Toman (special launch offer)
-            package.discounted_price = 10000
+        # Admin test mode: Show 1,000 Toman for testing
+        if request.user.is_staff:
+            package.discounted_price = 1000  # 1,000 Toman for admin testing
+            package.is_admin_test = True
         else:
-            # Standard 80% discount calculation
+            # Standard 80% discount calculation for regular users
             try:
                 price_dec = Decimal(str(package.price))
                 disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
                 package.discounted_price = int(disc)
+                package.is_admin_test = False
             except Exception:
                 package.discounted_price = int(package.price)
+                package.is_admin_test = False
         
         context = {
             'package': package,

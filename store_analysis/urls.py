@@ -2,6 +2,7 @@ from django.urls import path, include
 from . import views
 from . import payment_views
 from . import chat_views
+from . import admin_payment_test_views
 from django.http import HttpResponse
 from django.views.generic import RedirectView
 
@@ -95,6 +96,8 @@ urlpatterns = [
         path('reports/', views.admin_reports, name='admin_reports'),
         path('settings/', views.admin_settings, name='admin_settings'),
         path('analytics/', views.admin_analytics, name='admin_analytics'),
+        path('payment-test/', admin_payment_test_views.admin_payment_test, name='admin_payment_test'),
+        path('payment-test/create/<int:package_id>/', admin_payment_test_views.admin_create_test_payment, name='admin_create_test_payment'),
     ])),
     
     # Payment URLs

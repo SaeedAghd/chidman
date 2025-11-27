@@ -1,15 +1,34 @@
 {% extends 'store_analysis/base.html' %}
 {% load static %}
 
-{% block title %}بسته‌های خدمات - چیدمانو{% endblock %}
+{% block title %}تست پرداخت PayPing - ادمین - چیدمانو{% endblock %}
 
 {% block extra_css %}
 <style>
+    .admin-test-banner {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .admin-test-banner h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+    
+    .admin-test-banner p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+    }
+    
     .packages-hero {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 4rem 0;
-        margin-bottom: 3rem;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
     }
     
     .package-card {
@@ -59,6 +78,19 @@
         margin: 1rem 0;
     }
     
+    .package-original-price {
+        text-decoration: line-through;
+        opacity: 0.7;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .package-test-price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffd700;
+    }
+    
     .package-currency {
         font-size: 1.2rem;
         opacity: 0.8;
@@ -89,38 +121,43 @@
         font-size: 1.1rem;
         font-weight: bold;
         transition: all 0.3s ease;
-    }
-    
-    .btn-primary {
-        background: linear-gradient(45deg, #667eea, #764ba2);
+        background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
         color: white;
     }
     
-    .btn-primary:hover {
-        background: linear-gradient(45deg, #5a6fd8, #6a4190);
+    .package-button:hover {
+        background: linear-gradient(45deg, #ee5a6f, #dd4a5f);
         transform: translateY(-2px);
-    }
-    
-    .btn-outline {
-        background: transparent;
-        color: #667eea;
-        border: 2px solid #667eea;
-    }
-    
-    .btn-outline:hover {
-        background: #667eea;
         color: white;
+    }
+    
+    .test-badge {
+        display: inline-block;
+        background: #ff6b6b;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="admin-test-banner">
+    <div class="container">
+        <h2>🔧 حالت تست پرداخت - ادمین</h2>
+        <p>همه پلن‌ها با قیمت 1,000 تومان (10,000 ریال) برای تست درگاه PayPing</p>
+    </div>
+</div>
+
 <div class="packages-hero">
     <div class="container">
         <div class="row">
             <div class="col-lg-8 mx-auto text-center">
-                <h1 class="display-4 fw-bold mb-4">بسته‌های خدمات چیدمانو</h1>
-                <p class="lead mb-0">انتخاب بسته مناسب برای تحلیل فروشگاه شما</p>
+                <h1 class="display-4 fw-bold mb-4">تست پرداخت PayPing</h1>
+                <p class="lead mb-0">برای تست درگاه پرداخت، همه پلن‌ها با قیمت 1,000 تومان در دسترس هستند</p>
             </div>
         </div>
     </div>
@@ -132,14 +169,16 @@
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="package-card {% if package.is_popular %}popular{% endif %}">
                 <div class="package-header">
+                    <span class="test-badge">🔧 تست</span>
                     <h3 class="h4 mb-3">{{ package.name }}</h3>
                     <div class="package-price">
-                        {% if discount_pct %}
-                            <div style="text-decoration: line-through; opacity: 0.8;">{{ package.price|floatformat:0 }} <span class="package-currency">تومان</span></div>
-                            <div style="font-size:1.6rem; font-weight:700;">{{ package.discounted_price|default:package.price|floatformat:0 }} <span class="package-currency">تومان</span></div>
-                        {% else %}
-                            {{ package.price|floatformat:0 }} <span class="package-currency">تومان</span>
-                        {% endif %}
+                        <div class="package-original-price">
+                            قیمت اصلی: {{ package.original_price|floatformat:0 }} تومان
+                        </div>
+                        <div class="package-test-price">
+                            {{ package.test_price|floatformat:0 }} <span class="package-currency">تومان</span>
+                        </div>
+                        <small style="opacity: 0.8;">(10,000 ریال)</small>
                     </div>
                     <p class="mb-0">{{ package.description }}</p>
                 </div>
@@ -165,14 +204,12 @@
                 </div>
                 
                 <div class="p-3">
-                    <a href="{% url 'store_analysis:create_payment' package.id %}" 
-                       class="package-button {% if package.is_popular %}btn-primary{% else %}btn-outline{% endif %}">
-                        {% if package.is_popular %}
-                            <i class="fas fa-star me-2"></i>انتخاب بسته محبوب
-                        {% else %}
-                            <i class="fas fa-shopping-cart me-2"></i>خرید بسته
-                        {% endif %}
-                    </a>
+                    <form method="POST" action="{% url 'store_analysis:admin_create_test_payment' package.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="package-button">
+                            <i class="fas fa-credit-card me-2"></i>تست پرداخت با 1,000 تومان
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -180,17 +217,17 @@
     </div>
     
     <div class="row mt-5">
-        <div class="col-lg-8 mx-auto text-center">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">سوالی دارید؟</h5>
-                    <p class="card-text">تیم پشتیبانی ما آماده پاسخگویی به سوالات شما است.</p>
-                    <a href="{% url 'store_analysis:support_center' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-headset me-2"></i>تماس با پشتیبانی
-                    </a>
-                </div>
+        <div class="col-lg-8 mx-auto">
+            <div class="alert alert-warning">
+                <h5 class="alert-heading">⚠️ توجه</h5>
+                <p class="mb-0">
+                    این صفحه فقط برای تست درگاه پرداخت PayPing است. 
+                    همه پلن‌ها با قیمت 1,000 تومان (10,000 ریال) برای تست در دسترس هستند.
+                    قیمت‌های واقعی در صفحه اصلی نمایش داده می‌شوند.
+                </p>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+

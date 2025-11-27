@@ -333,17 +333,12 @@ def simple_home(request):
         if context.get('featured_package'):
             pkg = context['featured_package']
             discount_pct = context.get('discount_info', {}).get('discount_percentage', 0)
-            # Special promotional pricing for professional package (1,500,000 -> 10,000)
-            if pkg.package_type == 'professional' and float(pkg.price) == 1500000:
-                # Promotional price: 10,000 Toman (special launch offer)
-                context['featured_package_discounted_price'] = 10000
-            else:
-                # Standard discount calculation
-                try:
-                    discounted = float(pkg.price) * (1 - float(discount_pct) / 100.0)
-                except Exception:
-                    discounted = float(pkg.price)
-                context['featured_package_discounted_price'] = int(discounted)
+            # Standard 80% discount calculation
+            try:
+                discounted = float(pkg.price) * (1 - float(discount_pct) / 100.0)
+            except Exception:
+                discounted = float(pkg.price)
+            context['featured_package_discounted_price'] = int(discounted)
     except Exception:
         context.setdefault('packages', [])
         context.setdefault('featured_package', None)
