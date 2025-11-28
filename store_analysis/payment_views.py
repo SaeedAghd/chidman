@@ -54,9 +54,9 @@ def payment_packages(request):
     try:
         from django.core.cache import cache
         packages = list(ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price'))
-        # Determine discount percentage from admin settings cache if set; default to 80
+        # Determine discount percentage from admin settings cache if set; default to 90
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 80)
+        discount_pct = admin_settings.get('discount_percentage', 90)
         # Attach discounted price to each package for template
         from decimal import Decimal, ROUND_HALF_UP
         for pkg in packages:
@@ -65,7 +65,7 @@ def payment_packages(request):
                 pkg.discounted_price = 1000  # 1,000 Toman = 10,000 Rials for admin testing
                 pkg.is_admin_test = True
             else:
-                # Standard 80% discount calculation for regular users
+                # Standard 90% discount calculation for regular users
                 try:
                     price_dec = Decimal(str(pkg.price))
                     disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
@@ -115,19 +115,19 @@ def create_payment(request, package_id):
                 from django.core.cache import cache
                 from decimal import Decimal, ROUND_HALF_UP
                 admin_settings = cache.get('admin_settings', {}) or {}
-                discount_pct = admin_settings.get('discount_percentage', 80)
+                discount_pct = admin_settings.get('discount_percentage', 90)
                 
                 # Admin test mode: All packages cost 1,000 Toman (10,000 Rials) for testing
                 if request.user.is_staff:
                     payment_amount = Decimal('1000')  # 1,000 Toman = 10,000 Rials for admin testing
                     logger.info(f"🔧 Admin test mode: Using 1,000 Toman for package {package.name} (original: {package.price})")
                 else:
-                    # Standard 80% discount calculation for regular users
+                    # Standard 90% discount calculation for regular users
                     try:
                         price_dec = Decimal(str(package.price))
                         discounted_amount = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
                         payment_amount = Decimal(discounted_amount)
-                        logger.info(f"💰 Calculated discounted price: {package.price} -> {payment_amount} (80% discount)")
+                        logger.info(f"💰 Calculated discounted price: {package.price} -> {payment_amount} (90% discount)")
                     except Exception:
                         payment_amount = Decimal(str(package.price))
                 
@@ -340,14 +340,14 @@ def create_payment(request, package_id):
         from django.core.cache import cache
         from decimal import Decimal, ROUND_HALF_UP
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 80)
+        discount_pct = admin_settings.get('discount_percentage', 90)
         
         # Admin test mode: Show 1,000 Toman for testing
         if request.user.is_staff:
             package.discounted_price = 1000  # 1,000 Toman for admin testing
             package.is_admin_test = True
         else:
-            # Standard 80% discount calculation for regular users
+            # Standard 90% discount calculation for regular users
             try:
                 price_dec = Decimal(str(package.price))
                 disc = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)

@@ -246,9 +246,9 @@ def simple_home(request):
             time_remaining = (launch_end_date - current_date).total_seconds()
             discount_info = {
                 'has_discount': True,
-                'discount_percentage': 80,
-                'discount_title': 'تخفیف ویژه افتتاحیه 80%',
-                'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۸۰٪ افتتاحیه. همین حالا سفارش دهید!',
+                'discount_percentage': 90,
+                'discount_title': 'تخفیف ویژه افتتاحیه 90%',
+                'discount_message': '🎉 فرصت طلایی! تحلیل فروشگاه شما با تخفیف ۹۰٪ افتتاحیه. همین حالا سفارش دهید!',
                 'discount_type': 'opening',
                 'discount_end_date': launch_end_date,
                 'time_remaining_seconds': max(0, int(time_remaining))  # زمان باقی‌مانده به ثانیه (حداقل 0)
@@ -363,8 +363,8 @@ def simple_home(request):
         
         if context.get('featured_package'):
             pkg = context['featured_package']
-            discount_pct = context.get('discount_info', {}).get('discount_percentage', 80)  # Default to 80% if not set
-            # Standard 80% discount calculation
+            discount_pct = context.get('discount_info', {}).get('discount_percentage', 90)  # Default to 90% if not set
+            # Standard 90% discount calculation
             try:
                 price_float = float(pkg.price)
                 if price_float > 0:
