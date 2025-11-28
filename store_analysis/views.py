@@ -6024,113 +6024,132 @@ def payping_callback(request, order_id):
         
         logger.info("✅ Final verification result for order %s: %s", order.order_number, verification_result)
         
-        # محافظه‌کارانه: اگر verify ناموفق بود اما callback از درگاه دریافت شد،
-        # ابتدا بررسی کن آیا فرم تکمیل شده است؛ اگر تکمیل شده باشد پرداخت را علامت‌گذاری کن
-        # و تیکت بساز (برای جلوگیری از ریفاند خودکار). در غیر این صورت، پرداخت را pending نگه دار
-        # و callback_data را ذخیره و تیکت ایجاد کن، سپس کاربر را به صفحه پرداخت هدایت کن.
+        # سیاست جدید: هیچ refund خودکاری انجام نمی‌شود
+        # اگر callback از درگاه آمده باشد (refid یا code موجود باشد)، پرداخت را completed نگه دار
+        # و تیکت ایجاد کن برای بررسی دستی. کاربر برای refund باید تیکت بزند.
         if verification_result.get('status') != 'success':
             has_callback_local = bool(refid or code or (payment and getattr(payment, 'authority', None)))
             logger.info("🔍 Verification failed and has_callback=%s for order %s", has_callback_local, order.order_number)
+            
             if has_callback_local:
-                # check if form was completed (processing/completed or uploaded_files present)
-                form_completed = False
-                try:
-                    if store_analysis:
-                        sa_status = getattr(store_analysis, 'status', None)
-                        if sa_status in ('processing', 'completed'):
-                            form_completed = True
-                        else:
-                            analysis_data = store_analysis.analysis_data or {}
-                            if isinstance(analysis_data, dict) and analysis_data.get('uploaded_files'):
-                                form_completed = True
-                except Exception as e:
-                    logger.error("⚠️ Error checking store_analysis completion: %s", e, exc_info=True)
-
-                if form_completed:
-                    # mark payment/order completed to avoid refund, save callback_data and create support ticket
-                    transaction_id = refid or code or (payment.authority if payment and hasattr(payment, 'authority') else None)
-                    if payment:
-                        payment.status = 'completed'
-                        payment.transaction_id = transaction_id or payment.transaction_id or getattr(payment, 'authority', None)
-                        payment.store_analysis = store_analysis
-                        payment.completed_at = timezone.now()
-                        try:
-                            payment.callback_data = {
-                                'refid': refid, 'code': code, 'clientrefid': clientrefid,
-                                'raw_get': dict(request.GET), 'raw_post': dict(request.POST)
-                            }
-                        except Exception:
-                            pass
-                        payment.save(update_fields=['status', 'transaction_id', 'store_analysis', 'completed_at', 'callback_data'])
-                    else:
-                        payment = Payment.objects.create(
-                            user=order.user,
-                            store_analysis=store_analysis,
-                            order_id=order.order_number,
-                            amount=order.final_amount,
-                            payment_method='payping',
-                            status='completed',
-                            transaction_id=transaction_id,
-                            completed_at=timezone.now()
-                        )
-                    order.status = 'paid'
-                    order.payment = payment
-                    order.transaction_id = payment.transaction_id
-                    order.payment_method = 'payping'
-                    order.save(update_fields=['status', 'payment', 'transaction_id', 'payment_method'])
-
-                    # create support ticket
+                # اگر callback آمده باشد، پرداخت را completed نگه دار (حتی اگر verify fail شود)
+                # این از refund خودکار PayPing جلوگیری می‌کند
+                transaction_id = refid or code or (payment.authority if payment and hasattr(payment, 'authority') else None)
+                
+                if payment:
+                    payment.status = 'completed'
+                    payment.transaction_id = transaction_id or payment.transaction_id or getattr(payment, 'authority', None)
+                    payment.store_analysis = store_analysis
+                    payment.completed_at = timezone.now()
                     try:
-                        from django.contrib.auth import get_user_model
-                        User = get_user_model()
-                        ticket_user = order.user or (request.user if request.user.is_authenticated else None)
-                        if not ticket_user:
-                            ticket_user = User.objects.filter(is_superuser=True).first()
-                        from .models import SupportTicket
-                        ticket_subject = f"[پرداخت نامعلوم] سفارش {order.order_number}"
-                        ticket_desc = f"Callback received but PayPing verification failed for order {order.order_number}.\\nRefid={refid}\\nCode={code}\\nPlease review payment {payment.id}.\\nCallback GET={dict(request.GET)} POST={dict(request.POST)}"
-                        if ticket_user:
-                            SupportTicket.objects.create(user=ticket_user, subject=ticket_subject, description=ticket_desc, category='billing', priority='urgent')
-                    except Exception as e:
-                        logger.error("⚠️ Failed to create support ticket: %s", e, exc_info=True)
-
-                    messages.success(request, '✅ پرداخت شما ثبت شد و تیم پشتیبانی در صورت نیاز بررسی خواهد کرد.')
-                    if store_analysis:
-                        try:
-                            request.session['analysis_id'] = store_analysis.id
-                            request.session['pending_analysis_id'] = store_analysis.id
-                            request.session.modified = True
-                            request.session.save()
-                        except Exception:
-                            pass
-                        return redirect('store_analysis:forms', analysis_id=store_analysis.id)
-                    return redirect('store_analysis:user_dashboard')
+                        payment.callback_data = {
+                            'refid': refid, 'code': code, 'clientrefid': clientrefid,
+                            'raw_get': dict(request.GET), 'raw_post': dict(request.POST),
+                            'verification_failed': True,
+                            'verification_error': verification_result.get('message', 'Unknown error')
+                        }
+                    except Exception:
+                        pass
+                    payment.save(update_fields=['status', 'transaction_id', 'store_analysis', 'completed_at', 'callback_data'])
+                    logger.info(f"✅ پرداخت {payment.id} به وضعیت completed تغییر کرد (حتی با verify fail) - از refund خودکار جلوگیری شد")
                 else:
-                    # save callback data, create ticket, leave payment pending
-                    if payment:
-                        try:
-                            payment.callback_data = {
-                                'refid': refid, 'code': code, 'clientrefid': clientrefid,
-                                'raw_get': dict(request.GET), 'raw_post': dict(request.POST)
-                            }
-                            payment.save(update_fields=['callback_data'])
-                        except Exception as e:
-                            logger.error("⚠️ Failed to save callback_data: %s", e, exc_info=True)
+                    payment = Payment.objects.create(
+                        user=order.user,
+                        store_analysis=store_analysis,
+                        order_id=order.order_number,
+                        amount=order.final_amount,
+                        payment_method='payping',
+                        status='completed',
+                        transaction_id=transaction_id,
+                        completed_at=timezone.now(),
+                        callback_data={
+                            'refid': refid, 'code': code, 'clientrefid': clientrefid,
+                            'raw_get': dict(request.GET), 'raw_post': dict(request.POST),
+                            'verification_failed': True,
+                            'verification_error': verification_result.get('message', 'Unknown error')
+                        }
+                    )
+                    logger.info(f"✅ پرداخت {payment.id} ایجاد شد و به وضعیت completed تغییر کرد (حتی با verify fail) - از refund خودکار جلوگیری شد")
+                
+                order.status = 'paid'
+                order.payment = payment
+                order.transaction_id = payment.transaction_id
+                order.payment_method = 'payping'
+                order.save(update_fields=['status', 'payment', 'transaction_id', 'payment_method'])
+                logger.info(f"✅ سفارش {order.order_number} به وضعیت paid تغییر کرد (حتی با verify fail) - از refund خودکار جلوگیری شد")
+
+                # ایجاد تیکت برای بررسی دستی
+                try:
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    ticket_user = order.user or (request.user if request.user.is_authenticated else None)
+                    if not ticket_user:
+                        ticket_user = User.objects.filter(is_superuser=True).first()
+                    from .models import SupportTicket
+                    ticket_subject = f"[پرداخت نیاز به بررسی] سفارش {order.order_number}"
+                    ticket_desc = f"Callback از PayPing دریافت شد اما verify ناموفق بود. پرداخت به وضعیت completed تغییر کرد تا از refund خودکار جلوگیری شود.\\n\\n"
+                    ticket_desc += f"Order: {order.order_number}\\n"
+                    ticket_desc += f"Payment ID: {payment.id}\\n"
+                    ticket_desc += f"Refid: {refid}\\n"
+                    ticket_desc += f"Code: {code}\\n"
+                    ticket_desc += f"Amount: {order.final_amount} {order.currency}\\n"
+                    ticket_desc += f"Verification Error: {verification_result.get('message', 'Unknown error')}\\n\\n"
+                    ticket_desc += f"Callback Data:\\nGET={dict(request.GET)}\\nPOST={dict(request.POST)}\\n\\n"
+                    ticket_desc += f"⚠️ توجه: اگر کاربر درخواست refund دارد، باید تیکت جدید بزند. هیچ refund خودکاری انجام نمی‌شود."
+                    if ticket_user:
+                        SupportTicket.objects.create(
+                            user=ticket_user, 
+                            subject=ticket_subject, 
+                            description=ticket_desc, 
+                            category='billing', 
+                            priority='high'
+                        )
+                        logger.info(f"✅ تیکت پشتیبانی برای پرداخت {payment.id} ایجاد شد")
+                except Exception as e:
+                    logger.error("⚠️ Failed to create support ticket: %s", e, exc_info=True)
+
+                messages.success(request, '✅ پرداخت شما ثبت شد. در صورت نیاز به بازگشت وجه، لطفاً تیکت پشتیبانی ایجاد کنید.')
+                
+                if store_analysis:
                     try:
-                        from django.contrib.auth import get_user_model
-                        User = get_user_model()
-                        ticket_user = order.user or (request.user if request.user.is_authenticated else None)
-                        if not ticket_user:
-                            ticket_user = User.objects.filter(is_superuser=True).first()
-                        from .models import SupportTicket
-                        ticket_subject = f"[پرداخت ناموفق] سفارش {order.order_number}"
-                        ticket_desc = f"PayPing verification failed for order {order.order_number}. Callback data saved for manual review.\\nRefid={refid}\\nCode={code}\\nGET={dict(request.GET)} POST={dict(request.POST)}"
-                        if ticket_user:
-                            SupportTicket.objects.create(user=ticket_user, subject=ticket_subject, description=ticket_desc, category='billing', priority='urgent')
+                        request.session['analysis_id'] = store_analysis.id
+                        request.session['pending_analysis_id'] = store_analysis.id
+                        request.session.modified = True
+                        request.session.save()
+                    except Exception:
+                        pass
+                    return redirect('store_analysis:forms', analysis_id=store_analysis.id)
+                return redirect('store_analysis:user_dashboard')
+            else:
+                # اگر callback نیامده باشد، فقط تیکت ایجاد کن و به صفحه پرداخت redirect کن
+                if payment:
+                    try:
+                        payment.callback_data = {
+                            'refid': refid, 'code': code, 'clientrefid': clientrefid,
+                            'raw_get': dict(request.GET), 'raw_post': dict(request.POST),
+                            'verification_failed': True,
+                            'no_callback': True
+                        }
+                        payment.save(update_fields=['callback_data'])
                     except Exception as e:
-                        logger.error("⚠️ Failed to create support ticket: %s", e, exc_info=True)
-                    messages.error(request, '❌ تایید پرداخت ناموفق بود. پرداخت در وضعیت معلق قرار گرفت و تیم پشتیبانی بررسی خواهد کرد.')
-                    return redirect('store_analysis:payment_page', order_id=order.order_number)
+                        logger.error("⚠️ Failed to save callback_data: %s", e, exc_info=True)
+                
+                try:
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    ticket_user = order.user or (request.user if request.user.is_authenticated else None)
+                    if not ticket_user:
+                        ticket_user = User.objects.filter(is_superuser=True).first()
+                    from .models import SupportTicket
+                    ticket_subject = f"[پرداخت ناموفق] سفارش {order.order_number}"
+                    ticket_desc = f"PayPing verification failed for order {order.order_number} and no callback received.\\nRefid={refid}\\nCode={code}\\nGET={dict(request.GET)} POST={dict(request.POST)}"
+                    if ticket_user:
+                        SupportTicket.objects.create(user=ticket_user, subject=ticket_subject, description=ticket_desc, category='billing', priority='urgent')
+                except Exception as e:
+                    logger.error("⚠️ Failed to create support ticket: %s", e, exc_info=True)
+                
+                messages.error(request, '❌ تایید پرداخت ناموفق بود. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.')
+                return redirect('store_analysis:payment_page', order_id=order.order_number)
 
         if verification_result.get('status') == 'success':
             if payment is None:
