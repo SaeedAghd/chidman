@@ -498,11 +498,29 @@ def payment_callback(request):
                 return JsonResponse({'status': 'success', 'message': 'Payment completed'})
             else:
                 # Payment failed according to gateway
+                # سیاست جدید: حتی اگر gateway بگوید refund شده، status را refunded نکن
+                # کاربر باید تیکت بزند برای refund
                 payment.status = 'failed'
                 payment.callback_data = callback_data
                 payment.save()
 
-                order.status = 'refunded' if callback_result.get('status') == 'refunded' else 'cancelled'
+                # فقط اگر gateway صراحتاً cancelled گفته باشد، cancelled می‌کنیم
+                # اما refunded نمی‌کنیم - کاربر باید تیکت بزند
+                if callback_result.get('status') == 'refunded':
+                    # تیکت ایجاد کن برای بررسی دستی
+                    try:
+                        from .models import SupportTicket
+                        SupportTicket.objects.create(
+                            user=payment.user,
+                            subject=f"[درخواست بررسی Refund] پرداخت {payment.order_id}",
+                            description=f"Gateway گزارش refund داده است اما status را refunded نمی‌کنیم. کاربر باید تیکت بزند.\\n\\nPayment ID: {payment.id}\\nOrder: {order.order_number}\\nCallback: {callback_result}",
+                            category='billing',
+                            priority='high'
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to create refund ticket: {e}")
+                
+                order.status = 'cancelled'  # فقط cancelled، نه refunded
                 order.save()
 
                 safe_create_payment_log(
