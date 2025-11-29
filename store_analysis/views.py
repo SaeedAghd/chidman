@@ -5630,16 +5630,16 @@ def payping_payment(request, order_id):
             store_analysis = StoreAnalysis.objects.filter(order=order).first()
             payment = None
             try:
-            payment = Payment.objects.create(
-                user=request.user,
-                store_analysis=store_analysis,
-                order_id=order.order_number,
-                amount=order.final_amount,
-                payment_method='payping',
-                status='pending',
+                payment = Payment.objects.create(
+                    user=request.user,
+                    store_analysis=store_analysis,
+                    order_id=order.order_number,
+                    amount=order.final_amount,
+                    payment_method='payping',
+                    status='pending',
                     authority=payment_request['authority'],
-                transaction_id=payment_request['authority']
-            )
+                    transaction_id=payment_request['authority']
+                )
                 order.payment = payment
                 logger.info(f"✅ Payment record created: {payment.id}")
             except Exception as payment_create_err:
@@ -5651,7 +5651,7 @@ def payping_payment(request, order_id):
             try:
                 order.transaction_id = payment_request['authority']
                 if payment:
-            order.payment = payment
+                    order.payment = payment
                 order.save(update_fields=['transaction_id', 'payment'])
             except Exception as order_update_err:
                 logger.warning(f"Could not update Order: {order_update_err}")
