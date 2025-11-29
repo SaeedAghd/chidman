@@ -91,6 +91,7 @@ def calculate_analysis_scores(analysis):
                 return float(default)
             return float(value)
         except (ValueError, TypeError):
+            # نقشه‌برداری از برچسب‌های متنی به مقدار عددی پیش‌فرض
             mapping = {
                 'small': 300,
                 'medium': 600,
@@ -116,19 +117,19 @@ def calculate_analysis_scores(analysis):
         layout_score = min(95, layout_score + (conversion_rate - 30) * 0.5)
     except Exception:
         layout_score = 80
-    
+
     # امتیاز ترافیک (بر اساس تعداد مشتریان)
     try:
         traffic_score = min(95, max(60, customer_traffic / 10))
     except Exception:
         traffic_score = 70
-    
+
     # امتیاز طراحی (بر اساس نرخ تبدیل و ترافیک)
     try:
         design_score = min(95, max(60, conversion_rate * 1.5 + traffic_score * 0.3))
     except Exception:
         design_score = 70
-    
+
     # امتیاز فروش (بر اساس نرخ تبدیل)
     try:
         sales_score = min(95, max(60, conversion_rate * 2))
@@ -5629,16 +5630,16 @@ def payping_payment(request, order_id):
             store_analysis = StoreAnalysis.objects.filter(order=order).first()
             payment = None
             try:
-                payment = Payment.objects.create(
-                    user=request.user,
-                    store_analysis=store_analysis,
-                    order_id=order.order_number,
-                    amount=order.final_amount,
-                    payment_method='payping',
-                    status='pending',
+            payment = Payment.objects.create(
+                user=request.user,
+                store_analysis=store_analysis,
+                order_id=order.order_number,
+                amount=order.final_amount,
+                payment_method='payping',
+                status='pending',
                     authority=payment_request['authority'],
-                    transaction_id=payment_request['authority']
-                )
+                transaction_id=payment_request['authority']
+            )
                 order.payment = payment
                 logger.info(f"✅ Payment record created: {payment.id}")
             except Exception as payment_create_err:
@@ -5650,7 +5651,7 @@ def payping_payment(request, order_id):
             try:
                 order.transaction_id = payment_request['authority']
                 if payment:
-                    order.payment = payment
+            order.payment = payment
                 order.save(update_fields=['transaction_id', 'payment'])
             except Exception as order_update_err:
                 logger.warning(f"Could not update Order: {order_update_err}")
@@ -6150,7 +6151,7 @@ def payping_callback(request, order_id):
                 
                 messages.error(request, '❌ تایید پرداخت ناموفق بود. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.')
                 return redirect('store_analysis:payment_page', order_id=order.order_number)
-
+        
         if verification_result.get('status') == 'success':
             if payment is None:
                 payment = Payment.objects.create(
