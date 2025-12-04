@@ -8728,6 +8728,13 @@ def store_analysis_form(request, analysis_id=None):
                     logger.error("Fallback analysis generation failed for %s: %s", analysis.pk, generator_error)
                 messages.success(request, '✅ فرم با موفقیت ثبت شد! پس از پرداخت، تحلیل کامل انجام خواهد شد.')
 
+            # اگر کاربر لاگین نیست و order دارد، به ثبت‌نام/لاگین هدایت کن
+            if not request.user.is_authenticated and analysis and analysis.order:
+                request.session['pending_order_id'] = analysis.order.order_number
+                from django.urls import reverse
+                login_url = reverse('login') + f'?next={reverse("store_analysis:products")}'
+                return redirect(login_url)
+            
             return redirect('store_analysis:products')
             
         except Exception as e:
@@ -12029,6 +12036,19 @@ def forms_submit(request):
                     'payment_required': False
                 })
             else:
+                # اگر کاربر لاگین نیست، به ثبت‌نام/لاگین هدایت کن
+                if not request.user.is_authenticated:
+                    request.session['pending_order_id'] = order.order_number
+                    from django.urls import reverse
+                    login_url = reverse('login') + f'?next={reverse("store_analysis:products")}'
+                    return JsonResponse({
+                        'success': True,
+                        'message': '✅ فرم با موفقیت ارسال شد! لطفاً ابتدا ثبت‌نام یا وارد حساب کاربری خود شوید.',
+                        'redirect_url': login_url,
+                        'payment_required': True,
+                        'requires_login': True
+                    })
+                
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ارسال شد! پس از پرداخت، تحلیل هوشمند با استفاده از Liara AI و کتابخانه‌های تخصصی به صورت خودکار شروع خواهد شد و نتایج پس از حدود 30 دقیقه در دسترس خواهد بود.',

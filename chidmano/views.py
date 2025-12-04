@@ -39,6 +39,23 @@ def signup_view(request):
                     login(request, user)
                     messages.success(request, f'✅ حساب کاربری شما با موفقیت ایجاد شد! خوش آمدید {user.get_full_name() or user.username}!')
                     
+                    # اگر pending_order_id در session است، به صفحه پرداخت هدایت کن
+                    pending_order_id = request.session.get('pending_order_id')
+                    if pending_order_id:
+                        from django.urls import reverse
+                        del request.session['pending_order_id']
+                        return redirect('store_analysis:payment_page', order_id=pending_order_id)
+                    
+                    # استفاده از next parameter اگر موجود باشد
+                    next_url = request.GET.get('next') or request.POST.get('next')
+                    if next_url:
+                        from django.http import HttpResponseRedirect
+                        try:
+                            if next_url.startswith('/') or next_url.startswith(request.build_absolute_uri('/')):
+                                return HttpResponseRedirect(next_url)
+                        except:
+                            pass
+                    
                     # redirect به صفحه محصولات
                     return redirect('store_analysis:products')
                 except Exception as e:
@@ -152,6 +169,13 @@ def simple_login_view(request):
                                 del request.session['analysis_id']
                             logger.info(f"🔐 Redirecting to forms after login: analysis_id={analysis_id}")
                             return redirect('store_analysis:forms', analysis_id=analysis_id)
+                        
+                        # اگر pending_order_id در session است، به صفحه پرداخت هدایت کن
+                        pending_order_id = request.session.get('pending_order_id')
+                        if pending_order_id:
+                            from django.urls import reverse
+                            del request.session['pending_order_id']
+                            return redirect('store_analysis:payment_page', order_id=pending_order_id)
                         
                         # استفاده از next parameter اگر موجود باشد
                         next_url = request.GET.get('next') or request.POST.get('next')
