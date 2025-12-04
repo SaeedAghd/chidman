@@ -8728,7 +8728,7 @@ def store_analysis_form(request, analysis_id=None):
                     logger.error("Fallback analysis generation failed for %s: %s", analysis.pk, generator_error)
                 messages.success(request, '✅ فرم با موفقیت ثبت شد! پس از پرداخت، تحلیل کامل انجام خواهد شد.')
 
-            return redirect('store_analysis:analysis_results', pk=analysis.pk)
+            return redirect('store_analysis:products')
             
         except Exception as e:
             logger.error(f"Error processing form: {e}")
@@ -11210,11 +11210,11 @@ def forms_submit(request):
                             except Exception as e:
                                 logger.error(f"❌ خطا در شروع تحلیل رایگان: {e}", exc_info=True)
                             
-                            # هدایت به داشبورد با پیغام موفقیت
+                            # هدایت به صفحه محصولات با پیغام موفقیت
                             return JsonResponse({
                                 'success': True,
                                 'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
-                                'redirect_url': f'/store/dashboard/',
+                                'redirect_url': f'/store/products/',
                                 'payment_required': False
                             })
                         else:
@@ -11592,11 +11592,11 @@ def forms_submit(request):
                         valid_count = sum(1 for v in final_files.values() if isinstance(v, dict) and v.get('path') and 'error' not in v)
                         logger.info(f"🔍 Analysis {store_analysis.id}: Valid files: {valid_count}")
                 
-                # هدایت به داشبورد
+                # هدایت به صفحه محصولات
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
-                    'redirect_url': f'/store/dashboard/',
+                    'redirect_url': f'/store/products/',
                     'payment_required': False,
                     'analysis_id': store_analysis.id,
                     'files_count': len(uploaded_files),
@@ -11811,11 +11811,11 @@ def forms_submit(request):
                                 store_analysis.id
                             ])
                     
-                    # هدایت به داشبورد
+                    # هدایت به صفحه محصولات
                     return JsonResponse({
                         'success': True,
                         'message': '✅ فرم با موفقیت به‌روزرسانی شد!',
-                        'redirect_url': f'/store/dashboard/',
+                        'redirect_url': f'/store/products/',
                         'payment_required': False,
                         'analysis_id': store_analysis.id
                     })
@@ -12025,7 +12025,7 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
-                    'redirect_url': f'/store/dashboard/',
+                    'redirect_url': f'/store/products/',
                     'payment_required': False
                 })
             else:
