@@ -56,7 +56,7 @@ def payment_packages(request):
         packages = list(ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price'))
         # Determine discount percentage from admin settings cache if set; default to 90
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 90)
+        discount_pct = admin_settings.get('discount_percentage', 60)
         # Attach discounted price to each package for template
         from decimal import Decimal, ROUND_HALF_UP
         for pkg in packages:
@@ -115,7 +115,7 @@ def create_payment(request, package_id):
                 from django.core.cache import cache
                 from decimal import Decimal, ROUND_HALF_UP
                 admin_settings = cache.get('admin_settings', {}) or {}
-                discount_pct = admin_settings.get('discount_percentage', 90)
+                discount_pct = admin_settings.get('discount_percentage', 60)
                 
                 # Admin test mode: All packages cost 1,000 Toman (10,000 Rials) for testing
                 if request.user.is_staff:
@@ -340,7 +340,7 @@ def create_payment(request, package_id):
         from django.core.cache import cache
         from decimal import Decimal, ROUND_HALF_UP
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 90)
+        discount_pct = admin_settings.get('discount_percentage', 60)
         
         # Admin test mode: Show 1,000 Toman for testing
         if request.user.is_staff:

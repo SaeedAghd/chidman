@@ -281,8 +281,8 @@ def calculate_analysis_cost(form_data):
         
         if current_date <= launch_end_date:
             # تخفیف 90% افتتاحیه
-            discount_percentage = 90
-            discount = total * Decimal('0.90')  # 90% تخفیف
+            discount_percentage = 60
+            discount = total * Decimal('0.60')  # 60% تخفیف
         
         # محاسبه قیمت نهایی
         final = total - discount  # 300,000 تومان
@@ -12077,7 +12077,7 @@ def products_page(request):
         from store_analysis.models import ServicePackage
         from django.core.cache import cache
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 90)
+        discount_pct = admin_settings.get('discount_percentage', 60)
         mapping_urls = {
             'basic': '/store/buy/basic/',
             'professional': '/store/buy/complete/',
