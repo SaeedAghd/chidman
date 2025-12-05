@@ -1531,6 +1531,173 @@
             60% { transform: translateY(-3px); }
         }
 
+        /* Video Demo Section */
+        .video-demo-section {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .video-demo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .video-demo-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .video-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .video-content {
+            text-align: right;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .video-duration {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Video Modal */
+        .video-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .video-modal-content {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .video-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .video-modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .video-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .video-close-btn:hover {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        .video-modal-body {
+            padding: 0;
+        }
+
+        .video-placeholder {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .video-placeholder-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .play-icon-large {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .video-placeholder h4 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .video-placeholder p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .video-features {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+        }
+
         /* Trust Signals پیشرفته */
         .trust-signals-row {
             display: flex;
@@ -2423,6 +2590,17 @@
                         </div>
                     </div>
                     
+                    <!-- Video Demo Button -->
+                    <div class="video-demo-section">
+                        <button class="video-demo-btn" onclick="playDemoVideo()">
+                            <div class="video-icon">▶️</div>
+                            <div class="video-content">
+                                <div class="video-title">چیدمانو چطور کار می‌کنه؟</div>
+                                <div class="video-duration">ویدیو ۲ دقیقه‌ای</div>
+                            </div>
+                        </button>
+                    </div>
+
                     <!-- CTA Buttons -->
                     <div class="hero-buttons-modern">
                         {% if user.is_authenticated %}
@@ -2754,6 +2932,28 @@
                 .timer-item {
                     padding: 0.4rem 0.6rem;
                     min-width: 50px;
+                }
+
+                .video-demo-btn {
+                    padding: 0.8rem 1.2rem;
+                }
+
+                .video-icon {
+                    font-size: 1.5rem;
+                }
+
+                .video-title {
+                    font-size: 1rem;
+                }
+
+                .video-modal-content {
+                    width: 95%;
+                    max-height: 90vh;
+                }
+
+                .video-features {
+                    flex-direction: column;
+                    gap: 1rem;
                 }
 
                 .hero-buttons-modern {
@@ -4038,6 +4238,40 @@
         </div>
     </footer>
 
+    <!-- Video Demo Modal -->
+    <div class="video-modal" id="videoModal" style="display: none;">
+        <div class="video-modal-overlay" onclick="closeVideoModal()"></div>
+        <div class="video-modal-content">
+            <div class="video-modal-header">
+                <h3>چیدمانو چگونه کار می‌کند؟</h3>
+                <button class="video-close-btn" onclick="closeVideoModal()">✕</button>
+            </div>
+            <div class="video-modal-body">
+                <div class="video-placeholder">
+                    <div class="video-placeholder-content">
+                        <div class="play-icon-large">▶️</div>
+                        <h4>ویدیو دمو آماده‌سازی</h4>
+                        <p>ویدیو ۲ دقیقه‌ای نحوه کار چیدمانو به‌زودی اضافه خواهد شد</p>
+                        <div class="video-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">📊</span>
+                                <span>تحلیل هوشمند فروشگاه</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">⚡</span>
+                                <span>نتایج در کمتر از 30 دقیقه</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎯</span>
+                                <span>افزایش فروش تا 50%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{% static 'js/bootstrap.bundle.min.js' %}" defer></script>
     <script src="{% static 'js/browser-compatibility.js' %}" defer></script>
 
@@ -4164,6 +4398,32 @@
             updateCountdown();
             setInterval(updateCountdown, 1000);
         })();
+
+        // Video Demo Modal Functions
+        function playDemoVideo() {
+            document.getElementById('videoModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+            // Send analytics event
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'video_demo_click', {
+                    event_category: 'engagement',
+                    event_label: 'demo_video_opened'
+                });
+            }
+        }
+
+        function closeVideoModal() {
+            document.getElementById('videoModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && document.getElementById('videoModal').style.display === 'flex') {
+                closeVideoModal();
+            }
+        });
     </script>
 
     <script>
