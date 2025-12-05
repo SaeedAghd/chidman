@@ -1771,11 +1771,11 @@
             <div class="timer-content">
                 <!-- Left: Icon and Text -->
                 <div class="timer-left">
-                    <div class="timer-icon">🔥</div>
-                    <div class="timer-text">
+                <div class="timer-icon">🔥</div>
+                <div class="timer-text">
                         <h3>تخفیف 90% افتتاحیه!</h3>
-                        <p>فرصت عالی برای تحلیل حرفه‌ای فروشگاه شما</p>
-                    </div>
+                    <p>فرصت عالی برای تحلیل حرفه‌ای فروشگاه شما</p>
+                </div>
                 </div>
                 
                 <!-- Center: Countdown Timer -->
@@ -1810,7 +1810,7 @@
                         <div class="price-old">
                             <span class="price-old-value">{{ featured_package.price|floatformat:0|intcomma }}</span>
                             <span class="price-currency">تومان</span>
-                        </div>
+                </div>
                         <div class="price-new">
                             {% if featured_package_discounted_price %}
                                 <span class="price-new-value">{{ featured_package_discounted_price|floatformat:0|intcomma }}</span>
@@ -1818,7 +1818,7 @@
                                 <span class="price-new-value">{{ featured_package.price|floatformat:0|intcomma }}</span>
                             {% endif %}
                             <span class="price-currency">تومان</span>
-                        </div>
+            </div>
                         <a href="{% url 'store_analysis:products' %}" class="timer-cta-btn">
                             <span>همین حالا خرید کنید</span>
                             <i class="fas fa-arrow-left"></i>
@@ -1827,8 +1827,8 @@
                         <div class="price-old">—</div>
                         <div class="price-new">تماس بگیرید</div>
                     {% endif %}
-                </div>
-            </div>
+        </div>
+    </div>
         </div>
     </div>
     {% endif %}
@@ -2158,28 +2158,28 @@
             
             if (hasDiscount && timeRemainingSeconds > 0) {
                 // Calculate end date from server-side time remaining (2 weeks = 14 days)
-                const endDate = new Date();
+            const endDate = new Date();
                 endDate.setTime(endDate.getTime() + (timeRemainingSeconds * 1000)); // Add remaining seconds
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = endDate.getTime() - now;
                 
-                function updateTimer() {
-                    const now = new Date().getTime();
-                    const distance = endDate.getTime() - now;
-                    
-                    if (distance < 0) {
+                if (distance < 0) {
                         // Discount expired - hide banner
                         const banner = document.querySelector('.countdown-timer-banner');
                         if (banner) {
                             banner.style.display = 'none';
                         }
-                        return;
-                    }
-                    
+                    return;
+                }
+                
                     // Calculate days, hours, minutes, seconds
                     const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                    
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
                     // Update display
                     const daysElement = document.getElementById('days');
                     const hoursElement = document.getElementById('hours');
@@ -2198,10 +2198,10 @@
                     if (secondsElement) {
                         secondsElement.textContent = String(seconds).padStart(2, '0');
                     }
-                }
-                
-                updateTimer();
-                setInterval(updateTimer, 1000);
+            }
+            
+            updateTimer();
+            setInterval(updateTimer, 1000);
             } else {
                 // No discount active - hide banner
                 if (banner) {
@@ -2252,8 +2252,8 @@
                     </div>
                     
                     <!-- Guarantee Badges -->
-                    <div class="hero-guarantee">
-                        ✅ بدون نیاز به کارت بانکی | ✅ تحلیل اولیه رایگان | ✅ فقط 5 دقیقه!
+                        <div class="hero-guarantee">
+                            ✅ بدون نیاز به کارت بانکی | ✅ تحلیل اولیه رایگان | ✅ فقط 5 دقیقه!
                     </div>
                     
                     <!-- Social Proof -->
