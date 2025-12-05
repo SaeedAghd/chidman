@@ -119,33 +119,33 @@ def create_payment(request, package_id):
                 
                 # Generate unique order ID
                 order_id = f"CHD_{package.id}_{int(timezone.now().timestamp())}"
-                
+
                 # Calculate discounted amount for payment
                 from django.core.cache import cache
                 from decimal import Decimal, ROUND_HALF_UP
+                from datetime import datetime, timezone
                 admin_settings = cache.get('admin_settings', {}) or {}
                 # سیستم تخفیف افتتاحیه: ۹۰% برای ۵ روز اول، سپس ۶۰%
-        from datetime import datetime, timezone
-        launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
-        current_date = datetime.now(timezone.utc)
-        days_since_launch = (current_date - launch_date).days
+                launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
+                current_date = datetime.now(timezone.utc)
+                days_since_launch = (current_date - launch_date).days
 
-        if days_since_launch <= 5:
-            discount_pct = 90  # تخفیف افتتاحیه
-        else:
-            discount_pct = 60  # تخفیف دائمی
-                
+                if days_since_launch <= 5:
+                    discount_pct = 90  # تخفیف افتتاحیه
+                else:
+                    discount_pct = 60  # تخفیف دائمی
+
                 # Admin test mode: All packages cost 1,000 Toman (10,000 Rials) for testing
                 if request.user.is_staff:
                     payment_amount = Decimal('1000')  # 1,000 Toman = 10,000 Rials for admin testing
                     logger.info(f"🔧 Admin test mode: Using 1,000 Toman for package {package.name} (original: {package.price})")
                 else:
-                    # Standard 90% discount calculation for regular users
+                    # Standard discount calculation for regular users
                     try:
                         price_dec = Decimal(str(package.price))
                         discounted_amount = (price_dec * (Decimal(100) - Decimal(str(discount_pct))) / Decimal(100)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
                         payment_amount = Decimal(discounted_amount)
-                        logger.info(f"💰 Calculated discounted price: {package.price} -> {payment_amount} (90% discount)")
+                        logger.info(f"💰 Calculated discounted price: {package.price} -> {payment_amount} ({discount_pct}% discount)")
                     except Exception:
                         payment_amount = Decimal(str(package.price))
                 
