@@ -1698,6 +1698,154 @@
             font-size: 1.2rem;
         }
 
+        /* Lead Magnet Popup */
+        .lead-magnet-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lead-magnet-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .lead-magnet-content {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .lead-magnet-header {
+            text-align: right;
+            padding: 1rem;
+        }
+
+        .lead-magnet-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .lead-magnet-close:hover {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        .lead-magnet-body {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .lead-magnet-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .lead-magnet-body h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .lead-magnet-body p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .lead-magnet-benefits {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .benefit-icon {
+            color: #27ae60;
+            font-size: 1.1rem;
+        }
+
+        .lead-magnet-form {
+            margin-bottom: 1.5rem;
+        }
+
+        .lead-magnet-form input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .lead-magnet-form input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .lead-magnet-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .lead-magnet-submit:hover {
+            background: linear-gradient(135deg, #2980b9, #1f618d);
+            transform: translateY(-2px);
+        }
+
+        .download-icon {
+            font-size: 1.2rem;
+        }
+
+        .lead-magnet-footer {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
         /* Trust Signals پیشرفته */
         .trust-signals-row {
             display: flex;
@@ -2954,6 +3102,18 @@
                 .video-features {
                     flex-direction: column;
                     gap: 1rem;
+                }
+
+                .lead-magnet-content {
+                    width: 95%;
+                }
+
+                .lead-magnet-body {
+                    padding: 1.5rem;
+                }
+
+                .lead-magnet-benefits {
+                    gap: 0.3rem;
                 }
 
                 .hero-buttons-modern {
@@ -4238,6 +4398,48 @@
         </div>
     </footer>
 
+    <!-- Lead Magnet Popup -->
+    <div class="lead-magnet-popup" id="leadMagnetPopup" style="display: none;">
+        <div class="lead-magnet-overlay" onclick="closeLeadMagnet()"></div>
+        <div class="lead-magnet-content">
+            <div class="lead-magnet-header">
+                <button class="lead-magnet-close" onclick="closeLeadMagnet()">✕</button>
+            </div>
+            <div class="lead-magnet-body">
+                <div class="lead-magnet-icon">📋</div>
+                <h3>راهنمای رایگان چیدمان فروشگاه</h3>
+                <p>دریافت راهنمای جامع ۲۰ صفحه‌ای چیدمان فروشگاه با نکات عملی و مثال‌های واقعی</p>
+
+                <div class="lead-magnet-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✅</span>
+                        <span>۱۰ تکنیک اثبات شده چیدمان</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✅</span>
+                        <span>مطالعات موردی واقعی</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✅</span>
+                        <span>چک‌لیست عملی پیاده‌سازی</span>
+                    </div>
+                </div>
+
+                <form class="lead-magnet-form" onsubmit="submitLeadMagnet(event)">
+                    <input type="email" id="leadEmail" placeholder="ایمیل شما" required>
+                    <button type="submit" class="lead-magnet-submit">
+                        <span>دریافت راهنمای رایگان</span>
+                        <span class="download-icon">📥</span>
+                    </button>
+                </form>
+
+                <div class="lead-magnet-footer">
+                    <small>بدون اسپم • لغو اشتراک در هر زمان</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Video Demo Modal -->
     <div class="video-modal" id="videoModal" style="display: none;">
         <div class="video-modal-overlay" onclick="closeVideoModal()"></div>
@@ -4420,10 +4622,108 @@
 
         // Close modal on Escape key
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && document.getElementById('videoModal').style.display === 'flex') {
-                closeVideoModal();
+            if (event.key === 'Escape') {
+                if (document.getElementById('videoModal').style.display === 'flex') {
+                    closeVideoModal();
+                }
+                if (document.getElementById('leadMagnetPopup').style.display === 'flex') {
+                    closeLeadMagnet();
+                }
             }
         });
+
+        // Lead Magnet Popup Functions
+        function showLeadMagnet() {
+            // Check if already shown or user submitted email
+            if (localStorage.getItem('leadMagnetShown') || localStorage.getItem('leadEmailSubmitted')) {
+                return;
+            }
+
+            document.getElementById('leadMagnetPopup').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            localStorage.setItem('leadMagnetShown', 'true');
+
+            // Send analytics event
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'lead_magnet_shown', {
+                    event_category: 'engagement',
+                    event_label: 'exit_intent_popup'
+                });
+            }
+        }
+
+        function closeLeadMagnet() {
+            document.getElementById('leadMagnetPopup').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function submitLeadMagnet(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('leadEmail').value;
+
+            // Basic email validation
+            if (!email || !email.includes('@')) {
+                alert('لطفاً یک ایمیل معتبر وارد کنید');
+                return;
+            }
+
+            // Store email and mark as submitted
+            localStorage.setItem('leadEmailSubmitted', 'true');
+
+            // Send to analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'lead_magnet_submit', {
+                    event_category: 'engagement',
+                    event_label: 'free_guide_signup',
+                    value: email
+                });
+            }
+
+            // Show success message
+            alert('✅ راهنمای رایگان به ایمیل شما ارسال شد!');
+            closeLeadMagnet();
+
+            // Here you would normally send the email to your backend
+            // For now, we'll just show a success message
+        }
+
+        // Show lead magnet after 30 seconds or on exit intent
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show after 30 seconds
+            setTimeout(showLeadMagnet, 30000);
+
+            // Show on exit intent (mouse leaving page)
+            let mouseLeft = false;
+            document.addEventListener('mouseleave', function(event) {
+                if (event.clientY <= 0 && !mouseLeft) {
+                    mouseLeft = true;
+                    setTimeout(showLeadMagnet, 1000); // Small delay to avoid false triggers
+                }
+            });
+
+            // Reset mouseLeft when mouse enters
+            document.addEventListener('mouseenter', function() {
+                mouseLeft = false;
+            });
+        });
+
+        // Load Tidio Live Chat
+        (function() {
+            // Tidio Chat Integration
+            var script = document.createElement('script');
+            script.src = '//code.tidio.co/YOUR_TIDIO_ID.js'; // Replace with actual Tidio ID
+            script.async = true;
+            document.head.appendChild(script);
+
+            // Fallback if Tidio fails to load
+            setTimeout(function() {
+                if (typeof tidioChatApi === 'undefined') {
+                    console.warn('Tidio chat failed to load');
+                    // You could show a fallback chat button here
+                }
+            }, 5000);
+        })();
     </script>
 
     <script>
