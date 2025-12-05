@@ -116,21 +116,30 @@ class FAQService:
     def get_faq_categories(self) -> List[Dict[str, Any]]:
         """دریافت دسته‌بندی‌های FAQ"""
         try:
-            categories = FAQCategory.objects.filter(is_active=True).order_by('order', 'name')
-            
-            results = []
-            for category in categories:
-                faq_count = FAQ.objects.filter(category=category, is_active=True).count()
-                results.append({
-                    'id': category.id,
-                    'name': category.name,
-                    'description': category.description,
-                    'icon': category.icon,
-                    'faq_count': faq_count
-                })
-            
-            return results
-            
+            # بررسی وجود مدل FAQCategory و FAQ
+            try:
+                from ..models import FAQCategory as FAQCategoryModel
+                from ..models import FAQ as FAQModel
+                categories = FAQCategoryModel.objects.filter(is_active=True).order_by('order', 'name')
+
+                results = []
+                for category in categories:
+                    faq_count = FAQModel.objects.filter(category=category, is_active=True).count()
+                    results.append({
+                        'id': category.id,
+                        'name': category.name,
+                        'description': category.description,
+                        'icon': category.icon,
+                        'faq_count': faq_count
+                    })
+
+                return results
+
+            except ImportError:
+                # اگر مدل‌های FAQ وجود ندارند، لیست خالی برگردان
+                logger.warning("FAQ models not available, returning empty categories")
+                return []
+
         except Exception as e:
             logger.error(f"خطا در دریافت دسته‌بندی‌ها: {e}")
             return []
