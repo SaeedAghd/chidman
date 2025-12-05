@@ -56,7 +56,16 @@ def payment_packages(request):
         packages = list(ServicePackage.objects.filter(is_active=True).order_by('sort_order', 'price'))
         # Determine discount percentage from admin settings cache if set; default to 90
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 60)
+        # سیستم تخفیف افتتاحیه: ۹۰% برای ۵ روز اول، سپس ۶۰%
+        from datetime import datetime, timezone
+        launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
+        current_date = datetime.now(timezone.utc)
+        days_since_launch = (current_date - launch_date).days
+
+        if days_since_launch <= 5:
+            discount_pct = 90  # تخفیف افتتاحیه
+        else:
+            discount_pct = 60  # تخفیف دائمی
         # Attach discounted price to each package for template
         from decimal import Decimal, ROUND_HALF_UP
         for pkg in packages:
@@ -115,7 +124,16 @@ def create_payment(request, package_id):
                 from django.core.cache import cache
                 from decimal import Decimal, ROUND_HALF_UP
                 admin_settings = cache.get('admin_settings', {}) or {}
-                discount_pct = admin_settings.get('discount_percentage', 60)
+                # سیستم تخفیف افتتاحیه: ۹۰% برای ۵ روز اول، سپس ۶۰%
+        from datetime import datetime, timezone
+        launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
+        current_date = datetime.now(timezone.utc)
+        days_since_launch = (current_date - launch_date).days
+
+        if days_since_launch <= 5:
+            discount_pct = 90  # تخفیف افتتاحیه
+        else:
+            discount_pct = 60  # تخفیف دائمی
                 
                 # Admin test mode: All packages cost 1,000 Toman (10,000 Rials) for testing
                 if request.user.is_staff:
@@ -340,7 +358,16 @@ def create_payment(request, package_id):
         from django.core.cache import cache
         from decimal import Decimal, ROUND_HALF_UP
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 60)
+        # سیستم تخفیف افتتاحیه: ۹۰% برای ۵ روز اول، سپس ۶۰%
+        from datetime import datetime, timezone
+        launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
+        current_date = datetime.now(timezone.utc)
+        days_since_launch = (current_date - launch_date).days
+
+        if days_since_launch <= 5:
+            discount_pct = 90  # تخفیف افتتاحیه
+        else:
+            discount_pct = 60  # تخفیف دائمی
         
         # Admin test mode: Show 1,000 Toman for testing
         if request.user.is_staff:

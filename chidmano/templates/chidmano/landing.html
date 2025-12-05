@@ -1456,6 +1456,81 @@
             }
         }
 
+        /* Launch Countdown Timer */
+        .launch-countdown {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            margin: 2rem 0;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        .countdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .fire-icon {
+            font-size: 1.5rem;
+            animation: bounce 1s infinite;
+        }
+
+        .countdown-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timer-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 0.8rem;
+            border-radius: 10px;
+            min-width: 60px;
+        }
+
+        .timer-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .timer-label {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 0.2rem;
+        }
+
+        .countdown-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3); }
+            100% { box-shadow: 0 10px 40px rgba(255, 107, 107, 0.5); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
+        }
+
         /* Trust Signals پیشرفته */
         .trust-signals-row {
             display: flex;
@@ -2305,12 +2380,35 @@
                         📊 تحلیل مسیر دید و حرکت مشتری‌های شما برای افزایش فروش تا <span class="highlight-number">30%</span>
                     </p>
 
+                    <!-- Countdown Timer for Launch Discount -->
+                    <div class="launch-countdown" id="launch-countdown">
+                        <div class="countdown-header">
+                            <span class="fire-icon">🔥</span>
+                            <span class="countdown-title">تخفیف افتتاحیه ۹۰%</span>
+                        </div>
+                        <div class="countdown-timer">
+                            <div class="timer-item">
+                                <span class="timer-value" id="days">5</span>
+                                <span class="timer-label">روز</span>
+                            </div>
+                            <div class="timer-item">
+                                <span class="timer-value" id="hours">12</span>
+                                <span class="timer-label">ساعت</span>
+                            </div>
+                            <div class="timer-item">
+                                <span class="timer-value" id="minutes">30</span>
+                                <span class="timer-label">دقیقه</span>
+                            </div>
+                            <div class="timer-item">
+                                <span class="timer-value" id="seconds">45</span>
+                                <span class="timer-label">ثانیه</span>
+                            </div>
+                        </div>
+                        <div class="countdown-subtitle">تا پایان تخفیف ویژه!</div>
+                    </div>
+
                     <!-- Trust Signals -->
                     <div class="hero-trust-signals">
-                        <div class="trust-signal">
-                            <span class="trust-icon">💰</span>
-                            <span>تخفیف ۶۰% دائمی</span>
-                        </div>
                         <div class="trust-signal">
                             <span class="trust-icon">⚡</span>
                             <span>نتایج در کمتر از 30 دقیقه</span>
@@ -2318,6 +2416,10 @@
                         <div class="trust-signal">
                             <span class="trust-icon">🛡️</span>
                             <span>ضمانت کیفیت 30 روزه</span>
+                        </div>
+                        <div class="trust-signal">
+                            <span class="trust-icon">🎯</span>
+                            <span>افزایش فروش تا 50%</span>
                         </div>
                     </div>
                     
@@ -2638,6 +2740,20 @@
                 .trust-signal {
                     font-size: 0.8rem;
                     padding: 0.6rem 1rem;
+                }
+
+                .launch-countdown {
+                    padding: 1rem 1.5rem;
+                    margin: 1.5rem 0;
+                }
+
+                .countdown-timer {
+                    gap: 0.5rem;
+                }
+
+                .timer-item {
+                    padding: 0.4rem 0.6rem;
+                    min-width: 50px;
                 }
 
                 .hero-buttons-modern {
@@ -3888,12 +4004,12 @@
                                 </div>
                             </div>
 
-                            <!-- تخفیف ویژه -->
+                            <!-- تخفیف افتتاحیه -->
                             <div class="trust-badge">
-                                <div class="badge-icon">💰</div>
+                                <div class="badge-icon">🔥</div>
                                 <div class="badge-text">
-                                    <div class="badge-title">۶۰% تخفیف</div>
-                                    <div class="badge-subtitle">دائمی</div>
+                                    <div class="badge-title">۹۰% تخفیف</div>
+                                    <div class="badge-subtitle">افتتاحیه</div>
                                 </div>
                             </div>
 
@@ -4014,6 +4130,39 @@
                     console.warn('A/B Testing error:', error);
                 }
             });
+        })();
+
+        // Launch Countdown Timer
+        (function() {
+            function updateCountdown() {
+                // تاریخ پایان تخفیف افتتاحیه (۵ روز بعد از شروع)
+                const launchDate = new Date('2025-12-05T00:00:00Z');
+                const endDate = new Date(launchDate);
+                endDate.setDate(launchDate.getDate() + 5);
+
+                const now = new Date();
+                const timeLeft = endDate - now;
+
+                if (timeLeft <= 0) {
+                    // تخفیف افتتاحیه تمام شده
+                    document.getElementById('launch-countdown').style.display = 'none';
+                    return;
+                }
+
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('minutes').textContent = minutes;
+                document.getElementById('seconds').textContent = seconds;
+            }
+
+            // بروزرسانی هر ثانیه
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
         })();
     </script>
 

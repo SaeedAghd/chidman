@@ -281,8 +281,26 @@ def calculate_analysis_cost(form_data):
         
         if current_date <= launch_end_date:
             # تخفیف 90% افتتاحیه
-            discount_percentage = 60
-            discount = total * Decimal('0.60')  # 60% تخفیف
+            # سیستم تخفیف افتتاحیه: ۹۰% برای ۵ روز اول، سپس ۶۰%
+            from datetime import datetime, timezone
+            launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
+            current_date = datetime.now(timezone.utc)
+            days_since_launch = (current_date - launch_date).days
+
+            if days_since_launch <= 5:
+                discount_percentage = 90  # تخفیف افتتاحیه
+            else:
+                discount_percentage = 60  # تخفیف دائمی
+            # سیستم تخفیف افتتاحیه: ۹۰% برای ۵ روز اول، سپس ۶۰%
+            from datetime import datetime, timezone
+            launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
+            current_date = datetime.now(timezone.utc)
+            days_since_launch = (current_date - launch_date).days
+
+            if days_since_launch <= 5:
+                discount = total * Decimal('0.90')  # 90% تخفیف افتتاحیه
+            else:
+                discount = total * Decimal('0.60')  # 60% تخفیف دائمی
         
         # محاسبه قیمت نهایی
         final = total - discount  # 300,000 تومان
@@ -12077,7 +12095,16 @@ def products_page(request):
         from store_analysis.models import ServicePackage
         from django.core.cache import cache
         admin_settings = cache.get('admin_settings', {}) or {}
-        discount_pct = admin_settings.get('discount_percentage', 60)
+        # سیستم تخفیف افتتاحیه: ۹۰% برای ۵ روز اول، سپس ۶۰%
+        from datetime import datetime, timezone
+        launch_date = datetime(2025, 12, 5, tzinfo=timezone.utc)  # تاریخ شروع تخفیف افتتاحیه
+        current_date = datetime.now(timezone.utc)
+        days_since_launch = (current_date - launch_date).days
+
+        if days_since_launch <= 5:
+            discount_pct = 90  # تخفیف افتتاحیه
+        else:
+            discount_pct = 60  # تخفیف دائمی
         mapping_urls = {
             'basic': '/store/buy/basic/',
             'professional': '/store/buy/complete/',
