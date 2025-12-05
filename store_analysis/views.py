@@ -8732,9 +8732,9 @@ def store_analysis_form(request, analysis_id=None):
             if not request.user.is_authenticated and analysis and analysis.order:
                 request.session['pending_order_id'] = analysis.order.order_number
                 from django.urls import reverse
-                login_url = reverse('login') + f'?next={reverse("store_analysis:products")}'
+                login_url = reverse('login') + f'?next={reverse("store_analysis:products")}?form_completed=1'
                 return redirect(login_url)
-            
+
             return redirect('store_analysis:products')
             
         except Exception as e:
@@ -11221,7 +11221,7 @@ def forms_submit(request):
                             return JsonResponse({
                                 'success': True,
                                 'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
-                                'redirect_url': f'/store/products/',
+                                'redirect_url': f'/store/products/?form_completed=1',
                                 'payment_required': False
                             })
                         else:
@@ -11603,7 +11603,7 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
-                    'redirect_url': f'/store/products/',
+                    'redirect_url': f'/store/products/?form_completed=1',
                     'payment_required': False,
                     'analysis_id': store_analysis.id,
                     'files_count': len(uploaded_files),
@@ -11822,7 +11822,7 @@ def forms_submit(request):
                     return JsonResponse({
                         'success': True,
                         'message': '✅ فرم با موفقیت به‌روزرسانی شد!',
-                        'redirect_url': f'/store/products/',
+                        'redirect_url': f'/store/products/?form_completed=1',
                         'payment_required': False,
                         'analysis_id': store_analysis.id
                     })
@@ -12032,7 +12032,7 @@ def forms_submit(request):
                 return JsonResponse({
                     'success': True,
                     'message': '✅ فرم با موفقیت ثبت شد و تحلیل شروع شد! نتایج پس از چند دقیقه آماده خواهد بود.',
-                    'redirect_url': f'/store/products/',
+                    'redirect_url': f'/store/products/?form_completed=1',
                     'payment_required': False
                 })
             else:
